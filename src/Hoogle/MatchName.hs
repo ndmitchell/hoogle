@@ -57,8 +57,8 @@ buildName xs = NameTable $ map f xs
         
         getMode (Func{}) = "func"
         getMode (Keyword{}) = "keyword"
-        getMode (Class{}) = "keyword"
-        getMode (TypeAlias{}) = "keyword"
+        getMode (Class{}) = "class"
+        getMode (TypeAlias{}) = "type"
         getMode (Data b x) = if b then "newtype" else "data"
 
 
