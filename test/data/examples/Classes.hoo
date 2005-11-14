@@ -1,0 +1,10 @@
+module Classes
+data Data1
+Data1 :: Data1
+instance Class1 Data1
+instance Eq Data1
+instance Show Data1
+class Class1 x
+func1 :: Class1 x => x -> Bool
+func2 :: Class1 x => x -> x -> x
+func3 :: Class1 x => x -> x -> Bool

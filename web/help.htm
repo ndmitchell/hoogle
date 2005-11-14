@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+		<link href="res/hoogle.css" rel="stylesheet" type="text/css" />
+		<title>Hoogle - Help</title>
+	</head>
+	<body id="help">
+
+<div id="logo">
+	<a href=".">
+		<img src="res/hoogle_small.png" alt="Hoogle" />
+	</a>
+</div>
+
+<h1>Help</h1>
+
+<h2>Your first search</h2>
+
+<p>
+	The Haskell API Search can search for either names, or types. For example, to find the standard <tt>map :: (a -> b) -> [a] -> [b]</tt> function you could search for:
+	<br/><br/>
+	<tt>map</tt><br/>
+	<tt>(a -> b) -> [a] -> [b]</tt><br/>
+	<tt>(a -> a) -> [a] -> [a]</tt><br/>
+	<tt>(Int -> Bool) -> [Int] -> [Bool]</tt><br/>
+	<tt>[a] -> (a -> b) -> [b]</tt><br/>
+</p>
+
+<h2>The results in order</h2>
+
+<p>
+	The API search tries to find as many results as it can. For name searchs, an exact substring of the name must match (so <tt>ap</tt> would match <tt>map</tt>). For type searches, anything that will unify is returned. In addition, arguments can be reordered - i.e. <tt>[a] -> (a -> b) -> [b]</tt> will still match <tt>map</tt>.
+</p><p>
+	Because lots of results may be returned, they are sorted in order of usefulness. Those which are closer to the asked for information are given higher priority, those which are further are given lower priority.
+</p>
+
+<h2>Further Information</h2>
+
+<p>
+	After you have found the function, you can click on it to view details. The information comes from GHC's documentation.
+</p>
+
+<!--
+<h2>Using through Firefox</h2>
+
+<p>
+	To have a search entry for hoogle, click <a href="javascript:quicksearch()">here</a>. <i>Note: Sidebar does not work, spaces look a bit odd - perfectly useable but still beta</i>.
+</p><p>
+	To use the quicksearch facility, add a bookmark to this link: <a href="http://www-users.cs.york.ac.uk/~ndm/hoogle/?q=%s">Hoogle</a>. Go to the bookmark, select properties and type <tt>h</tt> as the keyword. Now from your browser you can type in the URL field something such as <tt>h map</tt>, and it will search for map.
+</p>
+-->
+
+	</body>
+</html>
+

@@ -1,0 +1,54 @@
+.HOO File Format
+================
+
+This document describes the file format for .hoo files
+
+These files are read by Hoogle to find out what functions are available
+
+
+Syntax
+------
+
+The file is a text file. Each line is one entry, there is no way to span a line over multiple lines. Blank lines are ignored. Any line in which the first character is a # is ignored, #'s appearing later on the same line are not comments. There is no indentation, all lines are trimmed before being examined.
+
+
+Module
+------
+
+The first content line of each file must be a module declaration. Once a module declaration is seen, all signatures after that are counted as being in that module. If another module declaration is given, then all subsequent lines are in that new module. This means that multiple hoo files concatentated are a valid hoo file.
+
+
+Declarations
+------------
+
+Some example declarations, if anything isn't clear ask.
+
+module Prelude
+module Data.Char
+
+instance Eq Bool
+instance (Eq a, Eq b) => Eq (a, b)
+
+True :: Bool
+False :: Bool
+
+data [] a
+: :: a -> [a] -> [] a
+[] :: [] a
+
+not :: Bool -> Bool
++ :: Num a -> a -> a -> a
+
+class Eq
+class Eq a => Ord a
+
+== :: Eq a => a -> a -> Bool
+
+type String = [Char]
+
+
+Generators
+----------
+
+The main way to generate hoo files is using hi2hoo, which requires the module to be built with GHC first. A haddock output format is also being written.
+

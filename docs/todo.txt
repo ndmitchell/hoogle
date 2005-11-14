@@ -1,0 +1,18 @@
+Tidy up the parser
+  Remove conflicts
+  Fix the 2 unused rules
+  Check the output of curried functions is correct
+  Parse errors "a[", should give an error message
+
+
+Sort out the proper probabilities
+
+Allow functions to be matched partially
+
+Allow function argument reordering
+
+If no results are returned, state that, instead of no output
+
+I think the unification is wrong in some cases
+
+Class information, i.e. which types belong to which classes

@@ -1,0 +1,25 @@
+#----------------------------------------------------------------------
+# Hoogle Search Plugin v0.1
+# Author: Mike Dodds <mike.dodds -AT- cs.york.ac.uk>
+
+<search
+ version="7.1"
+ name="Hoogle"
+ description="Hoogle Haskell API Search"
+ method="get"
+ action="http://www-users.cs.york.ac.uk/~ndm/hoogle/"
+ searchForm="http://www-users.cs.york.ac.uk/~ndm/hoogle/"
+ queryEncoding='UTF-8'
+ queryCharset='UTF-8'
+>
+
+<input name="q" user>
+
+</search>
+
+<browser
+  update="http://www-users.cs.york.ac.uk/~ndm/hoogle/hoogle.src"
+  updateicon="http://www-users.cs.york.ac.uk/~ndm/hoogle/hoogle.png"
+  updatecheckdays="3"
+>
+

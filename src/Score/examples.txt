@@ -1,0 +1,63 @@
+-- a list of examples
+-- used to generate a scoring system
+
+@ Ord a => [a] -> [a]
+Ord a => a -> [a] -> [a]
+[a] -> [a]
+a -> [a] -> [a]
+[a] -> [a] -> [a]
+
+@ Ord a => [a] -> [a]
+[a] -> [a]
+Int -> [a] -> [a]
+
+@ Ord a => [a] -> [a]
+[a] -> [a]
+a -> [a]
+
+@ [a] -> [b]
+(a -> b) -> [a] -> [b]
+[a] -> [a]
+Eq a => [a] -> [a]
+
+
+@ Int -> Bool
+a -> Int -> Bool
+a -> Bool
+Bool
+
+@ a -> b
+a -> b
+a -> b -> a
+a -> a
+Int -> a
+a
+
+@ a -> [(a,b)] -> b
+
+a -> [(a, b)] -> Maybe b
+[(k, a)] -> a
+a -> a -> a
+
+@ [a] -> a
+[a] -> Int -> a
+Ord a => [a] -> a
+[a] -> Bool
+Foo a => [a] -> a
+
+@ a -> b -> c
+a -> b -> c -> d
+Int -> b -> c
+a -> a -> a
+Ord a => a -> a -> a
+a -> a
+Bool -> a -> a
+
+@ (a, b) -> a
+(a, b) -> b
+a -> a
+a
+
+@ (a -> b) -> [a] -> [b]
+(a -> [b]) -> [a] -> [b]
+(a -> a -> Bool) -> a -> [a] -> [a]

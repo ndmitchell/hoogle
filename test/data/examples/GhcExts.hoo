@@ -1,0 +1,18 @@
+
+module GhcExts
+data Data1
+Data2 :: a -> (a -> Bool) -> Data1
+Data3 :: Data1
+data Baz
+Baz1 :: Eq a => a -> a -> Baz
+Baz2 :: Show b => b -> (b -> b) -> Baz
+class Seq s a
+element :: (Seq s a, Eq a) => a -> s a -> Bool
+class Foo a b c 
+none :: Foo a b c => c -> Bool
+func1 :: Int# -> Float#
+func2 :: a -> b -> a
+func3 :: (Ord a, Eq  b) => a -> b -> a
+func4 :: (a -> a) -> Int -> Int
+func5 :: Eq a => ([a] -> a -> Bool) -> Int -> Int
+func6 :: ((a -> a) -> Int) -> Bool -> Bool
