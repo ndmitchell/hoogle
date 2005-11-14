@@ -153,7 +153,7 @@ showResults input args =
 sherlock :: [Result] -> String
 sherlock xs = "\n<!--\n<sherlock>\n" ++ concatMap f xs ++ "</sherlock>\n-->\n"
     where
-        f (Result modu name typ _ _ _) =
+        f (Result modu name typ _ _ _ _) =
             "<item>" ++ hoodoc modu (Just name) ++
             "<abbr title='" ++ escapeHTML (showText typ) ++ "'>" ++ 
             showTags name ++ "</abbr> " ++
@@ -180,7 +180,7 @@ showTagsLimit n x = if length s > n then take (n-2) s ++ ".." else s
 
 
 showResult :: Result -> String
-showResult (Result modu name typ _ _ _) = 
+showResult (Result modu name typ _ _ _ _) = 
     "<tr>" ++
         "<td class='mod'>" ++
             hoodoc modu Nothing ++ showTagsLimit 20 modu ++ "</a>." ++

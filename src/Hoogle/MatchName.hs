@@ -34,13 +34,13 @@ buildName xs = NameTable $ map f xs
     
         f (_, Module x) = (lcase (last x),
             Result (Str $ showModuleName (init x)) (Str $ last x)
-                   (Tag "u" $ Str "module") [] 0 0,
+                   (Tag "u" $ Str "module") "module" [] 0 0,
             False)
                    
         
         f (modu, x) = (lcase (getName x),
             Result (Str $ showModuleName modu) (Str $ getName x)
-                   (getType x) [] 0 (length modu),
+                   (getType x) (getMode x) [] 0 (0 - length modu),
             head (asString x) == '(')
 
 
@@ -54,6 +54,12 @@ buildName xs = NameTable $ map f xs
             Tags [Tag "u" $ Str "type", Str $ concatMap (' ':) (name:args)]
         getType (Data b x) = 
             Tags [Tag "u" $ Str (if b then "newtype" else "data"), Str $ " " ++ showConType x]
+        
+        getMode (Func{}) = "func"
+        getMode (Keyword{}) = "keyword"
+        getMode (Class{}) = "keyword"
+        getMode (TypeAlias{}) = "keyword"
+        getMode (Data b x) = if b then "newtype" else "data"
 
 
 

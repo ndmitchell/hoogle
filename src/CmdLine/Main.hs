@@ -76,7 +76,7 @@ hoogle p verbose count color x =
 
 
 showResult :: Bool -> Result -> String
-showResult color (Result modu name typ _ _ _) = f modu ++ "." ++ f name ++ " :: " ++ f typ
+showResult color (Result modu name typ _ _ _ _) = f modu ++ "." ++ f name ++ " :: " ++ f typ
     where
         f x = if color then showTag x else showText x
         

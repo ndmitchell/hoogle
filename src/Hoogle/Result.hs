@@ -19,6 +19,7 @@ data Result = Result {
                   resultModule :: TagStr,
                   resultName :: TagStr,
                   resultType :: TagStr,
+                  resultMode :: String,
                   resultInfo :: [Reason],
                   resultScore :: Score,
                   resultPriority :: Int
@@ -31,10 +32,6 @@ instance Eq Result where
 
 instance Ord Result where
     compare a b = compare (resultScore b, resultPriority b) (resultScore a, resultPriority a)
-
-
-result :: TagStr -> TagStr -> TagStr -> [Reason] -> Int -> Result
-result a b c d e = Result a b c d (score d) (0-e)
 
 
 -- some typical tags

@@ -110,12 +110,15 @@ lookupType classes (TypeTable types) find = mapMaybe f types
         
         f (modu, item, code) = do (order, a) <- checkTypeOne classes code find
                                   (_,     b) <- checkTypeOne classes findCode (typ item)
-                                  return $ result
+                                  let reasons = map ReasonLeft a ++ map ReasonRight b
+                                  return $ Result
                                       (Str $ showModuleName modu)
                                       (Str $ name item)
                                       (showTypeTags (typ item) order)
-                                      (map ReasonLeft a ++ map ReasonRight b)
-                                      (length modu)
+                                      "func"
+                                      reasons
+                                      (score reasons)
+                                      (0 - length modu)
 
 
 checkTypeOne :: ClassTable -> TypeCode -> ConType -> Maybe ([Int], [MatchAmount])
