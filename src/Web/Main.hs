@@ -14,9 +14,8 @@
 
 module Web.Main where
 
-import Hoogle.Match
+import Hoogle.Hoogle
 import Hoogle.TextUtil
-import Hoogle.TypeSig
 
 import Web.CGI
 
@@ -38,11 +37,14 @@ fakeArgs = return $ [("q","map"), ("format","sherlock")]
 
 -- | The main function
 main :: IO ()
-main = do x <- if debugOut then fakeArgs else cgiArgs
+main = do args <- if debugOut then fakeArgs else cgiArgs
           putStr "Content-type: text/html\n\n"
-          appendFile "log.txt" (show x ++ "\n")
-          let args = lookupDef "" "q" x
-          if null args then hoogleBlank else hoogle args x
+          appendFile "log.txt" (show args ++ "\n")
+          let input = lookupDef "" "q" args
+          if null input then hoogleBlank
+           else case hoogleParse input of
+                    Right x -> showError input x
+                    Left x -> showResults x args
 
 
 lookupDef :: Eq key => val -> key -> [(key, val)] -> val
@@ -78,41 +80,52 @@ outputFile x = do src <- readFile ("res/" ++ x ++ ".inc")
                   putLine src
 
 
--- | Perform a search, dump the results using 'putLine'
-hoogle :: String -> [(String, String)] -> IO ()
-hoogle args other =
+showError :: String -> String -> IO ()
+showError input err =
     do
-    
         debugInit
-        outputFileParam "prefix" args
-        raw <- matchOrdered "res/hoogle.txt" args
-        let (err, res) = case raw of
-                              Left x -> ("error: " ++ err, [])
-                              Right x -> ("", x)
-            lres = length res
-            search = formatSearchString args
+        outputFileParam "prefix" input
+        outputFileParam "error" err
+        outputFileParam "suffix" input
+        
+
+
+-- | Perform a search, dump the results using 'putLine'
+showResults :: Search -> [(String, String)] -> IO ()
+showResults input args =
+    do
+        res <- hoogleResults "res/hoogle.txt" input
+        let lres = length res
+            search = hoogleSearch input
+            tSearch = showText search
             useres = take num $ drop start res
+
+        debugInit
+        outputFileParam "prefix" tSearch
 
         putLine $ 
             "<table id='heading'><tr><td>Searched for " ++ showTags search ++
             "</td><td id='count'>" ++
             (if lres == 0 then "No results found" else f lres) ++
             "</td></tr></table>"
+        
+        case hoogleSuggest True input of
+            Nothing -> return ()
+            Just x -> putLine $ "<p id='suggest'>" ++ showTags x ++ "</p>"
 
-        if not (null err) then outputFileParam "error" args
-            else if null res then outputFileParam "noresults" args
-            else putLine $ "<table id='results'>" ++ concatMap showResult useres ++ "</table>"
+        if null res then outputFileParam "noresults" tSearch
+         else putLine $ "<table id='results'>" ++ concatMap showResult useres ++ "</table>"
         
         putLine $ g lres
         
         putLine $ if format == "sherlock" then sherlock useres else ""
 
-        outputFileParam "suffix" args
+        outputFileParam "suffix" tSearch
     where
-        start = lookupDefInt 0 "start" other
-        num   = lookupDefInt 25 "num"  other
-        format = lookupDef "" "format" other
-        nostart = filter ((/=) "start" . fst) other
+        start = lookupDefInt 0 "start" args
+        num   = lookupDefInt 25 "num"  args
+        format = lookupDef "" "format" args
+        nostart = filter ((/=) "start" . fst) args
         
         showPrev len pos = if start <= 0 then "" else
             "<a href='?" ++ asCgi (("start",show (max 0 (start-num))):nostart) ++ "'><img src='res/" ++ pos ++ "_left.png' /></a> "
@@ -149,31 +162,21 @@ sherlock xs = "\n<!--\n<sherlock>\n" ++ concatMap f xs ++ "</sherlock>\n-->\n"
 
 
                  
-showTags :: TagString -> String
+showTags :: TagStr -> String
 showTags (Str x) = x
-showTags (Tag 0 x) = "<b>" ++ showTags x ++ "</b>"
-showTags (Tag n x) = "<span class='c" ++ show n ++ "'>" ++ showTags x ++ "</span>"
+showTags (Tag "b" x) = "<b>" ++ showTags x ++ "</b>"
+showTags (Tag "u" x) = "<i>" ++ showTags x ++ "</i>"
+showTags (Tag "a" x) = "<a href='?q=" ++ escape (showText x) ++ "'>" ++ showTags x ++ "</a>"
+showTags (Tag [n] x) | n >= '1' && n <= '6' = 
+    "<span class='c" ++ n : "'>" ++ showTags x ++ "</span>"
+showTags (Tag n x) = showTags x
 showTags (Tags xs) = concatMap showTags xs
 
 
-showTagsLimit :: Int -> TagString -> String
-showTagsLimit n x = if left < 0 then res ++ ".." else res
+showTagsLimit :: Int -> TagStr -> String
+showTagsLimit n x = if length s > n then take (n-2) s ++ ".." else s
     where
-        (left, res) = f n x
-        
-        f n (Str x) = if lx > n then (-1, take n x) else (n - lx, x)
-            where lx = length x
-        
-        f n (Tag 0 x) = (left, "<b>" ++ res ++ "</b>")
-            where (left, res) = f n x
-        f n (Tag c x) = (left, "<span class='c" ++ show c ++ "'>" ++ res ++ "</span>")
-        
-        f n (Tags []) = (n, "")
-        f n (Tags (x:xs)) = if left == -1 then (left, res) else (left2, res ++ res2)
-            where
-                (left, res) = f n x
-                (left2, res2) = f left (Tags xs)
-        
+        s = showText x
 
 
 showResult :: Result -> String
@@ -191,7 +194,7 @@ showResult (Result modu name typ _ _ _) =
            openA = hoodoc modu (Just name)
 
 
-hoodoc :: TagString -> Maybe TagString -> String
+hoodoc :: TagStr -> Maybe TagStr -> String
 hoodoc modu func = case func of
                         Nothing -> f $ showText modu
                         Just x -> f $ showText modu ++ "&amp;func=" ++ escape (showText x)
