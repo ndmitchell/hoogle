@@ -21,39 +21,45 @@ import List
 
 
 main = do x <- cgiArgs
-          let modu = lookup "module" x
-              func = case lookup "func" x of
-                         Nothing -> ""
-                         Just a -> trimBrackets a
-                         
-          page <- case modu of
-                      Just a -> calcPage a func
-                      Nothing -> return failPage
+          let modu = fromJust $ lookup "module" x
+              mode = fromJust $ lookup "mode" x
+              name = case lookup "name" x of
+                        Nothing -> ""
+                        Just ('(':xs) -> init xs
+                        Just x -> x
+                        
+          page <- hoodoc mode modu name
           putStr $ "Location: " ++ page ++ "\n\n"
-          
+
+
+hoodoc :: String -> String -> String -> IO String
+hoodoc "module" modu name = calcPage modu
+
+hoodoc "keyword" modu name = return "http://www.haskell.org/hawiki/Keywords"
+
+hoodoc "func"  modu name = do x <- calcPage modu
+                              return $ x ++ "#v%3A" ++ escape name
+                               
+hoodoc _  modu name = do x <- calcPage modu
+                         return $ x ++ "#t%3A" ++ escape name
+
 
 
 failPage = "nodocs.htm"
 
 
-trimBrackets ('(':xs) = init xs
-trimBrackets xs = xs
-
-
-calcPage :: String -> String -> IO String
-calcPage modu func = do x <- readFile "res/documentation.txt"
-                        let xs = mapMaybe f $ lines x
-                        return $ case lookup modu xs of
-                            Just a -> urlPrefix ++ a ++ "/" ++ map g modu ++ ".html" ++ funcName
-                            Nothing -> failPage
+calcPage :: String -> IO String
+calcPage modu = do x <- readFile "res/documentation.txt"
+                   let xs = mapMaybe f $ lines x
+                   return $ case lookup modu xs of
+                       Just a -> urlPrefix ++ a ++ "/" ++ map g modu ++ ".html"
+                       Nothing -> failPage
     where
         urlPrefix = "http://haskell.org/ghc/docs/latest/html/libraries/"
     
         f ys = case break (== '\t') ys of
                    (a, [] ) -> Nothing
                    (a, b) -> Just (a, dropWhile isSpace b)
-                   
-        funcName = if null func then "" else "#v%3A" ++ escape func
                    
         g '.' = '-'
         g x   = x
