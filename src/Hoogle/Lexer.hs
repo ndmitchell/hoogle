@@ -33,7 +33,22 @@ data Lexeme = OpenSquare  -- ^ \[
             | ExSymbol    -- ^ \!
             | TypeName String -- ^ Ctor
             | VarName String  -- ^ func
-            deriving (Show, Eq)
+            deriving (Eq)
+
+
+instance Show Lexeme where
+    show OpenSquare  = "["
+    show ShutSquare  = "]"
+    show OpenRound   = "("
+    show ShutRound   = ")"
+    show Comma       = ","
+    show LineArrow   = "->"
+    show EqArrow     = "=>"
+    show EqSymbol    = "="
+    show TypeColon   = "::"
+    show ExSymbol    = "!"
+    show (TypeName x) = x
+    show (VarName  x) = x
 
 
 -- | The main lexer

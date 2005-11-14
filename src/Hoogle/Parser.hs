@@ -38,7 +38,7 @@ parse (VarName "class":x) = Left $ Class (readConType x)
 
 parse (VarName "instance":x) = Left $ Instance (readConType x)
 
-parse (VarName "keyword":VarName x:[]) = Left $ Keyword x
+parse (VarName "keyword":xs) = Left $ Keyword $ concatMap show xs
 
 parse (VarName "newtype":x) = Left $ Data True  (readConType x)
 parse (VarName "data"   :x) = Left $ Data False (readConType x)
