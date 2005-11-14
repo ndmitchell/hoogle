@@ -153,8 +153,8 @@ showResults input args =
 sherlock :: [Result] -> String
 sherlock xs = "\n<!--\n<sherlock>\n" ++ concatMap f xs ++ "</sherlock>\n-->\n"
     where
-        f (Result modu name typ _ _ _ _) =
-            "<item>" ++ hoodoc modu (Just name) ++
+        f res@(Result modu name typ _ _ _ _) =
+            "<item>" ++ hoodoc res True ++
             "<abbr title='" ++ escapeHTML (showText typ) ++ "'>" ++ 
             showTags name ++ "</abbr> " ++
             "<span style='font-size:small;'>(" ++ showText modu ++ ")</span></a>" ++
@@ -180,10 +180,10 @@ showTagsLimit n x = if length s > n then take (n-2) s ++ ".." else s
 
 
 showResult :: Result -> String
-showResult (Result modu name typ _ _ _ _) = 
+showResult res@(Result modu name typ _ _ _ _) = 
     "<tr>" ++
         "<td class='mod'>" ++
-            hoodoc modu Nothing ++ showTagsLimit 20 modu ++ "</a>." ++
+            hoodoc res False ++ showTagsLimit 20 modu ++ "</a>." ++
         "</td><td class='fun'>"
             ++ openA ++ showTags name ++ "</a>" ++
         "</td><td class='typ'>"
@@ -191,14 +191,20 @@ showResult (Result modu name typ _ _ _ _) =
         "</td>" ++
     "</tr>\n"
         where
-           openA = hoodoc modu (Just name)
+           openA = hoodoc res True
 
 
-hoodoc :: TagStr -> Maybe TagStr -> String
-hoodoc modu func = case func of
-                        Nothing -> f $ showText modu
-                        Just x -> f $ showText modu ++ "&amp;func=" ++ escape (showText x)
-    where f x = "<a href='hoodoc.cgi?module=" ++ x ++ "'>"
+hoodoc :: Result -> Bool -> String
+hoodoc res full = f $
+        if not full
+            then showText (resultModule res) ++ "&amp;mode=module"
+        else if resultMode res == "module"
+            then showText (resultModule res) ++ "." ++ showText (resultName res) ++ "&amp;mode=module"
+        else showText (resultModule res) ++
+             "&amp;name=" ++ escape (showText (resultName res)) ++
+             "&amp;mode=" ++ resultMode res
+    where
+        f x = "<a href='hoodoc.cgi?module=" ++ x ++ "'>"
 
 
 -- | The file to output to if 'debugOut' is True
