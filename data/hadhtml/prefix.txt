@@ -9,6 +9,9 @@ keyword |
 keyword ->
 keyword <-
 keyword @
+keyword !
+keyword ::
+keyword ~
 keyword as
 keyword case
 keyword class
