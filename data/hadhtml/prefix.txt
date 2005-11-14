@@ -38,4 +38,3 @@ keyword qualified
 keyword then
 keyword type
 keyword where
-keyword with
