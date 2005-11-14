@@ -239,3 +239,10 @@ h2 {
 	font-size: 10pt;
 	padding: 3px;
 }
+
+#suggest {
+	padding: 0px;
+	margin: 0px;
+	margin-left: 10px;
+	margin-bottom: 5px;
+}
