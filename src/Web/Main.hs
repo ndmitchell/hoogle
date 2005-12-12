@@ -183,7 +183,8 @@ showResult :: Result -> String
 showResult res@(Result modu name typ _ _ _ _) = 
     "<tr>" ++
         "<td class='mod'>" ++
-            hoodoc res False ++ showTagsLimit 20 modu ++ "</a>." ++
+            hoodoc res False ++ showTagsLimit 20 modu ++ "</a>" ++
+            (if null (showTags modu) then "" else ".") ++
         "</td><td class='fun'>"
             ++ openA ++ showTags name ++ "</a>" ++
         "</td><td class='typ'>"
@@ -197,13 +198,14 @@ showResult res@(Result modu name typ _ _ _ _) =
 hoodoc :: Result -> Bool -> String
 hoodoc res full = f $
         if not full
-            then showText (resultModule res) ++ "&amp;mode=module"
+            then modu ++ "&amp;mode=module"
         else if resultMode res == "module"
-            then showText (resultModule res) ++ "." ++ showText (resultName res) ++ "&amp;mode=module"
+            then modu ++ (if null modu then "" else ".") ++ showText (resultName res) ++ "&amp;mode=module"
         else showText (resultModule res) ++
              "&amp;name=" ++ escape (showText (resultName res)) ++
              "&amp;mode=" ++ resultMode res
     where
+        modu = showText (resultModule res)
         f x = "<a href='hoodoc.cgi?module=" ++ x ++ "'>"
 
 
