@@ -167,7 +167,11 @@ showTags :: TagStr -> String
 showTags (Str x) = x
 showTags (Tag "b" x) = "<b>" ++ showTags x ++ "</b>"
 showTags (Tag "u" x) = "<i>" ++ showTags x ++ "</i>"
-showTags (Tag "a" x) = "<a href='?q=" ++ escape (showText x) ++ "'>" ++ showTags x ++ "</a>"
+showTags (Tag "a" x) = "<a href='" ++ url ++ "'>" ++ showTags x ++ "</a>"
+    where
+        url = if "http://" `isPrefixOf` txt then txt else "?q=" ++ escape txt
+        txt = showText x
+        
 showTags (Tag [n] x) | n >= '1' && n <= '6' = 
     "<span class='c" ++ n : "'>" ++ showTags x ++ "</span>"
 showTags (Tag n x) = showTags x
