@@ -59,6 +59,12 @@ hoogleSuggest _ (Search _ (SearchName (x:xs))) | isDigit x =
 hoogleSuggest _ (Search _ (SearchName x)) | '\"' `elem` x =
         Just $ Str "Remember: Hoogle has no notion of quotes"
 
+hoogleSuggest True (Search _ (SearchName xs)) | xs == "google" =
+        Just $ Tags [Str "Hoogle says: ", Tag "a" (Str "http://www.google.com/"), Str " rocks!"]
+
+hoogleSuggest True (Search _ (SearchName (x:xs))) | xs == "oogle" =
+        Just $ Str "Hoogle says: Can't think of anything more interesting to search for?"
+
 hoogleSuggest _ _ = Nothing
 
 
