@@ -1,6 +1,6 @@
 
 module Hoogle.Hoogle(
-    hoogleParse, hoogleSearch, hoogleSuggest, hoogleResults, hoogleRange,
+    hoogleParse, hoogleParseError, hoogleSearch, hoogleSuggest, hoogleResults, hoogleRange,
     Search, module Hoogle.Result
     ) where
 
@@ -13,19 +13,26 @@ import List
 import Char
 
 
-hoogleParse :: String -> Either Search String
+hoogleParse :: String -> Search
 hoogleParse = parseSearch
 
 
+hoogleParseError :: Search -> Maybe String
+hoogleParseError (Search _ (SearchError x)) = Just x
+hoogleParseError _ = Nothing
+
+
 hoogleSearch :: Search -> TagStr
-hoogleSearch (SearchType x) = showTypeTags x [1..]
-hoogleSearch (SearchName x) = Tag "b" $ Str x
+hoogleSearch (Search _ (SearchType x)) = showTypeTags x [1..]
+hoogleSearch (Search _ (SearchName x)) = Tag "b" $ Str x
+hoogleSearch (Search x _) = Str x
 
 
 
 hoogleSuggest :: Bool -> Search -> Maybe TagStr
 
-hoogleSuggest _ (SearchType (c,t)) | any dubiousVar (allTVar t) = Just $ Tags
+hoogleSuggest _ (Search _ (SearchType (c,t))) |
+        any dubiousVar (allTVar t) = Just $ Tags
         [Str "Did you mean: ", Tag "a" (Tags $ f $ showConType (c, mapUnbound safeVar t))]
     where
         dubiousVar x = length x > 1
@@ -52,7 +59,7 @@ hoogleSuggest _ _ = Nothing
 
 
 hoogleResults :: FilePath -> Search -> IO [Result]
-hoogleResults = matchOrdered
+hoogleResults p (Search _ x) = matchOrdered p x
 
 hoogleRange :: FilePath -> Search -> Int -> Int -> IO [Result]
-hoogleRange = matchRange 
+hoogleRange p (Search _ x) = matchRange p x

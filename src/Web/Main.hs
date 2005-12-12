@@ -42,9 +42,10 @@ main = do args <- if debugOut then fakeArgs else cgiArgs
           appendFile "log.txt" (show args ++ "\n")
           let input = lookupDef "" "q" args
           if null input then hoogleBlank
-           else case hoogleParse input of
-                    Right x -> showError input x
-                    Left x -> showResults x args
+           else do let p = hoogleParse input
+                   case hoogleParseError p of
+                        Just x -> showError input x
+                        Nothing -> showResults p args
 
 
 lookupDef :: Eq key => val -> key -> [(key, val)] -> val

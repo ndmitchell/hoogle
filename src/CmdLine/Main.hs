@@ -53,9 +53,9 @@ test x = hoogle "" True 10 x
 hoogle :: FilePath -> Bool -> Int -> Bool -> String -> IO ()
 hoogle _ _ _ _ "" = putStr helpMsg
 hoogle p verbose count color x = 
-        case hoogleParse x of
-            Right x -> putStrLn $ "Hoogle Error: " ++ x
-            Left search -> 
+        case hoogleParseError search of
+            Just x -> putStrLn $ "Hoogle Error: " ++ x
+            Nothing -> 
                 do
                     case hoogleSuggest False search of
                         Just a -> putStrLn $ (if color then showTag else showText) a
@@ -69,6 +69,8 @@ hoogle p verbose count color x =
                         [] -> putStrLn "No matches found"
                         xs -> putStr $ unlines $ map f xs
     where
+        search = hoogleParse x
+    
         f res = showResult color res ++
                 if verbose
                 then " @ " ++ show (resultScore res) ++ " " ++ show (resultInfo res)

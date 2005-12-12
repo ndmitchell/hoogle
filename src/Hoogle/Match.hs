@@ -31,7 +31,7 @@ import List
 -- | The main drivers for hoogle
 matchUnordered
     :: FilePath -- ^ The full path to the hoogle file, if null then a default is used
-    -> Search -- ^ The string to search for, unparsed
+    -> SearchMode -- ^ The string to search for, unparsed
     -> IO [Result] -- ^ A list of Results, from best to worst
 matchUnordered path find =
     do 
@@ -43,14 +43,14 @@ matchUnordered path find =
 
 
 -- | 
-matchOrdered :: FilePath -> Search -> IO [Result]
+matchOrdered :: FilePath -> SearchMode -> IO [Result]
 matchOrdered path find =
     do res <- matchUnordered path find
        return $ sort res
 
 
 
-matchRange :: FilePath -> Search -> Int -> Int -> IO [Result]
+matchRange :: FilePath -> SearchMode -> Int -> Int -> IO [Result]
 matchRange path find 0 count =
     do res <- matchOrdered path find
        return $ take count res
