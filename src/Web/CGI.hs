@@ -22,8 +22,14 @@ import Numeric
 import List
 
 
+cgiVariable :: IO String
+cgiVariable = catch (getEnv "QUERY_STRING")
+                    (\ _ -> do x <- getArgs
+                               return $ concat $ intersperse " " x)
+
+
 cgiArgs :: IO [(String, String)]
-cgiArgs = do x <- getEnv "QUERY_STRING"
+cgiArgs = do x <- cgiVariable
              let args = if '=' `elem` x then x else "q=" ++ x
              return $ parseArgs args
 
