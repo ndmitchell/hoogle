@@ -53,6 +53,12 @@ hoogleSuggest True (SearchName xs@(_:_:_)) = Just $ Tags
         ,Tag "a" (Str $ ":: " ++ concat (intersperse " " xs))]
 -}
 
+hoogleSuggest _ (Search _ (SearchName (x:xs))) | isDigit x =
+        Just $ Str "Remember: Hoogle has no notion of numbers"
+
+hoogleSuggest _ (Search _ (SearchName x)) | '\"' `elem` x =
+        Just $ Str "Remember: Hoogle has no notion of quotes"
+
 hoogleSuggest _ _ = Nothing
 
 
