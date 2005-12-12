@@ -23,7 +23,7 @@ import Maybe
 
 
 -- | The abstract data type
-data NameTable = NameTable [(String, Result, Bool)]
+data NameTable = NameTable [(String, String, Result, Bool)]
                  deriving Show
 
 -- | build a 'NameTable'
@@ -32,16 +32,18 @@ buildName xs = NameTable $ map f xs
     where
         lcase = map toLower
     
-        f (_, Module x) = (lcase (last x),
+        f (_, Module x) = (lcase name, name,
             Result (Str $ showModuleName (init x)) (Str $ last x)
                    (Tag "u" $ Str "module") "module" [] 0 0,
             False)
+            where name = last x
                    
         
-        f (modu, x) = (lcase (getName x),
+        f (modu, x) = (lcase name, name,
             Result (Str $ showModuleName modu) (Str $ getName x)
                    (getType x) (getMode x) [] 0 (0 - length modu),
             head (asString x) == '(')
+            where name = getName x
 
 
         getName x = noBracket $ asString x
@@ -71,22 +73,27 @@ noBracket x = x
 lookupName :: NameTable -> String -> [Result]
 lookupName (NameTable xs) find = catMaybes $ map f xs
     where
-        find2 = map toLower $ noBracket find
+        findc = noBracket find
+        find2 = map toLower findc
     
-        f (fnd, res, b) = do (reason, pos) <- getMatch fnd
-                             return $ res{
-                                 resultName = brack b $ h pos (length find) (fromStr (resultName res)),
-                                 resultInfo = [ReasonText reason],
-                                 resultScore = score [ReasonText reason]
-                               }
+        f (fnd, orig, res, b) =
+            do (reason, pos) <- getMatch fnd orig
+               return $ res{
+                   resultName = brack b $ h pos (length find) (fromStr (resultName res)),
+                   resultInfo = [ReasonText reason],
+                   resultScore = score [ReasonText reason]
+                 }
                             
         fromStr (Str x) = x
 
-        getMatch :: String -> Maybe (TextAmount, Int)
-        getMatch fnd | find2 == fnd = Just (TextFull, 0)
-                     | find2 `isPrefixOf` fnd = Just (TextPrefix, 0)
-                     | find2 `isSuffixOf` fnd = Just (TextSuffix, length fnd - length find2)
-                     | otherwise = g fnd 0
+        getMatch :: String -> String -> Maybe (TextAmount, Int)
+        getMatch fnd orig
+            | findc == orig = Just (TextFullCase, 0)
+            | find2 == fnd  = Just (TextFull, 0)
+            | findc `isPrefixOf` orig = Just (TextPrefixCase, 0)
+            | find2 `isPrefixOf` fnd  = Just (TextPrefix, 0)
+            | find2 `isSuffixOf` fnd  = Just (TextSuffix, length fnd - length find2)
+            | otherwise = g fnd 0
                      
               
         g [] n = Nothing

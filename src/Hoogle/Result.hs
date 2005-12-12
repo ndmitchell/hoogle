@@ -74,7 +74,9 @@ instance Show Reason where
             isLeft _ = False
 
 
-data TextAmount = TextFull
+data TextAmount = TextFullCase
+                | TextFull
+                | TextPrefixCase
                 | TextPrefix
                 | TextSuffix
                 | TextSome
@@ -118,7 +120,9 @@ instance Scoreable Reason where
     --score (ReasonRight x) = score x
     
 instance Scoreable TextAmount where
-    score TextFull = 4
+    score TextFullCase = 6
+    score TextFull = 5
+    score TextPrefixCase = 4
     score TextPrefix = 3
     score TextSuffix = 2
     score TextSome = 1
