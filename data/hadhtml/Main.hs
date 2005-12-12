@@ -34,11 +34,22 @@ hoogledoc x = do filelist <- docFiles x
                  excludeExists <- doesFileExist "exclude.txt"
                  excludeSrc <- if excludeExists then readFile "exclude.txt" else return ""
                  prefix <- readFile "prefix.txt"
+                 h98 <- loadH98
                  
                  let filetext = zip filelist textlist
                      exclude = lines excludeSrc
-                     results = onlyOnce $ concatMap (uncurry (document exclude)) filetext
+                     results = onlyOnce $ h98 ++ concatMap (uncurry (document exclude)) filetext
                  writeFile "hoogle-ghc.txt" $ unlines (copyright ++ lines prefix ++ results)
+
+
+-- load up the libraries that GHC shows distain for...
+loadH98 :: IO [(String, [String])]
+loadH98 =  do x <- readFile "haskell98.txt"
+              return $ f $ filter (not . null) $ lines x
+    where
+        f [] = []
+        f (x:xs) = (drop 7 x,a) : f b
+            where (a,b) = break ("module" `isPrefixOf`) xs
 
 
 onlyOnce :: [(String, [String])] -> [String] 
