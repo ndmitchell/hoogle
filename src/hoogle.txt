@@ -2,46 +2,6 @@
 -- (C) Neil Mitchell 2005
 
 
--- list things which are implicit, not exported
-module Prelude
-data []
-(:) :: a -> [a] -> [a]
-[] :: [a]
-
-keyword |
-keyword ->
-keyword <-
-keyword @
-keyword !
-keyword ::
-keyword ~
-keyword _
-keyword as
-keyword case
-keyword class
-keyword data
-keyword default
-keyword deriving
-keyword do
-keyword else
-keyword forall
-keyword hiding
-keyword if
-keyword import
-keyword in
-keyword infix
-keyword infixl
-keyword infixr
-keyword instance
-keyword let
-keyword module
-keyword newtype
-keyword of
-keyword qualified
-keyword then
-keyword type
-keyword where
-
 module Array
 (!) :: Ix a => Array a b -> a -> b
 (//) :: Ix a => Array a b -> [(a,b)] -> Array a b
@@ -3263,7 +3223,7 @@ bracket_ :: IO a -> (a -> IO b) -> IO c -> IO c
 hClose :: Handle -> IO ()
 hFileSize :: Handle -> IO Integer
 hFlush :: Handle -> IO ()
-hGetBuffering :: Handle  -> IO BufferMode
+hGetBuffering :: Handle -> IO BufferMode
 hGetChar :: Handle -> IO Char
 hGetContents :: Handle -> IO String
 hGetLine :: Handle -> IO String
@@ -3281,7 +3241,7 @@ hPutStr :: Handle -> String -> IO ()
 hPutStrLn :: Handle -> String -> IO ()
 hReady :: Handle -> IO Bool
 hSeek :: Handle -> SeekMode -> Integer -> IO ()
-hSetBuffering :: Handle  -> BufferMode -> IO ()
+hSetBuffering :: Handle -> BufferMode -> IO ()
 hSetPosn :: HandlePosn -> IO ()
 hWaitForInput :: Handle -> Int -> IO Bool
 ioeGetErrorString :: IOError -> String
@@ -4413,6 +4373,7 @@ module Prelude
 (.) :: (b -> c) -> (a -> b) -> a -> c
 (/) :: Fractional a => a -> a -> a
 (/=) :: Eq a => a -> a -> Bool
+(:) :: a -> [a] -> [a]
 (<) :: Ord a => a -> a -> Bool
 (<=) :: Ord a => a -> a -> Bool
 (=<<) :: Monad m => (a -> m b) -> m a -> m b
@@ -4433,6 +4394,7 @@ Left :: a -> Either a b
 Nothing :: Maybe a
 Right :: b -> Either a b
 True :: Bool
+[] :: [a]
 abs :: Num a => a -> a
 acos :: Floating a => a -> a
 acosh :: Floating a => a -> a
@@ -4482,6 +4444,7 @@ data Int
 data Integer
 data Maybe a
 data Ordering
+data []
 decodeFloat :: RealFloat a => a -> (Integer,Int)
 div :: Integral a => a -> a -> a
 divMod :: Integral a => a -> a -> (a,a)
@@ -4711,6 +4674,39 @@ isInfinite :: RealFloat a => a -> Bool
 isNaN :: RealFloat a => a -> Bool
 isNegativeZero :: RealFloat a => a -> Bool
 iterate :: (a -> a) -> a -> [a]
+keyword !
+keyword ->
+keyword ::
+keyword <-
+keyword @
+keyword _
+keyword as
+keyword case
+keyword class
+keyword data
+keyword default
+keyword deriving
+keyword do
+keyword else
+keyword forall
+keyword hiding
+keyword if
+keyword import
+keyword in
+keyword infix
+keyword infixl
+keyword infixr
+keyword instance
+keyword let
+keyword module
+keyword newtype
+keyword of
+keyword qualified
+keyword then
+keyword type
+keyword where
+keyword |
+keyword ~
 last :: [a] -> a
 lcm :: Integral a => a -> a -> a
 length :: [a] -> Int
@@ -5027,13 +5023,11 @@ data SeekMode
 fixIO :: (a -> IO a) -> IO a
 hGetBuf :: Handle -> Ptr a -> Int -> IO Int
 hGetBufNonBlocking :: Handle -> Ptr a -> Int -> IO Int
-hGetBuffering :: Handle -> IO BufferMode
 hGetEcho :: Handle -> IO Bool
 hIsTerminalDevice :: Handle -> IO Bool
 hPutBuf :: Handle -> Ptr a -> Int -> IO ()
 hPutBufNonBlocking :: Handle -> Ptr a -> Int -> IO Int
 hSetBinaryMode :: Handle -> Bool -> IO ()
-hSetBuffering :: Handle -> BufferMode -> IO ()
 hSetEcho :: Handle -> Bool -> IO ()
 hSetFileSize :: Handle -> Integer -> IO ()
 hShow :: Handle -> IO String
@@ -5288,7 +5282,6 @@ Thursday :: Day
 TimeDiff :: Int -> Int -> Int -> Int -> Int -> Int -> Integer -> TimeDiff
 Tuesday :: Day
 Wednesday :: Day
-addToClockTime :: TimeDiff -> ClockTime -> ClockTime
 ctDay :: CalendarTime -> Int
 ctHour :: CalendarTime -> Int
 ctIsDST :: CalendarTime -> Bool
@@ -5342,8 +5335,6 @@ tdPicosec :: TimeDiff -> Integer
 tdSec :: TimeDiff -> Int
 tdYear :: TimeDiff -> Int
 timeDiffToString :: TimeDiff -> String
-toCalendarTime :: ClockTime -> IO CalendarTime
-toUTCTime :: ClockTime -> CalendarTime
 
 module System.Win32.DLL
 c_DisableThreadLibraryCalls :: HMODULE -> IO Bool
@@ -6928,11 +6919,11 @@ module Text.Show
 showListWith :: (a -> ShowS) -> [a] -> ShowS
 
 module Time
-addToClockTime :: TimeDiff  -> ClockTime -> ClockTime
+addToClockTime :: TimeDiff -> ClockTime -> ClockTime
 calendarTimeToString :: CalendarTime -> String
 diffClockTimes :: ClockTime -> ClockTime -> TimeDiff
 formatCalendarTime :: TimeLocale -> String -> CalendarTime -> String
 getClockTime :: IO ClockTime
-toCalendarTime :: ClockTime    -> IO CalendarTime
+toCalendarTime :: ClockTime -> IO CalendarTime
 toClockTime :: CalendarTime -> ClockTime
-toUTCTime :: ClockTime    -> CalendarTime
+toUTCTime :: ClockTime -> CalendarTime
