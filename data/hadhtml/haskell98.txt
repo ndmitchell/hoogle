@@ -147,12 +147,12 @@ bracket :: IO a -> (a -> IO b) -> (a -> IO c) -> IO c
 hPutStr :: Handle -> String -> IO ()
 hIsOpen :: Handle -> IO Bool
 hPutChar :: Handle -> Char -> IO ()
-hSetBuffering :: Handle  -> BufferMode -> IO ()
+hSetBuffering :: Handle -> BufferMode -> IO ()
 ioeGetFileName :: IOError -> Maybe FilePath
 stdin :: Handle
 isDoesNotExistError :: IOError -> Bool
 openFile :: FilePath -> IOMode -> IO Handle
-hGetBuffering :: Handle  -> IO BufferMode
+hGetBuffering :: Handle -> IO BufferMode
 hSeek :: Handle -> SeekMode -> Integer -> IO ()
 hWaitForInput :: Handle -> Int -> IO Bool
 hSetPosn :: HandlePosn -> IO ()
@@ -201,10 +201,10 @@ module Time
 formatCalendarTime :: TimeLocale -> String -> CalendarTime -> String
 diffClockTimes :: ClockTime -> ClockTime -> TimeDiff
 getClockTime :: IO ClockTime
-addToClockTime :: TimeDiff  -> ClockTime -> ClockTime
+addToClockTime :: TimeDiff -> ClockTime -> ClockTime
 toClockTime :: CalendarTime -> ClockTime
-toUTCTime :: ClockTime    -> CalendarTime
-toCalendarTime :: ClockTime    -> IO CalendarTime
+toUTCTime :: ClockTime -> CalendarTime
+toCalendarTime :: ClockTime -> IO CalendarTime
 calendarTimeToString :: CalendarTime -> String
 
 module Locale
