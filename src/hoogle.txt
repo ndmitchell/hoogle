@@ -12,6 +12,10 @@ keyword |
 keyword ->
 keyword <-
 keyword @
+keyword !
+keyword ::
+keyword ~
+keyword _
 keyword as
 keyword case
 keyword class
@@ -37,7 +41,57 @@ keyword qualified
 keyword then
 keyword type
 keyword where
-keyword with
+
+module Array
+(!) :: Ix a => Array a b -> a -> b
+(//) :: Ix a => Array a b -> [(a,b)] -> Array a b
+accum :: Ix a => (b -> c -> b) -> Array a b -> [(a,c)] -> Array a b
+accumArray :: Ix a => (b -> c -> b) -> b -> (a,a) -> [(a,c)] -> Array a b
+array :: Ix a => (a,a) -> [(a,b)] -> Array a b
+assocs :: Ix a => Array a b -> [(a,b)]
+bounds :: Ix a => Array a b -> (a,a)
+elems :: Ix a => Array a b -> [b]
+indices :: Ix a => Array a b -> [a]
+ixmap :: (Ix a, Ix b) => (a,a) -> (a -> b) -> Array b c -> Array a c
+listArray :: Ix a => (a,a) -> [b] -> Array a b
+
+module CPUTime
+cpuTimePrecision :: Integer
+getCPUTime :: IO Integer
+
+module Char
+chr :: Int -> Char
+digitToInt :: Char -> Int
+intToDigit :: Int -> Char
+isAlpha :: Char -> Bool
+isAlphaNum :: Char -> Bool
+isAscii :: Char -> Bool
+isControl :: Char -> Bool
+isDigit :: Char -> Bool
+isHexDigit :: Char -> Bool
+isLatin1 :: a -> Bool
+isLower :: Char -> Bool
+isOctDigit :: Char -> Bool
+isPrint :: Char -> Bool
+isSpace :: Char -> Bool
+isUpper :: Char -> Bool
+lexLitChar :: ReadS String
+ord :: Char -> Int
+readLitChar :: ReadS Char
+showLitChar :: Char -> ShowS
+toLower :: Char -> Char
+toUpper :: Char -> Char
+
+module Complex
+(:+) :: RealFloat a => a -> a -> Complex a
+cis :: RealFloat a => a -> Complex a
+conjugate :: RealFloat a => Complex a -> Complex a
+imagPart :: RealFloat a => Complex a -> a
+magnitude :: RealFloat a => Complex a -> a
+mkPolar :: RealFloat a => a -> a -> Complex a
+phase :: RealFloat a => Complex a -> a
+polar :: RealFloat a => Complex a -> (a,a)
+realPart :: RealFloat a => Complex a -> a
 
 module Control.Arrow
 (&&&) :: Arrow a => a b c -> a b c' -> a b (c,c')
@@ -214,7 +268,6 @@ assert :: Bool -> a -> a
 assertions :: Exception -> Maybe String
 asyncExceptions :: Exception -> Maybe AsyncException
 block :: IO a -> IO a
-bracket :: IO a -> (a -> IO b) -> (a -> IO c) -> IO c
 bracket_ :: IO a -> IO b -> IO c -> IO c
 catch :: IO a -> (Exception -> IO a) -> IO a
 catchDyn :: Typeable exception => IO a -> (exception -> IO a) -> IO a
@@ -695,34 +748,11 @@ testBit :: Bits a => a -> Int -> Bool
 xor :: Bits a => a -> a -> a
 
 module Data.Char
-chr :: Int -> Char
-digitToInt :: Char -> Int
-intToDigit :: Int -> Char
-isAlpha :: Char -> Bool
-isAlphaNum :: Char -> Bool
-isAscii :: Char -> Bool
-isControl :: Char -> Bool
-isDigit :: Char -> Bool
-isHexDigit :: Char -> Bool
 isLatin1 :: Char -> Bool
-isLower :: Char -> Bool
-isOctDigit :: Char -> Bool
-isPrint :: Char -> Bool
-isSpace :: Char -> Bool
-isUpper :: Char -> Bool
-lexLitChar :: ReadS String
-ord :: Char -> Int
-readLitChar :: ReadS Char
-showLitChar :: Char -> ShowS
-toLower :: Char -> Char
-toUpper :: Char -> Char
 
 module Data.Complex
 (:+) :: !a -> !a -> Complex a
-cis :: RealFloat a => a -> Complex a
-conjugate :: RealFloat a => Complex a -> Complex a
 data Complex a
-imagPart :: RealFloat a => Complex a -> a
 instance (RealFloat a, Eq a) => Eq (Complex a)
 instance (RealFloat a, NFData a) => NFData (Complex a)
 instance (RealFloat a, Read a) => Read (Complex a)
@@ -731,11 +761,7 @@ instance RealFloat a => Floating (Complex a)
 instance RealFloat a => Fractional (Complex a)
 instance RealFloat a => Num (Complex a)
 instance Typeable1 Complex
-magnitude :: RealFloat a => Complex a -> a
-mkPolar :: RealFloat a => a -> a -> Complex a
-phase :: RealFloat a => Complex a -> a
 polar :: RealFloat a => Complex a -> (a, a)
-realPart :: RealFloat a => Complex a -> a
 
 module Data.Dynamic
 data Dynamic
@@ -1638,53 +1664,23 @@ unions :: [IntSet] -> IntSet
 
 module Data.Ix
 class Ord a => Ix a
-inRange :: Ix a => (a,a) -> a -> Bool
-index :: Ix a => (a,a) -> a -> Int
-range :: Ix a => (a,a) -> [a]
-rangeSize :: Ix a => (a,a) -> Int
 
 module Data.List
-(\\) :: Eq a => [a] -> [a] -> [a]
-delete :: Eq a => a -> [a] -> [a]
-deleteBy :: (a -> a -> Bool) -> a -> [a] -> [a]
 deleteFirstsBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
 elemIndex :: Eq a => a -> [a] -> Maybe Int
-elemIndices :: Eq a => a -> [a] -> [Int]
-find :: (a -> Bool) -> [a] -> Maybe a
-findIndex :: (a -> Bool) -> [a] -> Maybe Int
-findIndices :: (a -> Bool) -> [a] -> [Int]
 foldl' :: (a -> b -> a) -> a -> [b] -> a
 foldl1' :: (a -> a -> a) -> [a] -> a
 genericDrop :: Integral i => i -> [a] -> [a]
-genericIndex :: Integral a => [b] -> a -> b
 genericLength :: Num i => [b] -> i
 genericReplicate :: Integral i => i -> a -> [a]
 genericSplitAt :: Integral i => i -> [b] -> ([b], [b])
 genericTake :: Integral i => i -> [a] -> [a]
-group :: Eq a => [a] -> [[a]]
-groupBy :: (a -> a -> Bool) -> [a] -> [[a]]
-inits :: [a] -> [[a]]
-insert :: Ord a => a -> [a] -> [a]
-insertBy :: (a -> a -> Ordering) -> a -> [a] -> [a]
-intersect :: Eq a => [a] -> [a] -> [a]
-intersectBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
-intersperse :: a -> [a] -> [a]
-isPrefixOf :: Eq a => [a] -> [a] -> Bool
-isSuffixOf :: Eq a => [a] -> [a] -> Bool
 mapAccumL :: (acc -> x -> (acc, y)) -> acc -> [x] -> (acc, [y])
 mapAccumR :: (acc -> x -> (acc, y)) -> acc -> [x] -> (acc, [y])
 maximumBy :: (a -> a -> Ordering) -> [a] -> a
 minimumBy :: (a -> a -> Ordering) -> [a] -> a
-nub :: Eq a => [a] -> [a]
-nubBy :: (a -> a -> Bool) -> [a] -> [a]
 partition :: (a -> Bool) -> [a] -> ([a], [a])
-sort :: Ord a => [a] -> [a]
-sortBy :: (a -> a -> Ordering) -> [a] -> [a]
-tails :: [a] -> [[a]]
-transpose :: [[a]] -> [[a]]
 unfoldr :: (b -> Maybe (a, b)) -> b -> [a]
-union :: Eq a => [a] -> [a] -> [a]
-unionBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
 unzip4 :: [(a, b, c, d)] -> ([a], [b], [c], [d])
 unzip5 :: [(a, b, c, d, e)] -> ([a], [b], [c], [d], [e])
 unzip6 :: [(a, b, c, d, e, f)] -> ([a], [b], [c], [d], [e], [f])
@@ -1693,10 +1689,6 @@ zip4 :: [a] -> [b] -> [c] -> [d] -> [(a, b, c, d)]
 zip5 :: [a] -> [b] -> [c] -> [d] -> [e] -> [(a, b, c, d, e)]
 zip6 :: [a] -> [b] -> [c] -> [d] -> [e] -> [f] -> [(a, b, c, d, e, f)]
 zip7 :: [a] -> [b] -> [c] -> [d] -> [e] -> [f] -> [g] -> [(a, b, c, d, e, f, g)]
-zipWith4 :: (a -> b -> c -> d -> e) -> [a] -> [b] -> [c] -> [d] -> [e]
-zipWith5 :: (a -> b -> c -> d -> e -> f) -> [a] -> [b] -> [c] -> [d] -> [e] -> [f]
-zipWith6 :: (a -> b -> c -> d -> e -> f -> g) -> [a] -> [b] -> [c] -> [d] -> [e] -> [f] -> [g]
-zipWith7 :: (a -> b -> c -> d -> e -> f -> g -> h) -> [a] -> [b] -> [c] -> [d] -> [e] -> [f] -> [g] -> [h]
 
 module Data.Map
 (!) :: Ord k => Map k a -> k -> a
@@ -1788,16 +1780,6 @@ updateMinWithKey :: (k -> a -> Maybe a) -> Map k a -> Map k a
 updateWithKey :: Ord k => (k -> a -> Maybe a) -> k -> Map k a -> Map k a
 valid :: Ord k => Map k a -> Bool
 
-module Data.Maybe
-catMaybes :: [Maybe a] -> [a]
-fromJust :: Maybe a -> a
-fromMaybe :: a -> Maybe a -> a
-isJust :: Maybe a -> Bool
-isNothing :: Maybe a -> Bool
-listToMaybe :: [a] -> Maybe a
-mapMaybe :: (a -> Maybe b) -> [a] -> [b]
-maybeToList :: Maybe a -> [a]
-
 module Data.Monoid
 class Monoid a
 mappend :: Monoid a => a -> a -> a
@@ -1856,10 +1838,7 @@ listToQueue :: [a] -> Queue a
 queueToList :: Queue a -> [a]
 
 module Data.Ratio
-(%) :: Integral a => a -> a -> Ratio a
-approxRational :: RealFrac a => a -> a -> Rational
 data Ratio a
-denominator :: Integral a => Ratio a -> a
 instance (Data a, Integral a) => Data (Ratio a)
 instance (Integral a, Eq a) => Eq (Ratio a)
 instance (Integral a, NFData a) => NFData (Ratio a)
@@ -1872,7 +1851,6 @@ instance Integral a => Real (Ratio a)
 instance Integral a => RealFrac (Ratio a)
 instance Integral a => Show (Ratio a)
 instance Typeable1 Ratio
-numerator :: Integral a => Ratio a -> a
 
 module Data.STRef
 data STRef s a
@@ -2145,6 +2123,25 @@ instance Typeable Word8
 module Debug.Trace
 putTraceMsg :: String -> IO ()
 trace :: String -> a -> a
+
+module Directory
+createDirectory :: FilePath -> IO ()
+doesDirectoryExist :: FilePath -> IO Bool
+doesFileExist :: FilePath -> IO Bool
+executable :: Permissions -> Bool
+getCurrentDirectory :: IO FilePath
+getDirectoryContents :: FilePath -> IO [FilePath]
+getModificationTime :: FilePath -> IO ClockTime
+getPermissions :: FilePath -> IO Permissions
+readable :: Permissions -> Bool
+removeDirectory :: FilePath -> IO ()
+removeFile :: FilePath -> IO ()
+renameDirectory :: FilePath -> FilePath -> IO ()
+renameFile :: FilePath -> FilePath -> IO ()
+searchable :: Permissions -> Bool
+setCurrentDirectory :: FilePath -> IO ()
+setPermissions :: FilePath -> Permissions -> IO ()
+writable :: Permissions -> Bool
 
 module Distribution.Compat.Directory
 copyFile
@@ -3260,6 +3257,57 @@ module GHC.Unicode
 isAsciiLower :: Char -> Bool
 isAsciiUpper :: Char -> Bool
 
+module IO
+bracket :: IO a -> (a -> IO b) -> (a -> IO c) -> IO c
+bracket_ :: IO a -> (a -> IO b) -> IO c -> IO c
+hClose :: Handle -> IO ()
+hFileSize :: Handle -> IO Integer
+hFlush :: Handle -> IO ()
+hGetBuffering :: Handle  -> IO BufferMode
+hGetChar :: Handle -> IO Char
+hGetContents :: Handle -> IO String
+hGetLine :: Handle -> IO String
+hGetPosn :: Handle -> IO HandlePosn
+hIsClosed :: Handle -> IO Bool
+hIsEOF :: Handle -> IO Bool
+hIsOpen :: Handle -> IO Bool
+hIsReadable :: Handle -> IO Bool
+hIsSeekable :: Handle -> IO Bool
+hIsWritable :: Handle -> IO Bool
+hLookAhead :: Handle -> IO Char
+hPrint :: Show a => Handle -> a -> IO ()
+hPutChar :: Handle -> Char -> IO ()
+hPutStr :: Handle -> String -> IO ()
+hPutStrLn :: Handle -> String -> IO ()
+hReady :: Handle -> IO Bool
+hSeek :: Handle -> SeekMode -> Integer -> IO ()
+hSetBuffering :: Handle  -> BufferMode -> IO ()
+hSetPosn :: HandlePosn -> IO ()
+hWaitForInput :: Handle -> Int -> IO Bool
+ioeGetErrorString :: IOError -> String
+ioeGetFileName :: IOError -> Maybe FilePath
+ioeGetHandle :: IOError -> Maybe Handle
+isAlreadyExistsError :: IOError -> Bool
+isAlreadyInUseError :: IOError -> Bool
+isDoesNotExistError :: IOError -> Bool
+isEOF :: IO Bool
+isEOFError :: IOError -> Bool
+isFullError :: IOError -> Bool
+isIllegalOperation :: IOError -> Bool
+isPermissionError :: IOError -> Bool
+isUserError :: IOError -> Bool
+openFile :: FilePath -> IOMode -> IO Handle
+stderr :: Handle
+stdin :: Handle
+stdout :: Handle
+try :: IO a -> IO (Either IOError a)
+
+module Ix
+inRange :: Ix a => (a,a) -> a -> Bool
+index :: Ix a => (a,a) -> a -> Int
+range :: Ix a => (a,a) -> [a]
+rangeSize :: Ix a => (a,a) -> Int
+
 module Language.Haskell.Parser
 ParseFailed :: SrcLoc -> String -> ParseResult a
 ParseMode :: String -> ParseMode
@@ -3981,6 +4029,89 @@ type StrictType = (Strict, Type)
 type Uniq = Int
 type VarStrictType = (Name, Strict, Type)
 
+module List
+(\\) :: Eq a => [a] -> [a] -> [a]
+delete :: Eq a => a -> [a] -> [a]
+deleteBy :: (a -> a -> Bool) -> a -> [a] -> [a]
+elemIndex :: Eq => a -> [a] -> Maybe Int
+elemIndices :: Eq a => a -> [a] -> [Int]
+find :: (a -> Bool) -> [a] -> Maybe a
+findIndex :: (a -> Bool) -> [a] -> Maybe Int
+findIndices :: (a -> Bool) -> [a] -> [Int]
+genericDrop :: Integral a => a -> [b] -> [b]
+genericIndex :: Integral a => [b] -> a -> b
+genericLength :: Integral a => [b] -> a
+genericReplicate :: Integral a => a -> b -> [b]
+genericSplitAt :: Integral a => a -> [b] -> ([b],[b])
+genericTake :: Integral a => a -> [b] -> [b]
+group :: Eq a => [a] -> [[a]]
+groupBy :: (a -> a -> Bool) -> [a] -> [[a]]
+inits :: [a] -> [[a]]
+insert :: Ord a => a -> [a] -> [a]
+insertBy :: (a -> a -> Ordering) -> a -> [a] -> [a]
+intersect :: Eq a => [a] -> [a] -> [a]
+intersectBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
+intersperse :: a -> [a] -> [a]
+isPrefixOf :: Eq a => [a] -> [a] -> Bool
+isSuffixOf :: Eq a => [a] -> [a] -> Bool
+mapAccumL :: (a -> b -> (a,c)) -> a -> [b] -> (a,[c])
+mapAccumR :: (a -> b -> (a,c)) -> a -> [b] -> (a,[c])
+maximumBy :: (a -> a -> a) -> [a] -> a
+minimumBy :: (a -> a -> a) -> [a] -> a
+nub :: Eq a => [a] -> [a]
+nubBy :: (a -> a -> Bool) -> [a] -> [a]
+partition :: (a -> Bool) -> [a] -> ([a],[a])
+sort :: Ord a => [a] -> [a]
+sortBy :: (a -> a -> Ordering) -> [a] -> [a]
+tails :: [a] -> [[a]]
+transpose :: [[a]] -> [[a]]
+unfoldr :: (a -> Maybe (b,a)) -> a -> [b]
+union :: Eq a => [a] -> [a] -> [a]
+unionBy :: (a -> a -> Bool) -> [a] -> [a] -> [a]
+unzip4 :: [(a,b,c,d)] -> ([a],[b],[c],[d])
+unzip5 :: [(a,b,c,d,e)] -> ([a],[b],[c],[d],[e])
+unzip6 :: [(a,b,c,d,e,f)] -> ([a],[b],[c],[d],[e],[f])
+unzip7 :: [(a,b,c,d,e,f,g)] -> ([a],[b],[c],[d],[e],[f],[g])
+zip4 :: [a] -> [b] -> [c] -> [d] -> [(a,b,c,d)]
+zip5 :: [a] -> [b] -> [c] -> [d] -> [e] -> [(a,b,c,d,e)]
+zip6 :: [a] -> [b] -> [c] -> [d] -> [e] -> [f] -> [(a,b,c,d,e,f)]
+zip7 :: [a] -> [b] -> [c] -> [d] -> [e] -> [f] -> [g] -> [(a,b,c,d,e,f,g)]
+zipWith4 :: (a -> b -> c -> d -> e) -> [a] -> [b] -> [c] -> [d] -> [e]
+zipWith5 :: (a -> b -> c -> d -> e -> f) -> [a] -> [b] -> [c] -> [d] -> [e] -> [f]
+zipWith6 :: (a -> b -> c -> d -> e -> f -> g) -> [a] -> [b] -> [c] -> [d] -> [e] -> [f] -> [g]
+zipWith7 :: (a -> b -> c -> d -> e -> f -> g -> h) -> [a] -> [b] -> [c] -> [d] -> [e] -> [f] -> [g] -> [h]
+
+module Locale
+defaultTimeLocale :: TimeLocale
+
+module Maybe
+catMaybes :: [Maybe a] -> [a]
+fromJust :: Maybe a -> a
+fromMaybe :: a -> Maybe a -> a
+isJust :: Maybe a -> Bool
+isNothing :: Maybe a -> Bool
+listToMaybe :: [a] -> Maybe a
+mapMaybe :: (a -> Maybe b) -> [a] -> [b]
+maybeToList :: Maybe a -> [a]
+
+module Monad
+ap :: Monad a => a (b -> c) -> a b -> a c
+filterM :: Monad a => (b -> a Bool) -> [b] -> a [b]
+foldM :: Monad a => (b -> c -> a b) -> b -> [c] -> a b
+guard :: MonadPlus a => Bool -> a ()
+join :: Monad a => a (a b) -> a b
+liftM :: Monad a => (b -> c) -> a b -> a c
+liftM2 :: Monad a => (b -> c -> d) -> a b -> a c -> a d
+liftM3 :: Monad a => (b -> c -> d -> e) -> a b -> a c -> a d -> a e
+liftM4 :: Monad a => (b -> c -> d -> e -> f) -> a b -> a c -> a d -> a e -> a f
+liftM5 :: Monad a => (b -> c -> d -> e -> f -> g) -> a b -> a c -> a d -> a e -> a f -> a g
+mapAndUnzipM :: Monad a => (b -> a (c,d)) -> [b] -> a ([c],[d])
+msum :: MonadPlus a => [a b] -> a b
+unless :: Monad a => Bool -> a () -> a ()
+when :: Monad a => Bool -> a () -> a ()
+zipWithM :: Monad a => (b -> c -> a d) -> [b] -> [c] -> a [d]
+zipWithM_ :: Monad a => (b -> c -> a d) -> [b] -> [c] -> a ()
+
 module Network
 PortNumber :: PortNumber -> PortID
 Service :: String -> PortID
@@ -4245,12 +4376,18 @@ uriUserInfo :: URIAuth -> String
 
 module Numeric
 floatToDigits :: RealFloat a => Integer -> a -> ([Int], Int)
+floatToDigits :: RealFloat a => Integer -> a -> ([Int],Int)
 fromRat :: RealFloat a => Rational -> a
 lexDigits :: ReadS String
+readDec :: Integral a => ReadS a
 readDec :: Num a => ReadS a
+readFloat :: RealFloat a => ReadS a
 readFloat :: RealFrac a => ReadS a
+readHex :: Integral a => ReadS a
 readHex :: Num a => ReadS a
+readInt :: Integral a => a -> (Char -> Bool) -> (Char -> Int) -> ReadS a
 readInt :: Num a => a -> (Char -> Bool) -> (Char -> Int) -> ReadS a
+readOct :: Integral a => ReadS a
 readOct :: Num a => ReadS a
 readSigned :: Real a => ReadS a -> ReadS a
 showEFloat :: RealFloat a => Maybe Int -> a -> ShowS
@@ -4681,6 +4818,1321 @@ zip :: [a] -> [b] -> [(a, b)]
 zip3 :: [a] -> [b] -> [c] -> [(a, b, c)]
 zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
 zipWith3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
+
+module Random
+getStdGen :: IO StdGen
+getStdRandom :: (StdGen -> (a, StdGen)) -> IO a
+mkStdGen :: Int -> StdGen
+newStdGen :: IO StdGen
+next :: RandomGen a => a -> (Int,a)
+random :: (Random a, RandomGen b) => b -> (a,b)
+randomIO :: Random a => IO a
+randomR :: (Random a, RandomGen b) => (a,a) -> b -> (a,b)
+randomRIO :: Random a => (a,a) -> IO a
+randomRs :: (Random a, RandomGen b) => (a,a) -> b -> [a]
+randoms :: (Random a, RandomGen b) => b -> [a]
+setStdGen :: StdGen -> IO ()
+split :: RandomGen a => a -> (a,a)
+
+module Ratio
+(%) :: Integral a => a -> a -> Ratio a
+approxRational :: RealFrac a => a -> a -> Rational
+denominator :: Integral a => Ratio a -> a
+numerator :: Integral a => Ratio a -> a
+
+module System
+exitFailure :: IO a
+exitWith :: ExitCode -> IO a
+getArgs :: IO [String]
+getEnv :: String -> IO String
+getProgName :: IO String
+system :: String -> IO ExitCode
+
+module System.Cmd
+rawSystem :: String -> [String] -> IO ExitCode
+
+module System.Console.Readline
+Function :: Callback -> Entry
+Keymap :: Keymap -> Entry
+Macro :: String -> Entry
+UndoBegin :: UndoCode
+UndoDelete :: UndoCode
+UndoEnd :: UndoCode
+UndoInsert :: UndoCode
+addDefun :: String -> Callback -> Maybe Char -> IO ()
+addHistory :: String -> IO ()
+addUndo :: UndoCode -> Int -> Int -> String -> IO ()
+beginUndoGroup :: IO ()
+bindKey :: Char -> Callback -> IO ()
+bindKeyInMap :: Char -> Callback -> Keymap -> IO ()
+callbackHandlerInstall :: String -> (String -> IO ()) -> IO (IO ())
+callbackReadChar :: IO ()
+clearMessage :: IO ()
+clearSignals :: IO ()
+complete :: Int -> Char -> IO Int
+completeInternal :: Char -> IO ()
+completionMatches :: String -> (String -> IO [String]) -> IO (Maybe (String, [String]))
+copyKeymap :: Keymap -> IO Keymap
+copyText :: Int -> Int -> IO String
+data Entry
+data Keymap
+data UndoCode
+deleteText :: Int -> Int -> IO ()
+ding :: IO Bool
+doUndo :: IO Bool
+endUndoGroup :: IO ()
+filenameCompletionFunction :: String -> IO [String]
+forcedUpdateDisplay :: IO ()
+freeKeymap :: Keymap -> IO ()
+freeUndoList :: IO ()
+functionDumper :: Bool -> IO ()
+functionOfKeyseq :: String -> Maybe Keymap -> IO Entry
+genericBind :: String -> Entry -> Keymap -> IO ()
+getBasicQuoteCharacters :: IO String
+getBasicWordBreakCharacters :: IO String
+getBindingKeymap :: IO Keymap
+getCompleterQuoteCharacters :: IO String
+getCompleterWordBreakCharacters :: IO String
+getCompletionAppendCharacter :: IO (Maybe Char)
+getCompletionQueryItems :: IO Int
+getEnd :: IO Int
+getExecutingKeymap :: IO Keymap
+getFilenameCompletionDesired :: IO Bool
+getFilenameQuoteCharacters :: IO String
+getFilenameQuotingDesired :: IO Bool
+getIgnoreCompletionDuplicates :: IO Bool
+getInStream :: IO Handle
+getInhibitCompletion :: IO Bool
+getKeymap :: IO Keymap
+getKeymapByName :: String -> IO Keymap
+getKeymapName :: Keymap -> IO (Maybe String)
+getLibraryVersion :: IO String
+getLineBuffer :: IO String
+getMark :: IO Int
+getOutStream :: IO Handle
+getPoint :: IO Int
+getPrompt :: IO String
+getSpecialPrefixes :: IO String
+getTerminalName :: IO String
+initialize :: IO ()
+insertCompletions :: Int -> Char -> IO Int
+insertText :: String -> IO ()
+killText :: Int -> Int -> IO ()
+listFunmapNames :: IO ()
+message :: String -> IO ()
+modifying :: Int -> Int -> IO ()
+namedFunction :: String -> IO (Maybe Callback)
+newBareKeymap :: IO Keymap
+newKeymap :: IO Keymap
+onNewLine :: IO ()
+parseAndBind :: String -> IO ()
+possibleCompletions :: Int -> Char -> IO Int
+quoteFilename :: String -> Bool -> Ptr CChar -> IO String
+readInitFile :: String -> IO ()
+readKey :: IO Char
+readline :: String -> IO (Maybe String)
+redisplay :: IO ()
+resetLineState :: IO ()
+resetTerminal :: Maybe String -> IO ()
+setAttemptedCompletionFunction :: Maybe (String -> Int -> Int -> IO (Maybe (String, [String]))) -> IO ()
+setBasicQuoteCharacters :: String -> IO ()
+setBasicWordBreakCharacters :: String -> IO ()
+setCharIsQuotedP :: Maybe (String -> Int -> IO Bool) -> IO ()
+setCompleterQuoteCharacters :: String -> IO ()
+setCompleterWordBreakCharacters :: String -> IO ()
+setCompletionAppendCharacter :: Maybe Char -> IO ()
+setCompletionEntryFunction :: Maybe (String -> IO [String]) -> IO ()
+setCompletionQueryItems :: Int -> IO ()
+setDirectoryCompletionHook :: Maybe (String -> IO String) -> IO ()
+setDone :: Bool -> IO ()
+setEnd :: Int -> IO ()
+setEventHook :: Maybe (IO ()) -> IO ()
+setFilenameCompletionDesired :: Bool -> IO ()
+setFilenameDequotingFunction :: Maybe (String -> Maybe Char -> IO String) -> IO ()
+setFilenameQuoteCharacters :: String -> IO ()
+setFilenameQuotingDesired :: Bool -> IO ()
+setFilenameQuotingFunction :: Maybe (String -> Bool -> Ptr CChar -> IO String) -> IO ()
+setIgnoreCompletionDuplicates :: Bool -> IO ()
+setIgnoreSomeCompletionsFunction :: Maybe ([String] -> IO [String]) -> IO ()
+setInhibitCompletion :: Bool -> IO ()
+setKeymap :: Keymap -> IO ()
+setMark :: Int -> IO ()
+setPendingInput :: Char -> IO ()
+setPoint :: Int -> IO ()
+setReadlineName :: String -> IO ()
+setRedisplayFunction :: Maybe (IO ()) -> IO ()
+setSignals :: IO ()
+setSpecialPrefixes :: String -> IO ()
+setStartupHook :: Maybe (IO ()) -> IO ()
+stuffChar :: Char -> IO Bool
+type Callback = Int -> Char -> IO Int
+unbindCommandInMap :: String -> Keymap -> IO ()
+unbindKey :: Char -> IO ()
+unbindKeyInMap :: Char -> Keymap -> IO ()
+usernameCompletionFunction :: String -> IO [String]
+
+module System.Console.SimpleLineEditor
+delChars :: String -> IO ()
+getLineEdited :: String -> IO (Maybe String)
+initialise :: IO ()
+restore :: IO ()
+
+module System.Directory
+Permissions :: Bool -> Bool -> Bool -> Bool -> Permissions
+canonicalizePath :: FilePath -> IO FilePath
+copyFile :: FilePath -> FilePath -> IO ()
+createDirectoryIfMissing :: Bool -> FilePath -> IO ()
+data Permissions
+findExecutable :: String -> IO (Maybe FilePath)
+getAppUserDataDirectory :: String -> IO FilePath
+getHomeDirectory :: IO FilePath
+getTemporaryDirectory :: IO FilePath
+getUserDocumentsDirectory :: IO FilePath
+instance Eq Permissions
+instance Ord Permissions
+instance Read Permissions
+instance Show Permissions
+removeDirectoryRecursive :: FilePath -> IO ()
+
+module System.Environment
+getEnvironment :: IO [(String, String)]
+withArgs :: [String] -> IO a -> IO a
+withProgName :: String -> IO a -> IO a
+
+module System.Exit
+ExitFailure :: Int -> ExitCode
+ExitSuccess :: ExitCode
+data ExitCode
+instance Eq ExitCode
+instance Ord ExitCode
+instance Read ExitCode
+instance Show ExitCode
+
+module System.IO
+AbsoluteSeek :: SeekMode
+AppendMode :: IOMode
+BlockBuffering :: (Maybe Int) -> BufferMode
+LineBuffering :: BufferMode
+NoBuffering :: BufferMode
+ReadMode :: IOMode
+ReadWriteMode :: IOMode
+RelativeSeek :: SeekMode
+SeekFromEnd :: SeekMode
+WriteMode :: IOMode
+data BufferMode
+data Handle
+data HandlePosn
+data IOMode
+data SeekMode
+fixIO :: (a -> IO a) -> IO a
+hGetBuf :: Handle -> Ptr a -> Int -> IO Int
+hGetBufNonBlocking :: Handle -> Ptr a -> Int -> IO Int
+hGetBuffering :: Handle -> IO BufferMode
+hGetEcho :: Handle -> IO Bool
+hIsTerminalDevice :: Handle -> IO Bool
+hPutBuf :: Handle -> Ptr a -> Int -> IO ()
+hPutBufNonBlocking :: Handle -> Ptr a -> Int -> IO Int
+hSetBinaryMode :: Handle -> Bool -> IO ()
+hSetBuffering :: Handle -> BufferMode -> IO ()
+hSetEcho :: Handle -> Bool -> IO ()
+hSetFileSize :: Handle -> Integer -> IO ()
+hShow :: Handle -> IO String
+hTell :: Handle -> IO Integer
+instance Data Handle
+instance Enum IOMode
+instance Enum SeekMode
+instance Eq BufferMode
+instance Eq Handle
+instance Eq HandlePosn
+instance Eq IOMode
+instance Eq SeekMode
+instance Ix IOMode
+instance Ix SeekMode
+instance Ord BufferMode
+instance Ord IOMode
+instance Ord SeekMode
+instance Read BufferMode
+instance Read IOMode
+instance Read SeekMode
+instance Show BufferMode
+instance Show Handle
+instance Show HandlePosn
+instance Show IOMode
+instance Show SeekMode
+instance Typeable Handle
+openBinaryFile :: FilePath -> IOMode -> IO Handle
+openBinaryTempFile :: FilePath -> String -> IO (FilePath, Handle)
+openTempFile :: FilePath -> String -> IO (FilePath, Handle)
+
+module System.IO.Error
+alreadyExistsErrorType :: IOErrorType
+alreadyInUseErrorType :: IOErrorType
+annotateIOError :: IOError -> String -> Maybe Handle -> Maybe FilePath -> IOError
+data IOErrorType
+doesNotExistErrorType :: IOErrorType
+eofErrorType :: IOErrorType
+fullErrorType :: IOErrorType
+illegalOperationErrorType :: IOErrorType
+instance Eq IOErrorType
+instance Show IOErrorType
+ioeGetErrorType :: IOError -> IOErrorType
+ioeSetErrorString :: IOError -> String -> IOError
+ioeSetErrorType :: IOError -> IOErrorType -> IOError
+ioeSetFileName :: IOError -> FilePath -> IOError
+ioeSetHandle :: IOError -> Handle -> IOError
+isAlreadyExistsErrorType :: IOErrorType -> Bool
+isAlreadyInUseErrorType :: IOErrorType -> Bool
+isDoesNotExistErrorType :: IOErrorType -> Bool
+isEOFErrorType :: IOErrorType -> Bool
+isFullErrorType :: IOErrorType -> Bool
+isIllegalOperationErrorType :: IOErrorType -> Bool
+isPermissionErrorType :: IOErrorType -> Bool
+isUserErrorType :: IOErrorType -> Bool
+mkIOError :: IOErrorType -> String -> Maybe Handle -> Maybe FilePath -> IOError
+modifyIOError :: (IOError -> IOError) -> IO a -> IO a
+permissionErrorType :: IOErrorType
+userErrorType :: IOErrorType
+
+module System.IO.Unsafe
+unsafeInterleaveIO :: IO a -> IO a
+
+module System.Info
+arch :: String
+compilerName :: String
+compilerVersion :: Version
+os :: String
+
+module System.Locale
+TimeLocale :: [(String,String)] -> [(String,String)] -> [(String,String)] -> String,String -> String -> String -> String -> String -> TimeLocale
+amPm :: TimeLocale -> String,String
+data TimeLocale
+dateFmt :: TimeLocale -> String
+dateTimeFmt :: TimeLocale -> String
+instance Eq TimeLocale
+instance Ord TimeLocale
+instance Show TimeLocale
+intervals :: TimeLocale -> [(String,String)]
+iso8601DateFormat :: Maybe String -> String
+months :: TimeLocale -> [(String,String)]
+rfc822DateFormat :: String
+time12Fmt :: TimeLocale -> String
+timeFmt :: TimeLocale -> String
+wDays :: TimeLocale -> [(String,String)]
+
+module System.Mem
+performGC :: IO ()
+
+module System.Mem.StableName
+data StableName a
+hashStableName :: StableName a -> Int
+instance Eq (StableName a)
+instance Typeable1 StableName
+makeStableName :: a -> IO (StableName a)
+
+module System.Mem.Weak
+addFinalizer :: key -> IO () -> IO ()
+data Weak v
+deRefWeak :: Weak v -> IO (Maybe v)
+finalize :: Weak v -> IO ()
+instance Typeable1 Weak
+mkWeak :: k -> v -> Maybe (IO ()) -> IO (Weak v)
+mkWeakPair :: k -> v -> Maybe (IO ()) -> IO (Weak (k, v))
+mkWeakPtr :: k -> Maybe (IO ()) -> IO (Weak k)
+
+module System.Posix.Types
+Fd :: CInt -> Fd
+data CDev
+data CIno
+data CMode
+data COff
+data CPid
+data CSsize
+instance Bits CIno
+instance Bits CMode
+instance Bits COff
+instance Bits CPid
+instance Bits CSsize
+instance Bits Fd
+instance Bounded CIno
+instance Bounded CMode
+instance Bounded COff
+instance Bounded CPid
+instance Bounded CSsize
+instance Bounded Fd
+instance Enum CDev
+instance Enum CIno
+instance Enum CMode
+instance Enum COff
+instance Enum CPid
+instance Enum CSsize
+instance Enum Fd
+instance Eq CDev
+instance Eq CIno
+instance Eq CMode
+instance Eq COff
+instance Eq CPid
+instance Eq CSsize
+instance Eq Fd
+instance Integral CIno
+instance Integral CMode
+instance Integral COff
+instance Integral CPid
+instance Integral CSsize
+instance Integral Fd
+instance Num CDev
+instance Num CIno
+instance Num CMode
+instance Num COff
+instance Num CPid
+instance Num CSsize
+instance Num Fd
+instance Ord CDev
+instance Ord CIno
+instance Ord CMode
+instance Ord COff
+instance Ord CPid
+instance Ord CSsize
+instance Ord Fd
+instance Read CDev
+instance Read CIno
+instance Read CMode
+instance Read COff
+instance Read CPid
+instance Read CSsize
+instance Read Fd
+instance Real CDev
+instance Real CIno
+instance Real CMode
+instance Real COff
+instance Real CPid
+instance Real CSsize
+instance Real Fd
+instance Show CDev
+instance Show CIno
+instance Show CMode
+instance Show COff
+instance Show CPid
+instance Show CSsize
+instance Show Fd
+instance Storable CDev
+instance Storable CIno
+instance Storable CMode
+instance Storable COff
+instance Storable CPid
+instance Storable CSsize
+instance Storable Fd
+instance Typeable CDev
+instance Typeable CIno
+instance Typeable CMode
+instance Typeable COff
+instance Typeable CPid
+instance Typeable CSsize
+instance Typeable Fd
+newtype Fd
+type ByteCount = CSize
+type ClockTick = CClock
+type DeviceID = CDev
+type EpochTime = CTime
+type FileID = CIno
+type FileMode = CMode
+type FileOffset = COff
+type Limit = CLong
+type ProcessGroupID = CPid
+type ProcessID = CPid
+
+module System.Process
+data ProcessHandle
+getProcessExitCode :: ProcessHandle -> IO (Maybe ExitCode)
+runCommand :: String -> IO ProcessHandle
+runInteractiveCommand :: String -> IO (Handle, Handle, Handle, ProcessHandle)
+runInteractiveProcess :: FilePath -> [String] -> Maybe FilePath -> Maybe [(String, String)] -> IO (Handle, Handle, Handle, ProcessHandle)
+runProcess :: FilePath -> [String] -> Maybe FilePath -> Maybe [(String, String)] -> Maybe Handle -> Maybe Handle -> Maybe Handle -> IO ProcessHandle
+terminateProcess :: ProcessHandle -> IO ()
+waitForProcess :: ProcessHandle -> IO ExitCode
+
+module System.Random
+class Random a
+class RandomGen g
+data StdGen
+genRange :: RandomGen g => g -> (Int,Int)
+instance RandomGen StdGen
+instance Read StdGen
+instance Show StdGen
+next :: RandomGen g => g -> (Int,g)
+random :: (Random a, RandomGen g) => g -> (a,g)
+randomR :: (Random a, RandomGen g) => (a,a) -> g -> (a,g)
+randomRs :: (Random a, RandomGen g) => (a,a) -> g -> [a]
+randoms :: (Random a, RandomGen g) => g -> [a]
+split :: RandomGen g => g -> (g,g)
+
+module System.Time
+April :: Month
+August :: Month
+CalendarTime :: Int -> Month -> Int -> Int -> Int -> Int -> Integer -> Day -> Int -> String -> Int -> Bool -> CalendarTime
+December :: Month
+February :: Month
+Friday :: Day
+January :: Month
+July :: Month
+June :: Month
+March :: Month
+May :: Month
+Monday :: Day
+November :: Month
+October :: Month
+Saturday :: Day
+September :: Month
+Sunday :: Day
+TOD :: Integer -> Integer -> ClockTime
+Thursday :: Day
+TimeDiff :: Int -> Int -> Int -> Int -> Int -> Int -> Integer -> TimeDiff
+Tuesday :: Day
+Wednesday :: Day
+addToClockTime :: TimeDiff -> ClockTime -> ClockTime
+ctDay :: CalendarTime -> Int
+ctHour :: CalendarTime -> Int
+ctIsDST :: CalendarTime -> Bool
+ctMin :: CalendarTime -> Int
+ctMonth :: CalendarTime -> Month
+ctPicosec :: CalendarTime -> Integer
+ctSec :: CalendarTime -> Int
+ctTZ :: CalendarTime -> Int
+ctTZName :: CalendarTime -> String
+ctWDay :: CalendarTime -> Day
+ctYDay :: CalendarTime -> Int
+ctYear :: CalendarTime -> Int
+data CalendarTime
+data ClockTime
+data Day
+data Month
+data TimeDiff
+formatTimeDiff :: TimeLocale -> String -> TimeDiff -> String
+instance Bounded Day
+instance Bounded Month
+instance Enum Day
+instance Enum Month
+instance Eq CalendarTime
+instance Eq ClockTime
+instance Eq Day
+instance Eq Month
+instance Eq TimeDiff
+instance Ix Day
+instance Ix Month
+instance Ord CalendarTime
+instance Ord ClockTime
+instance Ord Day
+instance Ord Month
+instance Ord TimeDiff
+instance Read CalendarTime
+instance Read Day
+instance Read Month
+instance Read TimeDiff
+instance Show CalendarTime
+instance Show ClockTime
+instance Show Day
+instance Show Month
+instance Show TimeDiff
+noTimeDiff :: TimeDiff
+normalizeTimeDiff :: TimeDiff -> TimeDiff
+tdDay :: TimeDiff -> Int
+tdHour :: TimeDiff -> Int
+tdMin :: TimeDiff -> Int
+tdMonth :: TimeDiff -> Int
+tdPicosec :: TimeDiff -> Integer
+tdSec :: TimeDiff -> Int
+tdYear :: TimeDiff -> Int
+timeDiffToString :: TimeDiff -> String
+toCalendarTime :: ClockTime -> IO CalendarTime
+toUTCTime :: ClockTime -> CalendarTime
+
+module System.Win32.DLL
+c_DisableThreadLibraryCalls :: HMODULE -> IO Bool
+c_FreeLibrary :: HMODULE -> IO Bool
+c_GetModuleFileName :: HMODULE -> LPTSTR -> Int -> IO Bool
+c_GetModuleHandle :: LPCTSTR -> IO HMODULE
+c_GetProcAddress :: HMODULE -> LPCSTR -> IO Addr
+c_LoadLibrary :: LPCTSTR -> IO HINSTANCE
+c_LoadLibraryEx :: LPCTSTR -> HANDLE -> LoadLibraryFlags -> IO HINSTANCE
+disableThreadLibraryCalls :: HMODULE -> IO ()
+freeLibrary :: HMODULE -> IO ()
+getModuleFileName :: HMODULE -> IO String
+getModuleHandle :: Maybe String -> IO HMODULE
+getProcAddress :: HMODULE -> String -> IO Addr
+lOAD_LIBRARY_AS_DATAFILE :: LoadLibraryFlags
+lOAD_WITH_ALTERED_SEARCH_PATH :: LoadLibraryFlags
+loadLibrary :: String -> IO HINSTANCE
+loadLibraryEx :: String -> HANDLE -> LoadLibraryFlags -> IO HINSTANCE
+type LoadLibraryFlags = DWORD
+
+module System.Win32.File
+aCCESS_SYSTEM_SECURITY :: AccessMode
+areFileApisANSI :: IO Bool
+cREATE_ALWAYS :: CreateMode
+cREATE_NEW :: CreateMode
+c_CloseHandle :: HANDLE -> IO Bool
+c_CopyFile :: LPCTSTR -> LPCTSTR -> Bool -> IO Bool
+c_CreateDirectory :: LPCTSTR -> LPSECURITY_ATTRIBUTES -> IO Bool
+c_CreateDirectoryEx :: LPCTSTR -> LPCTSTR -> LPSECURITY_ATTRIBUTES -> IO Bool
+c_CreateFile :: LPCTSTR -> AccessMode -> ShareMode -> LPSECURITY_ATTRIBUTES -> CreateMode -> FileAttributeOrFlag -> HANDLE -> IO HANDLE
+c_DefineDosDevice :: DefineDosDeviceFlags -> LPCTSTR -> LPCTSTR -> IO Bool
+c_DeleteFile :: LPCTSTR -> IO Bool
+c_FindCloseChangeNotification :: HANDLE -> IO Bool
+c_FindFirstChangeNotification :: LPCTSTR -> Bool -> FileNotificationFlag -> IO HANDLE
+c_FindNextChangeNotification :: HANDLE -> IO Bool
+c_FlushFileBuffers :: HANDLE -> IO Bool
+c_GetBinaryType :: LPCTSTR -> Ptr DWORD -> IO Bool
+c_GetDiskFreeSpace :: LPCTSTR -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> IO Bool
+c_GetFileAttributes :: LPCTSTR -> IO FileAttributeOrFlag
+c_GetLogicalDrives :: IO DWORD
+c_MoveFile :: LPCTSTR -> LPCTSTR -> IO Bool
+c_MoveFileEx :: LPCTSTR -> LPCTSTR -> MoveFileFlag -> IO Bool
+c_ReadFile :: HANDLE -> Ptr a -> DWORD -> Ptr DWORD -> LPOVERLAPPED -> IO Bool
+c_RemoveDirectory :: LPCTSTR -> IO Bool
+c_SetCurrentDirectory :: LPCTSTR -> IO Bool
+c_SetEndOfFile :: HANDLE -> IO Bool
+c_SetFileAttributes :: LPCTSTR -> FileAttributeOrFlag -> IO Bool
+c_SetVolumeLabel :: LPCTSTR -> LPCTSTR -> IO Bool
+c_WriteFile :: HANDLE -> Ptr a -> DWORD -> Ptr DWORD -> LPOVERLAPPED -> IO Bool
+closeHandle :: HANDLE -> IO ()
+copyFile :: String -> String -> Bool -> IO ()
+createDirectory :: String -> Maybe LPSECURITY_ATTRIBUTES -> IO ()
+createDirectoryEx :: String -> String -> Maybe LPSECURITY_ATTRIBUTES -> IO ()
+createFile :: String -> AccessMode -> ShareMode -> Maybe LPSECURITY_ATTRIBUTES -> CreateMode -> FileAttributeOrFlag -> Maybe HANDLE -> IO HANDLE
+dDD_EXACT_MATCH_ON_REMOVE :: DefineDosDeviceFlags
+dDD_RAW_TARGET_PATH :: DefineDosDeviceFlags
+dDD_REMOVE_DEFINITION :: DefineDosDeviceFlags
+dELETE :: AccessMode
+dRIVE_CDROM :: DriveType
+dRIVE_FIXED :: DriveType
+dRIVE_NO_ROOT_DIR :: DriveType
+dRIVE_RAMDISK :: DriveType
+dRIVE_REMOTE :: DriveType
+dRIVE_REMOVABLE :: DriveType
+dRIVE_UNKNOWN :: DriveType
+defineDosDevice :: DefineDosDeviceFlags -> String -> String -> IO ()
+deleteFile :: String -> IO ()
+fILE_ATTRIBUTE_ARCHIVE :: FileAttributeOrFlag
+fILE_ATTRIBUTE_COMPRESSED :: FileAttributeOrFlag
+fILE_ATTRIBUTE_DIRECTORY :: FileAttributeOrFlag
+fILE_ATTRIBUTE_HIDDEN :: FileAttributeOrFlag
+fILE_ATTRIBUTE_NORMAL :: FileAttributeOrFlag
+fILE_ATTRIBUTE_READONLY :: FileAttributeOrFlag
+fILE_ATTRIBUTE_SYSTEM :: FileAttributeOrFlag
+fILE_ATTRIBUTE_TEMPORARY :: FileAttributeOrFlag
+fILE_BEGIN :: FilePtrDirection
+fILE_CURRENT :: FilePtrDirection
+fILE_END :: FilePtrDirection
+fILE_FLAG_BACKUP_SEMANTICS :: FileAttributeOrFlag
+fILE_FLAG_DELETE_ON_CLOSE :: FileAttributeOrFlag
+fILE_FLAG_NO_BUFFERING :: FileAttributeOrFlag
+fILE_FLAG_OVERLAPPED :: FileAttributeOrFlag
+fILE_FLAG_POSIX_SEMANTICS :: FileAttributeOrFlag
+fILE_FLAG_RANDOM_ACCESS :: FileAttributeOrFlag
+fILE_FLAG_SEQUENTIAL_SCAN :: FileAttributeOrFlag
+fILE_FLAG_WRITE_THROUGH :: FileAttributeOrFlag
+fILE_NOTIFY_CHANGE_ATTRIBUTES :: FileNotificationFlag
+fILE_NOTIFY_CHANGE_DIR_NAME :: FileNotificationFlag
+fILE_NOTIFY_CHANGE_FILE_NAME :: FileNotificationFlag
+fILE_NOTIFY_CHANGE_LAST_WRITE :: FileNotificationFlag
+fILE_NOTIFY_CHANGE_SECURITY :: FileNotificationFlag
+fILE_NOTIFY_CHANGE_SIZE :: FileNotificationFlag
+fILE_SHARE_NONE :: ShareMode
+fILE_SHARE_READ :: ShareMode
+fILE_SHARE_WRITE :: ShareMode
+fILE_TYPE_CHAR :: FileType
+fILE_TYPE_DISK :: FileType
+fILE_TYPE_PIPE :: FileType
+fILE_TYPE_REMOTE :: FileType
+fILE_TYPE_UNKNOWN :: FileType
+findCloseChangeNotification :: HANDLE -> IO ()
+findFirstChangeNotification :: String -> Bool -> FileNotificationFlag -> IO HANDLE
+findNextChangeNotification :: HANDLE -> IO ()
+flushFileBuffers :: HANDLE -> IO ()
+gENERIC_ALL :: AccessMode
+gENERIC_EXECUTE :: AccessMode
+gENERIC_NONE :: AccessMode
+gENERIC_READ :: AccessMode
+gENERIC_WRITE :: AccessMode
+getBinaryType :: String -> IO BinaryType
+getDiskFreeSpace :: Maybe String -> IO (DWORD, DWORD, DWORD, DWORD)
+getFileAttributes :: String -> IO FileAttributeOrFlag
+getFileType :: HANDLE -> IO FileType
+getLogicalDrives :: IO DWORD
+mAXIMUM_ALLOWED :: AccessMode
+mOVEFILE_COPY_ALLOWED :: MoveFileFlag
+mOVEFILE_DELAY_UNTIL_REBOOT :: MoveFileFlag
+mOVEFILE_REPLACE_EXISTING :: MoveFileFlag
+moveFile :: String -> String -> IO ()
+moveFileEx :: String -> String -> MoveFileFlag -> IO ()
+oPEN_ALWAYS :: CreateMode
+oPEN_EXISTING :: CreateMode
+rEAD_CONTROL :: AccessMode
+removeDirectory :: String -> IO ()
+sCS_32BIT_BINARY :: BinaryType
+sCS_DOS_BINARY :: BinaryType
+sCS_OS216_BINARY :: BinaryType
+sCS_PIF_BINARY :: BinaryType
+sCS_POSIX_BINARY :: BinaryType
+sCS_WOW_BINARY :: BinaryType
+sECURITY_ANONYMOUS :: FileAttributeOrFlag
+sECURITY_CONTEXT_TRACKING :: FileAttributeOrFlag
+sECURITY_DELEGATION :: FileAttributeOrFlag
+sECURITY_EFFECTIVE_ONLY :: FileAttributeOrFlag
+sECURITY_IDENTIFICATION :: FileAttributeOrFlag
+sECURITY_IMPERSONATION :: FileAttributeOrFlag
+sECURITY_SQOS_PRESENT :: FileAttributeOrFlag
+sECURITY_VALID_SQOS_FLAGS :: FileAttributeOrFlag
+sPECIFIC_RIGHTS_ALL :: AccessMode
+sTANDARD_RIGHTS_ALL :: AccessMode
+sTANDARD_RIGHTS_EXECUTE :: AccessMode
+sTANDARD_RIGHTS_READ :: AccessMode
+sTANDARD_RIGHTS_REQUIRED :: AccessMode
+sTANDARD_RIGHTS_WRITE :: AccessMode
+sYNCHRONIZE :: AccessMode
+setCurrentDirectory :: String -> IO ()
+setEndOfFile :: HANDLE -> IO ()
+setFileApisToANSI :: IO ()
+setFileApisToOEM :: IO ()
+setFileAttributes :: String -> FileAttributeOrFlag -> IO ()
+setHandleCount :: UINT -> IO UINT
+setVolumeLabel :: String -> String -> IO ()
+tRUNCATE_EXISTING :: CreateMode
+type AccessMode = UINT
+type BinaryType = DWORD
+type CreateMode = UINT
+type DefineDosDeviceFlags = DWORD
+type DriveType = UINT
+type FileAttributeOrFlag = UINT
+type FileNotificationFlag = DWORD
+type FilePtrDirection = DWORD
+type FileType = DWORD
+type LPOVERLAPPED = Ptr ()
+type LPSECURITY_ATTRIBUTES = Ptr ()
+type MbLPOVERLAPPED = Maybe LPOVERLAPPED
+type MbLPSECURITY_ATTRIBUTES = Maybe LPSECURITY_ATTRIBUTES
+type MoveFileFlag = DWORD
+type ShareMode = UINT
+wRITE_DAC :: AccessMode
+wRITE_OWNER :: AccessMode
+win32_ReadFile :: HANDLE -> Ptr a -> DWORD -> Maybe LPOVERLAPPED -> IO DWORD
+win32_WriteFile :: HANDLE -> Ptr a -> DWORD -> Maybe LPOVERLAPPED -> IO DWORD
+
+module System.Win32.Info
+cOLOR_ACTIVEBORDER :: SystemColor
+cOLOR_ACTIVECAPTION :: SystemColor
+cOLOR_APPWORKSPACE :: SystemColor
+cOLOR_BACKGROUND :: SystemColor
+cOLOR_BTNFACE :: SystemColor
+cOLOR_BTNHIGHLIGHT :: SystemColor
+cOLOR_BTNSHADOW :: SystemColor
+cOLOR_BTNTEXT :: SystemColor
+cOLOR_CAPTIONTEXT :: SystemColor
+cOLOR_GRAYTEXT :: SystemColor
+cOLOR_HIGHLIGHT :: SystemColor
+cOLOR_HIGHLIGHTTEXT :: SystemColor
+cOLOR_INACTIVEBORDER :: SystemColor
+cOLOR_INACTIVECAPTION :: SystemColor
+cOLOR_INACTIVECAPTIONTEXT :: SystemColor
+cOLOR_MENU :: SystemColor
+cOLOR_MENUTEXT :: SystemColor
+cOLOR_SCROLLBAR :: SystemColor
+cOLOR_WINDOW :: SystemColor
+cOLOR_WINDOWFRAME :: SystemColor
+cOLOR_WINDOWTEXT :: SystemColor
+sM_ARRANGE :: SMSetting
+sM_CLEANBOOT :: SMSetting
+sM_CMETRICS :: SMSetting
+sM_CMOUSEBUTTONS :: SMSetting
+sM_CXBORDER :: SMSetting
+sM_CXCURSOR :: SMSetting
+sM_CXDLGFRAME :: SMSetting
+sM_CXDOUBLECLK :: SMSetting
+sM_CXDRAG :: SMSetting
+sM_CXEDGE :: SMSetting
+sM_CXFRAME :: SMSetting
+sM_CXFULLSCREEN :: SMSetting
+sM_CXHSCROLL :: SMSetting
+sM_CXICON :: SMSetting
+sM_CXICONSPACING :: SMSetting
+sM_CXMAXIMIZED :: SMSetting
+sM_CXMENUCHECK :: SMSetting
+sM_CXMENUSIZE :: SMSetting
+sM_CXMIN :: SMSetting
+sM_CXMINIMIZED :: SMSetting
+sM_CXMINTRACK :: SMSetting
+sM_CXSCREEN :: SMSetting
+sM_CXSIZE :: SMSetting
+sM_CXSIZEFRAME :: SMSetting
+sM_CXSMICON :: SMSetting
+sM_CXSMSIZE :: SMSetting
+sM_CXVSCROLL :: SMSetting
+sM_CYBORDER :: SMSetting
+sM_CYCAPTION :: SMSetting
+sM_CYCURSOR :: SMSetting
+sM_CYDLGFRAME :: SMSetting
+sM_CYDOUBLECLK :: SMSetting
+sM_CYDRAG :: SMSetting
+sM_CYEDGE :: SMSetting
+sM_CYFRAME :: SMSetting
+sM_CYFULLSCREEN :: SMSetting
+sM_CYHSCROLL :: SMSetting
+sM_CYICON :: SMSetting
+sM_CYICONSPACING :: SMSetting
+sM_CYKANJIWINDOW :: SMSetting
+sM_CYMAXIMIZED :: SMSetting
+sM_CYMENU :: SMSetting
+sM_CYMENUCHECK :: SMSetting
+sM_CYMENUSIZE :: SMSetting
+sM_CYMIN :: SMSetting
+sM_CYMINIMIZED :: SMSetting
+sM_CYMINTRACK :: SMSetting
+sM_CYSCREEN :: SMSetting
+sM_CYSIZE :: SMSetting
+sM_CYSIZEFRAME :: SMSetting
+sM_CYSMCAPTION :: SMSetting
+sM_CYSMICON :: SMSetting
+sM_CYSMSIZE :: SMSetting
+sM_CYVSCROLL :: SMSetting
+sM_CYVTHUMB :: SMSetting
+sM_DBCSENABLED :: SMSetting
+sM_DEBUG :: SMSetting
+sM_MENUDROPALIGNMENT :: SMSetting
+sM_MIDEASTENABLED :: SMSetting
+sM_MOUSEPRESENT :: SMSetting
+sM_NETWORK :: SMSetting
+sM_PENWINDOWS :: SMSetting
+sM_SECURE :: SMSetting
+sM_SHOWSOUNDS :: SMSetting
+sM_SLOWMACHINE :: SMSetting
+sM_SWAPBUTTON :: SMSetting
+type SMSetting = UINT
+type SystemColor = UINT
+
+module System.Win32.Mem
+c_GlobalAlloc :: GlobalAllocFlags -> DWORD -> IO HGLOBAL
+c_GlobalFlags :: HGLOBAL -> IO GlobalAllocFlags
+c_GlobalFree :: HGLOBAL -> IO HGLOBAL
+c_GlobalHandle :: Addr -> IO HGLOBAL
+c_GlobalLock :: HGLOBAL -> IO Addr
+c_GlobalReAlloc :: HGLOBAL -> DWORD -> GlobalAllocFlags -> IO HGLOBAL
+c_GlobalSize :: HGLOBAL -> IO DWORD
+c_GlobalUnlock :: HGLOBAL -> IO Bool
+c_HeapAlloc :: HANDLE -> HeapAllocFlags -> DWORD -> IO Addr
+c_HeapCompact :: HANDLE -> HeapAllocFlags -> IO UINT
+c_HeapCreate :: HeapAllocFlags -> DWORD -> DWORD -> IO HANDLE
+c_HeapDestroy :: HANDLE -> IO Bool
+c_HeapFree :: HANDLE -> HeapAllocFlags -> Addr -> IO Bool
+c_HeapLock :: HANDLE -> IO Bool
+c_HeapReAlloc :: HANDLE -> HeapAllocFlags -> Addr -> DWORD -> IO Addr
+c_HeapSize :: HANDLE -> HeapAllocFlags -> Addr -> IO DWORD
+c_HeapUnlock :: HANDLE -> IO Bool
+c_VirtualAlloc :: Addr -> DWORD -> DWORD -> DWORD -> IO Addr
+c_VirtualFree :: Addr -> DWORD -> FreeFlags -> IO Bool
+c_VirtualLock :: Addr -> DWORD -> IO Bool
+c_VirtualProtect :: Addr -> DWORD -> DWORD -> Ptr DWORD -> IO Bool
+c_VirtualProtectEx :: HANDLE -> Addr -> DWORD -> DWORD -> Ptr DWORD -> IO Bool
+c_VirtualUnlock :: Addr -> DWORD -> IO Bool
+copyMemory :: Ptr a -> Ptr a -> DWORD -> IO ()
+fillMemory :: Ptr a -> DWORD -> BYTE -> IO ()
+gHND :: GlobalAllocFlags
+gMEM_DDESHARE :: GlobalAllocFlags
+gMEM_FIXED :: GlobalAllocFlags
+gMEM_INVALID_HANDLE :: GlobalAllocFlags
+gMEM_LOWER :: GlobalAllocFlags
+gMEM_MOVEABLE :: GlobalAllocFlags
+gMEM_NOCOMPACT :: GlobalAllocFlags
+gMEM_NODISCARD :: GlobalAllocFlags
+gMEM_NOTIFY :: GlobalAllocFlags
+gMEM_NOT_BANKED :: GlobalAllocFlags
+gMEM_SHARE :: GlobalAllocFlags
+gMEM_ZEROINIT :: GlobalAllocFlags
+gPTR :: GlobalAllocFlags
+getProcessHeap :: IO HANDLE
+getProcessHeaps :: DWORD -> Addr -> IO DWORD
+globalAlloc :: GlobalAllocFlags -> DWORD -> IO HGLOBAL
+globalFlags :: HGLOBAL -> IO GlobalAllocFlags
+globalFree :: HGLOBAL -> IO HGLOBAL
+globalHandle :: Addr -> IO HGLOBAL
+globalLock :: HGLOBAL -> IO Addr
+globalReAlloc :: HGLOBAL -> DWORD -> GlobalAllocFlags -> IO HGLOBAL
+globalSize :: HGLOBAL -> IO DWORD
+globalUnlock :: HGLOBAL -> IO ()
+hEAP_GENERATE_EXCEPTIONS :: HeapAllocFlags
+hEAP_NO_SERIALIZE :: HeapAllocFlags
+hEAP_ZERO_MEMORY :: HeapAllocFlags
+heapAlloc :: HANDLE -> HeapAllocFlags -> DWORD -> IO Addr
+heapCompact :: HANDLE -> HeapAllocFlags -> IO UINT
+heapCreate :: HeapAllocFlags -> DWORD -> DWORD -> IO HANDLE
+heapDestroy :: HANDLE -> IO ()
+heapFree :: HANDLE -> HeapAllocFlags -> Addr -> IO ()
+heapLock :: HANDLE -> IO ()
+heapReAlloc :: HANDLE -> HeapAllocFlags -> Addr -> DWORD -> IO Addr
+heapSize :: HANDLE -> HeapAllocFlags -> Addr -> IO DWORD
+heapUnlock :: HANDLE -> IO ()
+heapValidate :: HANDLE -> HeapAllocFlags -> Addr -> IO Bool
+mEM_COMMIT :: VirtualAllocFlags
+mEM_DECOMMIT :: FreeFlags
+mEM_RELEASE :: FreeFlags
+mEM_RESERVE :: VirtualAllocFlags
+memset :: Ptr a -> CInt -> CSize -> IO ()
+moveMemory :: Ptr a -> Ptr a -> DWORD -> IO ()
+pAGE_EXECUTE :: ProtectFlags
+pAGE_EXECUTE_READ :: ProtectFlags
+pAGE_EXECUTE_READWRITE :: ProtectFlags
+pAGE_GUARD :: ProtectFlags
+pAGE_NOACCESS :: ProtectFlags
+pAGE_NOCACHE :: ProtectFlags
+pAGE_READONLY :: ProtectFlags
+pAGE_READWRITE :: ProtectFlags
+type FreeFlags = DWORD
+type GlobalAllocFlags = UINT
+type HGLOBAL = Addr
+type HeapAllocFlags = DWORD
+type ProtectFlags = DWORD
+type VirtualAllocFlags = DWORD
+virtualAlloc :: Addr -> DWORD -> VirtualAllocFlags -> ProtectFlags -> IO Addr
+virtualFree :: Addr -> DWORD -> FreeFlags -> IO ()
+virtualLock :: Addr -> DWORD -> IO ()
+virtualProtect :: Addr -> DWORD -> ProtectFlags -> IO ProtectFlags
+virtualProtectEx :: HANDLE -> Addr -> DWORD -> ProtectFlags -> IO ProtectFlags
+virtualUnlock :: Addr -> DWORD -> IO ()
+zeroMemory :: Ptr a -> DWORD -> IO ()
+
+module System.Win32.NLS
+cP_ACP :: CodePage
+cP_MACCP :: CodePage
+cP_OEMCP :: CodePage
+c_LCMapString :: LCID -> LCMapFlags -> LPCTSTR -> Int -> LPCTSTR -> Int -> IO Int
+c_SetLocaleInfo :: LCID -> LCTYPE -> LPCTSTR -> IO Bool
+convertDefaultLocale :: LCID -> IO LCID
+getACP :: IO CodePage
+getOEMCP :: CodePage
+getSystemDefaultLCID :: LCID
+getSystemDefaultLangID :: LANGID
+getThreadLocale :: IO LCID
+getUserDefaultLCID :: LCID
+getUserDefaultLangID :: LANGID
+isValidCodePage :: CodePage -> IO Bool
+isValidLocale :: LCID -> LocaleTestFlags -> IO Bool
+lANGIDFROMLCID :: LCID -> LANGID
+lANG_AFRIKAANS :: PrimaryLANGID
+lANG_ALBANIAN :: PrimaryLANGID
+lANG_ARABIC :: PrimaryLANGID
+lANG_ARMENIAN :: PrimaryLANGID
+lANG_ASSAMESE :: PrimaryLANGID
+lANG_AZERI :: PrimaryLANGID
+lANG_BASQUE :: PrimaryLANGID
+lANG_BELARUSIAN :: PrimaryLANGID
+lANG_BENGALI :: PrimaryLANGID
+lANG_BULGARIAN :: PrimaryLANGID
+lANG_CATALAN :: PrimaryLANGID
+lANG_CHINESE :: PrimaryLANGID
+lANG_CROATIAN :: PrimaryLANGID
+lANG_CZECH :: PrimaryLANGID
+lANG_DANISH :: PrimaryLANGID
+lANG_DUTCH :: PrimaryLANGID
+lANG_ENGLISH :: PrimaryLANGID
+lANG_ESTONIAN :: PrimaryLANGID
+lANG_FAEROESE :: PrimaryLANGID
+lANG_FARSI :: PrimaryLANGID
+lANG_FINNISH :: PrimaryLANGID
+lANG_FRENCH :: PrimaryLANGID
+lANG_GEORGIAN :: PrimaryLANGID
+lANG_GERMAN :: PrimaryLANGID
+lANG_GREEK :: PrimaryLANGID
+lANG_GUJARATI :: PrimaryLANGID
+lANG_HEBREW :: PrimaryLANGID
+lANG_HINDI :: PrimaryLANGID
+lANG_HUNGARIAN :: PrimaryLANGID
+lANG_ICELANDIC :: PrimaryLANGID
+lANG_INDONESIAN :: PrimaryLANGID
+lANG_ITALIAN :: PrimaryLANGID
+lANG_JAPANESE :: PrimaryLANGID
+lANG_KANNADA :: PrimaryLANGID
+lANG_KASHMIRI :: PrimaryLANGID
+lANG_KAZAK :: PrimaryLANGID
+lANG_KONKANI :: PrimaryLANGID
+lANG_KOREAN :: PrimaryLANGID
+lANG_LATVIAN :: PrimaryLANGID
+lANG_LITHUANIAN :: PrimaryLANGID
+lANG_MACEDONIAN :: PrimaryLANGID
+lANG_MALAY :: PrimaryLANGID
+lANG_MALAYALAM :: PrimaryLANGID
+lANG_MANIPURI :: PrimaryLANGID
+lANG_MARATHI :: PrimaryLANGID
+lANG_NEPALI :: PrimaryLANGID
+lANG_NEUTRAL :: PrimaryLANGID
+lANG_NORWEGIAN :: PrimaryLANGID
+lANG_ORIYA :: PrimaryLANGID
+lANG_POLISH :: PrimaryLANGID
+lANG_PORTUGUESE :: PrimaryLANGID
+lANG_PUNJABI :: PrimaryLANGID
+lANG_ROMANIAN :: PrimaryLANGID
+lANG_RUSSIAN :: PrimaryLANGID
+lANG_SANSKRIT :: PrimaryLANGID
+lANG_SERBIAN :: PrimaryLANGID
+lANG_SINDHI :: PrimaryLANGID
+lANG_SLOVAK :: PrimaryLANGID
+lANG_SLOVENIAN :: PrimaryLANGID
+lANG_SPANISH :: PrimaryLANGID
+lANG_SWAHILI :: PrimaryLANGID
+lANG_SWEDISH :: PrimaryLANGID
+lANG_TAMIL :: PrimaryLANGID
+lANG_TATAR :: PrimaryLANGID
+lANG_TELUGU :: PrimaryLANGID
+lANG_THAI :: PrimaryLANGID
+lANG_TURKISH :: PrimaryLANGID
+lANG_URDU :: PrimaryLANGID
+lANG_UZBEK :: PrimaryLANGID
+lANG_VIETNAMESE :: PrimaryLANGID
+lCID_INSTALLED :: LocaleTestFlags
+lCID_SUPPORTED :: LocaleTestFlags
+lCMAP_BYTEREV :: LCMapFlags
+lCMAP_FULLWIDTH :: LCMapFlags
+lCMAP_HALFWIDTH :: LCMapFlags
+lCMAP_HIRAGANA :: LCMapFlags
+lCMAP_KATAKANA :: LCMapFlags
+lCMAP_LINGUISTIC_CASING :: LCMapFlags
+lCMAP_LOWERCASE :: LCMapFlags
+lCMAP_SIMPLIFIED_CHINESE :: LCMapFlags
+lCMAP_SORTKEY :: LCMapFlags
+lCMAP_TRADITIONAL_CHINESE :: LCMapFlags
+lCMAP_UPPERCASE :: LCMapFlags
+lCMapString :: LCID -> LCMapFlags -> String -> Int -> IO String
+lOCALE_ICALENDARTYPE :: LCTYPE
+lOCALE_ICURRDIGITS :: LCTYPE
+lOCALE_ICURRENCY :: LCTYPE
+lOCALE_IDIGITS :: LCTYPE
+lOCALE_IFIRSTDAYOFWEEK :: LCTYPE
+lOCALE_IFIRSTWEEKOFYEAR :: LCTYPE
+lOCALE_ILZERO :: LCTYPE
+lOCALE_IMEASURE :: LCTYPE
+lOCALE_INEGCURR :: LCTYPE
+lOCALE_INEGNUMBER :: LCTYPE
+lOCALE_ITIME :: LCTYPE
+lOCALE_NEUTRAL :: LCID
+lOCALE_S1159 :: LCTYPE
+lOCALE_S2359 :: LCTYPE
+lOCALE_SCURRENCY :: LCTYPE
+lOCALE_SDATE :: LCTYPE
+lOCALE_SDECIMAL :: LCTYPE
+lOCALE_SGROUPING :: LCTYPE
+lOCALE_SLIST :: LCTYPE
+lOCALE_SLONGDATE :: LCTYPE
+lOCALE_SMONDECIMALSEP :: LCTYPE
+lOCALE_SMONGROUPING :: LCTYPE
+lOCALE_SMONTHOUSANDSEP :: LCTYPE
+lOCALE_SNEGATIVESIGN :: LCTYPE
+lOCALE_SPOSITIVESIGN :: LCTYPE
+lOCALE_SSHORTDATE :: LCTYPE
+lOCALE_STHOUSAND :: LCTYPE
+lOCALE_STIME :: LCTYPE
+lOCALE_STIMEFORMAT :: LCTYPE
+lOCALE_SYSTEM_DEFAULT :: LCID
+lOCALE_USER_DEFAULT :: LCID
+mAKELANGID :: PrimaryLANGID -> SubLANGID -> LANGID
+mAKELCID :: LANGID -> SortID -> LCID
+nORM_IGNORECASE :: LCMapFlags
+nORM_IGNOREKANATYPE :: LCMapFlags
+nORM_IGNORENONSPACE :: LCMapFlags
+nORM_IGNORESYMBOLS :: LCMapFlags
+nORM_IGNOREWIDTH :: LCMapFlags
+pRIMARYLANGID :: LANGID -> PrimaryLANGID
+sORTIDFROMLCID :: LCID -> SortID
+sORT_CHINESE_BIG5 :: SortID
+sORT_CHINESE_UNICODE :: SortID
+sORT_DEFAULT :: SortID
+sORT_JAPANESE_UNICODE :: SortID
+sORT_JAPANESE_XJIS :: SortID
+sORT_KOREAN_KSC :: SortID
+sORT_KOREAN_UNICODE :: SortID
+sORT_STRINGSORT :: LCMapFlags
+sUBLANGID :: LANGID -> SubLANGID
+sUBLANG_ARABIC_ALGERIA :: SubLANGID
+sUBLANG_ARABIC_BAHRAIN :: SubLANGID
+sUBLANG_ARABIC_EGYPT :: SubLANGID
+sUBLANG_ARABIC_IRAQ :: SubLANGID
+sUBLANG_ARABIC_JORDAN :: SubLANGID
+sUBLANG_ARABIC_KUWAIT :: SubLANGID
+sUBLANG_ARABIC_LEBANON :: SubLANGID
+sUBLANG_ARABIC_LIBYA :: SubLANGID
+sUBLANG_ARABIC_MOROCCO :: SubLANGID
+sUBLANG_ARABIC_OMAN :: SubLANGID
+sUBLANG_ARABIC_QATAR :: SubLANGID
+sUBLANG_ARABIC_SAUDI_ARABIA :: SubLANGID
+sUBLANG_ARABIC_SYRIA :: SubLANGID
+sUBLANG_ARABIC_TUNISIA :: SubLANGID
+sUBLANG_ARABIC_UAE :: SubLANGID
+sUBLANG_ARABIC_YEMEN :: SubLANGID
+sUBLANG_AZERI_CYRILLIC :: SubLANGID
+sUBLANG_AZERI_LATIN :: SubLANGID
+sUBLANG_CHINESE_HONGKONG :: SubLANGID
+sUBLANG_CHINESE_MACAU :: SubLANGID
+sUBLANG_CHINESE_SIMPLIFIED :: SubLANGID
+sUBLANG_CHINESE_SINGAPORE :: SubLANGID
+sUBLANG_CHINESE_TRADITIONAL :: SubLANGID
+sUBLANG_DEFAULT :: SubLANGID
+sUBLANG_DUTCH :: SubLANGID
+sUBLANG_DUTCH_BELGIAN :: SubLANGID
+sUBLANG_ENGLISH_AUS :: SubLANGID
+sUBLANG_ENGLISH_BELIZE :: SubLANGID
+sUBLANG_ENGLISH_CAN :: SubLANGID
+sUBLANG_ENGLISH_CARIBBEAN :: SubLANGID
+sUBLANG_ENGLISH_EIRE :: SubLANGID
+sUBLANG_ENGLISH_JAMAICA :: SubLANGID
+sUBLANG_ENGLISH_NZ :: SubLANGID
+sUBLANG_ENGLISH_PHILIPPINES :: SubLANGID
+sUBLANG_ENGLISH_SOUTH_AFRICA :: SubLANGID
+sUBLANG_ENGLISH_TRINIDAD :: SubLANGID
+sUBLANG_ENGLISH_UK :: SubLANGID
+sUBLANG_ENGLISH_US :: SubLANGID
+sUBLANG_ENGLISH_ZIMBABWE :: SubLANGID
+sUBLANG_FRENCH :: SubLANGID
+sUBLANG_FRENCH_BELGIAN :: SubLANGID
+sUBLANG_FRENCH_CANADIAN :: SubLANGID
+sUBLANG_FRENCH_LUXEMBOURG :: SubLANGID
+sUBLANG_FRENCH_MONACO :: SubLANGID
+sUBLANG_FRENCH_SWISS :: SubLANGID
+sUBLANG_GERMAN :: SubLANGID
+sUBLANG_GERMAN_AUSTRIAN :: SubLANGID
+sUBLANG_GERMAN_LIECHTENSTEIN :: SubLANGID
+sUBLANG_GERMAN_LUXEMBOURG :: SubLANGID
+sUBLANG_GERMAN_SWISS :: SubLANGID
+sUBLANG_ITALIAN :: SubLANGID
+sUBLANG_ITALIAN_SWISS :: SubLANGID
+sUBLANG_KASHMIRI_INDIA :: SubLANGID
+sUBLANG_KOREAN :: SubLANGID
+sUBLANG_LITHUANIAN :: SubLANGID
+sUBLANG_MALAY_BRUNEI_DARUSSALAM :: SubLANGID
+sUBLANG_MALAY_MALAYSIA :: SubLANGID
+sUBLANG_NEPALI_INDIA :: SubLANGID
+sUBLANG_NEUTRAL :: SubLANGID
+sUBLANG_NORWEGIAN_BOKMAL :: SubLANGID
+sUBLANG_NORWEGIAN_NYNORSK :: SubLANGID
+sUBLANG_PORTUGUESE :: SubLANGID
+sUBLANG_PORTUGUESE_BRAZILIAN :: SubLANGID
+sUBLANG_SERBIAN_CYRILLIC :: SubLANGID
+sUBLANG_SERBIAN_LATIN :: SubLANGID
+sUBLANG_SPANISH :: SubLANGID
+sUBLANG_SPANISH_ARGENTINA :: SubLANGID
+sUBLANG_SPANISH_BOLIVIA :: SubLANGID
+sUBLANG_SPANISH_CHILE :: SubLANGID
+sUBLANG_SPANISH_COLOMBIA :: SubLANGID
+sUBLANG_SPANISH_COSTA_RICA :: SubLANGID
+sUBLANG_SPANISH_DOMINICAN_REPUBLIC :: SubLANGID
+sUBLANG_SPANISH_ECUADOR :: SubLANGID
+sUBLANG_SPANISH_EL_SALVADOR :: SubLANGID
+sUBLANG_SPANISH_GUATEMALA :: SubLANGID
+sUBLANG_SPANISH_HONDURAS :: SubLANGID
+sUBLANG_SPANISH_MEXICAN :: SubLANGID
+sUBLANG_SPANISH_MODERN :: SubLANGID
+sUBLANG_SPANISH_NICARAGUA :: SubLANGID
+sUBLANG_SPANISH_PANAMA :: SubLANGID
+sUBLANG_SPANISH_PARAGUAY :: SubLANGID
+sUBLANG_SPANISH_PERU :: SubLANGID
+sUBLANG_SPANISH_PUERTO_RICO :: SubLANGID
+sUBLANG_SPANISH_URUGUAY :: SubLANGID
+sUBLANG_SPANISH_VENEZUELA :: SubLANGID
+sUBLANG_SWEDISH :: SubLANGID
+sUBLANG_SWEDISH_FINLAND :: SubLANGID
+sUBLANG_SYS_DEFAULT :: SubLANGID
+sUBLANG_URDU_INDIA :: SubLANGID
+sUBLANG_URDU_PAKISTAN :: SubLANGID
+sUBLANG_UZBEK_CYRILLIC :: SubLANGID
+sUBLANG_UZBEK_LATIN :: SubLANGID
+setLocaleInfo :: LCID -> LCTYPE -> String -> IO ()
+setThreadLocale :: LCID -> IO ()
+type CodePage = UINT
+type LANGID = WORD
+type LCID = DWORD
+type LCMapFlags = DWORD
+type LCTYPE = UINT
+type LocaleTestFlags = DWORD
+type PrimaryLANGID = WORD
+type SortID = WORD
+type SubLANGID = WORD
+
+module System.Win32.Process
+iNFINITE :: DWORD
+sleep :: DWORD -> IO ()
+
+module System.Win32.Registry
+RegInfoKey :: String -> Int -> Word32 -> Word32 -> Word32 -> Word32 -> Word32 -> Word32 -> Int -> Word32 -> Word32 -> RegInfoKey
+c_RegCloseKey :: PKEY -> IO ErrCode
+c_RegConnectRegistry :: LPCTSTR -> PKEY -> Ptr PKEY -> IO ErrCode
+c_RegCreateKey :: PKEY -> LPCTSTR -> Ptr PKEY -> IO ErrCode
+c_RegCreateKeyEx :: PKEY -> LPCTSTR -> DWORD -> LPCTSTR -> RegCreateOptions -> REGSAM -> LPSECURITY_ATTRIBUTES -> Ptr PKEY -> Ptr DWORD -> IO ErrCode
+c_RegDeleteKey :: PKEY -> LPCTSTR -> IO ErrCode
+c_RegDeleteValue :: PKEY -> LPCTSTR -> IO ErrCode
+c_RegEnumKey :: PKEY -> DWORD -> LPTSTR -> DWORD -> IO ErrCode
+c_RegEnumValue :: PKEY -> DWORD -> LPTSTR -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> LPBYTE -> Ptr DWORD -> IO ErrCode
+c_RegFlushKey :: PKEY -> IO ErrCode
+c_RegLoadKey :: PKEY -> LPCTSTR -> LPCTSTR -> IO ErrCode
+c_RegNotifyChangeKeyValue :: PKEY -> Bool -> RegNotifyOptions -> HANDLE -> Bool -> IO ErrCode
+c_RegOpenKey :: PKEY -> LPCTSTR -> Ptr PKEY -> IO ErrCode
+c_RegOpenKeyEx :: PKEY -> LPCTSTR -> DWORD -> REGSAM -> Ptr PKEY -> IO ErrCode
+c_RegQueryInfoKey :: PKEY -> LPTSTR -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> Ptr DWORD -> Ptr FILETIME -> IO ErrCode
+c_RegQueryValue :: PKEY -> LPCTSTR -> LPTSTR -> Ptr LONG -> IO ErrCode
+c_RegQueryValueEx :: PKEY -> LPCTSTR -> Ptr DWORD -> Ptr DWORD -> LPBYTE -> Ptr DWORD -> IO ErrCode
+c_RegReplaceKey :: PKEY -> LPCTSTR -> LPCTSTR -> LPCTSTR -> IO ErrCode
+c_RegRestoreKey :: PKEY -> LPCTSTR -> RegRestoreFlags -> IO ErrCode
+c_RegSaveKey :: PKEY -> LPCTSTR -> LPSECURITY_ATTRIBUTES -> IO ErrCode
+c_RegSetValue :: PKEY -> LPCTSTR -> DWORD -> LPCTSTR -> Int -> IO ErrCode
+c_RegSetValueEx :: PKEY -> LPCTSTR -> DWORD -> RegValueType -> LPTSTR -> Int -> IO ErrCode
+c_RegUnLoadKey :: PKEY -> LPCTSTR -> IO ErrCode
+class_id :: RegInfoKey -> Int
+class_string :: RegInfoKey -> String
+data RegInfoKey
+eRROR_NO_MORE_ITEMS :: ErrCode
+hKEY_CLASSES_ROOT :: HKEY
+hKEY_CURRENT_CONFIG :: HKEY
+hKEY_CURRENT_USER :: HKEY
+hKEY_LOCAL_MACHINE :: HKEY
+hKEY_USERS :: HKEY
+kEY_ALL_ACCESS :: REGSAM
+kEY_CREATE_LINK :: REGSAM
+kEY_CREATE_SUB_KEY :: REGSAM
+kEY_ENUMERATE_SUB_KEYS :: REGSAM
+kEY_EXECUTE :: REGSAM
+kEY_NOTIFY :: REGSAM
+kEY_QUERY_VALUE :: REGSAM
+kEY_READ :: REGSAM
+kEY_SET_VALUE :: REGSAM
+kEY_WRITE :: REGSAM
+lastWrite_hi :: RegInfoKey -> Word32
+lastWrite_lo :: RegInfoKey -> Word32
+max_class_len :: RegInfoKey -> Word32
+max_subkey_len :: RegInfoKey -> Word32
+max_value_len :: RegInfoKey -> Word32
+max_value_name_len :: RegInfoKey -> Word32
+rEG_BINARY :: RegValueType
+rEG_DWORD :: RegValueType
+rEG_DWORD_BIG_ENDIAN :: RegValueType
+rEG_DWORD_LITTLE_ENDIAN :: RegValueType
+rEG_EXPAND_SZ :: RegValueType
+rEG_LINK :: RegValueType
+rEG_MULTI_SZ :: RegValueType
+rEG_NONE :: RegValueType
+rEG_NOTIFY_CHANGE_ATTRIBUTES :: RegNotifyOptions
+rEG_NOTIFY_CHANGE_LAST_SET :: RegNotifyOptions
+rEG_NOTIFY_CHANGE_NAME :: RegNotifyOptions
+rEG_NOTIFY_CHANGE_SECURITY :: RegNotifyOptions
+rEG_NO_LAZY_FLUSH :: RegRestoreFlags
+rEG_OPTION_NON_VOLATILE :: RegCreateOptions
+rEG_OPTION_VOLATILE :: RegCreateOptions
+rEG_REFRESH_HIVE :: RegRestoreFlags
+rEG_RESOURCE_LIST :: RegValueType
+rEG_SZ :: RegValueType
+rEG_WHOLE_HIVE_VOLATILE :: RegRestoreFlags
+regCloseKey :: HKEY -> IO ()
+regConnectRegistry :: Maybe String -> HKEY -> IO HKEY
+regCreateKey :: HKEY -> String -> IO HKEY
+regCreateKeyEx :: HKEY -> String -> String -> RegCreateOptions -> REGSAM -> Maybe LPSECURITY_ATTRIBUTES -> IO (HKEY, Bool)
+regDeleteKey :: HKEY -> String -> IO ()
+regDeleteValue :: HKEY -> String -> IO ()
+regEnumKey :: HKEY -> DWORD -> LPTSTR -> DWORD -> IO (String, Int)
+regEnumKeyVals :: HKEY -> IO [(String, String, RegValueType)]
+regEnumKeys :: HKEY -> IO [String]
+regEnumValue :: HKEY -> DWORD -> LPTSTR -> DWORD -> LPBYTE -> DWORD -> IO (RegValueType, String, Int)
+regFlushKey :: HKEY -> IO ()
+regLoadKey :: HKEY -> String -> String -> IO ()
+regNotifyChangeKeyValue :: HKEY -> Bool -> RegNotifyOptions -> HANDLE -> Bool -> IO ()
+regOpenKey :: HKEY -> String -> IO HKEY
+regOpenKeyEx :: HKEY -> String -> REGSAM -> IO HKEY
+regQueryInfoKey :: HKEY -> IO RegInfoKey
+regQueryValue :: HKEY -> Maybe String -> IO String
+regQueryValueEx :: HKEY -> String -> LPBYTE -> Int -> IO RegValueType
+regQueryValueKey :: HKEY -> Maybe String -> IO String
+regReplaceKey :: HKEY -> String -> String -> String -> IO ()
+regRestoreKey :: HKEY -> String -> RegRestoreFlags -> IO ()
+regSaveKey :: HKEY -> String -> Maybe LPSECURITY_ATTRIBUTES -> IO ()
+regSetStringValue :: HKEY -> String -> String -> IO ()
+regSetValue :: HKEY -> String -> String -> IO ()
+regSetValueEx :: HKEY -> String -> RegValueType -> LPTSTR -> Int -> IO ()
+regUnLoadKey :: HKEY -> String -> IO ()
+sec_len :: RegInfoKey -> Int
+subkeys :: RegInfoKey -> Word32
+type FILETIME = ()
+type REGSAM = Word32
+type RegCreateOptions = DWORD
+type RegNotifyOptions = DWORD
+type RegRestoreFlags = DWORD
+type RegValueType = DWORD
+values :: RegInfoKey -> Word32
+
+module System.Win32.Types
+castFunPtrToLONG :: FunPtr a -> LONG
+castPtrToUINT :: Ptr s -> UINT
+castUINTToPtr :: UINT -> Ptr a
+deleteObject_p :: FunPtr (HANDLE -> IO ())
+errorWin :: String -> IO a
+failIf :: (a -> Bool) -> String -> IO a -> IO a
+failIfFalse_ :: String -> IO Bool -> IO ()
+failIfNull :: String -> IO (Ptr a) -> IO (Ptr a)
+failIfZero :: Num a => String -> IO a -> IO a
+failIf_ :: (a -> Bool) -> String -> IO a -> IO ()
+failUnlessSuccess :: String -> IO ErrCode -> IO ()
+failUnlessSuccessOr :: ErrCode -> String -> IO ErrCode -> IO Bool
+failWith :: String -> ErrCode -> IO a
+getErrorMessage :: DWORD -> IO LPWSTR
+getLastError :: IO ErrCode
+hIWORD :: DWORD -> WORD
+handleToWord :: HANDLE -> UINT
+lOWORD :: DWORD -> WORD
+localFree :: Ptr a -> IO (Ptr a)
+maybeNum :: Num a => Maybe a -> a
+maybePtr :: Maybe (Ptr a) -> Ptr a
+newForeignHANDLE :: HANDLE -> IO ForeignHANDLE
+newTString :: String -> IO LPCTSTR
+nullFinalHANDLE :: ForeignPtr a
+nullHANDLE :: HANDLE
+nullPtr
+numToMaybe :: Num a => a -> Maybe a
+peekTString :: LPCTSTR -> IO String
+peekTStringLen :: (LPCTSTR, Int) -> IO String
+ptrToMaybe :: Ptr a -> Maybe (Ptr a)
+type ATOM = UINT
+type Addr = Ptr ()
+type BOOL = Bool
+type BYTE = Word8
+type DWORD = Word32
+type ErrCode = DWORD
+type FLOAT = Float
+type ForeignHANDLE = ForeignPtr ()
+type HANDLE = Ptr ()
+type HINSTANCE = Ptr ()
+type HKEY = ForeignHANDLE
+type HMODULE = Ptr ()
+type INT = Int32
+type LONG = Int32
+type LPARAM = LONG
+type LPBYTE = Ptr BYTE
+type LPCSTR = LPSTR
+type LPCTSTR = LPTSTR
+type LPCTSTR_ = LPCTSTR
+type LPCWSTR = LPWSTR
+type LPSTR = Ptr CChar
+type LPTSTR = Ptr TCHAR
+type LPVOID = Ptr ()
+type LPWSTR = Ptr CWchar
+type LRESULT = LONG
+type MbATOM = Maybe ATOM
+type MbHANDLE = Maybe HANDLE
+type MbHINSTANCE = Maybe HINSTANCE
+type MbHMODULE = Maybe HMODULE
+type MbINT = Maybe INT
+type MbLPCSTR = Maybe LPCSTR
+type MbLPCTSTR = Maybe LPCTSTR
+type MbLPVOID = Maybe LPVOID
+type MbString = Maybe String
+type PKEY = HANDLE
+type TCHAR = CWchar
+type UINT = Word32
+type USHORT = Word16
+type WORD = Word16
+type WPARAM = UINT
+withTString :: String -> (LPTSTR -> IO a) -> IO a
+withTStringLen :: String -> ((LPTSTR, Int) -> IO a) -> IO a
 
 module Test.HUnit.Base
 (@=?) :: (Eq a, Show a) => a -> a -> Assertion
@@ -5474,3 +6926,13 @@ regexec :: Regex -> String -> IO (Maybe (String, String, String, [String]))
 
 module Text.Show
 showListWith :: (a -> ShowS) -> [a] -> ShowS
+
+module Time
+addToClockTime :: TimeDiff  -> ClockTime -> ClockTime
+calendarTimeToString :: CalendarTime -> String
+diffClockTimes :: ClockTime -> ClockTime -> TimeDiff
+formatCalendarTime :: TimeLocale -> String -> CalendarTime -> String
+getClockTime :: IO ClockTime
+toCalendarTime :: ClockTime    -> IO CalendarTime
+toClockTime :: CalendarTime -> ClockTime
+toUTCTime :: ClockTime    -> CalendarTime
