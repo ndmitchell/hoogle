@@ -70,10 +70,13 @@ doctest x = do let file = "C:/ghc/ghc-6.4/doc/html/libraries/parsec/Text.ParserC
 -- the entries to output
 document :: [String] -> FilePath -> String -> [(String, [String])]
 document exclude file contents = 
-        if any (`isPrefixOf` name) exclude then []
+        if hide then []
         else if any isSpace name then []
         else [(name, rewrite lexs)]
     where
+        hide = any (`isPrefixOf` name) (map init partial) || any (== name) full
+        (partial, full) = partition (\x -> last x == '.') exclude
+    
         lexs = lexer contents
         name = modName lexs
 
