@@ -91,6 +91,7 @@ readType x = f $ bracket $ filter (/= ExSymbol) x
         f xs = if not (singleton tups) then TList (TLit ",":map f tups)
                else if not (singleton func) then TList (TLit "->":map f func)
                else if singleton xs then g (head xs)
+               else if null xs then TVar "_"
                else TList (map g xs)
             where
                 tups = splitOn (BItem Comma    ) xs
