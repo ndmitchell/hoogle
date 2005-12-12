@@ -1,10 +1,3 @@
-
--- list things which are implicit, not exported
-module Prelude
-data []
-(:) :: a -> [a] -> [a]
-[] :: [a]
-
 keyword |
 keyword ->
 keyword <-

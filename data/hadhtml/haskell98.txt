@@ -1,3 +1,8 @@
+module Prelude
+data []
+(:) :: a -> [a] -> [a]
+[] :: [a]
+
 module Ix
 index :: Ix a => (a,a) -> a -> Int
 inRange :: Ix a => (a,a) -> a -> Bool
