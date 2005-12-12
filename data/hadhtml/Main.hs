@@ -33,13 +33,12 @@ hoogledoc x = do filelist <- docFiles x
                  
                  excludeExists <- doesFileExist "exclude.txt"
                  excludeSrc <- if excludeExists then readFile "exclude.txt" else return ""
-                 prefix <- readFile "prefix.txt"
                  h98 <- loadH98
                  
                  let filetext = zip filelist textlist
                      exclude = lines excludeSrc
                      results = onlyOnce $ h98 ++ concatMap (uncurry (document exclude)) filetext
-                 writeFile "hoogle-ghc.txt" $ unlines (copyright ++ lines prefix ++ results)
+                 writeFile "hoogle-ghc.txt" $ unlines (copyright ++ results)
 
 
 -- load up the libraries that GHC shows distain for...
