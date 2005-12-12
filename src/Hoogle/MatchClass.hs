@@ -56,7 +56,7 @@ lookupClass ct given check xs | all isTVar xs =
 -- either reduce or perish!
 lookupClass c@(ClassTable ct) given check typ =
         case mapMaybe f res of
-            [] -> Nothing
+            [] -> Just [ClassMajor]
             (x:xs) -> Just x
     where
         ltyp = length typ
