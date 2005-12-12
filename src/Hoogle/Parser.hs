@@ -75,9 +75,11 @@ readConType xs = (con, readType res)
 
 
 readConstraint :: [Lexeme] -> (Constraint, [Lexeme])
-readConstraint x = if null b then ([], x) else (f $ readType a, tail b)
+readConstraint x = if not (EqArrow `elem` x) then ([],x)
+                   else (f (readType a) ++ con, lexe)
     where
         (a,b) = break (== EqArrow) x
+        (con,lexe) = readConstraint (tail b)
         
         f (TList (TLit ",":xs)) = xs
         f x = [x]
@@ -102,6 +104,7 @@ readType x = f $ bracket $ filter (/= ExSymbol) x
         g (Bracket OpenSquare x) = TList [TLit "[]", f x]
         g (BItem (TypeName x)) = TLit x
         g (BItem (VarName  x)) = TVar x
+        g x = error $ show x
     
 
 singleton [x] = True
