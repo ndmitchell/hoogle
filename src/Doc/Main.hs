@@ -21,46 +21,50 @@ import List
 
 
 main = do x <- cgiArgs
-          let modu = fromJust $ lookup "module" x
-              mode = fromJust $ lookup "mode" x
+          let modu = lookup "module" x
+              mode = lookup "mode" x
+
               name = case lookup "name" x of
                         Nothing -> ""
                         Just ('(':xs) -> init xs
                         Just x -> x
-                        
+          
           page <- hoodoc mode modu name
           putStr $ "Location: " ++ page ++ "\n\n"
 
 
-hoodoc :: String -> String -> String -> IO String
-hoodoc "module" modu name = calcPage modu
+hoodoc :: Maybe String -> Maybe String -> String -> IO String
 
-hoodoc "keyword" modu name = return "http://www.haskell.org/hawiki/Keywords"
+-- keywords are special
+hoodoc (Just "keyword") _ name = return $ "http://www.haskell.org/hawiki/Keywords#" ++ escape name
 
-hoodoc "func"  modu name = do x <- calcPage modu
-                              return $ x ++ "#v%3A" ++ escape name
-                               
-hoodoc _  modu name = do x <- calcPage modu
-                         return $ x ++ "#t%3A" ++ escape name
+-- if you have no name, just direct them straight at the module page
+hoodoc _ (Just modu) "" = calcPage modu ""
 
+-- haddock assigns different prefixes for each type
+hoodoc (Just "func") (Just modu) name = calcPage modu ("#v%3A" ++ escape name)
+hoodoc (Just _     ) (Just modu) name = calcPage modu ("#t%3A" ++ escape name)
+
+hoodoc _ _ _ = return failPage
 
 
 failPage = "nodocs.htm"
+haddockPrefix = "http://haskell.org/ghc/docs/latest/html/libraries/"
+wikiPrefix = "http://www.haskell.org/hawiki/LibraryDocumentation/"
 
 
-calcPage :: String -> IO String
-calcPage modu = do x <- readFile "res/documentation.txt"
-                   let xs = mapMaybe f $ lines x
-                   return $ case lookup modu xs of
-                       Just a -> urlPrefix ++ a ++ "/" ++ map g modu ++ ".html"
-                       Nothing -> failPage
+calcPage :: String -> String -> IO String
+calcPage modu suffix =
+    do x <- readFile "res/documentation.txt"
+       let xs = mapMaybe f $ lines x
+       return $ case lookup modu xs of
+           Just "wiki" -> wikiPrefix ++ modu ++ suffix
+           Just a -> haddockPrefix ++ a ++ "/" ++ map g modu ++ ".html" ++ suffix
+           Nothing -> failPage
     where
-        urlPrefix = "http://haskell.org/ghc/docs/latest/html/libraries/"
-    
         f ys = case break (== '\t') ys of
                    (a, [] ) -> Nothing
                    (a, b) -> Just (a, dropWhile isSpace b)
                    
         g '.' = '-'
         g x   = x
-
