@@ -337,12 +337,12 @@ Text.Regex		base
 Text.Regex.Posix		base
 Text.Show		base
 Text.Show.Functions		base
-Ix	haskell98
+Ix	wiki
 List	haskell98
 Numeric	haskell98
 IO	haskell98
 System	haskell98
-CPUTime	haskell98
+CPUTime	wiki
 Random	haskell98
 Array	haskell98
 Time	haskell98
