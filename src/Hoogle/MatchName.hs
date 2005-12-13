@@ -97,7 +97,7 @@ lookupName (NameTable xs) find = catMaybes $ map f xs
                      
               
         g [] n = Nothing
-        g xs n | find `isPrefixOf` xs = Just (TextSome, n)
+        g xs n | find2 `isPrefixOf` xs = Just (TextSome, n)
                | otherwise = g (tail xs) (n+1)
                    
                    
