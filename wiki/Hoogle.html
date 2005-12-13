@@ -1,0 +1,310 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+
+
+
+<title>Hoogle - The Haskell Wiki</title>
+<link rel="stylesheet" type="text/css" charset="iso-8859-1" media="all" href="/moinwiki/classic/css/common.css">
+<link rel="stylesheet" type="text/css" charset="iso-8859-1" media="screen" href="/moinwiki/classic/css/screen.css">
+<link rel="stylesheet" type="text/css" charset="iso-8859-1" media="print" href="/moinwiki/classic/css/print.css">
+
+
+<link rel="Start" href="/hawiki/FrontPage">
+<link rel="Alternate" title="Wiki Markup" href="/hawiki/Hoogle?action=raw">
+<link rel="Alternate" media="print" title="Print View" href="/hawiki/Hoogle?action=print">
+<link rel="Search" href="/hawiki/FindPage">
+<link rel="Index" href="/hawiki/TitleIndex">
+<link rel="Glossary" href="/hawiki/WordIndex">
+<link rel="Help" href="/hawiki/HelpOnFormatting">
+</head>
+
+<body lang="en" dir="ltr">
+
+
+<div id="logo"><a href="/hawiki/FrontPage"><img src="/small-lambda.gif" alt="The Haskell Wiki"></a></div>
+<div id="username"><a href="/hawiki/UserPreferences">UserPreferences</a></div>
+<div id="title"><h1><a title="Click here to do a full-text search for this title" href="/hawiki/Hoogle?action=fullsearch&amp;value=Hoogle&amp;literal=1&amp;case=1&amp;context=40">Hoogle</a></h1></div>
+<ul id="iconbar">
+<li><a title="Edit" href="/hawiki/Hoogle?action=edit"><img src="/moinwiki/classic/img/moin-edit.png" alt="Edit" height="12" width="12"></a></li>
+<li><a title="View" href="/hawiki/Hoogle"><img src="/moinwiki/classic/img/moin-show.png" alt="View" height="13" width="12"></a></li>
+<li><a title="Diffs" href="/hawiki/Hoogle?action=diff"><img src="/moinwiki/classic/img/moin-diff.png" alt="Diffs" height="11" width="15"></a></li>
+<li><a title="Info" href="/hawiki/Hoogle?action=info"><img src="/moinwiki/classic/img/moin-info.png" alt="Info" height="11" width="12"></a></li>
+<li><a title="Subscribe" href="/hawiki/Hoogle?action=subscribe"><img src="/moinwiki/classic/img/moin-subscribe.png" alt="Subscribe" height="10" width="14"></a></li>
+<li><a title="Raw" href="/hawiki/Hoogle?action=raw"><img src="/moinwiki/classic/img/moin-raw.png" alt="Raw" height="13" width="12"></a></li>
+<li><a title="Print" href="/hawiki/Hoogle?action=print"><img src="/moinwiki/classic/img/moin-print.png" alt="Print" height="14" width="16"></a></li>
+</ul>
+
+<ul id="navibar">
+<li><a href="/hawiki/FrontPage">FrontPage</a></li>
+<li><a href="/hawiki/RecentChanges">RecentChanges</a></li>
+<li><a href="/hawiki/FindPage">FindPage</a></li>
+<li><a href="/hawiki/HelpContents">HelpContents</a></li>
+</ul>
+<hr id="pagetrail">
+
+
+
+<div id="content" lang="en" dir="ltr">
+<h2 id="head-200b5ba7a4647e5df89dae3b1b3b8749bb356c21">Hoogle</h2>
+<p>
+A Haskell API search engine, written by <a href="/hawiki/NeilMitchell">NeilMitchell</a>. It allows you to search by either name, or by approximate type signature. An article is being written for <a href="/hawiki/TheMonadReader">TheMonadReader</a>, which will include some technical details. 
+</p>
+<h3 id="head-ff98acc3f3fadfbbb76442c6100631f0b0cb73f1">How to use Hoogle</h3>
+    <ul>
+    <li>
+<p>
+ The web interface: <a href="http://haskell.org/hoogle">http://haskell.org/hoogle</a> 
+</p>
+</li>
+    <li>
+<p>
+ The <a href="/hawiki/LambdaBot">LambdaBot</a> plugin, <tt>@hoogle</tt> and <tt>@hoogle+</tt> 
+</p>
+</li>
+    <li>
+<p>
+ Download the source with CVS: <a href="http://sourceforge.net/cvs/?group_id=143787">http://sourceforge.net/cvs/?group_id=143787</a> 
+</p>
+</li>
+    <li>
+<p>
+ Download a command line version (yet to be released, but get the source and compile it yourself) 
+</p>
+</li>
+    <li>
+<p>
+ A Mac OS X version (unreleased yet, but it does exist) 
+</p>
+</li>
+    </ul>
+
+<h3 id="head-eb01bf04c9a0e8a71c45816513df424f1c7ffedb">Examples</h3>
+<p>
+If you wanted to search for the standard prelude function <tt>map</tt>, you could type into the search any one of: 
+</p>
+<pre>map 
+(a -&gt; b) -&gt; [a] -&gt; [b]
+(a -&gt; a) -&gt; [a] -&gt; [a]
+(Int -&gt; Bool) -&gt; [Int] -&gt; [Bool]
+[a] -&gt; (a -&gt; b) -&gt; [b]</pre><h3 id="head-fdebf667212089ea7017a4b5425a561bdb3a30b0">Todo</h3>
+<h4 id="head-4e7afebcfbae000b22c7c85e5560f89a2a0280b4">Admin</h4>
+    <ul>
+    <li>
+<p>
+ Write a website build script 
+</p>
+</li>
+    <li>
+<p>
+ get XHoogle in the repo 
+</p>
+</li>
+    </ul>
+
+<h4 id="head-055c8865e34c944cf9f805a4fbdfca577330eec4">Short Term</h4>
+<p>
+i.e. before Hoogle3 goes public 
+</p>
+    <ul>
+    <li>
+<p>
+ Fix all parse errors, prove with a test 
+</p>
+</li>
+            <ul>
+            <li>
+<p>
+ -&gt; a 
+</p>
+</li>
+            <li>
+<p>
+ Monad m =&gt; Monad m =&gt; (a -&gt; m r -&gt; m r) -&gt; r -&gt; [a] -&gt; m r 
+</p>
+</li>
+            </ul>
+
+    <li>
+<p>
+ Regression tests for hoogle 
+</p>
+</li>
+    <li>
+<p>
+ You cannot search for certain keywords, i.e. @, because it is not a recognised lex symbol 
+</p>
+</li>
+    <li>
+<p>
+ Add comment characters, --, {- and -} to the list of symbols. 
+</p>
+</li>
+    <li>
+<p>
+ Add links to this wiki from hoogle. 
+</p>
+</li>
+    <li>
+<p>
+ Add a contact address - maybe: copyright Neil Mitchell - source code - wiki page - report bad search - contact me 
+</p>
+</li>
+    <li>
+<p>
+ Case sensitive search - if searching Map, then Map should come before map. 
+</p>
+</li>
+    <li>
+<p>
+ Put back more detailed information about the Prelude functions. 
+</p>
+</li>
+    </ul>
+
+<h4 id="head-b69f416bab9ab303694fe7c6c692536d9a29aa96">Medium Term</h4>
+    <ul>
+    <li>
+<p>
+ Parameterise out by package, i.e. split off OpenGL 
+</p>
+</li>
+    <li>
+<p>
+ Compile with Yhc and distribute 
+</p>
+</li>
+    <li>
+<p>
+ Write GTK front end 
+</p>
+</li>
+    <li>
+<p>
+ Firefox/Mozilla plugin 
+</p>
+</li>
+    <li>
+<p>
+ Multiword search? power set 
+</p>
+</li>
+    <li>
+<p>
+ Dehack the Score program 
+</p>
+</li>
+    <li>
+<p>
+ Multiparameter type classes 
+</p>
+</li>
+    </ul>
+
+<h4 id="head-c7998c912242f54e178a92c71287f908f015b656">Long Term</h4>
+    <ul>
+    <li>
+<p>
+ Integration with Cabal 
+</p>
+</li>
+    <li>
+<p>
+ Integration with <a href="http://darcs.augustsson.net/Darcs/Djinn">http://darcs.augustsson.net/Darcs/Djinn</a> 
+</p>
+</li>
+    <li>
+<p>
+ Integration with lambdabot @where and @fact 
+</p>
+</li>
+    </ul>
+
+<h4 id="head-4f8ff3d11907c4c291f6d953f3052e8f16181514">Hoogle Suggest</h4>
+    <ul>
+    <li>
+<p>
+ People often type to, instead of -&gt; 
+</p>
+</li>
+    <li>
+<p>
+ Numeric literals 
+</p>
+</li>
+    <li>
+<p>
+ Concepts? tuple, random, monads etc. 
+</p>
+</li>
+    </ul>
+
+<h3 id="head-3210615584ed4bacd557dbb8eeee9ef606d9015a">Bad Searches</h3>
+    <ul>
+    <li>
+<p>
+ (a -&gt; b) -&gt; ([a] -&gt; [b]) -- should find map 
+</p>
+</li>
+    <li>
+<p>
+ @hoogle Data.<a class="nonexistent" href="/hawiki/IntMap">?</a>IntMap.<a class="nonexistent" href="/hawiki/IntMap">?</a>IntMap a -&gt; [a] -- badly kills the module names 
+</p>
+</li>
+    </ul>
+
+<h4 id="head-a18131e7716a44928fd6ffd941d5535dbbd788ed">Higher Kinds</h4>
+<p>
+The following searches are all wrong because Hoogle doesn't understand higher kinds, i.e. Monad's. 
+</p>
+    <ul>
+    <li>
+<p>
+ Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b -- should find fmap 
+</p>
+</li>
+    <li>
+<p>
+ Monad m =&gt; [m a] -&gt; m [a] -- should find sequence 
+</p>
+</li>
+    <li>
+<p>
+ (Monad m) =&gt; m (m a) -&gt; m a -- should find join 
+</p>
+</li>
+</ul>
+
+</div>
+
+
+
+<div id="footer">
+<div id="credits">
+<p>
+    <a href="http://moinmoin.wikiwikiweb.de/">MoinMoin Powered</a><br>
+    <a href="http://www.python.org/">
+        <img src="/moinwiki/classic/img/PythonPowered.png" width="55" height="22" alt="PythonPowered">
+    </a>
+</p>
+</div>
+
+
+<a href="/hawiki/Hoogle?action=refresh&amp;arena=Page.py&amp;key=Hoogle.text_html">RefreshCache</a> for this page (cached 2005-12-12 20:37:09)<br>
+<p>Immutable page (last edited 2005-12-12 20:37:09 by <span title="snswc0.york.ac.uk"><a href="/hawiki/NeilMitchell">NeilMitchell</a></span>)</p>
+
+<form method="POST" action="/hawiki/Hoogle">
+<p>
+<input type="hidden" name="action" value="inlinesearch">
+<input type="hidden" name="context" value="40">
+<a href="/hawiki/FindPage?value=Hoogle">FindPage</a> or search titles <input type="text" name="text_title" value="" size="15" maxlength="50"><input type="image" src="/moinwiki/classic/img/moin-search.png" name="button_title" alt="[?]">, full text <input type="text" name="text_full" value="" size="15" maxlength="50"><input type="image" src="/moinwiki/classic/img/moin-search.png" name="button_full" alt="[?]"> or <a href="/hawiki/SiteNavigation">SiteNavigation</a>
+</p>
+</form>
+
+<p>Or try one of these actions: <a href="/hawiki/Hoogle?action=DeletePage">DeletePage</a>, <a href="/hawiki/Hoogle?action=LikePages">LikePages</a>, <a href="/hawiki/Hoogle?action=LocalSiteMap">LocalSiteMap</a>, <a href="/hawiki/Hoogle?action=SpellCheck">SpellCheck</a></p>
+
+</div>
+
+</body>
+</html>
+

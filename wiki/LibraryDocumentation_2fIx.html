@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+
+
+
+<title>LibraryDocumentation/Ix - The Haskell Wiki</title>
+<link rel="stylesheet" type="text/css" charset="iso-8859-1" media="all" href="/moinwiki/classic/css/common.css">
+<link rel="stylesheet" type="text/css" charset="iso-8859-1" media="screen" href="/moinwiki/classic/css/screen.css">
+<link rel="stylesheet" type="text/css" charset="iso-8859-1" media="print" href="/moinwiki/classic/css/print.css">
+
+
+<link rel="Start" href="/hawiki/FrontPage">
+<link rel="Alternate" title="Wiki Markup" href="/hawiki/LibraryDocumentation_2fIx?action=raw">
+<link rel="Alternate" media="print" title="Print View" href="/hawiki/LibraryDocumentation_2fIx?action=print">
+<link rel="Up" href="/hawiki/LibraryDocumentation">
+<link rel="Search" href="/hawiki/FindPage">
+<link rel="Index" href="/hawiki/TitleIndex">
+<link rel="Glossary" href="/hawiki/WordIndex">
+<link rel="Help" href="/hawiki/HelpOnFormatting">
+</head>
+
+<body lang="en" dir="ltr">
+
+
+<div id="logo"><a href="/hawiki/FrontPage"><img src="/small-lambda.gif" alt="The Haskell Wiki"></a></div>
+<div id="username"><a href="/hawiki/UserPreferences">UserPreferences</a></div>
+<div id="title"><h1><a title="Click here to do a full-text search for this title" href="/hawiki/LibraryDocumentation_2fIx?action=fullsearch&amp;value=%2FIx&amp;literal=1&amp;case=1&amp;context=40">LibraryDocumentation/Ix</a></h1></div>
+<ul id="iconbar">
+<li><a title="Up" href="/hawiki/LibraryDocumentation"><img src="/moinwiki/classic/img/moin-parent.png" alt="Up" height="13" width="15"></a></li>
+<li><a title="Edit" href="/hawiki/LibraryDocumentation_2fIx?action=edit"><img src="/moinwiki/classic/img/moin-edit.png" alt="Edit" height="12" width="12"></a></li>
+<li><a title="View" href="/hawiki/LibraryDocumentation_2fIx"><img src="/moinwiki/classic/img/moin-show.png" alt="View" height="13" width="12"></a></li>
+<li><a title="Diffs" href="/hawiki/LibraryDocumentation_2fIx?action=diff"><img src="/moinwiki/classic/img/moin-diff.png" alt="Diffs" height="11" width="15"></a></li>
+<li><a title="Info" href="/hawiki/LibraryDocumentation_2fIx?action=info"><img src="/moinwiki/classic/img/moin-info.png" alt="Info" height="11" width="12"></a></li>
+<li><a title="Subscribe" href="/hawiki/LibraryDocumentation_2fIx?action=subscribe"><img src="/moinwiki/classic/img/moin-subscribe.png" alt="Subscribe" height="10" width="14"></a></li>
+<li><a title="Raw" href="/hawiki/LibraryDocumentation_2fIx?action=raw"><img src="/moinwiki/classic/img/moin-raw.png" alt="Raw" height="13" width="12"></a></li>
+<li><a title="Print" href="/hawiki/LibraryDocumentation_2fIx?action=print"><img src="/moinwiki/classic/img/moin-print.png" alt="Print" height="14" width="16"></a></li>
+</ul>
+
+<ul id="navibar">
+<li><a href="/hawiki/FrontPage">FrontPage</a></li>
+<li><a href="/hawiki/RecentChanges">RecentChanges</a></li>
+<li><a href="/hawiki/FindPage">FindPage</a></li>
+<li><a href="/hawiki/HelpContents">HelpContents</a></li>
+</ul>
+<hr id="pagetrail">
+
+
+
+<div id="content" lang="en" dir="ltr">
+<h2 id="head-dde02609261bd0c16866b9a827640d68bbe6a821">Ix - Library Documentation</h2>
+<p>
+Part of the <a href="/hawiki/LibraryDocumentation">LibraryDocumentation</a> project. 
+</p>
+<p>
+Controls indexing, typically used in conjunction with <a class="nonexistent" href="/hawiki/LibraryDocumentation_2fArray">?</a>LibraryDocumentation/Array. 
+</p>
+
+<pre class=code>
+<B><FONT COLOR="#A020F0">module</FONT></B> Ix ( Ix(range, index, inRange), rangeSize ) <B><FONT COLOR="#A020F0">where</FONT></B>
+
+<B><FONT COLOR="#A020F0">class</FONT></B>  (Ord a) =&gt; Ix a  <B><FONT COLOR="#A020F0">where</FONT></B>
+   range               <FONT COLOR="#228B22"><B>:: (a,a) -&gt; [a]
+</FONT></B>   index               <FONT COLOR="#228B22"><B>:: (a,a) -&gt; a -&gt; Int
+</FONT></B>   inRange             <FONT COLOR="#228B22"><B>:: (a,a) -&gt; a -&gt; Bool
+</FONT></B>
+rangeSize <FONT COLOR="#228B22"><B>:: Ix a =&gt; (a,a) -&gt; Int
+</FONT></B>rangeSize b@(l,h) | null (range b) = 0
+                 | otherwise      = index b h + 1
+<I><FONT COLOR="#B22222">-- NB: replacing &quot;null (range b)&quot; by &quot;l &gt; h&quot; fails if
+</FONT></I><I><FONT COLOR="#B22222">-- the bounds are tuples. For example,
+</FONT></I><I><FONT COLOR="#B22222">-- (2,1) &gt; (1,2),
+</FONT></I><I><FONT COLOR="#B22222">-- but
+</FONT></I><I><FONT COLOR="#B22222">-- range ((2,1),(1,2)) = []
+</FONT></I>
+
+<B><FONT COLOR="#A020F0">instance</FONT></B>  Ix Char  <B><FONT COLOR="#A020F0">where</FONT></B>
+   range (m,n) = [m..n]
+   index b@(c,c') ci
+       | inRange b ci  =  fromEnum ci - fromEnum c
+       | otherwise     =  error <FONT COLOR="#BC8F8F"><B>&quot;Ix.index: Index out of range.&quot;</FONT></B>
+   inRange (c,c') i    =  c &lt;= i &amp;&amp; i &lt;= c'
+
+<B><FONT COLOR="#A020F0">instance</FONT></B>  Ix Int  <B><FONT COLOR="#A020F0">where</FONT></B>
+   range (m,n) = [m..n]
+   index b@(m,n) i
+       | inRange b i   =  i - m
+       | otherwise     =  error <FONT COLOR="#BC8F8F"><B>&quot;Ix.index: Index out of range.&quot;</FONT></B>
+   inRange (m,n) i     =  m &lt;= i &amp;&amp; i &lt;= n
+
+<B><FONT COLOR="#A020F0">instance</FONT></B>  Ix Integer  <B><FONT COLOR="#A020F0">where</FONT></B>
+   range (m,n) = [m..n]
+   index b@(m,n) i
+       | inRange b i   =  fromInteger (i - m)
+       | otherwise     =  error <FONT COLOR="#BC8F8F"><B>&quot;Ix.index: Index out of range.&quot;</FONT></B>
+   inRange (m,n) i     =  m &lt;= i &amp;&amp; i &lt;= n
+
+<B><FONT COLOR="#A020F0">instance</FONT></B> (Ix a,Ix b) =&gt; Ix (a, b) <I><FONT COLOR="#B22222">-- as derived, for all tuples
+</FONT></I><B><FONT COLOR="#A020F0">instance</FONT></B> Ix Bool                  <I><FONT COLOR="#B22222">-- as derived
+</FONT></I><B><FONT COLOR="#A020F0">instance</FONT></B> Ix Ordering              <I><FONT COLOR="#B22222">-- as derived
+</FONT></I><B><FONT COLOR="#A020F0">instance</FONT></B> Ix ()                    <I><FONT COLOR="#B22222">-- as derived
+</FONT></I></PRE>
+</BODY>
+</HTML>
+<p>
+ 
+</p>
+<p>
+<a id="v:index"> <h3 id="head-8b66ce514e1ab53baa1ebe66a4af6f1888633181">index :: Ix a =&gt; (a,a) -&gt; a -&gt; Int</h3>
+
+</p>
+<p>
+maps a bounding pair, which defines the lower and upper bounds of the range, and a subscript, to an integer. 
+</p>
+
+<pre class=code>
+&gt; index (10,15) 12
+2
+
+&gt; index (<FONT COLOR="#BC8F8F"><B>'A'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'Z'</FONT></B>) <FONT COLOR="#BC8F8F"><B>'Z'</FONT></B>
+25
+
+&gt; index ((1,5),(6,10)) (3,7)
+14
+</PRE>
+</BODY>
+</HTML>
+<p>
+ 
+</p>
+<p>
+<a id="v:inRange"> <h3 id="head-c08754f3aacece95e4cb9c733d7ea17c99235b51">inRange :: Ix a =&gt; (a,a) -&gt; a -&gt; Bool</h3>
+
+</p>
+<p>
+Returns True if  a particular subscript lies in the range defined by a bounding pair. 
+</p>
+
+<pre class=code>
+&gt; inRange (1,5) 3
+True
+
+&gt; inRange (1,5) 12
+False
+
+&gt; inRange ((1,5),(10,12)) (7,8)
+True
+</PRE>
+</BODY>
+</HTML>
+<p>
+ 
+</p>
+<p>
+<a id="v:range"> <h3 id="head-fc36039f6140a31c1b23060b6947b7365e915d7f">range :: Ix a =&gt; (a,a) -&gt; [a]</h3>
+
+</p>
+<p>
+The range operation enumerates all subscripts. 
+</p>
+
+<pre class=code>
+&gt; range (3,6)
+[3,4,5,6]
+
+&gt; range ((1,3),(2,4))
+[(1,3),(1,4),(2,3),(2,4)]
+
+&gt; range (<FONT COLOR="#BC8F8F"><B>'e'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'i'</FONT></B>)
+<FONT COLOR="#BC8F8F"><B>&quot;efghi&quot;</FONT></B>
+
+&gt; range ((<FONT COLOR="#BC8F8F"><B>'a'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'b'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'c'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'d'</FONT></B>))
+[(<FONT COLOR="#BC8F8F"><B>'a'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'b'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'a'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'c'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'a'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'d'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'b'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'b'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'b'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'c'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'b'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'d'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'c'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'b'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'c'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'c'</FONT></B>),(<FONT COLOR="#BC8F8F"><B>'c'</FONT></B>,<FONT COLOR="#BC8F8F"><B>'d'</FONT></B>)]
+</PRE>
+</BODY>
+</HTML>
+<p>
+ 
+</p>
+<p>
+<a id="v:rangeSize"> <h3 id="head-b0badd06df078ffb18abba0f50563ee6e112c4ee">rangeSize :: Ix a =&gt; (a,a) -&gt; Int</h3>
+
+</p>
+<p>
+TODO 
+</p>
+</div>
+
+
+
+<div id="footer">
+<div id="credits">
+<p>
+    <a href="http://moinmoin.wikiwikiweb.de/">MoinMoin Powered</a><br>
+    <a href="http://www.python.org/">
+        <img src="/moinwiki/classic/img/PythonPowered.png" width="55" height="22" alt="PythonPowered">
+    </a>
+</p>
+</div>
+
+
+<a href="/hawiki/LibraryDocumentation_2fIx?action=refresh&amp;arena=Page.py&amp;key=LibraryDocumentation_2fIx.text_html">RefreshCache</a> for this page (cached 2005-12-13 12:05:37)<br>
+<p>Immutable page (last edited 2005-12-13 12:05:36 by <span title="pc163.ad.cs.york.ac.uk"><a href="/hawiki/NeilMitchell">NeilMitchell</a></span>)</p>
+
+<form method="POST" action="/hawiki/LibraryDocumentation_2fIx">
+<p>
+<input type="hidden" name="action" value="inlinesearch">
+<input type="hidden" name="context" value="40">
+<a href="/hawiki/FindPage?value=LibraryDocumentation%2FIx">FindPage</a> or search titles <input type="text" name="text_title" value="" size="15" maxlength="50"><input type="image" src="/moinwiki/classic/img/moin-search.png" name="button_title" alt="[?]">, full text <input type="text" name="text_full" value="" size="15" maxlength="50"><input type="image" src="/moinwiki/classic/img/moin-search.png" name="button_full" alt="[?]"> or <a href="/hawiki/SiteNavigation">SiteNavigation</a>
+</p>
+</form>
+
+<p>Or try one of these actions: <a href="/hawiki/LibraryDocumentation_2fIx?action=DeletePage">DeletePage</a>, <a href="/hawiki/LibraryDocumentation_2fIx?action=LikePages">LikePages</a>, <a href="/hawiki/LibraryDocumentation_2fIx?action=LocalSiteMap">LocalSiteMap</a>, <a href="/hawiki/LibraryDocumentation_2fIx?action=SpellCheck">SpellCheck</a></p>
+
+</div>
+
+</body>
+</html>
+
