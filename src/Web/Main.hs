@@ -18,6 +18,7 @@ import Hoogle.Hoogle
 import Hoogle.TextUtil
 
 import Web.CGI
+import Web.Lambdabot
 
 import Char
 import System
@@ -112,7 +113,15 @@ showResults input args =
         
         case hoogleSuggest True input of
             Nothing -> return ()
-            Just x -> putLine $ "<p id='suggest'>" ++ showTags x ++ "</p>"
+            Just x -> putLine $ "<p id='suggest'><span class='name'>Hoogle says:</span> " ++
+                                showTags x ++ "</p>"
+
+        lam <- Web.Lambdabot.query (lookupDef "" "q" args)
+        case lam of
+            Nothing -> return ()
+            Just x -> putLine $ "<p id='lambdabot'><span class='name'>" ++
+                "<a href='http://www.cse.unsw.edu.au/~dons/lambdabot.html'>Lambdabot</a> says:</span> "
+                ++ x ++ "</p>"
 
         if null res then outputFileParam "noresults" tSearch
          else putLine $ "<table id='results'>" ++ concatMap showResult useres ++ "</table>"
