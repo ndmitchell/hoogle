@@ -158,12 +158,12 @@ h2 {
 /********************************************************************
 *  COPYRIGHT
 */
-#copyright {
+#footer {
 	text-align: center;
 	font-size: 10pt;
 }
 
-#answers #copyright {
+#answers #footer {
 	background-color: #eee;
 	margin-top: 25px;
 }

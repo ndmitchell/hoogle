@@ -50,7 +50,7 @@
 	</tr>
 </table>
 
-<p id="copyright">
+<p id="footer">
 	&copy; <a href="http://www.cs.york.ac.uk/~ndm/">Neil Mitchell</a> 2004-2005<br/>
 	<i>"Roses are red. Violets are blue. <a href="http://www.google.com/">Google</a> rocks. Homage to you."</i>
 </p>
