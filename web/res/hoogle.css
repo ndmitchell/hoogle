@@ -251,3 +251,16 @@ h2 {
 	color: #b00;
 	font-style: italic;
 }
+
+#failure {
+	margin: 25px;
+	padding-top: 5px;
+	font-weight: bold;
+	border: 2px solid gray;
+	border-left-width: 0px;
+	border-right-width: 0px;
+}
+
+#failure ul {
+	font-weight: normal;
+}
