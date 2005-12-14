@@ -240,9 +240,14 @@ h2 {
 	padding: 3px;
 }
 
-#suggest {
+#suggest, #lambdabot {
 	padding: 0px;
 	margin: 0px;
 	margin-left: 10px;
 	margin-bottom: 5px;
+}
+
+.name a, .name {
+	color: #b00;
+	font-style: italic;
 }
