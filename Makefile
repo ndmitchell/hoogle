@@ -12,6 +12,7 @@ all: hoogle
 hoogle: 
 	cd src && $(GHC) $(HC_OPTS) --make -o $@ CmdLine.hs
 	mv src/hoogle .
+	cp src/hoogle.txt .
 
 
 clean:
