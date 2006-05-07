@@ -10,8 +10,8 @@ HC_OPTS=        -O
 all: hoogle
 
 hoogle: 
-	cd src && $(GHC) $(HC_OPTS) --make -o $@ CmdLine.hs
-	mv src/hoogle .
+	cd src && $(GHC) $(HC_OPTS) --make -o a.out CmdLine.hs
+	mv src/a.out ./$@
 	cp src/hoogle.txt .
 
 
