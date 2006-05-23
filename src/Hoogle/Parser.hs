@@ -104,7 +104,7 @@ readType x = f $ bracket $ filter (/= ExSymbol) x
         g (Bracket OpenSquare x) = TList [TLit "[]", f x]
         g (BItem (TypeName x)) = TLit x
         g (BItem (VarName  x)) = TVar x
-        g x = error $ show x
+        g y = error $ "Hoogle.Parser.readType: " ++ show (x,y)
     
 
 singleton [x] = True
