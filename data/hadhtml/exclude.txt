@@ -2,6 +2,7 @@ Distribution.Compat.RawSystem
 Distribution.Compat.ReadP
 Distribution.Make
 Distribution.Version
+Distribution.Simple.Utils
 Language.Haskell.Pretty
 Array
 Char

@@ -2539,26 +2539,6 @@ writeInstalledConfig :: PackageDescription -> LocalBuildInfo -> IO ()
 module Distribution.Simple.SrcDist
 sdist :: FilePath -> FilePath -> Int -> [PPSuffixHandler] -> PackageDescription -> IO ()
 
-module Distribution.Simple.Utils
-copyFileVerbose :: Int -> FilePath -> FilePath -> IO () :: [FilePath] -> String -> [String] -> IO [FilePath]
-currentDir :: FilePath
-defaultPackageDesc :: IO FilePath
-die :: String -> IO a
-dotToSep :: String -> String
-findHookedPackageDesc :: FilePath -> IO (Maybe FilePath)
-findPackageDesc :: FilePath -> IO FilePath
-getOptionsFromSource :: FilePath -> IO ([Extension], [(CompilerFlavor, [String])], [String])
-matchesDescFile :: FilePath -> Bool
-maybeExit :: IO ExitCode -> IO ()
-mkLibName :: FilePath -> String -> String
-rawSystemExit :: Int -> FilePath -> [String] -> IO ()
-rawSystemPath :: Int -> String -> [String] -> IO ExitCode
-rawSystemPathExit :: Int -> String -> [String] -> IO ()
-rawSystemVerbose :: Int -> String -> [String] -> IO ExitCode
-smartCopySources :: Int -> FilePath -> FilePath -> [String] -> [String] -> Bool -> IO ()
-stripComments :: Bool -> String -> String
-withTempFile :: FilePath -> String -> (FilePath -> IO a) -> IO a
-
 module Foreign
 unsafePerformIO :: IO a -> a
 
