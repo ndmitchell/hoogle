@@ -43,8 +43,13 @@ hoogledoc x = do filelist <- docFiles x
 
 -- load up the libraries that GHC shows distain for...
 loadH98 :: IO [(String, [String])]
-loadH98 =  do x <- readFile "haskell98.txt"
-              return $ f $ filter (not . null) $ lines x
+loadH98 =  do exist <- doesFileExist "haskell98.txt"
+              if exist then
+                  do x <- readFile "haskell98.txt"
+                     return $ f $ filter (not . null) $ lines x
+               else
+                  do putStrLn "Warning: could not find haskell98.txt"
+                     return []
     where
         f [] = []
         f (x:xs) = (drop 7 x,a) : f b
