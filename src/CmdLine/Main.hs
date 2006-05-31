@@ -108,7 +108,7 @@ helpMsg :: String
 helpMsg
     = unlines $ [
         "HOOGLE - Haskell API Search",
-        "(C) Neil Mitchell 2004-2005, York University, UK",
+        "(C) Neil Mitchell 2004-2006, York University, UK",
         "",
         usageInfo ("Usage: hoogle [OPTION...] search") opts,
         
