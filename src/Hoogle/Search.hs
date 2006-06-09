@@ -5,7 +5,7 @@ module Hoogle.Search(Search(..), SearchMode(..), parseSearch) where
 import Hoogle.TypeSig
 import Hoogle.TextUtil
 import Hoogle.Parser
-import Char
+import Data.Char
 
 
 data Search = Search String SearchMode

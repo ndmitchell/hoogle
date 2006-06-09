@@ -1,8 +1,8 @@
 
 module Web.Lambdabot(query) where
 
-import List
-import Char
+import Data.List
+import Data.Char
 
 query :: String -> IO (Maybe String)
 query x = do d <- readDatabase

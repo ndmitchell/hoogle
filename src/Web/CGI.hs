@@ -15,11 +15,11 @@
 module Web.CGI(cgiArgs, escape, asCgi) where
 
 import Hoogle.TextUtil
-import System
-import Maybe
-import Char
+import System.Environment
+import Data.Maybe
+import Data.Char
 import Numeric
-import List
+import Data.List
 
 
 cgiVariable :: IO String

@@ -14,9 +14,9 @@
 module Hoogle.TextUtil where
 
 import Prelude
-import Maybe
-import Char
-import List
+import Data.Maybe
+import Data.Char
+import Data.List
 
 
 trim :: String -> String

@@ -13,7 +13,7 @@
 
 module Hoogle.TypeSig where
 
-import List
+import Data.List
 
 
 

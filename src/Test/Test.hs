@@ -2,8 +2,8 @@
 module Test where
 
 import Debug.QuickCheck
-import List
-import Char
+import Data.List
+import Data.Char
 
 import Hoogle.Parser
 

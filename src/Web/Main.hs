@@ -20,11 +20,11 @@ import Hoogle.TextUtil
 import Web.CGI
 import Web.Lambdabot
 
-import Char
-import System
-import List
-import Maybe
-import Directory
+import Data.Char
+import System.Environment
+import Data.List
+import Data.Maybe
+import System.Directory
 
 
 -- | Should the output be sent to the console and a file.

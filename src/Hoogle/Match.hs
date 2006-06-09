@@ -20,7 +20,7 @@ import Hoogle.Search
 import Hoogle.MatchName
 import Hoogle.MatchType
 
-import List
+import Data.List
 
 
 ---------------------------------------------------------------------

@@ -18,7 +18,7 @@ module Hoogle.Lexer (
     ) where
 
 import Prelude
-import Char
+import Data.Char
 
 -- | The data structure for a lexeme
 data Lexeme = OpenSquare  -- ^ \[

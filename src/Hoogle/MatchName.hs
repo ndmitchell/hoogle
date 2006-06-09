@@ -17,9 +17,9 @@ module Hoogle.MatchName(
 import Hoogle.Result
 import Hoogle.TypeSig
 
-import Char
-import List
-import Maybe
+import Data.Char
+import Data.List
+import Data.Maybe
 
 
 -- | The abstract data type

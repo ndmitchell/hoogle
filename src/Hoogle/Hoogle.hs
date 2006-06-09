@@ -9,8 +9,8 @@ import Hoogle.Result
 import Hoogle.Match
 import Hoogle.TypeSig
 
-import List
-import Char
+import Data.List
+import Data.Char
 
 
 hoogleParse :: String -> Search

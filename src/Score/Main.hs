@@ -12,10 +12,10 @@ import Hoogle.Result
 import Hoogle.TypeSig
 import Hoogle.General
 
-import System
-import Maybe
-import List
-import Char
+import System.Environment
+import Data.Maybe
+import Data.List
+import Data.Char
 
 
 type Phrase = [[Char]]

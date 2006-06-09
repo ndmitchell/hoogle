@@ -15,9 +15,9 @@
 module Doc.Main where
 
 import Web.CGI
-import Maybe
-import Char
-import List
+import Data.Maybe
+import Data.Char
+import Data.List
 
 
 main = do x <- cgiArgs
