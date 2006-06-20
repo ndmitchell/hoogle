@@ -4,6 +4,25 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 		<link href="res/hoogle.css" rel="stylesheet" type="text/css" />
 		<title>Hoogle - Download</title>
+
+<script type="text/javascript">
+function addHoogle()
+{
+	addEngine('hoogle','png','Programming','4691');
+}
+
+function addEngine(name,ext,cat,pid)
+{
+  if ((typeof window.sidebar == "object") && (typeof window.sidebar.addSearchEngine == "function")) {
+    window.sidebar.addSearchEngine(
+      "http://mycroft.mozdev.org/install.php/" + pid + "/" + name + ".src",
+      "http://mycroft.mozdev.org/install.php/" + pid + "/" + name + "."+ ext, name, cat );
+  } else {
+    alert("You will need a browser which supports Sherlock to install this plugin.");
+  }
+}
+</script>
+
 	</head>
 	<body id="down">
 
@@ -17,6 +36,12 @@
 
 <p>
 	Various aspects of this project will be available for download, as well as for use online. In the future this section will contain links to the downloads, however currently they are changing rapidly, so if you want a copy email me, or get <a href="developers.htm">the source</a>.
+</p>
+
+<h2>Firefox Plugin</h2>
+
+<p>
+	A <a href="http://www.mozilla.com/firefox/">Firefox</a> plugin by <a href="http://www.cs.york.ac.uk/~miked/">Mike Dodds</a> is available, to install <a href="javascript:addHoogle()">click here</a>.
 </p>
 
 	</body>
