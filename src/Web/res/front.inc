@@ -3,7 +3,6 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 		<title>Hoogle</title>
-
 		<link type="text/css" rel="stylesheet" href="res/hoogle.css" />
 
 		<script type="text/javascript">
@@ -76,7 +75,7 @@ function on_load()
 	"Roses are red. Violets are blue. <a href="http://www.google.com/">Google</a> rocks. Homage to you."
 </p>
 <p id="footer" style="margin-top:3px;">
-	&copy; <a href="http://www.cs.york.ac.uk/~ndm/">Neil Mitchell</a> 2004-2005
+	&copy; <a href="http://www.cs.york.ac.uk/~ndm/">Neil Mitchell</a> 2004-2006
 </p>
 
 

@@ -6,13 +6,47 @@
 		<link type="text/css" rel="stylesheet" href="res/hoogle.css" />
 
 		<script type="text/javascript">
-		function on_load()
-		{
-			document.getElementById('txt').focus();
-		}
+function addHoogle()
+{
+	addEngine('hoogle','png','Programming','4691');
+}
+
+function addEngine(name,ext,cat,pid)
+{
+  if ((typeof window.sidebar == "object") && (typeof window.sidebar.addSearchEngine == "function")) {
+    window.sidebar.addSearchEngine(
+      "http://mycroft.mozdev.org/install.php/" + pid + "/" + name + ".src",
+      "http://mycroft.mozdev.org/install.php/" + pid + "/" + name + "."+ ext, name, cat );
+  } else {
+    alert("You will need a browser which supports Sherlock to install this plugin.");
+  }
+}
+
+function on_load()
+{
+	document.getElementById('txt').focus();
+}
 		</script>
 	</head>
 	<body onload="on_load()" id="answers">
+
+<table id="header">
+	<tr>
+		<td style="text-align:left;">
+			<a href="http://www.haskell.org/">haskell.org</a>
+		</td>
+		<td style="text-align:right;">
+			<!--[if IE]>
+			<div style="display:none;">
+			<![endif]-->
+			<a href="javascript:addHoogle()">Firefox plugin</a> |
+			<!--[if IE]>
+			</div>
+			<![endif]-->
+			<a href="http://www.haskell.org/haskellwiki/Hoogle/Tutorial">Tutorial</a> |
+			<a href="http://www.haskell.org/haskellwiki/Hoogle">Manual</a>
+		</td>
+</table>
 
 <div id="logo">
 	<a href=".">
