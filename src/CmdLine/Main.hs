@@ -20,6 +20,7 @@ import Data.List
 import Data.Maybe
 import Data.Char
 import System.Console.GetOpt
+import System.Directory
 
 
 -- | The main function
@@ -29,14 +30,22 @@ main = do
         let newargs = map safeArrow args
             (flags,query) = parseArgs newargs
             
-            path = fromPath $ fromMaybe (Path []) (find isPath flags)
+            path = fromPath $ fromMaybe (Path "hoogle.txt") (find isPath flags)
             verbose = Verbose `elem` flags
             help = HelpMsg `elem` flags
             color = Color `elem` flags
             count = fromCount $ fromMaybe (Count 0) (find isCount flags)
             
             query2 = concat $ intersperse " " query
-        hoogle path verbose count color (if help then "" else query2)
+            query3 = if help then "" else query2
+        
+        if null query3
+            then putStr helpMsg
+            else do
+                path2 <- checkPath path
+                if null path2
+                    then putStrLn $ "Could not find hoogle database, looked for: " ++ path
+                    else hoogle path2 verbose count color query3
     where
         safeArrow "-#" = " ->"
         safeArrow "->" = " ->"
@@ -149,3 +158,24 @@ parseArgs :: [String] -> ([Flag], [String])
 parseArgs argv = case getOpt Permute opts argv of
         (flags,query,[]) -> (flags,query)
         (_,_,err)        -> error $ concat err ++ helpMsg
+
+
+
+-- | If a path is given check that it exists
+--   If not then try relative to yourself
+checkPath :: FilePath -> IO FilePath
+checkPath file = do
+    b <- doesFileExist file
+    if b then return file else do
+        prog <- getProgName
+        path <- findExecutable prog
+        case path of
+            Nothing -> return ""
+            Just path -> do
+                file <- return $ setFileName path file
+                b <- doesFileExist file
+                if b then return file else return ""
+
+                    
+setFileName :: FilePath -> String -> FilePath
+setFileName path file = (reverse $ dropWhile (not . (`elem` "\\/")) $ reverse path) ++ file
