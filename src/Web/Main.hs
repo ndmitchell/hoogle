@@ -96,7 +96,8 @@ showError input err =
 showResults :: Search -> [(String, String)] -> IO ()
 showResults input args =
     do
-        res <- hoogleResults "res/hoogle.txt" input
+        let useGtk = ("package","gtk") `elem` args
+        res <- hoogleResults (if useGtk then "res/gtk.txt" else "res/hoogle.txt") input
         let lres = length res
             search = hoogleSearch input
             tSearch = showText search
@@ -106,7 +107,9 @@ showResults input args =
         outputFileParam "prefix" tSearch
 
         putLine $ 
-            "<table id='heading'><tr><td>Searched for " ++ showTags search ++
+            "<table id='heading'><tr><td>" ++
+            (if useGtk then "<b>Gtk: </b>" else "") ++
+            "Searched for " ++ showTags search ++
             "</td><td id='count'>" ++
             (if lres == 0 then "No results found" else f lres) ++
             "</td></tr></table>"
