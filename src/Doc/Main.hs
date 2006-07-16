@@ -59,12 +59,15 @@ calcPage modu suffix =
        let xs = mapMaybe f $ lines x
        return $ case lookup modu xs of
            Just "wiki" -> wikiPrefix ++ modu ++ suffix
-           Just a -> haddockPrefix ++ a ++ "/" ++ map g modu ++ ".html" ++ suffix
+           Just a -> haddockLoc a ++ map g modu ++ ".html" ++ suffix
            Nothing -> failPage
     where
         f ys = case break (== '\t') ys of
                    (a, [] ) -> Nothing
                    (a, b) -> Just (a, dropWhile isSpace b)
-                   
+        
+        haddockLoc "gtk" = "http://haskell.org/gtk2hs/docs/gtk2hs-docs-0.9.10/"
+        haddockLoc a = haddockPrefix ++ a ++ "/"
+        
         g '.' = '-'
         g x   = x
