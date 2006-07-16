@@ -2,11 +2,12 @@
 module Main where
 
 import System.Environment
+import System.Cmd
 import Control.Monad
 import Data.List
 
 
-helpMsg = "help msg for hadhoo"
+helpMsg = "help msg for hadhoo\nhadhoo directory -output.hoo"
 
 main :: IO ()
 main = do args <- getArgs
@@ -24,4 +25,12 @@ pickFiles file = return [file]
 
 
 execute :: [FilePath] -> FilePath -> IO ()
-execute srcfiles outfile = error "todo"
+execute srcfiles outfile = mapM_ (executeOne outfile) srcfiles
+
+executeOne :: FilePath -> FilePath -> IO ()
+executeOne outfile file = do
+    system $ "haddock -hoogle " ++ file ++ " > temp.txt"
+    src <- readFile "temp.txt"
+    appendFile outfile src
+
+
