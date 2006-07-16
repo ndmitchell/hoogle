@@ -104,11 +104,10 @@ showResults input args =
             useres = take num $ drop start res
 
         debugInit
-        outputFileParam "prefix" tSearch
+        outputFileParam (if useGtk then "prefix_gtk" else "prefix") tSearch
 
         putLine $ 
             "<table id='heading'><tr><td>" ++
-            (if useGtk then "<b>Gtk: </b>" else "") ++
             "Searched for " ++ showTags search ++
             "</td><td id='count'>" ++
             (if lres == 0 then "No results found" else f lres) ++
