@@ -1,2 +1,2 @@
-module Graphics.UI.Gtk
+module Gtk
 gtk :: Hello Dcoutts
