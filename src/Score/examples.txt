@@ -61,3 +61,9 @@ a
 @ (a -> b) -> [a] -> [b]
 (a -> [b]) -> [a] -> [b]
 (a -> a -> Bool) -> a -> [a] -> [a]
+
+
+@ Ix a => i -> Array a b
+a -> a
+Ix a => (a, a) -> [b] -> Array a b
+
