@@ -30,6 +30,7 @@ deploy:
 	cp -r web/* deploy
 	cp src/hoogle.txt deploy/res/hoogle.txt
 	cp src/Web/res/* deploy/res
+	cp src/Doc/res/* deploy/res
 	haddock --html --title=Hoogle --odir=deploy/haddock --prologue=docs/haddock.txt src/*.hs src/*/*.hs
 
 
