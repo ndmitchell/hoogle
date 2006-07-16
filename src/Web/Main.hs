@@ -42,7 +42,7 @@ main = do args <- if debugOut then fakeArgs else cgiArgs
           putStr "Content-type: text/html\n\n"
           appendFile "log.txt" (show args ++ "\n")
           let input = lookupDef "" "q" args
-          if null input then hoogleBlank
+          if null input then hoogleBlank args
            else do let p = hoogleParse input
                    case hoogleParseError p of
                         Just x -> showError input x
@@ -63,9 +63,10 @@ lookupDefInt def key list = case lookup key list of
 
 
 -- | Show the search box
-hoogleBlank :: IO ()
-hoogleBlank = do debugInit
-                 outputFile "front"
+hoogleBlank :: [(String,String)] -> IO ()
+hoogleBlank args = do
+    debugInit
+    outputFile (if ("package","gtk") `elem` args then "front_gtk" else "front")
 
 
 -- | Replace all occurances of $ with the parameter
