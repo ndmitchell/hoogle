@@ -48,11 +48,11 @@ function on_load()
 		</td>
 </table>
 
-<div id="logo">
+<div id="logo" style="vertical-align: middle">
 	<a href=".">
 		<img src="res/hoogle_small.png" alt="Hoogle" />
 	</a>
-	<a href="http://www.haskell.org/gtk2hs/">Gtk2Hs</a>
+	<a href="http://www.haskell.org/gtk2hs/">Gtk2Hs:</a> 
 </div>
 
 <form action="?" method="get">
