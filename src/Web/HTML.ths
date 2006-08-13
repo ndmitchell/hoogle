@@ -87,7 +87,7 @@ function on_load()
 
 <form action="?" method="get">
     <div>
-        <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value="$" />
+        <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value="<% search %>" />
         <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
     </div>
 </form>
