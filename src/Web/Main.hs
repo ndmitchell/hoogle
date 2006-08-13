@@ -19,6 +19,7 @@ import Hoogle.TextUtil
 
 import Web.CGI
 import Web.Lambdabot
+import Web.HTML
 
 import Data.Char
 import System.Environment
@@ -87,9 +88,7 @@ showError :: String -> String -> IO ()
 showError input err =
     do
         debugInit
-        outputFileParam "prefix" input
-        outputFileParam "error" err
-        outputFileParam "suffix" input
+        putStrLn $ htmlError input err
         
 
 
