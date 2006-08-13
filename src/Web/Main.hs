@@ -22,25 +22,47 @@ import Web.Lambdabot
 import Web.HTML
 
 import Data.Char
-import System.Environment
 import Data.List
 import Data.Maybe
+import System.Environment
 import System.Directory
+import System.Info
+import Control.Monad
 
+
+
+---------------------------------------------------------------------
+-- DEBUGGING SECTION
 
 -- | Should the output be sent to the console and a file.
 --   If true then both, the file is 'debugFile'.
 --   Useful mainly for debugging.
-debugOut = False
+--
+debugForce = False
 
-fakeArgs :: IO [(String, String)]
-fakeArgs = return $ [("q","map"), ("format","sherlock")]
+-- | Defaults to True always in Hugs, since no one will
+--   run the service for real via Hugs, but I debug it that way
+debugMode = debugForce || compilerName == "hugs"
+
+-- | The file to output to if 'debugMode' is True
+debugFile = "temp.htm"
+
+-- | Clear the debugging file
+debugBegin = when debugMode $ writeFile debugFile ""
+
+-- | Write out a line, to console and optional to a debugging file
+putLine :: String -> IO ()
+putLine x = do putStrLn x
+               when debugMode $ appendFile debugFile x
+
+
 
 
 -- | The main function
 main :: IO ()
-main = do args <- if debugOut then fakeArgs else cgiArgs
+main = do args <- cgiArgs
           putStr "Content-type: text/html\n\n"
+          debugBegin
           appendFile "log.txt" (show args ++ "\n")
           let input = lookupDef "" "q" args
           if null input then hoogleBlank args
@@ -65,9 +87,7 @@ lookupDefInt def key list = case lookup key list of
 
 -- | Show the search box
 hoogleBlank :: [(String,String)] -> IO ()
-hoogleBlank args = do
-    debugInit
-    outputFile (if ("package","gtk") `elem` args then "front_gtk" else "front")
+hoogleBlank args = outputFile (if ("package","gtk") `elem` args then "front_gtk" else "front")
 
 
 -- | Replace all occurances of $ with the parameter
@@ -85,10 +105,7 @@ outputFile x = do src <- readFile ("res/" ++ x ++ ".inc")
 
 
 showError :: String -> String -> IO ()
-showError input err =
-    do
-        debugInit
-        putStrLn $ htmlError input err
+showError input err = putLine $ htmlError input err
         
 
 
@@ -103,7 +120,6 @@ showResults input args =
             tSearch = showText search
             useres = take num $ drop start res
 
-        debugInit
         outputFileParam (if useGtk then "prefix_gtk" else "prefix") tSearch
 
         putLine $ 
@@ -224,18 +240,6 @@ hoodoc res full = f $
         modu = showText (resultModule res)
         f x = "<a href='hoodoc.cgi?module=" ++ x ++ "'>"
 
-
--- | The file to output to if 'debugOut' is True
-debugFile = "temp.htm"
-
-
--- | Clear the debugging file
-debugInit = if debugOut then writeFile debugFile "" else return ()
-
--- | Write out a line, to console and optional to a debugging file
-putLine :: String -> IO ()
-putLine x = do putStrLn x
-               if debugOut then appendFile debugFile x else return ()
 
 
 -- | Read the hit count, increment it, return the new value.
