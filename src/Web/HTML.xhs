@@ -1,0 +1,104 @@
+
+-- generate pages, using hsx preprocessor
+-- http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/
+module Web.HTML(htmlError) where
+
+import Web.XML
+
+
+htmlError :: String -> String -> String
+htmlError search errmsg = searchPage search $
+	<table id="heading">
+		<tr>
+			<td>Invalid Search</td>
+			<td id="count">No results found</td>
+		</tr>
+	</table>
+    <+>
+	<div id="failure">
+		Error, your search was invalid:<br/>
+		<% errmsg %>
+		<ul>
+			<li>This is probably a parse error, check for matching brackets etc.</li>
+		</ul>
+	</div>
+
+
+
+
+searchPage :: String -> XML -> String
+searchPage search inner =
+    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
+    ++ show (
+    <html>
+        <head>
+            <meta httpequiv="Content-Type" content="text/html; charset=iso-8859-1" />
+            <title><% search %> - Hoogle</title>
+            <link type="text/css" rel="stylesheet" href="res/hoogle.css" />
+
+            <script type="text/javascript">
+            function addHoogle()
+            {
+                addEngine('hoogle','png','Programming','4691');
+            }
+
+            function addEngine(name,ext,cat,pid)
+            {
+              if ((typeof window.sidebar == "object") && (typeof window.sidebar.addSearchEngine == "function")) {
+                window.sidebar.addSearchEngine(
+                  'http://mycroft.mozdev.org/install.php/' + pid + "/" + name + ".src",
+                  'http://mycroft.mozdev.org/install.php/' + pid + "/" + name + "."+ ext, name, cat );
+              } else {
+                alert("You will need a browser which supports Sherlock to install this plugin.");
+              }
+            }
+
+            function on_load()
+            {
+                document.getElementById('txt').focus();
+            }
+            </script>
+        </head>
+        <body onload="on_load()" id="answers">
+
+            <table id="header">
+                <tr>
+                    <td style="text-align:left;">
+                        <a href="http://www.haskell.org/">haskell.org</a>
+                    </td>
+                    <td style="text-align:right;">
+                        <% rawXml "<!--[if IE]>" %>
+                        <div style="display:none;">
+                        <% rawXml "<![endif]-->" %>
+                        <a href="javascript:addHoogle()">Firefox plugin</a> |
+                        <% rawXml "<!--[if IE]>" %>
+                        </div>
+                        <% rawXml "<![endif]-->" %>
+                        <a href="http://www.haskell.org/haskellwiki/Hoogle/Tutorial">Tutorial</a> |
+                        <a href="http://www.haskell.org/haskellwiki/Hoogle">Manual</a>
+                    </td>
+                </tr>
+            </table>
+
+            <div id="logo">
+                <a href=".">
+                    <img src="res/hoogle_small.png" alt="Hoogle" />
+                </a>
+            </div>
+
+            <form action="?" method="get">
+                <div>
+                    <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value="<% search %>" />
+                    <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
+                </div>
+            </form>
+
+            <% inner %>
+
+            <p id="footer">
+                &copy; <a href="http://www.cs.york.ac.uk/~ndm/">Neil Mitchell</a> 2004-2006
+            </p>
+        </body>
+    </html>
+    )
+
