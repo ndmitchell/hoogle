@@ -3,10 +3,20 @@ Version:         3.0
 License:         GPL
 Author:          Neil Mitchell
 Synopsis:        Haskell API Search
+Homepage:        http://www.haskell.org/hoogle/
 Stability:       Beta
 Build-Depends:
-				 base >= 1.0
+                 base >= 1.0
 
 Executable:      hoogle
 Main-Is:         CmdLine.hs
 Hs-Source-Dirs:  src
+
+Executable:      index.cgi
+Main-Is:         Web.hs
+Hs-Source-Dirs:  src
+
+Executable:      hoodoc.cgi
+Main-Is:         Doc.hs
+Hs-Source-Dirs:  src
+
