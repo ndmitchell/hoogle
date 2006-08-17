@@ -1,0 +1,12 @@
+Name:            Hoogle
+Version:         3.0
+License:         GPL
+Author:          Neil Mitchell
+Synopsis:        Haskell API Search
+Stability:       Beta
+Build-Depends:
+				 base >= 1.0
+
+Executable:      hoogle
+Main-Is:         CmdLine.hs
+Hs-Source-Dirs:  src
