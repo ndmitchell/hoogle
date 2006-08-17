@@ -6,7 +6,7 @@ Synopsis:        Haskell API Search
 Homepage:        http://www.haskell.org/hoogle/
 Stability:       Beta
 Build-Depends:
-                 base >= 1.0
+                 base, trhsx
 
 Executable:      hoogle
 Main-Is:         CmdLine.hs
