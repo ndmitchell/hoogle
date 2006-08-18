@@ -65,11 +65,16 @@ main = do args <- cgiArgs
           debugBegin
           appendFile "log.txt" (show args ++ "\n")
           let input = lookupDef "" "q" args
-          if null input then hoogleBlank args
+          
+          let dat = WebData input
+                            (if ("package","gtk") `elem` args then "gtk" else "")
+                            (lookupDef "default" "logo" args)
+          
+          if null input then putLine $ htmlFront dat
            else do let p = hoogleParse input
                    case hoogleParseError p of
-                        Just x -> showError input x
-                        Nothing -> showResults p args
+                        Just x -> putLine $ htmlError dat x
+                        Nothing -> showResults dat p args
 
 
 lookupDef :: Eq key => val -> key -> [(key, val)] -> val
@@ -85,35 +90,9 @@ lookupDefInt def key list = case lookup key list of
                                            _ -> def
 
 
--- | Show the search box
-hoogleBlank :: [(String,String)] -> IO ()
-hoogleBlank args = if ("package","gtk") `elem` args
-                   then outputFile "front_gtk"else
-                   putLine htmlFront
-
-
--- | Replace all occurances of $ with the parameter
-outputFileParam :: FilePath -> String -> IO ()
-outputFileParam x param = do src <- readFile ("res/" ++ x ++ ".inc")
-                             putLine (f src)
-    where
-        f ('$':xs) = param ++ f xs
-        f (x:xs) = x : f xs
-        f [] = []
-
-outputFile :: FilePath -> IO ()
-outputFile x = do src <- readFile ("res/" ++ x ++ ".inc")
-                  putLine src
-
-
-showError :: String -> String -> IO ()
-showError input err = putLine $ htmlError input err
-        
-
-
 -- | Perform a search, dump the results using 'putLine'
-showResults :: Search -> [(String, String)] -> IO ()
-showResults input args =
+showResults :: WebData -> Search -> [(String, String)] -> IO ()
+showResults dat input args =
     do
         let useGtk = ("package","gtk") `elem` args
         res <- hoogleResults (if useGtk then "res/gtk.txt" else "res/hoogle.txt") input
@@ -122,35 +101,32 @@ showResults input args =
             tSearch = showText search
             useres = take num $ drop start res
 
-        outputFileParam (if useGtk then "prefix_gtk" else "prefix") tSearch
-
-        putLine $ 
-            "<table id='heading'><tr><td>" ++
-            "Searched for " ++ showTags search ++
-            "</td><td id='count'>" ++
-            (if lres == 0 then "No results found" else f lres) ++
-            "</td></tr></table>"
+        let count =    
+                "<table id='heading'><tr><td>" ++
+                "Searched for " ++ showTags search ++
+                "</td><td id='count'>" ++
+                (if lres == 0 then "No results found" else f lres) ++
+                "</td></tr></table>"
         
-        case hoogleSuggest True input of
-            Nothing -> return ()
-            Just x -> putLine $ "<p id='suggest'><span class='name'>Hoogle says:</span> " ++
-                                showTags x ++ "</p>"
+        let suggest = case hoogleSuggest True input of
+                Nothing -> ""
+                Just x -> "<p id='suggest'><span class='name'>Hoogle says:</span> " ++ showTags x ++ "</p>"
 
         lam <- Web.Lambdabot.query (lookupDef "" "q" args)
-        case lam of
-            Nothing -> return ()
-            Just x -> putLine $ "<p id='lambdabot'><span class='name'>" ++
-                "<a href='http://www.cse.unsw.edu.au/~dons/lambdabot.html'>Lambdabot</a> says:</span> "
-                ++ x ++ "</p>"
+        let lambdabot = case lam of
+                Nothing -> ""
+                Just x -> "<p id='lambdabot'><span class='name'>" ++
+                    "<a href='http://www.cse.unsw.edu.au/~dons/lambdabot.html'>Lambdabot</a> says:</span> "
+                    ++ x ++ "</p>"
 
-        if null res then outputFileParam "noresults" tSearch
-         else putLine $ "<table id='results'>" ++ concatMap showResult useres ++ "</table>"
+        let results = if null res then innerNoResult
+                      else "<table id='results'>" ++ concatMap showResult useres ++ "</table>"
         
-        putLine $ g lres
+        let pageFlip = g lres
         
-        putLine $ if format == "sherlock" then sherlock useres else ""
+        let sher = if format == "sherlock" then sherlock useres else ""
 
-        outputFileParam "suffix" tSearch
+        putLine $ htmlAnswers dat (count ++ suggest ++ lambdabot ++ results ++ pageFlip ++ sher)
     where
         start = lookupDefInt 0 "start" args
         num   = lookupDefInt 25 "num"  args

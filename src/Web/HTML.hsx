@@ -1,27 +1,31 @@
 
 -- generate pages, using hsx preprocessor
 -- http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/
-module Web.HTML(htmlFront, htmlError) where
+module Web.HTML(WebData(..), htmlFront, htmlError, htmlAnswers, innerNoResult) where
 
 import Web.XML
+
+
+data WebData = WebData {webSearch :: String, webPackage :: String, webLogo :: String}
+
 
 
 -- the individual elements that make up a web page:
 doctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
 
 -- null search means its the front page
-anyPage search body = doctype ++ "\n" ++ show html
+anyPage webData@WebData{webSearch=webSearch} body = doctype ++ "\n" ++ show html
  where
    html =
     <html>
         <head>
             <meta httpequiv="Content-Type" content="text/html; charset=iso-8859-1" />
-            <title><% if null search then "" else search ++ " - " %>Hoogle</title>
+            <title><% if null webSearch then "" else webSearch ++ " - " %>Hoogle</title>
             <link type="text/css" rel="stylesheet" href="res/hoogle.css" />
 
             <script type="text/javascript" src="res/hoogle.js"> </script>
         </head>
-        <body onload="on_load()" id=(if null search then "front" else "answers")>
+        <body onload="on_load()" id=(if null webSearch then "front" else "answers")>
 
             <table id="header">
                 <tr>
@@ -51,7 +55,8 @@ anyPage search body = doctype ++ "\n" ++ show html
     </html>
 
 -- any page which is a search page
-searchPage search inner = anyPage search $
+searchPage :: ToXMLs a => WebData -> a -> String
+searchPage webData inner = anyPage webData $
     <div id="logo">
         <a href=".">
             <img src="res/hoogle_default_small.png" alt="Hoogle" />
@@ -60,18 +65,18 @@ searchPage search inner = anyPage search $
     <+>
     <form action="?" method="get">
         <div>
-            <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(search) />
+            <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(webSearch webData) />
             <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
         </div>
     </form>
     <+>
-    <% inner %>
+    toXMLs <% inner %>
 
 
 
 -- displayed if the user types an valid search, i.e. 3
-htmlError :: String -> String -> String
-htmlError search errmsg = searchPage search $
+htmlError :: WebData -> String -> String
+htmlError webData errmsg = searchPage webData $
 	<table id="heading">
 		<tr>
 			<td>Invalid Search</td>
@@ -89,10 +94,29 @@ htmlError search errmsg = searchPage search $
 
 
 
+-- no results have been found, i.e. blah
+innerNoResult :: String
+innerNoResult = show $
+    <div id="failure">
+        Your search returned no results:
+        <ul>
+            <li>Make sure you are using the search engine properly, it only searches for Haskell functions</li>
+            <li>Try a smaller substring, for example, if you searched for <tt>mapConcat</tt>, try searching for either <tt>map</tt> or <tt>concat</tt> individually.</li>
+        </ul>
+    </div>
+
+
+
+htmlAnswers :: WebData -> String -> String
+htmlAnswers webData inner = searchPage webData inner
+
+
+
+
 
 -- displayed at the start, home page
-htmlFront :: String
-htmlFront = anyPage "" $
+htmlFront :: WebData -> String
+htmlFront webData = anyPage webData $
     <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
         <img style="vertical-align:top;" src="res/hoogle_default_large.png" alt="Hoogle" />
         <sup style="font-family:serif;font-weight:bold;font-size:16pt;">3
