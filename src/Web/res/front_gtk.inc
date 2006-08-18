@@ -52,7 +52,7 @@ function on_load()
 <img style="float:left;" src="http://gtk.org/images/gtk-logo-rgb.gif" alt="Gtk" />
 
 <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
-	<img style="vertical-align:top;" src="res/hoogle_large.png" alt="Hoogle" />
+	<img style="vertical-align:top;" src="res/hoogle_default_large.png" alt="Hoogle" />
 	<sup style="font-family:serif;font-weight:bold;font-size:16pt;">3
 		<span style="color:#b00;">[&beta;]</span>
 	</sup>

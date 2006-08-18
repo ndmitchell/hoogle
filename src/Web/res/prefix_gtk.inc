@@ -50,7 +50,7 @@ function on_load()
 
 <div id="logo" style="vertical-align: middle">
 	<a href=".">
-		<img src="res/hoogle_small.png" alt="Hoogle" />
+		<img src="res/hoogle_default_small.png" alt="Hoogle" />
 	</a>
 	<a href="http://www.haskell.org/gtk2hs/">Gtk2Hs:</a> 
 </div>

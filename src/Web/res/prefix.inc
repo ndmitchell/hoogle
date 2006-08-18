@@ -50,7 +50,7 @@ function on_load()
 
 <div id="logo">
 	<a href=".">
-		<img src="res/hoogle_small.png" alt="Hoogle" />
+		<img src="res/hoogle_default_small.png" alt="Hoogle" />
 	</a>
 </div>
 
