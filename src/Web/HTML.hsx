@@ -51,7 +51,6 @@ anyPage search body = doctype ++ "\n" ++ show html
     </html>
 
 -- any page which is a search page
-searchPage :: String -> XML -> String
 searchPage search inner = anyPage search $
     <div id="logo">
         <a href=".">
@@ -92,6 +91,7 @@ htmlError search errmsg = searchPage search $
 
 
 -- displayed at the start, home page
+htmlFront :: String
 htmlFront = anyPage "" $
     <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
         <img style="vertical-align:top;" src="res/hoogle_default_large.png" alt="Hoogle" />
