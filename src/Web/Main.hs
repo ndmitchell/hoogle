@@ -45,7 +45,7 @@ debugForce = False
 debugMode = debugForce || compilerName == "hugs"
 
 -- | The file to output to if 'debugMode' is True
-debugFile = "../web/temp.htm"
+debugFile = "../../web/temp.htm"
 
 -- | Clear the debugging file
 debugBegin = when debugMode $ writeFile debugFile ""
