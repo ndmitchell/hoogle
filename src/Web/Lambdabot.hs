@@ -3,6 +3,7 @@ module Web.Lambdabot(query) where
 
 import Data.List
 import Data.Char
+import System.Directory
 
 query :: String -> IO (Maybe String)
 query x = do d <- readDatabase
@@ -20,8 +21,11 @@ linky x | "http://" `isPrefixOf` x = "<a href='" ++ x ++ "'>" ++ x ++ "</a>"
 
 
 readDatabase :: IO [(String, String)]
-readDatabase = do x <- readFile "res/lambdabot.txt"
-                  return $ f (lines x)
+readDatabase = do let lambdabotDatabase = "res/lambdabot.txt"
+                  b <- doesFileExist lambdabotDatabase
+                  if not b then return [] else do
+                      x <- readFile lambdabotDatabase
+                      return $ f (lines x)
     where
         f (key:val:xs) = (key,val) : f xs
         f _ = []
