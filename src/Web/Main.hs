@@ -87,7 +87,9 @@ lookupDefInt def key list = case lookup key list of
 
 -- | Show the search box
 hoogleBlank :: [(String,String)] -> IO ()
-hoogleBlank args = outputFile (if ("package","gtk") `elem` args then "front_gtk" else "front")
+hoogleBlank args = if ("package","gtk") `elem` args
+                   then outputFile "front_gtk"else
+                   putLine htmlFront
 
 
 -- | Replace all occurances of $ with the parameter

@@ -1,7 +1,7 @@
 
 -- generate pages, using hsx preprocessor
 -- http://www.cs.chalmers.se/~d00nibro/haskell-src-exts/
-module Web.HTML(htmlError) where
+module Web.HTML(htmlFront, htmlError) where
 
 import Web.XML
 
@@ -50,9 +50,27 @@ anyPage search body = doctype ++ "\n" ++ show html
         </body>
     </html>
 
+-- any page which is a search page
+searchPage :: String -> XML -> String
+searchPage search inner = anyPage search $
+    <div id="logo">
+        <a href=".">
+            <img src="res/hoogle_default_small.png" alt="Hoogle" />
+        </a>
+    </div>
+    <+>
+    <form action="?" method="get">
+        <div>
+            <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(search) />
+            <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
+        </div>
+    </form>
+    <+>
+    <% inner %>
 
 
 
+-- displayed if the user types an valid search, i.e. 3
 htmlError :: String -> String -> String
 htmlError search errmsg = searchPage search $
 	<table id="heading">
@@ -73,20 +91,31 @@ htmlError search errmsg = searchPage search $
 
 
 
-searchPage :: String -> XML -> String
-searchPage search inner = anyPage search $
-    <div id="logo">
-        <a href=".">
-            <img src="res/hoogle_default_small.png" alt="Hoogle" />
-        </a>
-    </div>
-    <+>
-    <form action="?" method="get">
-        <div>
-            <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(search) />
-            <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
+-- displayed at the start, home page
+htmlFront = anyPage "" $
+    <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
+        <img style="vertical-align:top;" src="res/hoogle_default_large.png" alt="Hoogle" />
+        <sup style="font-family:serif;font-weight:bold;font-size:16pt;">3
+            <span style="color:#b00;"><% box "&beta;" %></span>
+        </sup><br/>
+        <i>The Haskell API Search Engine</i><br/>
+        <form id="input" action="?" method="get"
+            style="text-align:center;padding-top:20px;display:block;">
+            <div>
+                <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" />
+                <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
+            </div>
+        </form>
+
+        <div style="margin:auto;margin-top:40px;padding:3px;width:300px;border:2px solid #cc0;background-color:#ffc;font-size:10pt;text-align:left;">
+            Example searches:<br/>
+            &nbsp; <a href="?q=map">map</a><br/>
+            &nbsp; <a href="?q=(a%20-%3E%20b)%20-%3E%20[a]%20-%3E%20[b]">(a -&gt; b) -&gt; <%box_a%> -&gt; <%box_b%></a><br/>
+            &nbsp; <a href="?q=Ord%20a%20%3D%3E%20[a]%20-%3E%20[a]">Ord a =&gt; <%box_a%> -&gt; <%box_a%></a>
         </div>
-    </form>
-    <+>
-    <% inner %>
+    </div>
+  where
+    box x = "[" ++ x ++ "]"
+    box_a = box "a"
+    box_b = box "b"
 
