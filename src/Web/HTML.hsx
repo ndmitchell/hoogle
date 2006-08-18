@@ -6,6 +6,53 @@ module Web.HTML(htmlError) where
 import Web.XML
 
 
+-- the individual elements that make up a web page:
+doctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
+
+-- null search means its the front page
+anyPage search body = doctype ++ "\n" ++ show html
+ where
+   html =
+    <html>
+        <head>
+            <meta httpequiv="Content-Type" content="text/html; charset=iso-8859-1" />
+            <title><% if null search then "" else search ++ " - " %>Hoogle</title>
+            <link type="text/css" rel="stylesheet" href="res/hoogle.css" />
+
+            <script type="text/javascript" src="res/hoogle.js"> </script>
+        </head>
+        <body onload="on_load()" id=(if null search then "front" else "answers")>
+
+            <table id="header">
+                <tr>
+                    <td style="text-align:left;">
+                        <a href="http://www.haskell.org/">haskell.org</a>
+                    </td>
+                    <td style="text-align:right;">
+                        <% rawXml "<!--[if IE]>" %>
+                        <div style="display:none;">
+                        <% rawXml "<![endif]-->" %>
+                        <a href="javascript:addHoogle()">Firefox plugin</a> |
+                        <% rawXml "<!--[if IE]>" %>
+                        </div>
+                        <% rawXml "<![endif]-->" %>
+                        <a href="http://www.haskell.org/haskellwiki/Hoogle/Tutorial">Tutorial</a> |
+                        <a href="http://www.haskell.org/haskellwiki/Hoogle">Manual</a>
+                    </td>
+                </tr>
+            </table>
+
+            <% body %>
+
+            <p id="footer">
+                &copy; <a href="http://www.cs.york.ac.uk/~ndm/">Neil Mitchell</a> 2004-2006
+            </p>
+        </body>
+    </html>
+
+
+
+
 htmlError :: String -> String -> String
 htmlError search errmsg = searchPage search $
 	<table id="heading">
@@ -27,57 +74,19 @@ htmlError search errmsg = searchPage search $
 
 
 searchPage :: String -> XML -> String
-searchPage search inner =
-    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
-    ++ show (
-    <html>
-        <head>
-            <meta httpequiv="Content-Type" content="text/html; charset=iso-8859-1" />
-            <title><% search %> - Hoogle</title>
-            <link type="text/css" rel="stylesheet" href="res/hoogle.css" />
-
-            <script type="text/javascript" src="res/hoogle.js"> </script>
-        </head>
-        <body onload="on_load()" id="answers">
-
-            <table id="header">
-                <tr>
-                    <td style="text-align:left;">
-                        <a href="http://www.haskell.org/">haskell.org</a>
-                    </td>
-                    <td style="text-align:right;">
-                        <% rawXml "<!--[if IE]>" %>
-                        <div style="display:none;">
-                        <% rawXml "<![endif]-->" %>
-                        <a href="javascript:addHoogle()">Firefox plugin</a> |
-                        <% rawXml "<!--[if IE]>" %>
-                        </div>
-                        <% rawXml "<![endif]-->" %>
-                        <a href="http://www.haskell.org/haskellwiki/Hoogle/Tutorial">Tutorial</a> |
-                        <a href="http://www.haskell.org/haskellwiki/Hoogle">Manual</a>
-                    </td>
-                </tr>
-            </table>
-
-            <div id="logo">
-                <a href=".">
-                    <img src="res/hoogle_default_small.png" alt="Hoogle" />
-                </a>
-            </div>
-
-            <form action="?" method="get">
-                <div>
-                    <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(search) />
-                    <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
-                </div>
-            </form>
-
-            <% inner %>
-
-            <p id="footer">
-                &copy; <a href="http://www.cs.york.ac.uk/~ndm/">Neil Mitchell</a> 2004-2006
-            </p>
-        </body>
-    </html>
-    )
+searchPage search inner = anyPage search $
+    <div id="logo">
+        <a href=".">
+            <img src="res/hoogle_default_small.png" alt="Hoogle" />
+        </a>
+    </div>
+    <+>
+    <form action="?" method="get">
+        <div>
+            <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(search) />
+            <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
+        </div>
+    </form>
+    <+>
+    <% inner %>
 
