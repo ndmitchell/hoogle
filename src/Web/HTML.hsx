@@ -56,8 +56,11 @@ anyPage webData@WebData{webSearch=webSearch} body = doctype ++ "\n" ++ show html
 
 -- any page which is a search page
 searchPage :: ToXMLs a => WebData -> a -> String
-searchPage webData inner = anyPage webData $
+searchPage webData@WebData{webPackage=webPackage} inner = anyPage webData $
     <div id="logo">
+        <% if null webPackage then "" else
+            "<img src=\"res/" ++ webPackage ++ "_small.png\" alt=\"" ++ webPackage ++ "\" />"
+        %>
         <a href=".">
             <img src=("res/hoogle_" ++ webLogo webData ++ "_small.png") alt="Hoogle" />
         </a>
@@ -65,6 +68,9 @@ searchPage webData inner = anyPage webData $
     <+>
     <form action="?" method="get">
         <div>
+            <% if null webPackage then "" else
+                "<input type=\"hidden\" name=\"package\" value=\"" ++ webPackage ++ "\" />"
+            %>
             <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(webSearch webData) />
             <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
         </div>
@@ -116,16 +122,26 @@ htmlAnswers webData inner = searchPage webData inner
 
 -- displayed at the start, home page
 htmlFront :: WebData -> String
-htmlFront webData = anyPage webData $
+htmlFront webData@WebData{webPackage=webPackage} = anyPage webData $
     <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
+        <% if null webPackage then "" else
+            "<img style=\"vertical-align:top;\" src=\"res/" ++ webPackage ++ "_large.png\" alt=\"" ++ webPackage ++ "\" />"
+        %>
         <img style="vertical-align:top;" src=("res/hoogle_" ++ webLogo webData ++ "_large.png") alt="Hoogle" />
         <sup style="font-family:serif;font-weight:bold;font-size:16pt;">3
             <span style="color:#b00;"><% box "&beta;" %></span>
         </sup><br/>
-        <i>The Haskell API Search Engine</i><br/>
+        <i>The Haskell API Search Engine</i>
+        <% if null webPackage then "" else
+            " - <a href=\"http://haskell.org/gtk2hs/\">Gtk2Hs</a> edition"
+        %>
+        <br/>
         <form id="input" action="?" method="get"
             style="text-align:center;padding-top:20px;display:block;">
             <div>
+                <% if null webPackage then "" else
+                    "<input type=\"hidden\" name=\"package\" value=\"" ++ webPackage ++ "\" />"
+                %>
                 <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" />
                 <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
             </div>
