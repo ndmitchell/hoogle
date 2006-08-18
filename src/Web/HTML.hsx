@@ -59,7 +59,7 @@ searchPage :: ToXMLs a => WebData -> a -> String
 searchPage webData inner = anyPage webData $
     <div id="logo">
         <a href=".">
-            <img src="res/hoogle_default_small.png" alt="Hoogle" />
+            <img src=("res/hoogle_" ++ webLogo webData ++ "_small.png") alt="Hoogle" />
         </a>
     </div>
     <+>
@@ -118,7 +118,7 @@ htmlAnswers webData inner = searchPage webData inner
 htmlFront :: WebData -> String
 htmlFront webData = anyPage webData $
     <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
-        <img style="vertical-align:top;" src="res/hoogle_default_large.png" alt="Hoogle" />
+        <img style="vertical-align:top;" src=("res/hoogle_" ++ webLogo webData ++ "_large.png") alt="Hoogle" />
         <sup style="font-family:serif;font-weight:bold;font-size:16pt;">3
             <span style="color:#b00;"><% box "&beta;" %></span>
         </sup><br/>
