@@ -70,3 +70,7 @@ fromLeft (Left x) = x
 
 iff :: Bool -> a -> Maybe a
 iff b a = if b then Just a else Nothing
+
+
+setEq :: Eq a => [a] -> [a] -> Bool
+setEq xs ys = all (`elem` ys) xs && all (`elem` xs) ys
