@@ -3,11 +3,13 @@ module Test.Parsing(mainParsing) where
 
 import Text.ParserCombinators.Parsec
 import Hoogle.TypeSig.All
+import Hoogle.Query.All
 import Data.List
 import Data.Char
 
 
-mainParsing = testParser parseTypeSig "TypeSig/tests.txt"
+mainParsing = do testParser parseTypeSig "TypeSig/tests.txt"
+                 testParser parseQuery "Query/tests.txt"
 
 
 testParser :: (Eq a, Show a, Read a) => (String -> Either ParseError a) -> FilePath -> IO ()
