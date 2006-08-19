@@ -1,13 +1,18 @@
+-- really basic stuff
 a £ TypeSig [] (TVar "a")
 A £ TypeSig [] (TLit "A")
 m a £ TypeSig [] (TApp (TVar "m") [TVar "a"])
 M a b £ TypeSig [] (TApp (TLit "M") [TVar "a",TVar "b"])
+
+-- lists and tuples
 [a] £ TypeSig [] (TApp (TLit "[]") [TVar "a"])
 [] a £ TypeSig [] (TApp (TLit "[]") [TVar "a"])
 () £ TypeSig [] (TLit "()")
 (a) £ TypeSig [] (TVar "a")
 (a,b) £ TypeSig [] (TApp (TLit "(,)") [TVar "a",TVar "b"])
 (,) a b £ TypeSig [] (TApp (TLit "(,)") [TVar "a",TVar "b"])
+
+-- functions
 a -> b £ TypeSig [] (TFun [TVar "a",TVar "b"])
 a->b->c £ TypeSig [] (TFun [TVar "a",TVar "b",TVar "c"])
 a -> (b -> c) £ TypeSig [] (TFun [TVar "a",TVar "b",TVar "c"])
