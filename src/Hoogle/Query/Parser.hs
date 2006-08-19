@@ -39,9 +39,13 @@ parsecQuery = do spaces ; try names <|> types
                    b <- option blank (string "::" >> spaces >> types)
                    return (merge (merges a) b)
         
-        name = do x <- keyword <|> operator
-                  spaces
-                  return blank{names=[x]}
+        name = (do x <- operator ; spaces ; return blank{names=[x]})
+               <|>
+               (do xs <- keyword `sepBy1` (char '.') ; spaces
+                   return $ case xs of
+                       [x] -> blank{names=[x]}
+                       xs -> blank{names=[last xs],scope=[PlusModule (init xs)]}
+               )
         
         operator = between (char '(') (char ')') op <|> op
 
