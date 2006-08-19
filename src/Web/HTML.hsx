@@ -141,8 +141,8 @@ htmlFront webData@WebData{webPackage=webPackage} = anyPage webData $
         <form id="input" action="?" method="get"
             style="text-align:center;padding-top:20px;display:block;">
             <div>
-                <% if null webPackage then "" else
-                    "<input type=\"hidden\" name=\"package\" value=\"" ++ webPackage ++ "\" />"
+                <% iff (not $ null webPackage) $
+                    <input type="hidden" name="package" value=webPackage />
                 %>
                 <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" />
                 <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
