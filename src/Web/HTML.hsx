@@ -57,31 +57,32 @@ anyPage webData@WebData{webSearch=webSearch} body = doctype ++ "\n" ++ show html
 
 -- any page which is a search page
 searchPage :: ToXMLs a => WebData -> a -> String
-searchPage webData@WebData{webPackage=webPackage, webLogo=webLogo} inner = anyPage webData $
-    <div id="logo">
-        <% iff (not $ null webPackage) $
-            <img src=("res/" ++ webPackage ++ "_small.png") alt=webPackage />
-        %>
-        <a href=".">
-            <img src=("res/hoogle_" ++ webLogo ++ "_small.png") alt="Hoogle" />
-        </a>
-    </div>
-    <+>
-    <form action="?" method="get">
-        <div>
-            <% iff (not $ null webPackage)
-                <input type="hidden" name="package" value=webPackage />
+searchPage webData@WebData{webPackage=webPackage, webLogo=webLogo} inner = anyPage webData
+    <hsx>
+        <div id="logo">
+            <% iff (not $ null webPackage) $
+                <img src=("res/" ++ webPackage ++ "_small.png") alt=webPackage />
             %>
-            <% iff (webLogo /= "default")
-                <input name="q" type="hidden" value=webLogo />
-            %>
-            <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(webSearch webData) />
-            <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
+            <a href=".">
+                <img src=("res/hoogle_" ++ webLogo ++ "_small.png") alt="Hoogle" />
+            </a>
         </div>
-    </form>
-    <+>
-    toXMLs <% inner %>
 
+        <form action="?" method="get">
+            <div>
+                <% iff (not $ null webPackage)
+                    <input type="hidden" name="package" value=webPackage />
+                %>
+                <% iff (webLogo /= "default")
+                    <input name="q" type="hidden" value=webLogo />
+                %>
+                <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(webSearch webData) />
+                <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
+            </div>
+        </form>
+
+        <% inner %>
+    </hsx>
 
 
 -- displayed if the user types an valid search, i.e. 3
