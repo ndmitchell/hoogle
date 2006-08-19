@@ -32,10 +32,12 @@ parsecTypeSig = spaces >> typ0 >>= return . normaliseTypeSig . TypeSig []
                   spaces
                   return $ (if isLower x then TVar else TLit) (x:xs)
 
+        -- may be [a], or [] (then application takes the a after it)
         list = do wchar '['
-                  x <- typ0
-                  wchar ']'
-                  return $ TApp (TLit "[]") [x]
+                  (char ']' >> return (TLit "[]")) <|> (do
+                      x <- typ0
+                      wchar ']'
+                      return $ TApp (TLit "[]") [x])
 
         application = do (x:xs) <- many1 (white typ2)
                          return $ TApp x xs
