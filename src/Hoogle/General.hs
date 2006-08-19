@@ -66,3 +66,7 @@ catLefts [] = []
 
 
 fromLeft (Left x) = x
+
+
+iff :: Bool -> a -> Maybe a
+iff b a = if b then Just a else Nothing
