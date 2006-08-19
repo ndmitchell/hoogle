@@ -11,7 +11,7 @@ parseTypeSig input = parse (do x <- parsecTypeSig ; eof ; return x) "" input
 
 
 parsecTypeSig :: Parser TypeSig
-parsecTypeSig = spaces >> typ0 >>= return . TypeSig []
+parsecTypeSig = spaces >> typ0 >>= return . normaliseTypeSig . TypeSig []
     where
         -- all the parser must swallow up all trailing white space after them
     
