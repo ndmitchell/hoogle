@@ -69,10 +69,10 @@ searchPage webData@WebData{webPackage=webPackage, webLogo=webLogo} inner = anyPa
     <+>
     <form action="?" method="get">
         <div>
-            <% iff (not $ null webPackage) $
+            <% iff (not $ null webPackage)
                 <input type="hidden" name="package" value=webPackage />
             %>
-            <% iff (webLogo /= "default") $
+            <% iff (webLogo /= "default")
                 <input name="q" type="hidden" value=webLogo />
             %>
             <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(webSearch webData) />
@@ -129,25 +129,25 @@ htmlAnswers webData inner = searchPage webData inner
 htmlFront :: WebData -> String
 htmlFront webData@WebData{webPackage=webPackage, webLogo=webLogo} = anyPage webData $
     <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
-        <% iff (not $ null webPackage) $
-            "<img style=\"vertical-align:top;\" src=\"res/" ++ webPackage ++ "_large.png\" alt=\"" ++ webPackage ++ "\" />"
+        <% iff (not $ null webPackage)
+            <img style="vertical-align:top;" src=("res/" ++ webPackage ++ "_large.png") alt=webPackage />
         %>
         <img style="vertical-align:top;" src=("res/hoogle_" ++ webLogo ++ "_large.png") alt="Hoogle" />
         <sup style="font-family:serif;font-weight:bold;font-size:16pt;">3
-            <span style="color:#b00;"><% box "&beta;" %></span>
+            <span style="color:#b00;">[&beta;]</span>
         </sup><br/>
         <i>The Haskell API Search Engine</i>
-        <% iff (not $ null webPackage) $
+        <% iff (not $ null webPackage)
             <hsx> - <a href="http://haskell.org/gtk2hs/">Gtk2Hs</a> edition</hsx>
         %>
         <br/>
         <form id="input" action="?" method="get"
             style="text-align:center;padding-top:20px;display:block;">
             <div>
-                <% iff (not $ null webPackage) $
+                <% iff (not $ null webPackage)
                     <input type="hidden" name="package" value=webPackage />
                 %>
-                <% iff (webLogo /= "default") $
+                <% iff (webLogo /= "default")
                     <input name="q" type="hidden" value=webLogo />
                 %>
                 <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" />
@@ -158,12 +158,7 @@ htmlFront webData@WebData{webPackage=webPackage, webLogo=webLogo} = anyPage webD
         <div style="margin:auto;margin-top:40px;padding:3px;width:300px;border:2px solid #cc0;background-color:#ffc;font-size:10pt;text-align:left;">
             Example searches:<br/>
             &nbsp; <a href="?q=map">map</a><br/>
-            &nbsp; <a href="?q=(a%20-%3E%20b)%20-%3E%20[a]%20-%3E%20[b]">(a -&gt; b) -&gt; <%box_a%> -&gt; <%box_b%></a><br/>
-            &nbsp; <a href="?q=Ord%20a%20%3D%3E%20[a]%20-%3E%20[a]">Ord a =&gt; <%box_a%> -&gt; <%box_a%></a>
+            &nbsp; <a href="?q=(a%20-%3E%20b)%20-%3E%20[a]%20-%3E%20[b]">(a -&gt; b) -&gt; [a] -&gt; [b]</a><br/>
+            &nbsp; <a href="?q=Ord%20a%20%3D%3E%20[a]%20-%3E%20[a]">Ord a =&gt; [a] -&gt; [a]</a>
         </div>
     </div>
-  where
-    box x = "[" ++ x ++ "]"
-    box_a = box "a"
-    box_b = box "b"
-
