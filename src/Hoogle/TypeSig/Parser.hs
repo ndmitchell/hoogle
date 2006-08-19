@@ -19,14 +19,24 @@ parsecTypeSig = spaces >> typ0 >>= return . normaliseTypeSig . TypeSig []
         typ1 = application
         typ2 = tuple <|> list <|> atom
     
+        -- match (a,b) and (,)
         tuple = do wchar '('
-                   xs <- typ0 `sepBy` wchar ','
-                   wchar ')'
-                   return $ case xs of
-                      [] -> TLit "()"
-                      [x] -> x
-                      xs -> TApp (TLit $ "(" ++ replicate (length xs - 1) ',' ++ ")") xs
-
+                   (do wchar ','
+                       xs <- many $ wchar ','
+                       wchar ')'
+                       return $ tLit (length xs + 1)
+                    ) <|> 
+                    (do xs <- typ0 `sepBy` wchar ','
+                        wchar ')'
+                        return $ case xs of
+                            [] -> TLit "()"
+                            [x] -> x
+                            xs -> TApp (tLit $ length xs - 1) xs
+                    )
+            where
+                tLit n = TLit $ "(" ++ replicate n ',' ++ ")"
+            
+            
         atom = do x <- satisfy isAlpha
                   xs <- many $ satisfy (\x -> isAlphaNum x || x == '_')
                   spaces
