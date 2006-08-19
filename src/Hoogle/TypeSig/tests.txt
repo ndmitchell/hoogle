@@ -28,3 +28,4 @@ Class a b => a b £ TypeSig [TApp (TLit "Class") [TVar "a",TVar "b"]] (TApp (TVar
 (a -> b) -> [a] -> [b] £ TypeSig [] (TFun [TFun [TVar "a",TVar "b"],TApp (TLit "[]") [TVar "a"],TApp (TLit "[]") [TVar "b"]])
 Monad a => (b -> a c) -> [b] -> a [c] £ TypeSig [TApp (TLit "Monad") [TVar "a"]] (TFun [TFun [TVar "b",TApp (TVar "a") [TVar "c"]],TApp (TLit "[]") [TVar "b"],TApp (TVar "a") [TApp (TLit "[]") [TVar "c"]]])
 GraphM m gr => Node -> m (gr a b) -> m (Maybe [Node]) £ TypeSig [TApp (TLit "GraphM") [TVar "m",TVar "gr"]] (TFun [TLit "Node",TApp (TVar "m") [TApp (TVar "gr") [TVar "a",TVar "b"]],TApp (TVar "m") [TApp (TLit "Maybe") [TApp (TLit "[]") [TLit "Node"]]]])
+Ix a => Array a b -> a -> b £ TypeSig [TApp (TLit "Ix") [TVar "a"]] (TFun [TApp (TLit "Array") [TVar "a",TVar "b"],TVar "a",TVar "b"])

@@ -11,7 +11,7 @@ parseTypeSig input = parse (do x <- parsecTypeSig ; eof ; return x) "" input
 
 
 parsecTypeSig :: Parser TypeSig
-parsecTypeSig = do spaces
+parsecTypeSig = do whites
                    c <- context
                    t <- typ0
                    return $ normaliseTypeSig $ TypeSig c t
@@ -51,7 +51,7 @@ parsecTypeSig = do spaces
             
         atom = do x <- satisfy isAlpha
                   xs <- many $ satisfy (\x -> isAlphaNum x || x == '_')
-                  spaces
+                  whites
                   return $ (if isLower x then TVar else TLit) (x:xs)
 
         -- may be [a], or [] (then application takes the a after it)
@@ -64,11 +64,13 @@ parsecTypeSig = do spaces
         application = do (x:xs) <- many1 (white typ2)
                          return $ TApp x xs
 
-        function = do xs <- typ1 `sepBy1` (try $ char '-' >> oneOf ">#" >> spaces)
+        function = do xs <- typ1 `sepBy1` (try $ char '-' >> oneOf ">#" >> whites)
                       return $ case xs of
                          [x] -> x
                          xs -> TFun xs
 
         wchar c = white $ char c
-        white x = do y <- x ; spaces ; return y
+        white x = do y <- x ; whites ; return y
 
+        whites = many whiteChar
+        whiteChar = oneOf " \v\f\t\r"
