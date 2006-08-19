@@ -20,7 +20,7 @@ anyPage webData@WebData{webSearch=webSearch} body = doctype ++ "\n" ++ show html
    html =
     <html>
         <head>
-            <meta httpequiv="Content-Type" content="text/html; charset=iso-8859-1" />
+            <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
             <title><% if null webSearch then "" else webSearch ++ " - " %>Hoogle</title>
             <link type="text/css" rel="stylesheet" href="res/hoogle.css" />
 
