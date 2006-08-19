@@ -42,10 +42,15 @@ instance ToXMLs XML where
 instance ToXMLs String where
     toXMLs x = PCData x
 
+instance ToXMLs a => ToXMLs (Maybe a) where
+    toXMLs Nothing = XmlList []
+    toXMLs (Just x) = toXMLs x
+
 
 -- the show
 
 instance Show XML where
+    show (Tag "hsx" [] inner) = show inner
     show (Tag name attr inner) = "<" ++ name ++ concatMap ((' ':) . show) attr ++ ">" ++
                                  show inner ++
                                  "</" ++ name ++ ">"

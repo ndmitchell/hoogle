@@ -4,6 +4,7 @@
 module Web.HTML(WebData(..), htmlFront, htmlError, htmlAnswers, innerNoResult) where
 
 import Web.XML
+import Hoogle.General
 
 
 data WebData = WebData {webSearch :: String, webPackage :: String, webLogo :: String}
@@ -58,8 +59,8 @@ anyPage webData@WebData{webSearch=webSearch} body = doctype ++ "\n" ++ show html
 searchPage :: ToXMLs a => WebData -> a -> String
 searchPage webData@WebData{webPackage=webPackage} inner = anyPage webData $
     <div id="logo">
-        <% if null webPackage then "" else
-            "<img src=\"res/" ++ webPackage ++ "_small.png\" alt=\"" ++ webPackage ++ "\" />"
+        <% iff (not $ null webPackage) $
+            <img src=("res/" ++ webPackage ++ "_small.png") alt=webPackage />
         %>
         <a href=".">
             <img src=("res/hoogle_" ++ webLogo webData ++ "_small.png") alt="Hoogle" />
@@ -68,8 +69,8 @@ searchPage webData@WebData{webPackage=webPackage} inner = anyPage webData $
     <+>
     <form action="?" method="get">
         <div>
-            <% if null webPackage then "" else
-                "<input type=\"hidden\" name=\"package\" value=\"" ++ webPackage ++ "\" />"
+            <% iff (not $ null webPackage) $
+                <input type="hidden" name="package" value=webPackage />
             %>
             <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(webSearch webData) />
             <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
@@ -83,21 +84,22 @@ searchPage webData@WebData{webPackage=webPackage} inner = anyPage webData $
 -- displayed if the user types an valid search, i.e. 3
 htmlError :: WebData -> String -> String
 htmlError webData errmsg = searchPage webData $
-	<table id="heading">
-		<tr>
-			<td>Invalid Search</td>
-			<td id="count">No results found</td>
-		</tr>
-	</table>
-    <+>
-	<div id="failure">
-		Error, your search was invalid:<br/>
-		<% errmsg %>
-		<ul>
-			<li>This is probably a parse error, check for matching brackets etc.</li>
-		</ul>
-	</div>
+    <hsx>
+        <table id="heading">
+            <tr>
+                <td>Invalid Search</td>
+                <td id="count">No results found</td>
+            </tr>
+        </table>
 
+        <div id="failure">
+            Error, your search was invalid:<br/>
+            <% errmsg %>
+            <ul>
+                <li>This is probably a parse error, check for matching brackets etc.</li>
+            </ul>
+        </div>
+    </hsx>
 
 
 -- no results have been found, i.e. blah
@@ -124,7 +126,7 @@ htmlAnswers webData inner = searchPage webData inner
 htmlFront :: WebData -> String
 htmlFront webData@WebData{webPackage=webPackage} = anyPage webData $
     <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
-        <% if null webPackage then "" else
+        <% iff (not $ null webPackage) $
             "<img style=\"vertical-align:top;\" src=\"res/" ++ webPackage ++ "_large.png\" alt=\"" ++ webPackage ++ "\" />"
         %>
         <img style="vertical-align:top;" src=("res/hoogle_" ++ webLogo webData ++ "_large.png") alt="Hoogle" />
@@ -132,8 +134,8 @@ htmlFront webData@WebData{webPackage=webPackage} = anyPage webData $
             <span style="color:#b00;"><% box "&beta;" %></span>
         </sup><br/>
         <i>The Haskell API Search Engine</i>
-        <% if null webPackage then "" else
-            " - <a href=\"http://haskell.org/gtk2hs/\">Gtk2Hs</a> edition"
+        <% iff (not $ null webPackage) $
+            <hsx> - <a href="http://haskell.org/gtk2hs/">Gtk2Hs</a> edition</hsx>
         %>
         <br/>
         <form id="input" action="?" method="get"
