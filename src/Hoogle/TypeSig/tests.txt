@@ -1,0 +1,6 @@
+a £ TypeSig [] (TVar "a")
+A £ TypeSig [] (TLit "A")
+m a £ TypeSig [] (TApp (TVar "m") [TVar "a"])
+M a b £ TypeSig [] (TApp (TLit "M") [TVar "a",TVar "b"])
+[a] £ TypeSig [] (TApp (TLit "[]") [TVar "a"])
+[] a £ TypeSig [] (TApp (TLit "[]") [TVar "a"])
