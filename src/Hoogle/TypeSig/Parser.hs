@@ -50,7 +50,7 @@ parsecTypeSig = do whites
             
             
         atom = do x <- satisfy isAlpha
-                  xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'")
+                  xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#")
                   whites
                   return $ (if isLower x then TVar else TLit) (x:xs)
 
