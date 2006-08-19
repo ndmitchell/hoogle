@@ -11,9 +11,21 @@ parseTypeSig input = parse (do x <- parsecTypeSig ; eof ; return x) "" input
 
 
 parsecTypeSig :: Parser TypeSig
-parsecTypeSig = spaces >> typ0 >>= return . normaliseTypeSig . TypeSig []
+parsecTypeSig = do spaces
+                   c <- context
+                   t <- typ0
+                   return $ normaliseTypeSig $ TypeSig c t
     where
         -- all the parser must swallow up all trailing white space after them
+        context = try acontext <|> return []
+        
+        acontext = do x <- conitems <|> (conitem >>= return . (:[]))
+                      white $ string "=>"
+                      return x
+        
+        conitems = between (wchar '(') (wchar ')') $ conitem `sepBy1` (wchar ',')
+        conitem = typ1
+        
     
         typ0 = function
         typ1 = application
