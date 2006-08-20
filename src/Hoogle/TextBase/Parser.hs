@@ -8,11 +8,11 @@ import Data.Char
 import Control.Monad
 
 
-parseTextBase :: FilePath -> IO (Either ParseError [Item])
+parseTextBase :: FilePath -> IO (Either ParseError TextBase)
 parseTextBase file = parseFromFile parsecTextBase file
 
 
-parsecTextBase :: Parser [Item]
+parsecTextBase :: Parser TextBase
 parsecTextBase = do x <- anyLineSpace `sepBy` newline
                     many newline
                     eof

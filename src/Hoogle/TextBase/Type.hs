@@ -8,6 +8,7 @@ data DataKeyword = NewTypeKeyword
                  | DataKeyword
                  deriving Show
 
+type TextBase = [Item]
 
 data Item = Module [String]
           | Class TypeSig
