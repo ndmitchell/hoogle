@@ -32,12 +32,17 @@ parsecTypeSig = do whites
         typ2 = tuple <|> list <|> atom
     
         -- match (a,b) and (,)
+        -- also pick up ( -> )
         tuple = do wchar '('
                    (do wchar ','
                        xs <- many $ wchar ','
                        wchar ')'
                        return $ tLit (length xs + 1)
-                    ) <|> 
+                    ) <|>
+                    (do white $ string "->"
+                        wchar ')'
+                        return $ TLit "->"
+                    ) <|>
                     (do xs <- typ0 `sepBy` wchar ','
                         wchar ')'
                         return $ case xs of
