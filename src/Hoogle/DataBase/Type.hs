@@ -8,6 +8,8 @@ import Control.Monad
 import Hoogle.DataBase.Alias
 import Hoogle.DataBase.Kinds
 import Hoogle.DataBase.Instances
+import Hoogle.DataBase.Items
+import Hoogle.DataBase.Modules
 import Hoogle.TextBase.All
 
 import General.Binary
@@ -23,6 +25,7 @@ data DataBase = DataBase {
                     version :: String,
                     
                     -- the static and cached information
+                    modules :: Pending Modules, -- Prelude, Data.Map etc.
                     kinds :: Pending Kinds, -- [] 1, Ord 1
                     alias :: Pending Alias, -- type String = [Char]
                     instances :: Pending Instances, -- instance Ord Bool
@@ -40,10 +43,14 @@ createDataBase tb file = do
     hPutStr hndl "HOOG\0\0\0\0"
     hPutInt hndl 1
     tablePos <- hGetPosn hndl
-    replicateM_ 7 $ hPutInt hndl 0
+    replicateM_ 8 $ hPutInt hndl 0
     
-    poserrs <-
-        mapM (\x -> do y <- hTell hndl ; z <- x ; return (y,z))
+    posModule <- hTellInt hndl
+    tb2 <- saveModules hndl tb
+    tb3 <- saveItems hndl tb2
+    
+    (pos, err) <-
+        mapAndUnzipM (\x -> do y <- hTellInt hndl ; z <- x ; return (y,z))
             [hPutString hndl "package" >> return []
             ,hPutString hndl "1.0" >> return []
             ,saveKinds hndl tb
@@ -52,11 +59,10 @@ createDataBase tb file = do
             ,return [] -- save text
             ,return [] -- save types
             ]
-    let (pos,err) = (map fst poserrs, concatMap snd poserrs)
     
     hSetPosn tablePos
-    mapM_ (hPutInt hndl . fromInteger) pos
+    mapM_ (hPutInt hndl) (posModule:pos)
     hClose hndl
     
-    return err
+    return $ concat err
 
