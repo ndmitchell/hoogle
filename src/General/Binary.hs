@@ -37,3 +37,7 @@ hGetString :: Handle -> IO String
 hGetString hndl = do
     i <- hGetInt hndl
     replicateM i $ hGetChar hndl
+
+
+hTellInt :: Handle -> IO Int
+hTellInt = liftM fromInteger . hTell
