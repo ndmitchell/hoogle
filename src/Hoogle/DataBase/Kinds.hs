@@ -3,6 +3,8 @@ module Hoogle.DataBase.Kinds(Kinds, saveKinds, loadKinds, checkTypeKind, checkCl
 
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
+
+import General.Binary
 import Data.List
 import qualified Data.Map as Map
 import System.IO
@@ -18,17 +20,29 @@ data Kinds = Kinds {kindsClass :: KindMap, kindsType :: KindMap}
 
 
 saveKinds :: Handle -> TextBase -> IO [String]
-saveKinds hndl tb = return errs
+saveKinds hndl tb = outputMap kClass >> outputMap kType >> return errs
     where
-        errs = getErrs "Class" (kindsClass res) ++ getErrs "Type" (kindsType res)
+        errs = getErrs "Class" kClass ++ getErrs "Type" kType
             where
                 getErrs msg x = concatMap (getErr msg) (Map.toList x)
             
                 getErr msg (a,[x]) = []
                 getErr msg (a,xs) = ["Warning: " ++ msg ++ " has multiple kinds, " ++ a ++ " has " ++ show xs]
 
-    
-        res = foldr f (Kinds Map.empty Map.empty) tb
+        outputMap k = do
+                hPutInt hndl $ Map.size k
+                mapM_ out $ Map.toAscList k
+            where
+                out (key,var) = do
+                    hPutString hndl key
+                    let lv = length var
+                    if lv == 1
+                        then hPutInt hndl $ head var
+                        else do
+                            hPutInt hndl (negate $ length var)
+                            mapM_ (hPutInt hndl) var
+
+        res@(Kinds kClass kType) = foldr f (Kinds Map.empty Map.empty) tb
         
         f x k = case x of
             Class x -> fClass x k
