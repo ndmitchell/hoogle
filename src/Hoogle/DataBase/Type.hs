@@ -5,7 +5,7 @@ import Data.IORef
 import System.IO
 import Control.Monad
 
-import Hoogle.DataBase.Types
+import Hoogle.DataBase.Alias
 import Hoogle.DataBase.Kinds
 import Hoogle.DataBase.Instances
 import Hoogle.TextBase.All
@@ -23,8 +23,8 @@ data DataBase = DataBase {
                     version :: String,
                     
                     -- the static and cached information
-                    kindMap :: Pending Kinds, -- [] 1, Ord 1
-                    typeAlias :: Pending Types, -- type String = [Char]
+                    kinds :: Pending Kinds, -- [] 1, Ord 1
+                    alias :: Pending Alias, -- type String = [Char]
                     instances :: Pending Instances, -- instance Ord Bool
                     
                     -- the dynamic information
@@ -47,7 +47,7 @@ createDataBase tb file = do
             [hPutString hndl "package" >> return []
             ,hPutString hndl "1.0" >> return []
             ,saveKinds hndl tb
-            ,saveTypes hndl tb
+            ,saveAlias hndl tb
             ,saveInstances hndl tb
             ,return [] -- save text
             ,return [] -- save types
