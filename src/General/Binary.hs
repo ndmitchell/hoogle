@@ -7,6 +7,10 @@ import Data.Bits
 import Data.Char
 
 
+sizeInt = 4 :: Int
+sizeStr x = sizeInt + length x
+
+
 hPutInt :: Handle -> Int -> IO ()
 hPutInt h = hPutStr h . map chr . map (0xff .&.)
                       . take 4 . iterate (`shiftR` 8)
