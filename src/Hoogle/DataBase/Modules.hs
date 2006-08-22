@@ -11,7 +11,7 @@ import Control.Monad
 import Hoogle.TextBase.All
 
 
-data Modules = Map.Map [String] Int
+data Modules = Modules (Map.Map [String] Int)
 
 
 
