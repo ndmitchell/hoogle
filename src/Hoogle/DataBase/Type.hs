@@ -10,10 +10,13 @@ import Hoogle.DataBase.Kinds
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Items
 import Hoogle.DataBase.Modules
+import Hoogle.DataBase.Texts
 import Hoogle.TextBase.All
 
 import General.Binary
 
+
+hooVersion = 1 :: Int
 
 
 type Pending x = IORef (Either Int x)
@@ -40,8 +43,9 @@ data DataBase = DataBase {
 createDataBase :: TextBase -> FilePath -> IO [String]
 createDataBase tb file = do
     hndl <- openBinaryFile file WriteMode
-    hPutStr hndl "HOOG\0\0\0\0"
-    hPutInt hndl 1
+    hPutStr hndl "HOOG"
+    hPutInt hndl 0 -- 0 for binary notice
+    hPutInt hndl hooVersion -- verson number
     tablePos <- hGetPosn hndl
     replicateM_ 8 $ hPutInt hndl 0
     
@@ -56,7 +60,7 @@ createDataBase tb file = do
             ,saveKinds hndl tb
             ,saveAlias hndl tb
             ,saveInstances hndl tb
-            ,return [] -- save text
+            ,saveTexts hndl tb3
             ,return [] -- save types
             ]
     
