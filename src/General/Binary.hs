@@ -7,8 +7,16 @@ import Data.Bits
 import Data.Char
 
 
+sizeByte = 1 :: Int
 sizeInt = 4 :: Int
 sizeStr x = sizeInt + length x
+
+
+hPutByte :: Handle -> Int -> IO ()
+hPutByte h x = hPutChar h $ chr x
+
+hGetByte :: Handle -> IO Int
+hGetByte h = liftM ord $ hGetChar h
 
 
 hPutInt :: Handle -> Int -> IO ()
