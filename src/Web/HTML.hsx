@@ -142,7 +142,7 @@ htmlFront webData@WebData{webPackage=webPackage, webLogo=webLogo} = anyPage webD
             <hsx> - <a href="http://haskell.org/gtk2hs/">Gtk2Hs</a> edition</hsx>
         %>
         <br/>
-        <form id="input" action="?" method="get"
+        <form id="input" action="" method="get"
             style="text-align:center;padding-top:20px;display:block;">
             <div>
                 <% iff (not $ null webPackage)
