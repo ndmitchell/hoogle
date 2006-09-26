@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.Type(
-    DataBase(..), createDataBase, loadDataBase,
+    DataBase(..), ItemId, createDataBase, loadDataBase,
     searchName
     ) where
 
@@ -24,6 +24,7 @@ hooString = "HOOG"
 
 
 type Pending x = IORef (Either Int x)
+type ItemId = Int
 
 
 data DataBase = DataBase {
@@ -100,7 +101,7 @@ loadDataBase file = do
 
 
 -- forward methods
-searchName :: DataBase -> String -> IO [Int]
+searchName :: DataBase -> String -> IO [(Int,Bool,Int)]
 searchName database str = do
     let hndl = handle database
     hSeek hndl AbsoluteSeek (toInteger $ nameSearchPos database)

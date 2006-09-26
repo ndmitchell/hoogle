@@ -145,14 +145,20 @@ saveTexts hndl xs = do
 
 
 
-searchTexts :: Handle -> String -> IO [Int]
+searchTexts :: Handle -> String -> IO [(Int,Bool,Int)]
 searchTexts hndl search = do
         items <- hGetInt hndl
         res <- f search
         case res of
             Nothing -> return []
-            Just (a,b,c) -> error $ show (a,b,c)
+            Just (a,b,c) -> do
+                hSetPos hndl (items + (sizeInt * 2 * a))
+                as <- getResults True  b
+                bs <- getResults False (c-b)
+                return (as ++ bs)
     where
+        getResults b n = replicateM n (do {a <- hGetInt hndl; c <- hGetInt hndl; return (a,b,c)})
+    
         f xs = do (table,follow) <- readTree hndl
                   case xs of
                       [] -> return $ Just follow
