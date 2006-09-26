@@ -1,5 +1,5 @@
 
-module Hoogle.DataBase.Type(DataBase, createDataBase) where
+module Hoogle.DataBase.Type(DataBase, createDataBase, loadDataBase) where
 
 import Data.IORef
 import System.IO
@@ -17,6 +17,7 @@ import General.Binary
 
 
 hooVersion = 1 :: Int
+hooString = "HOOG"
 
 
 type Pending x = IORef (Either Int x)
@@ -43,21 +44,23 @@ data DataBase = DataBase {
 createDataBase :: TextBase -> FilePath -> IO [String]
 createDataBase tb file = do
     hndl <- openBinaryFile file WriteMode
-    hPutStr hndl "HOOG"
+    hPutStr hndl hooString
     hPutInt hndl 0 -- 0 for binary notice
     hPutInt hndl hooVersion -- verson number
+
+    hPutString hndl "package"
+    hPutString hndl "1.0"
+
     tablePos <- hGetPosn hndl
-    replicateM_ 8 $ hPutInt hndl 0
-    
+    replicateM_ 6 $ hPutInt hndl 0
+
     posModule <- hTellInt hndl
     tb2 <- saveModules hndl tb
     tb3 <- saveItems hndl tb2
     
     (pos, err) <-
         mapAndUnzipM (\x -> do y <- hTellInt hndl ; z <- x ; return (y,z))
-            [hPutString hndl "package" >> return []
-            ,hPutString hndl "1.0" >> return []
-            ,saveKinds hndl tb
+            [saveKinds hndl tb
             ,saveAlias hndl tb
             ,saveInstances hndl tb
             ,saveTexts hndl tb3
@@ -70,3 +73,23 @@ createDataBase tb file = do
     
     return $ concat err
 
+
+loadDataBase :: FilePath -> IO (Maybe DataBase)
+loadDataBase file = do
+    hndl <- openBinaryFile file ReadMode
+    str <- hGetStr hndl (length hooString)
+    zero <- hGetInt hndl
+    ver <- hGetInt hndl
+    
+    if str /= hooString || zero /= 0 || ver /= hooVersion then return Nothing else do
+        
+        package <- hGetString hndl
+        version <- hGetString hndl
+        
+        [a,b,c,d,e,f] <- replicateM 6 $ hGetInt hndl
+        a2 <- gen a; b2 <- gen b; c2 <- gen c; d2 <- gen d
+        
+        return $ Just $ DataBase hndl package version a2 b2 c2 d2 e f
+    where
+        gen :: Int -> IO (IORef (Either Int a))
+        gen i = newIORef (Left i)
