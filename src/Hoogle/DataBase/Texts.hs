@@ -81,7 +81,7 @@ writeTree hndl (Tree n mode xs (r1,r2,r3)) = do
         i <- hTell hndl
         () <- assert (fromInteger i == n) $ return ()
         f mode
-        mapM_ (hPutInt hndl) [r1,r2,r2]
+        mapM_ (hPutInt hndl) [r1,r2,r3]
         mapM_ (writeTree hndl . snd) xs
     where
         f TreeList = hPutInt hndl (length xs) >> mapM_ g xs
