@@ -39,6 +39,9 @@ hGetIntText hndl = do
     return $ read str
 
 
+hGetStr :: Handle -> Int -> IO String
+hGetStr hndl i = replicateM i $ hGetChar hndl
+
 
 hPutString :: Handle -> String -> IO ()
 hPutString hndl str = do
@@ -48,7 +51,7 @@ hPutString hndl str = do
 hGetString :: Handle -> IO String
 hGetString hndl = do
     i <- hGetInt hndl
-    replicateM i $ hGetChar hndl
+    hGetStr hndl i
 
 
 hTellInt :: Handle -> IO Int
