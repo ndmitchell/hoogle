@@ -1,5 +1,5 @@
 
-module Hoogle.DataBase.Texts(saveTexts) where
+module Hoogle.DataBase.Texts(saveTexts, searchTexts) where
 
 import Hoogle.DataBase.Items
 import Hoogle.TextBase.All
@@ -8,6 +8,8 @@ import General.Binary
 import System.IO
 import Data.List
 import Data.Char
+import Control.Monad
+import Control.Exception
 
 {-
 DESIGN 2
@@ -44,12 +46,14 @@ Results are given as
 
 -- True = Trie, False = List
 data TreeMode = TreeTrie | TreeList
+                deriving Show
 
 -- the Tree that is created during saveTexts
 -- a is the result thingy
 data Tree = Tree Int TreeMode [(Char,Tree)] (Int,Int,Int)
+            deriving Show
 
-treeSize (Tree a _ _ _) = a
+treePosn (Tree a _ _ _) = a
 
 -- input list must be sorted already!
 buildTree :: Int -> [String] -> Tree
@@ -74,37 +78,46 @@ buildTree n xs = Tree 0 (makeMode res) res (n,length blank,length xs)
 -- id of the item, position in the item
 writeTree :: Handle -> Tree -> IO ()
 writeTree hndl (Tree n mode xs (r1,r2,r3)) = do
+        i <- hTell hndl
+        () <- assert (fromInteger i == n) $ return ()
         f mode
         mapM_ (hPutInt hndl) [r1,r2,r2]
+        mapM_ (writeTree hndl . snd) xs
     where
-        mysize = n - sum (map (treeSize . snd) xs)
-        sxs = getSize n xs
-        
-        getSize n [] = []
-        getSize n (x:xs) = (n,x) : getSize (n + treeSize (snd x)) xs
-    
-        f TreeList = hPutInt hndl (length xs) >> mapM_ g sxs
-            where g (i,(c,_)) = hPutByte hndl (ord c) >> hPutInt hndl i
+        f TreeList = hPutInt hndl (length xs) >> mapM_ g xs
+            where g (c,t) = hPutByte hndl (ord c) >> hPutInt hndl (treePosn t)
         
         f TreeTrie = hPutInt hndl (-1) >> mapM_ g ['a'..'z']
-            where g c = case [i | (i,(c2,_)) <- sxs] of
-                            [] -> hPutInt hndl 0
-                            [i] -> hPutInt hndl i
+            where g c = case lookup c xs of
+                            Nothing -> hPutInt hndl 0
+                            Just t -> hPutInt hndl (treePosn t)
 
 
 -- takes a tree, and the size of each individual element
--- and computes the size of that subtree
-sizeTree :: Tree -> Tree
-sizeTree (Tree _ mode xs res) = Tree size mode xs2 res
+-- and computes the size of this data structure
+sizeTree :: Tree -> Int
+sizeTree (Tree _ mode xs res) = size
     where
-        size = sizeInt + sz + f mode
-        
-        xs2 = [(a,sizeTree b) | (a,b) <- xs]
-        sz = sum $ map (treeSize . snd) xs2
-        
+        size = sizeInt + f mode + (3 * sizeInt)
+
         f TreeTrie = 26 * sizeInt
-        f TreeList = sizeInt + ((sizeByte + sizeInt) * length xs)
-        
+        f TreeList = (sizeByte + sizeInt) * length xs
+
+
+-- figure out where in a file a tree should go
+layoutTree :: Tree -> Int -> (Int, Tree)
+layoutTree t@(Tree _ a b c) n = (n2, Tree n a (zip keys vals2) c)
+    where
+        (n2,vals2) = layoutTrees vals (n + sizeTree t)
+        (keys,vals) = unzip b
+
+
+layoutTrees :: [Tree] -> Int -> (Int, [Tree])
+layoutTrees [] n = (n, [])
+layoutTrees (x:xs) n = (n3, x2:xs2)
+    where
+        (n2,x2) = layoutTree x n
+        (n3,xs2) = layoutTrees xs n2
 
 
 
@@ -112,18 +125,54 @@ sizeTree (Tree _ mode xs res) = Tree size mode xs2 res
 saveTexts :: Handle -> [(Int, Item, DBItem)] -> IO [String]
 saveTexts hndl xs = do
         i <- hTellInt hndl
-        hPutInt hndl (i + ntree)
-        writeTree hndl tree
+
+        let tree = buildTree 0 strs
+            (end, tree2) = layoutTree tree (i + sizeInt)
+        
+        hPutInt hndl end
+        writeTree hndl tree2
         mapM_ outItem ids
         return []
     where
         outItem (a,b) = hPutInt hndl a >> hPutInt hndl b
-    
-        ntree = treeSize tree
-        tree = sizeTree $ buildTree 0 strs
+
+        tree = buildTree 0 strs
         
         (strs,ids)= unzip $ sortBy cmp items
             where cmp (a,_) (b,_) = compare a b
 
         items = [(map toLower (drop i s), (idn,i)) | (idn,_,DBItem s _) <- xs, i <- [0..length s-1]]
 
+
+
+searchTexts :: Handle -> String -> IO [Int]
+searchTexts hndl search = do
+        items <- hGetInt hndl
+        res <- f search
+        case res of
+            Nothing -> return []
+            Just (a,b,c) -> error $ show (a,b,c)
+    where
+        f xs = do (table,follow) <- readTree hndl
+                  case xs of
+                      [] -> return $ Just follow
+                      (y:ys) -> do
+                          case lookup y table of
+                              Nothing -> return Nothing
+                              Just x -> hSetPos hndl x >> f ys
+
+
+
+readTree :: Handle -> IO ( [(Char,Int)], (Int,Int,Int) )
+readTree hndl = do
+    mode <- hGetInt hndl
+    
+    res <- if mode == -1
+        then do
+            res <- replicateM 26 $ hGetInt hndl
+            return [(a,b) | (a,b) <- zip ['a'..'z'] res, b /= 0]
+        else
+            replicateM mode (do {c <- hGetByte hndl; i <- hGetInt hndl; return (chr c,i)})
+            
+    [a,b,c] <- replicateM 3 $ hGetInt hndl
+    return (res, (a,b,c))

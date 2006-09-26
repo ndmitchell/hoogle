@@ -28,6 +28,11 @@ hGetInt h = replicateM 4 (hGetChar h) >>=
             return . foldr (\d i -> i `shiftL` 8 .|. ord d) 0
 
 
+hSetPos :: Handle -> Int -> IO ()
+hSetPos hndl pos = hSeek hndl AbsoluteSeek (toInteger pos)
+
+
+
 
 hPutIntText :: Handle -> Int -> IO ()
 hPutIntText hndl n = hPutStr hndl ('#' : replicate (8-length s) '0' ++ s)

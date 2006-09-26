@@ -1,5 +1,8 @@
 
-module Hoogle.DataBase.Type(DataBase, createDataBase, loadDataBase) where
+module Hoogle.DataBase.Type(
+    DataBase(..), createDataBase, loadDataBase,
+    searchName
+    ) where
 
 import Data.IORef
 import System.IO
@@ -93,3 +96,12 @@ loadDataBase file = do
     where
         gen :: Int -> IO (IORef (Either Int a))
         gen i = newIORef (Left i)
+
+
+
+-- forward methods
+searchName :: DataBase -> String -> IO [Int]
+searchName database str = do
+    let hndl = handle database
+    hSeek hndl AbsoluteSeek (toInteger $ nameSearchPos database)
+    searchTexts hndl str
