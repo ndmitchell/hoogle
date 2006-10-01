@@ -25,7 +25,6 @@ hooString = "HOOG"
 
 type Pending x = IORef (Either Int x)
 type ItemId = Int
-type ModuleId = Int
 
 
 data DataBase = DataBase {
