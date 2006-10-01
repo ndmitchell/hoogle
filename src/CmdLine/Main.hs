@@ -1,11 +1,3 @@
-{-
-    This file is part of Hoogle, (c) Neil Mitchell 2004-2005
-    http://www.cs.york.ac.uk/~ndm/hoogle/
-    
-    This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike License.
-    To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/2.0/
-    or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
--}
 
 {- |
     Provides the 'main' function for the Console version.
@@ -14,19 +6,59 @@
 
 module CmdLine.Main where
 
-import Hoogle.Hoogle
+import Hoogle.All
+import General.All
+
 import System.Environment
 import Data.List
 import Data.Maybe
 import Data.Char
-import System.Console.GetOpt
 import System.Directory
 
 
 -- | The main function
 main :: IO ()
-main = do 
+main =
+    do 
         args <- getArgs
+        case args of
+            [] -> putStrLn helpMsg
+            ["@",infile,outfile] -> do
+                res <- newDataBase infile outfile
+                print res
+                putStrLn $ if anyError res then "Failed" else "Success"
+            _ -> hoogle $ safeArrow $ joinArgs args
+    where
+        joinArgs = concat . intersperse " " . map f
+            where
+                f x | ' ' `elem` x = "\"" ++ x ++ "\""
+                    | otherwise = x
+        
+        safeArrow xs = f xs
+            where
+                f ('-':'#':xs) = '-':'>':f xs
+                f (x:xs) = x : f xs
+                f [] = []
+
+
+hoogle :: String -> IO ()
+hoogle str =
+    do
+        let query = parseQuery str
+        case query of
+            Left x -> putStrLn $ "Parse error in query: " ++ show x
+            Right x -> error $ show x
+
+
+{-
+
+
+
+            if a == 
+        
+        
+        let cmdline = safeArrow $ joinArgs args
+        
         let newargs = map safeArrow args
             (flags,query) = parseArgs newargs
             
@@ -111,6 +143,7 @@ showTag x = f [] x
         
         tag stack = chr 27 : '[' : (concat $ intersperse ";" $ ("0":reverse stack)) ++ "m"
 
+-}
 
 -- | A help message to give the user, roughly what you get from hoogle --help
 helpMsg :: String
@@ -119,7 +152,7 @@ helpMsg
         "HOOGLE - Haskell API Search",
         "(C) Neil Mitchell 2004-2006, York University, UK",
         "",
-        usageInfo ("Usage: hoogle [OPTION...] search") opts,
+        "usage here", -- usageInfo ("Usage: hoogle [OPTION...] search") opts,
         
         "examples:",
         "  hoogle map",
@@ -127,10 +160,11 @@ helpMsg
         "  hoogle [Char] -> [Bool]",
         "",
         "To aid when using certain consoles, -# is a synonym for ->",
-        "Suggestions/comments/bugs to ndm -AT- cs.york.ac.uk",
-        "A web version is available at www.cs.york.ac.uk/~ndm/hoogle/"
+        "Suggestions/comments/bugs to hoogle -AT- haskell.org",
+        "A web version is available at www.haskell.org/hoogle"
         ]
 
+{-
 
 isPath (Path _) = True; isPath _ = False
 isCount (Count _) = True; isCount _ = False
@@ -179,3 +213,5 @@ checkPath file = do
                     
 setFileName :: FilePath -> String -> FilePath
 setFileName path file = (reverse $ dropWhile (not . (`elem` "\\/")) $ reverse path) ++ file
+
+-}
