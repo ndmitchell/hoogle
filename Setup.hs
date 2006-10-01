@@ -19,3 +19,4 @@ main = defaultMainWithHooks userHooks
                 case trhxs_exe of
                     Nothing -> error $ "trhsx not found, cannot process: " ++ inFile
                     Just prog -> rawSystemProgram verbose prog [inFile, outFile]
+                return ExitSuccess
