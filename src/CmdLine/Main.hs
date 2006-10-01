@@ -15,6 +15,7 @@ import Data.List
 import Data.Maybe
 import Data.Char
 import System.Directory
+import Control.Monad
 
 
 versionNum = "4.0 pre"
@@ -66,7 +67,24 @@ hoogle str =
 
 -- cannot error, give preformed results
 hoogle2 :: DataBase -> Query -> IO ()
-hoogle2 database query = return ()
+hoogle2 database query =
+    do
+        let suggest = suggestQuery query
+        when (isJust suggest) $ putStrLn $ "Suggestion: " ++ showTag (fromJust suggest)
+        
+        when (color && isJust (typeSig query)) $ putStrLn $ showTag $ renderQuery query
+        
+        res <- case count of
+                    Nothing -> searchAll database query
+                    Just n -> searchRange database query 0 n
+        
+        putStr $ unlines $ map show res
+    where
+        color = Color `elem` flags query
+        count = listToMaybe [n | Count n <- flags query, n > 0]
+        verbose = Verbose `elem` flags query
+        
+        showTag = if color then showTagConsole else show
 
 
 {-
