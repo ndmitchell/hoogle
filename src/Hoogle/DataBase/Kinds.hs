@@ -44,13 +44,18 @@ saveKinds hndl tb = outputMap kClass >> outputMap kType >> return errs
 
         res@(Kinds kClass kType) = foldr f (Kinds Map.empty Map.empty) tb
         
-        f x k = case x of
-            Class x -> fClass x k
-            Func _ x -> fType x k
-            TypeAlias x y -> fType x $ fType y k
-            Data _ x -> fType x k
-            Instance x -> fClass x k
-            _ -> k
+        f (Item _ mname msig _ x) k =
+            case x of
+                ItemClass lhs -> fClass (joinLHS lhs) k
+                ItemFunc -> fType sig k
+                ItemAlias lhs (TypeAST rhs) -> fType (joinLHS lhs) $ fType rhs k
+                ItemData _ lhs -> fType (joinLHS lhs) k
+                ItemInstance x -> fClass x k
+                _ -> k
+            where
+                Just name = mname
+                Just (TypeAST sig) = msig
+                joinLHS (LHS con free) = TypeSig con (TApp (TLit name) (map TVar free))
 
         fClass (TypeSig cons x) k = foldr gClass k (x:cons)
         fType (TypeSig cons x) k = gType x $ foldr gClass k cons

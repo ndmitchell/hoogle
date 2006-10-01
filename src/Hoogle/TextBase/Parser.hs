@@ -32,32 +32,66 @@ parsecTextBase = do x <- anyLineSpace `sepBy` newline
         
         begin x = try (string x >> whites1)
 
-        modu = begin "module" >> liftM Module (keyword `sepBy1` char '.')
-        clas = begin "class" >> liftM Class parsecTypeSig
-        inst = begin "instance" >> liftM Instance parsecTypeSig
+        modu = begin "module" >> liftM mkModule (keyword `sepBy1` char '.')
+        clas = begin "class" >> liftM mkClass parsecTypeSig
+        inst = begin "instance" >> liftM mkInstance parsecTypeSig
         
         typ = do begin "type"
                  a <- parsecTypeSig
                  char '='
                  b <- parsecTypeSig
-                 return $ TypeAlias a b
+                 return $ mkTypeAlias a b
         
         newtyp = begin "newtype" >> dataAny NewTypeKeyword
         dat = begin "data" >> dataAny DataKeyword
         
-        dataAny d = liftM (Data d) parsecTypeSig
+        dataAny d = liftM (mkData d) parsecTypeSig
 
         
         func = do name <- between (char '(') (char ')') (many1 $ noneOf ")") <|> keyword
                   whites
                   (do string "::" ; whites
                       typ <- parsecTypeSig
-                      return $ Func name typ
-                    ) <|> (return $ Keyword name)
+                      return $ mkFunc name typ
+                    ) <|> (return $ mkKeyword name)
         
         
         keyword = do x <- letter
                      xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#")
                      return (x:xs)
         
-        
+
+-- map from the parsed representation
+-- to an item
+
+mkModule :: [String] -> Item
+mkModule xs = Item (Just (Module $ init xs)) (Just $ last xs) Nothing Nothing ItemModule
+
+mkClass :: TypeSig -> Item
+mkClass x = Item Nothing (Just b) Nothing Nothing (ItemClass a)
+    where (a,b) = splitSig x
+
+mkInstance :: TypeSig -> Item
+mkInstance x = Item Nothing Nothing Nothing Nothing (ItemInstance x)
+
+mkTypeAlias :: TypeSig -> TypeSig -> Item
+mkTypeAlias x y = Item Nothing (Just b) Nothing Nothing (ItemAlias a (TypeAST y))
+    where (a,b) = splitSig x
+
+mkData :: DataKeyword -> TypeSig -> Item
+mkData k x = Item Nothing (Just b) Nothing Nothing (ItemData k a)
+    where (a,b) = splitSig x
+
+mkFunc :: String -> TypeSig -> Item
+mkFunc x y = Item Nothing (Just x) (Just $ TypeAST y) Nothing ItemFunc
+
+mkKeyword :: String -> Item
+mkKeyword x = Item Nothing (Just x) Nothing Nothing ItemKeyword
+
+
+splitSig :: TypeSig -> (LHS, String)
+splitSig (TypeSig con (TLit x)) = (LHS con [], x)
+splitSig (TypeSig con (TApp (TLit x) xs)) = (LHS con [x | TVar x <- xs], x)
+
+-- error case, think about proper handling
+splitSig (TypeSig con x) = (LHS con [], show x)

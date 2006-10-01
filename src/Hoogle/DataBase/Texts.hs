@@ -122,7 +122,7 @@ layoutTrees (x:xs) n = (n3, x2:xs2)
 
 
 -- take in (moduleId, item) -> [(itemId, item, dbitem)]
-saveTexts :: Handle -> [(Int, Item, DBItem)] -> IO [String]
+saveTexts :: Handle -> [Item] -> IO [String]
 saveTexts hndl xs = do
         i <- hTellInt hndl
 
@@ -141,7 +141,7 @@ saveTexts hndl xs = do
         (strs,ids)= unzip $ sortBy cmp items
             where cmp (a,_) (b,_) = compare a b
 
-        items = [(map toLower (drop i s), (idn,i)) | (idn,_,DBItem s _) <- xs, i <- [0..length s-1]]
+        items = [(map toLower (drop i s), (idn,i)) | Item{itemId=Just idn, itemName=Just s} <- xs, i <- [0..length s-1]]
 
 
 
