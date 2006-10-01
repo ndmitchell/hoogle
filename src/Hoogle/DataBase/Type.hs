@@ -16,7 +16,7 @@ import Hoogle.DataBase.Modules
 import Hoogle.DataBase.Texts
 import Hoogle.TextBase.All
 
-import General.Binary
+import General.All
 
 
 hooVersion = 1 :: Int
@@ -45,7 +45,7 @@ data DataBase = DataBase {
 
 -- [] is success
 -- (_:_) are the error messages
-createDataBase :: TextBase -> FilePath -> IO [String]
+createDataBase :: TextBase -> FilePath -> IO [Response]
 createDataBase tb file = do
     hndl <- openBinaryFile file WriteMode
     hPutStr hndl hooString
@@ -75,7 +75,7 @@ createDataBase tb file = do
     mapM_ (hPutInt hndl) (posModule:pos)
     hClose hndl
     
-    return $ concat err
+    return $ map Warn $ concat err
 
 
 loadDataBase :: FilePath -> IO (Maybe DataBase)
