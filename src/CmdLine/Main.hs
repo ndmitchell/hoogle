@@ -45,6 +45,7 @@ main =
                 f [] = []
 
 
+-- do a search of some form
 hoogle :: String -> IO ()
 hoogle str =
     do
@@ -54,7 +55,18 @@ hoogle str =
             Right x@Query{flags=flags}
                 | Version `elem` flags -> putStr versionMsg
                 | Help `elem` flags -> putStr helpMsg
-                | otherwise -> error $ show query
+                | otherwise -> do
+                    let file = head $ [x | Path x <- flags] ++ ["base.hoo"]
+                    database <- loadDataBase file
+                    case database of
+                        Nothing -> putStrLn $ "Error, can't open the database " ++ file
+                        Just y -> hoogle2 y x
+                        
+
+
+-- cannot error, give preformed results
+hoogle2 :: DataBase -> Query -> IO ()
+hoogle2 database query = return ()
 
 
 {-
