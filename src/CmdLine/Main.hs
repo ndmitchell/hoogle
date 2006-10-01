@@ -56,6 +56,7 @@ hoogle str =
             Right x@Query{flags=flags}
                 | Version `elem` flags -> putStr versionMsg
                 | Help `elem` flags -> putStr helpMsg
+                | not (usefulQuery x) -> putStrLn "This query does not do anything useful"
                 | otherwise -> do
                     let file = head $ [x | Path x <- flags] ++ ["base.hoo"]
                     database <- loadDataBase file

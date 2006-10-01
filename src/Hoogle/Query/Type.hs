@@ -1,8 +1,13 @@
 
 module Hoogle.Query.Type where
 
+import Data.Maybe
+
 import Hoogle.General
 import Hoogle.TypeSig.All
+
+
+usefulQuery query = not (null (names query)) || isJust (typeSig query)
 
 
 data Query = Query {
