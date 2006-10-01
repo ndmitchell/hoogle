@@ -12,7 +12,7 @@ data Query = Query {
         items :: [ItemType],
         flags :: [Flag]
     }
-    deriving (Show, Read)
+    deriving Show
 
 
 instance Eq Query where
