@@ -7,6 +7,7 @@
 module CmdLine.Main where
 
 import Hoogle.All
+import Hoogle.Query.All
 import General.All
 
 import System.Environment
@@ -16,13 +17,16 @@ import Data.Char
 import System.Directory
 
 
+versionNum = "4.0 pre"
+
+
 -- | The main function
 main :: IO ()
 main =
     do 
         args <- getArgs
         case args of
-            [] -> putStrLn helpMsg
+            [] -> putStr helpMsg
             ["@",infile,outfile] -> do
                 res <- newDataBase infile outfile
                 print res
@@ -47,7 +51,10 @@ hoogle str =
         let query = parseQuery str
         case query of
             Left x -> putStrLn $ "Parse error in query: " ++ show x
-            Right x -> error $ show x
+            Right x@Query{flags=flags}
+                | Version `elem` flags -> putStr versionMsg
+                | Help `elem` flags -> putStr helpMsg
+                | otherwise -> error $ show query
 
 
 {-
@@ -148,9 +155,7 @@ showTag x = f [] x
 -- | A help message to give the user, roughly what you get from hoogle --help
 helpMsg :: String
 helpMsg
-    = unlines $ [
-        "HOOGLE - Haskell API Search",
-        "(C) Neil Mitchell 2004-2006, York University, UK",
+    = versionMsg ++ unlines [
         "",
         "usage here", -- usageInfo ("Usage: hoogle [OPTION...] search") opts,
         
@@ -163,6 +168,15 @@ helpMsg
         "Suggestions/comments/bugs to hoogle -AT- haskell.org",
         "A web version is available at www.haskell.org/hoogle"
         ]
+
+
+versionMsg :: String
+versionMsg
+    = unlines [
+        "HOOGLE " ++ versionNum ++ " - Haskell API Search",
+        "(C) Neil Mitchell 2004-2006, York University, UK"
+        ]
+
 
 {-
 
