@@ -4,6 +4,7 @@ module Hoogle.DataBase.Alias(Alias, saveAlias, loadAlias, followAlias) where
 import System.IO
 import Hoogle.TypeSig.All
 import Hoogle.TextBase.All
+import General.All
 
 
 -- free variables, type result
@@ -13,7 +14,7 @@ import Hoogle.TextBase.All
 data Alias = Alias
 
 
-saveAlias :: Handle -> TextBase -> IO [String]
+saveAlias :: Handle -> TextBase -> IO [Response]
 saveAlias hndl tb = return []
 
 

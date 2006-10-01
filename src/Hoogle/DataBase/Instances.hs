@@ -3,12 +3,13 @@ module Hoogle.DataBase.Instances(Instances, saveInstances, loadInstances, hasIns
 
 import System.IO
 import Hoogle.TextBase.All
+import General.All
 
 
 data Instances = Instances
 
 
-saveInstances :: Handle -> TextBase -> IO [String]
+saveInstances :: Handle -> TextBase -> IO [Response]
 saveInstances hndl tb = return []
 
 

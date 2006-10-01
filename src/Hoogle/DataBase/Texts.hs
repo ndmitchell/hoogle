@@ -4,7 +4,7 @@ module Hoogle.DataBase.Texts(saveTexts, searchTexts) where
 import Hoogle.DataBase.Items
 import Hoogle.TextBase.All
 
-import General.Binary
+import General.All
 import System.IO
 import Data.List
 import Data.Char
@@ -121,8 +121,7 @@ layoutTrees (x:xs) n = (n3, x2:xs2)
 
 
 
--- take in (moduleId, item) -> [(itemId, item, dbitem)]
-saveTexts :: Handle -> [Item] -> IO [String]
+saveTexts :: Handle -> [Item] -> IO [Response]
 saveTexts hndl xs = do
         i <- hTellInt hndl
 

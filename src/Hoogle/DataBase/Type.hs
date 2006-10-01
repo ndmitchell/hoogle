@@ -75,7 +75,7 @@ createDataBase tb file = do
     mapM_ (hPutInt hndl) (posModule:pos)
     hClose hndl
     
-    return $ map Warn $ concat err
+    return $ concat err
 
 
 loadDataBase :: FilePath -> IO (Maybe DataBase)

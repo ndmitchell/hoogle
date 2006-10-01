@@ -4,7 +4,7 @@ module Hoogle.DataBase.Kinds(Kinds, saveKinds, loadKinds, checkTypeKind, checkCl
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 
-import General.Binary
+import General.All
 import Data.List
 import qualified Data.Map as Map
 import System.IO
@@ -19,7 +19,7 @@ type KindMap = Map.Map String [Int]
 data Kinds = Kinds {kindsClass :: KindMap, kindsType :: KindMap}
 
 
-saveKinds :: Handle -> TextBase -> IO [String]
+saveKinds :: Handle -> TextBase -> IO [Response]
 saveKinds hndl tb = outputMap kClass >> outputMap kType >> return errs
     where
         errs = getErrs "Class" kClass ++ getErrs "Type" kType
@@ -27,7 +27,7 @@ saveKinds hndl tb = outputMap kClass >> outputMap kType >> return errs
                 getErrs msg x = concatMap (getErr msg) (Map.toList x)
             
                 getErr msg (a,[x]) = []
-                getErr msg (a,xs) = ["Warning: " ++ msg ++ " has multiple kinds, " ++ a ++ " has " ++ show xs]
+                getErr msg (a,xs) = [Warn $ msg ++ " has multiple kinds, " ++ a ++ " has " ++ show xs]
 
         outputMap k = do
                 hPutInt hndl $ Map.size k
