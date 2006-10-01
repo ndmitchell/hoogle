@@ -144,7 +144,7 @@ saveTexts hndl xs = do
 
 
 
-searchTexts :: Handle -> String -> IO [(Int,Bool,Int)]
+searchTexts :: Handle -> String -> IO [Result]
 searchTexts hndl search = do
         items <- hGetInt hndl
         res <- f search
@@ -156,7 +156,12 @@ searchTexts hndl search = do
                 bs <- getResults False (c-b)
                 return (as ++ bs)
     where
-        getResults b n = replicateM n (do {a <- hGetInt hndl; c <- hGetInt hndl; return (a,b,c)})
+        getResults b n = replicateM n (do {a <- hGetInt hndl; c <- hGetInt hndl; return $ asResult a c})
+        
+        -- item id, start position
+        asResult :: Int -> Int -> Result
+        asResult idn pos = Result txt blankItem{itemId=Just idn}
+            where txt = TextMatch (if pos == 0 then Prefix else Infix pos) (-1) (-1)
     
         f xs = do (table,follow) <- readTree hndl
                   case xs of

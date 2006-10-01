@@ -101,7 +101,7 @@ loadDataBase file = do
 
 
 -- forward methods
-searchName :: DataBase -> String -> IO [(Int,Bool,Int)]
+searchName :: DataBase -> String -> IO [Result]
 searchName database str = do
     let hndl = handle database
     hSeek hndl AbsoluteSeek (toInteger $ nameSearchPos database)
