@@ -29,7 +29,7 @@ main =
             [] -> putStr helpMsg
             ["@",infile,outfile] -> do
                 res <- newDataBase infile outfile
-                print res
+                putStr $ show res
                 putStrLn $ if anyError res then "Failed" else "Success"
             _ -> hoogle $ safeArrow $ joinArgs args
     where
