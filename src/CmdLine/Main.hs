@@ -8,6 +8,7 @@ module CmdLine.Main where
 
 import Hoogle.All
 import Hoogle.Query.All
+import Hoogle.Common.All
 import General.All
 
 import System.Environment
@@ -79,14 +80,23 @@ hoogle2 database query =
                     Nothing -> searchAll database query
                     Just n -> searchRange database query 0 n
         
-        putStr $ unlines $ map show res
+        putStr $ unlines $ map (showResult True True) res
     where
         color = Color `elem` flags query
         count = listToMaybe [n | Count n <- flags query, n > 0]
         verbose = Verbose `elem` flags query
         
         showTag = if color then showTagConsole else show
-
+        
+        
+showResult :: Bool -> Bool -> Result -> String
+showResult nameColor argColor (Result txt item@(Item modu (Just name) typ _ rest)) =
+    case rest of
+        ItemFunc -> showName name ++ " :: " ++ showType typ
+        _ -> show item
+    where
+        showName nam = nam
+        showType (Just (TypeArgs x xs)) = x ++ concat (intersperse " -> " xs)
 
 {-
 
