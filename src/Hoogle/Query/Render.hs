@@ -27,9 +27,7 @@ renderQuery x = Tags $ namesig ++ scp ++ itms ++ flgs
             where
                 Just (TypeSig con args) = typeSig x
                 (finit, flast) = (init funcs, last funcs)
-                funcs = case args of
-                            TFun xs -> xs
-                            xs -> [xs]
+                funcs = splitFun args
         
         scp = []
         itms = []
