@@ -1,10 +1,11 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), ItemId, createDataBase, loadDataBase,
-    searchName
+    searchName, loadResults
     ) where
 
 import Data.IORef
+import Data.Maybe
 import System.IO
 import Control.Monad
 
@@ -106,3 +107,13 @@ searchName database str = do
     let hndl = handle database
     hSeek hndl AbsoluteSeek (toInteger $ nameSearchPos database)
     searchTexts hndl str
+
+
+loadResults :: DataBase -> [Result] -> IO [Result]
+loadResults database xs = mapM f xs
+    where
+        hndl = handle database
+    
+        f (Result x y) = do
+            res <- loadItem hndl (fromJust $ itemId y)
+            return $ Result x res

@@ -18,3 +18,7 @@ saveItems hndl tb = mapM f tb
             i <- liftM fromInteger $ hTell hndl
             hPutStr hndl $ show x -- hacky for now :)
             return $ x{itemId = Just i}
+
+
+loadItem :: Handle -> Int -> IO Item
+loadItem hndl idn = return $ blankItem{itemName=Just "todo"}

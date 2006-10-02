@@ -1,6 +1,7 @@
 
 module Hoogle.DataBase.All(
-    DataBase, loadDataBase, newDataBase
+    module Hoogle.DataBase.Type,
+    newDataBase
     ) where
 
 import General.All

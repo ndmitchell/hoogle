@@ -20,4 +20,6 @@ searchRange database query from to = do
 
 
 getResults :: DataBase -> Query -> IO [Result]
-getResults database query = return []
+getResults database query = do
+    res <- searchName database (head $ names query)
+    loadResults database res
