@@ -37,7 +37,7 @@ performTextSearch database query = do
         getItemId = fromJust . itemId . itemResult
 
         nquery = length query
-        fixupTextMatch (Result txt item) = Result (TextMatch loc (nname-nquery) badCase) item
+        fixupTextMatch (Result (Just txt) item) = Result (Just $ TextMatch loc (nname-nquery) badCase) item
             where
                 loc = textLoc txt
                 name = fromJust $ itemName item
@@ -45,4 +45,4 @@ performTextSearch database query = do
                 badCase = length $ filter id $ zipWith (/=) query (drop loc name)
 
         priority x y = getStatus x `compare` getStatus y
-        getStatus (Result txt item) = (textElse txt, textCase txt, fromJust (itemName item))
+        getStatus (Result (Just txt) item) = (textElse txt, textCase txt, fromJust (itemName item))

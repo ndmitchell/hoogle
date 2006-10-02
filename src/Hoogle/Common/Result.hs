@@ -4,7 +4,7 @@ module Hoogle.Common.Result where
 import Hoogle.Common.Item
 
 
-data Result = Result {textResult :: TextMatch, itemResult :: Item}
+data Result = Result {textResult :: Maybe TextMatch, itemResult :: Item}
               deriving Show
 
 
