@@ -156,12 +156,12 @@ searchTexts hndl search = do
                 bs <- getResults False (c-b)
                 return (as ++ bs)
     where
-        getResults b n = replicateM n (do {a <- hGetInt hndl; c <- hGetInt hndl; return $ asResult a c})
+        getResults b n = replicateM n (do {a <- hGetInt hndl; c <- hGetInt hndl; return $ asResult a b c})
         
-        -- item id, start position
-        asResult :: Int -> Int -> Result
-        asResult idn pos = Result txt blankItem{itemId=Just idn}
-            where txt = TextMatch (if pos == 0 then Prefix else Infix pos) (-1) (-1)
+        -- item id, match to end, start position
+        asResult :: Int -> Bool -> Int -> Result
+        asResult idn end pos = Result (TextMatch txt (-1) (-1)) blankItem{itemId=Just idn}
+            where txt = if pos == 0 then Prefix else (if end then Suffix else Infix pos)
     
         f xs = do (table,follow) <- readTree hndl
                   case xs of
