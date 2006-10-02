@@ -17,17 +17,17 @@ saveItems hndl tb = mapM f tb
         f item@Item{itemRest=ItemInstance _} = return item
         
         f x = do
-            i <- liftM fromInteger $ hTell hndl
+            i <- hGetPos hndl
             saveItem hndl x
             return $ x{itemId = Just i}
 
 
 saveItem :: Handle -> Item -> IO ()
 saveItem hndl item = do
-    saveMod  (itemMod item)
-    saveName (itemName item)
-    saveTypeArgs (itemType item)
-    saveRest (itemRest item)
+        saveMod  (itemMod item)
+        saveName (itemName item)
+        saveTypeArgs (itemType item)
+        saveRest (itemRest item)
     where
         saveMod Nothing = putInt 0
         saveMod (Just (ModuleId x)) = putInt x
@@ -65,4 +65,49 @@ saveItem hndl item = do
 
 
 loadItem :: Handle -> IO Item
-loadItem hndl = return $ blankItem{itemName=Just "todo"}
+loadItem hndl = do
+        a <- loadMod
+        error $ show a
+        b <- loadName
+        c <- loadTypeArgs
+        d <- loadRest
+        return $ error $ show $ Item a b c Nothing d
+    where
+        loadMod = do
+            x <- getInt
+            return $ if x == 0 then Nothing else Just (ModuleId x)
+        
+        loadName = do
+            x <- getString
+            return $ if null x then Nothing else Just x
+        
+        loadTypeArgs = do
+            x <- getByte
+            case x of
+                0 -> return Nothing
+                1 -> do
+                    con <- getString
+                    n <- getByte
+                    args <- replicateM n getString
+                    return $ Just $ TypeArgs con args
+        
+        loadTypeStr = liftM TypeStr getString
+        
+        loadRest = do
+            x <- getByte
+            case x of
+                0 -> return ItemModule
+                1 -> liftM ItemClass $ loadLHS
+                2 -> return ItemFunc
+                3 -> do {a <- loadLHS; b <- loadTypeStr; return $ ItemAlias a b}
+                4 -> do {a <- getByte; b <- loadLHS; return $ ItemData (toEnum a) b}
+                5 -> return ItemKeyword
+
+        loadLHS = do
+            a <- getString
+            b <- getString
+            return $ LHSStr a b
+        
+        getString = hGetString hndl
+        getByte = hGetByte hndl
+        getInt = hGetInt hndl

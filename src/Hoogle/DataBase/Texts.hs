@@ -123,7 +123,7 @@ layoutTrees (x:xs) n = (n3, x2:xs2)
 
 saveTexts :: Handle -> [Item] -> IO [Response]
 saveTexts hndl xs = do
-        i <- hTellInt hndl
+        i <- hGetPos hndl
 
         let tree = buildTree 0 strs
             (end, tree2) = layoutTree tree (i + sizeInt)

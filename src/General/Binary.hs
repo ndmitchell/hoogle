@@ -31,7 +31,8 @@ hGetInt h = replicateM 4 (hGetChar h) >>=
 hSetPos :: Handle -> Int -> IO ()
 hSetPos hndl pos = hSeek hndl AbsoluteSeek (toInteger pos)
 
-
+hGetPos :: Handle -> IO Int
+hGetPos = liftM fromInteger . hTell
 
 
 hPutIntText :: Handle -> Int -> IO ()
@@ -57,7 +58,3 @@ hGetString :: Handle -> IO String
 hGetString hndl = do
     i <- hGetInt hndl
     hGetStr hndl i
-
-
-hTellInt :: Handle -> IO Int
-hTellInt = liftM fromInteger . hTell

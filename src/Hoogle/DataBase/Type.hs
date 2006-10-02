@@ -59,12 +59,12 @@ createDataBase tb file = do
     tablePos <- hGetPosn hndl
     replicateM_ 6 $ hPutInt hndl 0
 
-    posModule <- hTellInt hndl
+    posModule <- hGetPos hndl
     tb2 <- saveModules hndl tb
     tb3 <- saveItems hndl tb2
     
     (pos, err) <-
-        mapAndUnzipM (\x -> do y <- hTellInt hndl ; z <- x ; return (y,z))
+        mapAndUnzipM (\x -> do y <- hGetPos hndl ; z <- x ; return (y,z))
             [saveKinds hndl tb
             ,saveAlias hndl tb
             ,saveInstances hndl tb
@@ -117,4 +117,4 @@ loadResults database xs = mapM f xs
         f (Result x y) = do
             hSetPos hndl (fromJust $ itemId y)
             res <- loadItem hndl
-            return $ Result x res
+            return $ Result x res{itemId = itemId y}
