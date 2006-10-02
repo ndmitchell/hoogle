@@ -44,6 +44,10 @@ instance Show Type where
     showsPrec i x = showString $ f i x
         where
             f i (TApp (TLit "[]") [x]) = "[" ++ show x ++ "]"
+            f i (TApp (TLit ('(':tup)) xs)
+                | not (null tup) && last tup == ')' && all (== ',') (init tup) && length tup == length xs
+                = b True $ concat $ intersperse ", " $ map show xs
+            
             f i (TLit x) = x
             f i (TVar x) = x
             
