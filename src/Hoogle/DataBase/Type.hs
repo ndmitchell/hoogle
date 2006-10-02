@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), ItemId, createDataBase, loadDataBase,
-    searchName, loadResultsItem, loadResultsModule
+    searchName, searchType, loadResultsItem, loadResultsModule
     ) where
 
 import Data.IORef
@@ -15,7 +15,10 @@ import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Items
 import Hoogle.DataBase.Modules
 import Hoogle.DataBase.Texts
+import Hoogle.DataBase.Types
+
 import Hoogle.TextBase.All
+import Hoogle.TypeSig.All
 
 import General.All
 
@@ -69,7 +72,7 @@ createDataBase tb file = do
             ,saveAlias hndl tb
             ,saveInstances hndl tb
             ,saveTexts hndl tb3
-            ,return [] -- save types
+            ,saveTypes hndl tb3
             ]
     
     hSetPosn tablePos
@@ -122,6 +125,13 @@ searchName database str = do
     let hndl = handle database
     hSetPos hndl (nameSearchPos database)
     searchTexts hndl str
+
+
+searchType :: DataBase -> TypeSig -> IO [Result]
+searchType database typesig = do
+    let hndl = handle database
+    hSetPos hndl (typeSearchPos database)
+    searchTypes hndl typesig
 
 
 loadResultsItem :: DataBase -> [Result] -> IO [Result]

@@ -7,6 +7,7 @@ import Data.List
 import Hoogle.DataBase.All
 import Hoogle.Query.All
 import Hoogle.Common.All
+import Hoogle.TypeSig.All
 
 
 -- return all the results
@@ -22,7 +23,8 @@ searchRange database query from to = do
 
 
 getResults :: DataBase -> Query -> IO [Result]
-getResults database query = performTextSearch database (head $ names query)
+getResults database query | not (null $ names query) = performTextSearch database (head $ names query)
+                          | isJust (typeSig query) = performTypeSearch database (fromJust $ typeSig query)
         
 
 performTextSearch :: DataBase -> String -> IO [Result]
@@ -47,3 +49,9 @@ performTextSearch database query = do
 
         priority x y = getStatus x `compare` getStatus y
         getStatus (Result (Just txt) item) = (textElse txt, textCase txt, fromJust (itemName item))
+
+
+performTypeSearch :: DataBase -> TypeSig -> IO [Result]
+performTypeSearch database query = do
+        res <- searchType database query
+        error $ show res
