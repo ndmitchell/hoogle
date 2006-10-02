@@ -22,11 +22,24 @@ searchRange database query from to = do
 
 
 getResults :: DataBase -> Query -> IO [Result]
-getResults database query = do
-        res <- searchName database (head $ names query)
-        let res2 = map head $ groupBy eqItemId $ sortBy cmpItemId res
-        loadResults database res2
+getResults database query = performTextSearch database (head $ names query)
+        
+
+performTextSearch :: DataBase -> String -> IO [Result]
+performTextSearch database query = do
+        res <- searchName database query
+        res <- return $ map head $ groupBy eqItemId $ sortBy cmpItemId res
+        res <- loadResults database res
+        return $ map fixupTextMatch res
     where
         cmpItemId x y = getItemId x `compare` getItemId y
         eqItemId x y = getItemId x == getItemId y
         getItemId = fromJust . itemId . itemResult
+
+        nquery = length query
+        fixupTextMatch (Result txt item) = Result (TextMatch loc (nname-nquery) badCase) item
+            where
+                loc = textLoc txt
+                name = fromJust $ itemName item
+                nname = length name
+                badCase = length $ filter id $ zipWith (/=) query (drop loc name)
