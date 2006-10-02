@@ -29,7 +29,8 @@ performTextSearch :: DataBase -> String -> IO [Result]
 performTextSearch database query = do
         res <- searchName database query
         res <- return $ map head $ groupBy eqItemId $ sortBy cmpItemId res
-        res <- loadResults database res
+        res <- loadResultsItem database res
+        res <- loadResultsModule database res
         return $ sortBy priority $ map fixupTextMatch res
     where
         cmpItemId x y = getItemId x `compare` getItemId y

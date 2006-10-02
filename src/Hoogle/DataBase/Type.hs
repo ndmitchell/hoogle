@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), ItemId, createDataBase, loadDataBase,
-    searchName, loadResults
+    searchName, loadResultsItem, loadResultsModule
     ) where
 
 import Data.IORef
@@ -100,6 +100,21 @@ loadDataBase file = do
         gen i = newIORef (Left i)
 
 
+-- ensure methods
+ensureModules :: DataBase -> IO Modules
+ensureModules database = do
+    x <- readIORef (modules database)
+    case x of
+        Right y -> return y
+        Left n -> do
+            let hndl = handle database
+            hSetPos hndl n
+            res <- loadModules hndl
+            writeIORef (modules database) (Right res)
+            return res
+        
+
+
 
 -- forward methods
 searchName :: DataBase -> String -> IO [Result]
@@ -109,8 +124,8 @@ searchName database str = do
     searchTexts hndl str
 
 
-loadResults :: DataBase -> [Result] -> IO [Result]
-loadResults database xs = mapM f xs
+loadResultsItem :: DataBase -> [Result] -> IO [Result]
+loadResultsItem database xs = mapM f xs
     where
         hndl = handle database
     
@@ -118,3 +133,17 @@ loadResults database xs = mapM f xs
             hSetPos hndl (fromJust $ itemId y)
             res <- loadItem hndl
             return $ Result x res{itemId = itemId y}
+
+
+loadResultsModule :: DataBase -> [Result] -> IO [Result]
+loadResultsModule database xs =
+    do
+        mods <- ensureModules database
+        return $ map (f mods) xs
+    where
+        hndl = handle database
+        
+        f mods (Result x y) = Result x y{itemMod = g mods (itemMod y)}
+
+        g mods (Just (ModuleId n)) = Just (Module (getModuleFromId mods n))
+        g mods x = x
