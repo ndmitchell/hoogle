@@ -1,10 +1,12 @@
 
 module Hoogle.Search.All where
 
+import Data.Maybe
+import Data.List
+
 import Hoogle.DataBase.All
 import Hoogle.Query.All
 import Hoogle.Common.All
-
 
 
 -- return all the results
@@ -21,5 +23,10 @@ searchRange database query from to = do
 
 getResults :: DataBase -> Query -> IO [Result]
 getResults database query = do
-    res <- searchName database (head $ names query)
-    loadResults database res
+        res <- searchName database (head $ names query)
+        let res2 = map head $ groupBy eqItemId $ sortBy cmpItemId res
+        loadResults database res2
+    where
+        cmpItemId x y = getItemId x `compare` getItemId y
+        eqItemId x y = getItemId x == getItemId y
+        getItemId = fromJust . itemId . itemResult
