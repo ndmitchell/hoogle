@@ -21,9 +21,15 @@ data TextMatch = TextMatch {
 renderResult :: Result -> TagStr
 renderResult (Result txt item@(Item modu (Just name) typ _ rest)) =
     case rest of
-        ItemFunc -> Str $ showName name ++ " :: " ++ showType typ
+        ItemFunc -> Tags [showName name, Str " :: ", showType typ]
         _ -> Str $ show item
     where
-        showName nam = nam
-        showType (Just (TypeArgs x xs)) = x ++ concat (intersperse " -> " xs)
+        showName nam = case txt of
+                Nothing -> Str nam
+                Just (TextMatch loc others _) -> Tags [Str pre, TagBold $ Str mid, Str post]
+                    where
+                        (pre,rest) = splitAt loc nam
+                        (mid,post) = splitAt (length nam - others) rest
+        
+        showType (Just (TypeArgs x xs)) = Str $ x ++ concat (intersperse " -> " xs)
 
