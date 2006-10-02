@@ -45,15 +45,23 @@ hPutType hndl x =
         TApp x xs -> hPutByte hndl 0 >> hPutTypes hndl (x:xs)
         TLit x ->    hPutByte hndl 1 >> hPutString hndl x
         TVar x ->    hPutByte hndl 2 >> hPutString hndl x
-        TFun xs ->   hPutByte hndl 4 >> hPutTypes hndl xs
+        TFun xs ->   hPutByte hndl 3 >> hPutTypes hndl xs
 
 
 hGetTypes :: Handle -> IO [Type]
-hGetTypes = undefined
+hGetTypes hndl = do
+    n <- hGetInt hndl
+    replicateM n (hGetType hndl)
 
 
 hGetType :: Handle -> IO Type
-hGetType = undefined
+hGetType hndl = do
+    i <- hGetByte hndl
+    case i of
+        0 -> hGetTypes hndl >>= \(x:xs) -> return $ TApp x xs
+        1 -> liftM TLit $ hGetString hndl
+        2 -> liftM TVar $ hGetString hndl
+        3 -> liftM TFun $ hGetTypes hndl
 
 
 saveTypes :: Handle -> [Item] -> IO [Response]
