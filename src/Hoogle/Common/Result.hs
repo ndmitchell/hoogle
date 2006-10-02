@@ -19,11 +19,15 @@ data TextMatch = TextMatch {
 
 
 renderResult :: Result -> TagStr
-renderResult (Result txt item@(Item modu (Just name) typ _ rest)) =
-    case rest of
-        ItemFunc -> Tags [showName name, Str " :: ", showType typ]
-        _ -> Str $ show item
+renderResult (Result txt item@(Item modu (Just name) typ _ rest)) = Tags $
+    showMod ++ case rest of
+        ItemFunc -> [showName name, Str " :: ", showType typ]
+        _ -> [Str $ show item]
     where
+        showMod = case modu of
+                       Nothing -> []
+                       Just (Module xs) -> [Str $ concat $ intersperse "." xs, Str "."]
+    
         showName nam = case txt of
                 Nothing -> Str nam
                 Just (TextMatch loc others _) -> Tags [Str pre, TagBold $ Str mid, Str post]
