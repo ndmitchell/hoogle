@@ -30,7 +30,7 @@ performTextSearch database query = do
         res <- searchName database query
         res <- return $ map head $ groupBy eqItemId $ sortBy cmpItemId res
         res <- loadResults database res
-        return $ map fixupTextMatch res
+        return $ sortBy priority $ map fixupTextMatch res
     where
         cmpItemId x y = getItemId x `compare` getItemId y
         eqItemId x y = getItemId x == getItemId y
@@ -43,3 +43,6 @@ performTextSearch database query = do
                 name = fromJust $ itemName item
                 nname = length name
                 badCase = length $ filter id $ zipWith (/=) query (drop loc name)
+
+        priority x y = getStatus x `compare` getStatus y
+        getStatus (Result txt item) = (textElse txt, textCase txt, fromJust (itemName item))
