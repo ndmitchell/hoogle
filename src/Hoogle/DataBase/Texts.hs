@@ -29,15 +29,14 @@ The tree then is defined as:
 
     List (count::Int) (items::[(Char,Int)]) (results::(Int,Int,Int))
 |
-    Trie (items::[Int*26]) (results::(Int,Int,Int))
+    Trie (items::[Int*26]) (results::(Int,Int))
     
     for Trie 0 = go nowhere, no results
     
     
 Results are given as
     start position in the list
-    count of exact items
-    count of all
+    count of items
 
     0,0,0 == no results
 
@@ -50,14 +49,14 @@ data TreeMode = TreeTrie | TreeList
 
 -- the Tree that is created during saveTexts
 -- a is the result thingy
-data Tree = Tree Int TreeMode [(Char,Tree)] (Int,Int,Int)
+data Tree = Tree Int TreeMode [(Char,Tree)] (Int,Int)
             deriving Show
 
 treePosn (Tree a _ _ _) = a
 
 -- input list must be sorted already!
 buildTree :: Int -> [String] -> Tree
-buildTree n xs = Tree 0 (makeMode res) res (n,length blank,length xs)
+buildTree n xs = Tree 0 (makeMode res) res (n,length xs)
     where
         (blank, non) = span null xs
         
@@ -77,11 +76,11 @@ buildTree n xs = Tree 0 (makeMode res) res (n,length blank,length xs)
 
 -- id of the item, position in the item
 writeTree :: Handle -> Tree -> IO ()
-writeTree hndl (Tree n mode xs (r1,r2,r3)) = do
+writeTree hndl (Tree n mode xs (r1,r2)) = do
         i <- hTell hndl
         () <- assert (fromInteger i == n) $ return ()
         f mode
-        mapM_ (hPutInt hndl) [r1,r2,r3]
+        mapM_ (hPutInt hndl) [r1,r2]
         mapM_ (writeTree hndl . snd) xs
     where
         f TreeList = hPutInt hndl (length xs) >> mapM_ g xs
@@ -98,7 +97,7 @@ writeTree hndl (Tree n mode xs (r1,r2,r3)) = do
 sizeTree :: Tree -> Int
 sizeTree (Tree _ mode xs res) = size
     where
-        size = sizeInt + f mode + (3 * sizeInt)
+        size = sizeInt + f mode + (2 * sizeInt)
 
         f TreeTrie = 26 * sizeInt
         f TreeList = (sizeByte + sizeInt) * length xs
@@ -150,18 +149,15 @@ searchTexts hndl search = do
         res <- f search
         case res of
             Nothing -> return []
-            Just (a,b,c) -> do
+            Just (a,b) -> do
                 hSetPos hndl (items + (sizeInt * 2 * a))
-                as <- getResults True  b
-                bs <- getResults False (c-b)
-                return (as ++ bs)
+                getResults b
     where
-        getResults b n = replicateM n (do {a <- hGetInt hndl; c <- hGetInt hndl; return $ asResult a b c})
+        getResults n = replicateM n (do {a <- hGetInt hndl; c <- hGetInt hndl; return $ asResult a c})
         
         -- item id, match to end, start position
-        asResult :: Int -> Bool -> Int -> Result
-        asResult idn end pos = Result (TextMatch txt (-1) (-1)) blankItem{itemId=Just idn}
-            where txt = if pos == 0 then Prefix else (if end then Suffix else Infix pos)
+        asResult :: Int -> Int -> Result
+        asResult idn pos = Result (TextMatch pos (-1) (-1)) blankItem{itemId=Just idn}
     
         f xs = do (table,follow) <- readTree hndl
                   case xs of
@@ -173,7 +169,7 @@ searchTexts hndl search = do
 
 
 
-readTree :: Handle -> IO ( [(Char,Int)], (Int,Int,Int) )
+readTree :: Handle -> IO ( [(Char,Int)], (Int,Int) )
 readTree hndl = do
     mode <- hGetInt hndl
     
@@ -184,5 +180,5 @@ readTree hndl = do
         else
             replicateM mode (do {c <- hGetByte hndl; i <- hGetInt hndl; return (chr c,i)})
             
-    [a,b,c] <- replicateM 3 $ hGetInt hndl
-    return (res, (a,b,c))
+    [a,b] <- replicateM 2 $ hGetInt hndl
+    return (res, (a,b))
