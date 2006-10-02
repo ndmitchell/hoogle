@@ -105,7 +105,7 @@ loadDataBase file = do
 searchName :: DataBase -> String -> IO [Result]
 searchName database str = do
     let hndl = handle database
-    hSeek hndl AbsoluteSeek (toInteger $ nameSearchPos database)
+    hSetPos hndl (nameSearchPos database)
     searchTexts hndl str
 
 
@@ -115,5 +115,6 @@ loadResults database xs = mapM f xs
         hndl = handle database
     
         f (Result x y) = do
-            res <- loadItem hndl (fromJust $ itemId y)
+            hSetPos hndl (fromJust $ itemId y)
+            res <- loadItem hndl
             return $ Result x res

@@ -50,3 +50,8 @@ instance Show Type where
 
 instance Show TypeSig where
     show (TypeSig x xs) = showConstraint x ++ show xs
+
+
+splitFun :: Type -> [Type]
+splitFun (TFun xs) = xs
+splitFun x = [x]

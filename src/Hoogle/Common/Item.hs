@@ -49,4 +49,4 @@ data TypeVal = TypeAST TypeSig
 
 data DataKeyword = NewTypeKeyword
                  | DataKeyword
-                 deriving Show
+                 deriving (Show, Enum)
