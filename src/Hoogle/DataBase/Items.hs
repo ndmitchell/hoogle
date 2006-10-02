@@ -41,7 +41,7 @@ saveItem hndl item = do
             putString (showConstraint con)
             let args = splitFun typ
             putByte (length args)
-            mapM_ (putString . show) args
+            mapM_ (putString . showFun) args
 
         saveTypeStr (TypeAST typ) = do
             putString (show typ)

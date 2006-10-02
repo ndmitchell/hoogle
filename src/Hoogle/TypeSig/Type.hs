@@ -41,11 +41,17 @@ showConstraint xs = "(" ++ concat (intersperse ", " $ map show xs) ++ ") => "
 
 
 instance Show Type where
-    show (TApp (TLit "[]") [x]) = "[" ++ show x ++ "]"
-    show (TApp x xs) = "(" ++ concat (intersperse " " $ map show (x:xs)) ++ ")"
-    show (TLit x) = x
-    show (TVar x) = x
-    show (TFun xs) = "(" ++ concat (intersperse " -> " $ map show xs) ++ ")"
+    showsPrec i x = showString $ f i x
+        where
+            f i (TApp (TLit "[]") [x]) = "[" ++ show x ++ "]"
+            f i (TLit x) = x
+            f i (TVar x) = x
+            
+            f i (TApp x xs) = b (i > 1) $ concat (intersperse " " $ map (f 2) (x:xs))
+            f i (TFun xs)   = b (i > 0) $ concat (intersperse " -> " $ map (f 1) xs)
+            
+            b True x = "(" ++ x ++ ")"
+            b False x = x
 
 
 instance Show TypeSig where
@@ -55,3 +61,9 @@ instance Show TypeSig where
 splitFun :: Type -> [Type]
 splitFun (TFun xs) = xs
 splitFun x = [x]
+
+
+-- shows an element within a function
+-- to get brackets right after splitFun
+showFun :: Type -> String
+showFun x = showsPrec 1 x ""
