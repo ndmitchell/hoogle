@@ -67,11 +67,10 @@ saveItem hndl item = do
 loadItem :: Handle -> IO Item
 loadItem hndl = do
         a <- loadMod
-        error $ show a
         b <- loadName
         c <- loadTypeArgs
         d <- loadRest
-        return $ error $ show $ Item a b c Nothing d
+        return $ Item a b c Nothing d
     where
         loadMod = do
             x <- getInt
