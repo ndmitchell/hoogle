@@ -4,6 +4,7 @@ module Hoogle.DataBase.Types(saveTypes, searchTypes) where
 import System.IO
 import Data.List
 import Control.Exception
+import Control.Monad
 
 import General.All
 import Hoogle.Common.All
@@ -27,7 +28,7 @@ then they are merged into one type value.
 -}
 
 
-data TypeItem = TypeItem Constraint [TypeSig] TypeSig [Permute]
+data TypeItem = TypeItem Constraint [Type] Type [Permute]
 data Permute = Permute Int [Int]
 
 
@@ -45,6 +46,14 @@ hPutType hndl x =
         TLit x ->    hPutByte hndl 1 >> hPutString hndl x
         TVar x ->    hPutByte hndl 2 >> hPutString hndl x
         TFun xs ->   hPutByte hndl 4 >> hPutTypes hndl xs
+
+
+hGetTypes :: Handle -> IO [Type]
+hGetTypes = undefined
+
+
+hGetType :: Handle -> IO Type
+hGetType = undefined
 
 
 saveTypes :: Handle -> [Item] -> IO [Response]
@@ -80,4 +89,23 @@ saveTypes hndl items =
 
 
 searchTypes :: Handle -> TypeSig -> IO [Result]
-searchTypes _ _ = return []
+searchTypes hndl typesig = do
+        count <- hGetInt hndl
+        liftM concat $ replicateM count (liftM match $ readTypeItem)
+    where
+        readTypeItem = do
+            arity <- hGetInt hndl
+            con <- hGetTypes hndl
+            typs <- replicateM arity (hGetType hndl)
+            res <- hGetType hndl
+            nperms <- hGetInt hndl
+            perms <- replicateM nperms (readPerm arity)
+            return $ TypeItem con typs res perms
+        
+        readPerm arity = do
+            idn <- hGetInt hndl
+            xs <- replicateM arity (hGetInt hndl)
+            return $ Permute idn xs
+
+        match :: TypeItem -> [Result]
+        match _ = []
