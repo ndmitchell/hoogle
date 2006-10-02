@@ -49,4 +49,9 @@ data TypeVal = TypeAST TypeSig
 
 data DataKeyword = NewTypeKeyword
                  | DataKeyword
-                 deriving (Show, Enum)
+                 deriving Enum
+
+instance Show DataKeyword where
+    show NewTypeKeyword = "newtype"
+    show DataKeyword = "data"
+

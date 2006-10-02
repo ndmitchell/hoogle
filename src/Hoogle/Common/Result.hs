@@ -23,6 +23,7 @@ renderResult (Result txt item@(Item modu (Just name) typ _ rest)) =
     case rest of
         ItemFunc -> Tags [showMod, showName, Str " :: ", showType typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
+        ItemData kw (LHSStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
         _ -> Str $ show item
     where
         showKeyword s = TagUnderline $ Str s
