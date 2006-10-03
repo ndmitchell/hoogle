@@ -125,7 +125,9 @@ searchTypes hndl (TypeSig tcon ttyp) = do
         match (TypeItem con args res perms) =
             case matchTypes (tres:targs) (res:args) of
                 Nothing -> []
-                Just (bad,vars) -> error $ show (TypeSig tcon ttyp, TypeItem con args res perms, bad++varsToBad vars)
+                Just (bad,vars) -> map (f $ bad++varsToBad vars) perms
+            where
+                f diff (Permute idn order) = Result Nothing (Just $ TypeMatch diff order) blankItem{itemId=Just idn}
 
 
         varsToBad :: [(String,String)] -> [TypeDiff]
