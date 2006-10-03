@@ -18,6 +18,13 @@ data TextMatch = TextMatch {
                  deriving Show
 
 
+data TypeDiff = UnwrapLeft | UnwrapRight
+              | MultiLeft  | MultiRight
+              | ArgMissing
+                deriving Show
+
+
+
 renderResult :: Result -> TagStr
 renderResult (Result txt item@(Item modu (Just name) typ _ rest)) =
     case rest of

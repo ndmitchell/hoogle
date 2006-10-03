@@ -29,7 +29,10 @@ then they are merged into one type value.
 
 
 data TypeItem = TypeItem Constraint [Type] Type [Permute]
+                deriving Show
+
 data Permute = Permute Int [Int]
+               deriving Show
 
 
 
@@ -97,7 +100,7 @@ saveTypes hndl items =
 
 
 searchTypes :: Handle -> TypeSig -> IO [Result]
-searchTypes hndl typesig = do
+searchTypes hndl (TypeSig tcon ttyp) = do
         count <- hGetInt hndl
         liftM concat $ replicateM count (liftM match $ readTypeItem)
     where
@@ -114,6 +117,50 @@ searchTypes hndl typesig = do
             idn <- hGetInt hndl
             xs <- replicateM arity (hGetInt hndl)
             return $ Permute idn xs
+            
+        titems = splitFun ttyp
+        (targs,tres) = (init titems, last titems)
 
         match :: TypeItem -> [Result]
-        match _ = []
+        match (TypeItem con args res perms) =
+            case matchTypes (tres:targs) (res:args) of
+                Nothing -> []
+                Just (bad,vars) -> error $ show (TypeSig tcon ttyp, TypeItem con args res perms, bad++varsToBad vars)
+
+
+        varsToBad :: [(String,String)] -> [TypeDiff]
+        varsToBad xs = replicate (length (a \\ nub a)) MultiLeft ++ replicate (length (b \\ nub b)) MultiRight
+            where (a,b) = unzip $ nub xs
+
+
+-- do not worry about type aliases for now
+matchType :: Type -> Type -> Maybe ([TypeDiff], [(String,String)])
+matchType (TFun xs) (TFun ys) = matchTypes xs ys
+matchType (TLit x) (TLit y) = if x == y then Just ([],[]) else Nothing
+matchType (TVar x) (TVar y) = Just ([],[(x,y)])
+matchType (TApp x xs) (TApp y ys) = matchTypes (x:xs) (y:ys)
+
+matchType x@(TVar _) y = addErr UnwrapRight $ matchTypesEq (repeat x) (fromList y)
+matchType x y@(TVar _) = addErr UnwrapLeft  $ matchTypesEq (fromList x) (repeat y)
+
+matchType _ _ = Nothing
+
+
+addErr msg Nothing = Nothing
+addErr msg (Just (x,y)) = Just (msg:x,y)
+
+
+fromList (TLit x) = []
+fromList (TFun xs) = xs
+fromList (TApp x xs) = xs
+
+
+
+matchTypes :: [Type] -> [Type] -> Maybe ([TypeDiff], [(String,String)])
+matchTypes xs ys | length xs /= length ys = Nothing
+                 | otherwise = matchTypesEq xs ys
+
+
+matchTypesEq :: [Type] -> [Type] -> Maybe ([TypeDiff], [(String,String)])
+matchTypesEq xs ys = liftM f $ sequence $ zipWith matchType xs ys
+    where f x = let (a,b) = unzip x in (concat a, concat b)
