@@ -4,6 +4,7 @@ module Hoogle.Common.Result where
 import Hoogle.Common.Item
 import General.All
 import Data.List
+import Data.Maybe
 
 
 data Result = Result {textResult :: Maybe TextMatch, typeResult :: Maybe TypeMatch, itemResult :: Item}
@@ -29,9 +30,9 @@ data TypeDiff = UnwrapLeft | UnwrapRight
 
 
 renderResult :: Result -> TagStr
-renderResult (Result txt _ item@(Item modu (Just name) typ _ rest)) =
+renderResult (Result txt atyp item@(Item modu (Just name) typ _ rest)) =
     case rest of
-        ItemFunc -> Tags [showMod, showName, Str " :: ", showType typ]
+        ItemFunc -> Tags [showMod, showName, Str " :: ", showType $ fromJust typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
         ItemData kw (LHSStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
         _ -> Str $ show item
@@ -49,5 +50,8 @@ renderResult (Result txt _ item@(Item modu (Just name) typ _ rest)) =
                         (pre,rest) = splitAt loc name
                         (mid,post) = splitAt (length name - others) rest
         
-        showType (Just (TypeArgs x xs)) = Str $ x ++ concat (intersperse " -> " xs)
+        showType (TypeArgs x xs) = case atyp of
+            Nothing -> Str $ x ++ concat (intersperse " -> " xs)
+            Just y -> Tags $ Str x : intersperse (Str " -> ") (zipWith f (typeOrder y) (init xs) ++ [Str $ last xs])
+                where f n x = TagColor n (Str x)
 
