@@ -99,10 +99,10 @@ saveTypes hndl items =
 
 
 
-searchTypes :: Handle -> TypeSig -> IO [Result]
+searchTypes :: Handle -> TypeSig -> IO [[Result]]
 searchTypes hndl (TypeSig tcon ttyp) = do
         count <- hGetInt hndl
-        liftM concat $ replicateM count (liftM match $ readTypeItem)
+        liftM (filter (not . null)) $ replicateM count (liftM match $ readTypeItem)
     where
         readTypeItem = do
             arity <- hGetInt hndl

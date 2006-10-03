@@ -127,7 +127,9 @@ searchName database str = do
     searchTexts hndl str
 
 
-searchType :: DataBase -> TypeSig -> IO [Result]
+-- each item in the same set must have the same
+-- type diff matching (for faster sorting stage)
+searchType :: DataBase -> TypeSig -> IO [[Result]]
 searchType database typesig = do
     let hndl = handle database
     hSetPos hndl (typeSearchPos database)
@@ -139,10 +141,10 @@ loadResultsItem database xs = mapM f xs
     where
         hndl = handle database
     
-        f (Result x y) = do
-            hSetPos hndl (fromJust $ itemId y)
+        f result@Result{itemResult=x} = do
+            hSetPos hndl (fromJust $ itemId x)
             res <- loadItem hndl
-            return $ Result x res{itemId = itemId y}
+            return $ result{itemResult=res{itemId = itemId x}}
 
 
 loadResultsModule :: DataBase -> [Result] -> IO [Result]
@@ -153,7 +155,7 @@ loadResultsModule database xs =
     where
         hndl = handle database
         
-        f mods (Result x y) = Result x y{itemMod = g mods (itemMod y)}
+        f mods result@Result{itemResult=x} = result{itemResult = x{itemMod = g mods (itemMod x)}}
 
         g mods (Just (ModuleId n)) = Just (Module (getModuleFromId mods n))
         g mods x = x

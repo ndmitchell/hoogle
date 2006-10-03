@@ -6,7 +6,7 @@ import General.All
 import Data.List
 
 
-data Result = Result {textResult :: Maybe TextMatch, itemResult :: Item}
+data Result = Result {textResult :: Maybe TextMatch, typeResult :: Maybe TypeMatch, itemResult :: Item}
               deriving Show
 
 
@@ -15,6 +15,9 @@ data TextMatch = TextMatch {
                     textElse :: Int, -- how many other chars are there
                     textCase :: Int -- how many chars have wrong case
                  }
+                 deriving Show
+
+data TypeMatch = TypeMatch [TypeDiff] [Int]
                  deriving Show
 
 
@@ -26,7 +29,7 @@ data TypeDiff = UnwrapLeft | UnwrapRight
 
 
 renderResult :: Result -> TagStr
-renderResult (Result txt item@(Item modu (Just name) typ _ rest)) =
+renderResult (Result txt _ item@(Item modu (Just name) typ _ rest)) =
     case rest of
         ItemFunc -> Tags [showMod, showName, Str " :: ", showType typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
