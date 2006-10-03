@@ -17,7 +17,7 @@ data TextMatch = TextMatch {
                  }
                  deriving Show
 
-data TypeMatch = TypeMatch [TypeDiff] [Int]
+data TypeMatch = TypeMatch {typeDiff :: [TypeDiff], typeOrder :: [Int]}
                  deriving Show
 
 

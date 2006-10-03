@@ -54,4 +54,11 @@ performTextSearch database query = do
 performTypeSearch :: DataBase -> TypeSig -> IO [Result]
 performTypeSearch database query = do
         res <- searchType database query
-        error $ show res
+        res <- return $ concat $ sortBy cmpResults res
+        res <- loadResultsItem database res
+        res <- loadResultsModule database res
+        return res
+    where
+        cmpResults xs ys = f xs `compare` f ys
+            where
+                f = length . typeDiff . fromJust . typeResult . head
