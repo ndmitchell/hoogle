@@ -24,9 +24,38 @@ searchRange databases query from to = do
 
 
 getResults :: [DataBase] -> Query -> IO [Result DataBase]
-getResults databases query | not (null $ names query) = performTextSearch databases (head $ names query)
-                           | isJust (typeSig query) = performTypeSearch databases (fromJust $ typeSig query)
+getResults databases query = res >>= return . filterResults query
+    where
+        res = if not (null $ names query) then performTextSearch databases (head $ names query)
+              else if isJust (typeSig query) then performTypeSearch databases (fromJust $ typeSig query)
+              else error "Search.getResults: Doing a blank search!"
+
+filterResults :: Query -> [Result DataBase] -> [Result DataBase]
+filterResults q xs = if null actions then xs
+                    else filter (f base actions . fromModule . fromJust . itemMod . itemResult) xs
+    where
+        actions = filter isModule $ scope q
         
+        isModule (PlusModule  _) = True
+        isModule (MinusModule _) = True
+        isModule _ = False
+        
+        base = case head actions of
+                    PlusModule _ -> False
+                    _ -> True
+        
+        fromModule (Module x) = x
+        
+        f z [] y = z
+        f z (PlusModule  x:xs) y | doesMatch x y = f True  xs y
+        f z (MinusModule x:xs) y | doesMatch x y = f False xs y
+        f z (x:xs) y = f z xs y
+
+        -- match if x is further up the tree than y
+        doesMatch [] y = True
+        doesMatch (x:xs) (y:ys) = x == y && doesMatch xs ys
+        doesMatch _ _ = False
+
 
 performTextSearch :: [DataBase] -> String -> IO [Result DataBase]
 performTextSearch databases query = do
