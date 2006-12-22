@@ -70,44 +70,22 @@ parseFlagScope = do x <- try scope <|> flag
                     spaces
                     return x
     where
-        -- -n 30, --count=30, --count 30, /n 30, /count=30, /count 30
+        -- --n=30, --count=30, /flag, --flag
         -- either a flag or an itemType
         flag = do string "--" <|> string "/"
-                  xs <- many1 letter
-                  flagWith xs
-
-        flagWith s | not $ null itms = return $ blank{items=[head itms]}
-                   | null flgs = fail $ "Unrecognised flag, " ++ s
-                   | otherwise = do
-                        y <- case ft of
-                            FlagNull x -> return x
-                            FlagInt x -> do preParam
-                                            y <- many1 (satisfy isDigit)
-                                            return $ x (read y)
-                            FlagStr x -> do preParam
-                                            y <- quoteStr <|> spaceStr
-                                            return $ x y
-                        return $ blank{flags=[y]}
+                  name <- many1 letter
+                  extra <- (do char '='; flagExtra) <|> (return "")
+                  return blank{flags=[Flag (map toLower name) extra]}
             where
-                preParam = string "=" <|> many1 space
-                
+                flagExtra = quoteStr <|> spaceStr
                 quoteStr = between (char '\"') (char '\"') (many anyChar)
-                spaceStr = manyTill anyChar space
-            
-                s2 = map toLower s
-                ft = flagType $ head flgs
-                flgs = if length s2 == 1
-                       then [fi | fi <- flagInfos, head s2 `elem` flagChar fi]
-                       else [fi | fi <- flagInfos, s2 == flagStr fi]
-                itms = [b | (a,b) <- itemTypes, s2 `elem` a]
-
+                spaceStr = manyTill anyChar ((space >> return ()) <|> eof)
 
         scope = do pm <- oneOf "+-"
                    let aPackage = if pm == '+' then PlusPackage else MinusPackage
                        aModule  = if pm == '+' then PlusModule  else MinusModule
                    modu <- modname
                    case modu of
-                       [[x]] | pm == '-' -> flagWith [x]
                        [x] -> return $ blank{scope=[if isLower (head x) then aPackage x else aModule [x]]}
                        xs -> return $ blank{scope=[aModule xs]}
 

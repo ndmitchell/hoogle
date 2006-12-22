@@ -35,7 +35,5 @@ renderQuery x = Tags $ namesig ++ scp ++ itms ++ flgs
         
         flgs = concatMap (\x -> [Str " ", Str (f x)]) (flags x)
             where
-                f (Count n) = "/count=" ++ show n
-                f (Path x) = "/path=" ++ ['\"'|b] ++ x ++ ['\"'|b]
-                    where b = any isSpace x
-                f x = '/' : map toLower (show x)
+                f (Flag name extra) = "/" ++ name ++ ['='|not $ null extra] ++ q ++ extra ++ q
+                    where q = ['\"' | any isSpace extra]
