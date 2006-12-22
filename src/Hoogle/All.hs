@@ -1,6 +1,6 @@
 
 module Hoogle.All(
-    Query, parseQuery, renderQuery, suggestQuery,
+    Query(..), Flag(..), parseQuery, renderQuery, suggestQuery, usefulQuery,
     DataBase, loadDataBase, newDataBase,
     searchAll, searchRange
     ) where
