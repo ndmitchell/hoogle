@@ -48,7 +48,11 @@ performTextSearch database query = do
                 badCase = length $ filter id $ zipWith (/=) query (drop loc name)
 
         priority x y = getStatus x `compare` getStatus y
-        getStatus (Result (Just txt) typ item) = (textElse txt, textCase txt, fromJust (itemName item))
+        getStatus (Result (Just txt) typ item) =
+            (textElse txt
+            ,textCase txt
+            ,itemPriority $ itemRest $ item
+            ,fromJust (itemName item))
 
 
 performTypeSearch :: DataBase -> TypeSig -> IO [Result]
