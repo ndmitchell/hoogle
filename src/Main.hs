@@ -64,6 +64,8 @@ fConvert = ["conv","convert"]
 fOutput = ["o","out","output"]
 fDatabase = ["db","data","database"]
 fColor = ["c","col","color","colour"]
+fStart = ["s","start"]
+fCount = ["n","count","length","len"]
 
 
 exec :: Origin -> Query -> IO ()
@@ -90,12 +92,27 @@ exec CmdLine q | hasFlag q fConvert = do
 exec CmdLine q | not $ usefulQuery q = putStr $ "No query given\n" ++ helpMsg
 
 exec CmdLine q = do
-    checkFlags q (fColor ++ fDatabase)
+    checkFlags q (fColor ++ fDatabase ++ fStart ++ fCount)
     databases <- collectDataBases q
-    res <- searchAll databases q
+    res <- searcher databases
     putStr $ unlines $ map (showTags . renderResult) res
     where
         showTags = if hasFlag q fColor then showTagConsole else showTag
+        
+        searcher dbs | isJust start || isJust count
+                     = searchRange dbs q (fromMaybe 1 start - 1) (fromMaybe 25 count)
+                     | otherwise = searchAll dbs q
+        
+        start = getPosIntFlag fStart
+        count = getPosIntFlag fCount
+        
+        getPosIntFlag flags =
+            case getFlag q flags of
+                Nothing -> Nothing
+                Just x ->
+                    case (reads x :: [(Int,String)]) of
+                        [(n,"")] | n > 0 -> Just n
+                        _ -> Nothing
 
 
 {- RULES

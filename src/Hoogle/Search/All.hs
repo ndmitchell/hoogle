@@ -17,10 +17,11 @@ searchAll databases query = getResults databases query
 
 
 -- should be possible to fast-path certain searches, currently not done
+-- start (0 based), length
 searchRange :: [DataBase] -> Query -> Int -> Int -> IO [Result DataBase]
-searchRange databases query from to = do
+searchRange databases query from len = do
     res <- getResults databases query
-    return $ take to $ drop from res
+    return $ take len $ drop from res
 
 
 getResults :: [DataBase] -> Query -> IO [Result DataBase]
