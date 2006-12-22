@@ -1,23 +1,13 @@
 Name:            Hoogle
-Version:         3.0
+Version:         4.0
 License:         GPL
 Author:          Neil Mitchell
 Synopsis:        Haskell API Search
 Homepage:        http://www.haskell.org/hoogle/
 Stability:       Beta
 Build-Depends:
-                 base, parsec
+                 base, parsec, FilePath
 
 Executable:      hoogle
-Main-Is:         CmdLine.hs
+Main-Is:         Main.hs
 Hs-Source-Dirs:  src
-
-Executable:      index.cgi
-Main-Is:         Web.hs
-Other-Modules:   HTML
-Hs-Source-Dirs:  src, src/Web
-
-Executable:      hoodoc.cgi
-Main-Is:         Doc.hs
-Hs-Source-Dirs:  src
-
