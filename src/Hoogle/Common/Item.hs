@@ -25,6 +25,8 @@ data Module = Module [String]
             | ModuleId Int
               deriving Show
 
+fromModule (Module x) = x
+
 data ItemRest = ItemModule
               | ItemClass LHS
               | ItemFunc

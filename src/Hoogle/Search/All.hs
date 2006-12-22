@@ -44,8 +44,6 @@ filterResults q xs = if null actions then xs
                     PlusModule _ -> False
                     _ -> True
         
-        fromModule (Module x) = x
-        
         f z [] y = z
         f z (PlusModule  x:xs) y | doesMatch x y = f True  xs y
         f z (MinusModule x:xs) y | doesMatch x y = f False xs y
@@ -80,8 +78,12 @@ performTextSearch databases query = do
         getStatus (Result (Just txt) typ item) =
             (textElse txt
             ,textCase txt
-            ,itemPriority $ itemRest $ item
-            ,fromJust (itemName item))
+            ,itemPriority $ itemRest item
+            ,(fromJust $ itemName item
+             ,length $ fromModule $ fromJust $ itemMod item
+             ,fromModule $ fromJust $ itemMod item
+             )
+            )
 
 
 performTypeSearch :: [DataBase] -> TypeSig -> IO [Result DataBase]
