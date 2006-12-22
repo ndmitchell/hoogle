@@ -11,7 +11,7 @@ import Control.Monad
 
 
 -- populate the itemId field as you go
-saveItems :: Handle -> [Item] -> IO [Item]
+saveItems :: Handle -> [Item a] -> IO [Item a]
 saveItems hndl tb = mapM f tb
     where
         f item@Item{itemRest=ItemInstance _} = return item
@@ -22,7 +22,7 @@ saveItems hndl tb = mapM f tb
             return $ x{itemId = Just i}
 
 
-saveItem :: Handle -> Item -> IO ()
+saveItem :: Handle -> Item a -> IO ()
 saveItem hndl item = do
         saveMod  (itemMod item)
         saveName (itemName item)
@@ -64,13 +64,13 @@ saveItem hndl item = do
         
 
 
-loadItem :: Handle -> IO Item
+loadItem :: Handle -> IO (Item ())
 loadItem hndl = do
         a <- loadMod
         b <- loadName
         c <- loadTypeArgs
         d <- loadRest
-        return $ Item a b c Nothing d
+        return $ Item a b c Nothing () d
     where
         loadMod = do
             x <- getInt

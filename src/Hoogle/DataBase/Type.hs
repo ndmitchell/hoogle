@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), ItemId, createDataBase, loadDataBase,
-    searchName, searchType, loadResultsItem, loadResultsModule
+    searchName, searchType, loadResultItem, loadResultModule
     ) where
 
 import Data.IORef
@@ -120,42 +120,48 @@ ensureModules database = do
 
 
 -- forward methods
-searchName :: DataBase -> String -> IO [Result]
+searchName :: DataBase -> String -> IO [Result DataBase]
 searchName database str = do
     let hndl = handle database
     hSetPos hndl (nameSearchPos database)
-    searchTexts hndl str
+    liftM (map (setResultDataBase database)) $ searchTexts hndl str
 
 
 -- each item in the same set must have the same
 -- type diff matching (for faster sorting stage)
-searchType :: DataBase -> TypeSig -> IO [[Result]]
+searchType :: DataBase -> TypeSig -> IO [[Result DataBase]]
 searchType database typesig = do
     let hndl = handle database
     hSetPos hndl (typeSearchPos database)
-    searchTypes hndl typesig
+    liftM (map (map (setResultDataBase database))) $ searchTypes hndl typesig
 
 
-loadResultsItem :: DataBase -> [Result] -> IO [Result]
-loadResultsItem database xs = mapM f xs
+loadResultItem :: Result DataBase -> IO (Result DataBase)
+loadResultItem result@Result{itemResult=x} =
+    do
+        hSetPos hndl (fromJust $ itemId x)
+        res <- liftM (setItemDataBase database) $ loadItem hndl
+        return $ result{itemResult=res{itemId = itemId x}}
     where
+        database = itemExtra x
         hndl = handle database
-    
-        f result@Result{itemResult=x} = do
-            hSetPos hndl (fromJust $ itemId x)
-            res <- loadItem hndl
-            return $ result{itemResult=res{itemId = itemId x}}
 
 
-loadResultsModule :: DataBase -> [Result] -> IO [Result]
-loadResultsModule database xs =
+loadResultModule :: Result DataBase -> IO (Result DataBase)
+loadResultModule result@Result{itemResult=x} =
     do
         mods <- ensureModules database
-        return $ map (f mods) xs
+        return $ result{itemResult = x{itemMod = f mods (itemMod x)}}
     where
+        database = itemExtra x
         hndl = handle database
         
-        f mods result@Result{itemResult=x} = result{itemResult = x{itemMod = g mods (itemMod x)}}
+        f mods (Just (ModuleId n)) = Just (Module (getModuleFromId mods n))
+        f mods x = x
 
-        g mods (Just (ModuleId n)) = Just (Module (getModuleFromId mods n))
-        g mods x = x
+
+setItemDataBase :: DataBase -> Item a -> Item DataBase
+setItemDataBase x (Item a b c d _ f) = Item a b c d x f
+
+setResultDataBase :: DataBase -> Result a -> Result DataBase
+setResultDataBase x (Result a b c) = Result a b (setItemDataBase x c)

@@ -44,7 +44,7 @@ saveKinds hndl tb = outputMap kClass >> outputMap kType >> return errs
 
         res@(Kinds kClass kType) = foldr f (Kinds Map.empty Map.empty) tb
         
-        f (Item _ mname msig _ x) k =
+        f (Item _ mname msig _ _ x) k =
             case x of
                 ItemClass lhs -> fClass (joinLHS lhs) k
                 ItemFunc -> fType sig k

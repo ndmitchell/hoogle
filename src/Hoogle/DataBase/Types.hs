@@ -67,7 +67,7 @@ hGetType hndl = do
         3 -> liftM TFun $ hGetTypes hndl
 
 
-saveTypes :: Handle -> [Item] -> IO [Response]
+saveTypes :: Handle -> [Item ()] -> IO [Response]
 saveTypes hndl items =
     do
         hPutInt hndl (length typeList)
@@ -99,7 +99,7 @@ saveTypes hndl items =
 
 
 
-searchTypes :: Handle -> TypeSig -> IO [[Result]]
+searchTypes :: Handle -> TypeSig -> IO [[Result ()]]
 searchTypes hndl (TypeSig tcon ttyp) = do
         count <- hGetInt hndl
         liftM (filter (not . null)) $ replicateM count (liftM match $ readTypeItem)
@@ -121,7 +121,7 @@ searchTypes hndl (TypeSig tcon ttyp) = do
         titems = splitFun ttyp
         (targs,tres) = (init titems, last titems)
 
-        match :: TypeItem -> [Result]
+        match :: TypeItem -> [Result ()]
         match (TypeItem con args res perms) =
             case matchTypes (tres:targs) (res:args) of
                 Nothing -> []

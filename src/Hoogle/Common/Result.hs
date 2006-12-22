@@ -7,8 +7,8 @@ import Data.List
 import Data.Maybe
 
 
-data Result = Result {textResult :: Maybe TextMatch, typeResult :: Maybe TypeMatch, itemResult :: Item}
-              deriving Show
+data Result a = Result {textResult :: Maybe TextMatch, typeResult :: Maybe TypeMatch, itemResult :: Item a}
+                deriving Show
 
 
 data TextMatch = TextMatch {
@@ -29,13 +29,13 @@ data TypeDiff = UnwrapLeft | UnwrapRight
 
 
 
-renderResult :: Result -> TagStr
-renderResult (Result txt atyp item@(Item modu (Just name) typ _ rest)) =
+renderResult :: Result a -> TagStr
+renderResult (Result txt atyp item@(Item modu (Just name) typ _ _ rest)) =
     case rest of
         ItemFunc -> Tags [showMod, showName, Str " :: ", showType $ fromJust typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
         ItemData kw (LHSStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
-        _ -> Str $ show item
+        _ -> Str $ "renderResult, todo: " ++ name ++ " " ++ show rest
     where
         showKeyword s = TagUnderline $ Str s
     

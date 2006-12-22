@@ -92,7 +92,7 @@ exec CmdLine q = do
     case db of
         Nothing -> putStrLn $ "Failed to load database, " ++ file
         Just x -> do
-            res <- searchAll x q
+            res <- searchAll [x] q
             putStr $ unlines $ map (showTags . renderResult) res
 
     where

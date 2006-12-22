@@ -21,7 +21,7 @@ data Modules = Modules (Array Int [String])
 -- module Data.Map, is given as in module Data, named Map
 
 -- 0 is now allowed as a module Id
-saveModules :: Handle -> TextBase -> IO [Item]
+saveModules :: Handle -> TextBase -> IO [Item ()]
 saveModules hndl tb = do
         hPutInt hndl $ length modus
         mapM_ f modus
@@ -38,7 +38,7 @@ saveModules hndl tb = do
 
         g mp x@Item{itemMod=Just (Module modu)} = x{itemMod = Just (ModuleId (Map.findWithDefault 0 modu mp))}
 
-        populateModules :: [Item] -> [Item]
+        populateModules :: [Item ()] -> [Item ()]
         populateModules xs = f [] xs
             where
                 f modu (item@Item{itemMod=Just (Module xs),itemName=Just x,itemRest=ItemModule} : rest)

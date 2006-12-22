@@ -120,7 +120,7 @@ layoutTrees (x:xs) n = (n3, x2:xs2)
 
 
 
-saveTexts :: Handle -> [Item] -> IO [Response]
+saveTexts :: Handle -> [Item ()] -> IO [Response]
 saveTexts hndl xs = do
         i <- hGetPos hndl
 
@@ -143,7 +143,7 @@ saveTexts hndl xs = do
 
 
 
-searchTexts :: Handle -> String -> IO [Result]
+searchTexts :: Handle -> String -> IO [Result ()]
 searchTexts hndl search = do
         items <- hGetInt hndl
         res <- f (map toLower search)
@@ -156,7 +156,7 @@ searchTexts hndl search = do
         getResults n = replicateM n (do {a <- hGetInt hndl; c <- hGetInt hndl; return $ asResult a c})
         
         -- item id, match to end, start position
-        asResult :: Int -> Int -> Result
+        asResult :: Int -> Int -> Result ()
         asResult idn pos = Result (Just $ TextMatch pos (-1) (-1)) Nothing blankItem{itemId=Just idn}
     
         f xs = do (table,follow) <- readTree hndl
