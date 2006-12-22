@@ -56,8 +56,10 @@ helpMsg = unlines
 
 fVersion = ["v","ver","version"]
 fHelp = ["h","help"]
-fConvert = ["c","conv","convert"]
+fConvert = ["conv","convert"]
 fOutput = ["o","out","output"]
+fDatabase = ["db","data","database"]
+fColor = ["c","col","color","colour"]
 
 
 exec :: Origin -> Query -> IO ()
@@ -83,5 +85,15 @@ exec CmdLine q | hasFlag q fConvert = do
 
 exec CmdLine q | not $ usefulQuery q = putStr $ "No query given\n" ++ helpMsg
 
-exec _ q = error $ show q
+exec CmdLine q = do
+    checkFlags q (fColor ++ fDatabase)
+    let file = fromMaybe "base.hoo" (getFlag q fDatabase)
+    db <- loadDataBase file
+    case db of
+        Nothing -> putStrLn $ "Failed to load database, " ++ file
+        Just x -> do
+            res <- searchAll x q
+            putStr $ unlines $ map (showTags . renderResult) res
 
+    where
+        showTags = if hasFlag q fColor then showTagConsole else showTag
