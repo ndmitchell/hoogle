@@ -146,7 +146,7 @@ saveTexts hndl xs = do
 searchTexts :: Handle -> String -> IO [Result]
 searchTexts hndl search = do
         items <- hGetInt hndl
-        res <- f search
+        res <- f (map toLower search)
         case res of
             Nothing -> return []
             Just (a,b) -> do
