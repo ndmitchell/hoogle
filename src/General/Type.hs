@@ -19,6 +19,14 @@ tagInner (TagHyperlink _ x) = x
 tagInner (TagColor _ x) = x
 
 
+showTag :: TagStr -> String
+showTag x = f x
+    where
+        f (Str x) = x
+        f (Tags x) = concatMap f x
+        f x = f $ tagInner x
+
+
 showTagConsole :: TagStr -> String
 showTagConsole x = f [] x
     where
