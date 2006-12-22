@@ -35,7 +35,11 @@ hasFlag q s = isJust $ getFlag q s
 
 
 getFlag :: Query -> [String] -> Maybe String
-getFlag query s = listToMaybe [extra | Flag name extra <- flags query, name `elem` s]
+getFlag query s = listToMaybe $ getFlags query s
+
+getFlags :: Query -> [String] -> [String]
+getFlags query s = [extra | Flag name extra <- flags query, name `elem` s]
+
 
 checkFlags :: Query -> [String] -> IO ()
 checkFlags query s = when (not $ null extra) $
@@ -87,13 +91,51 @@ exec CmdLine q | not $ usefulQuery q = putStr $ "No query given\n" ++ helpMsg
 
 exec CmdLine q = do
     checkFlags q (fColor ++ fDatabase)
-    let file = fromMaybe "base.hoo" (getFlag q fDatabase)
-    db <- loadDataBase file
-    case db of
-        Nothing -> putStrLn $ "Failed to load database, " ++ file
-        Just x -> do
-            res <- searchAll [x] q
-            putStr $ unlines $ map (showTags . renderResult) res
-
+    databases <- collectDataBases q
+    res <- searchAll databases q
+    putStr $ unlines $ map (showTags . renderResult) res
     where
         showTags = if hasFlag q fColor then showTagConsole else showTag
+
+
+{- RULES
+For each /db=... flag, it must be either a file (load it) or a folder (look for +packages in it)
+If always check the current directory if all /db directives fail
+If no /db files and no +packages then default to +base
+-}
+collectDataBases :: Query -> IO [DataBase]
+collectDataBases q = do
+    (files,dirs) <- f (getFlags q fDatabase)
+    let packs = [x | PlusPackage x <- scope q]
+    files2 <- mapM (g (dirs++[""])) (if null packs && null files then ["base"] else packs)
+    res <- mapM h (files ++ catMaybes files2)
+    return $ catMaybes res
+    where
+        f :: [FilePath] -> IO ([FilePath],[FilePath])
+        f [] = return ([], [])
+        f (x:xs) = do
+            bfile <- doesFileExist x
+            bdir <- doesDirectoryExist x
+            if not (bfile || bdir)
+                then do
+                    putStrLn $ "Warning, database not found: " ++ x
+                    f xs
+                else do
+                    (a,b) <- f xs
+                    return ([x|bfile]++a, [x|not bfile]++b)
+
+        -- maybe return an item
+        g :: [FilePath] -> String -> IO (Maybe FilePath)
+        g (x:xs) y = do
+            let file = x </> y <.> "hoo"
+            b <- doesFileExist file
+            if b then return $ Just file
+                 else g xs y
+        g [] y = do
+            putStrLn $ "Warning, failed to find package " ++ y
+            return Nothing
+
+        h file = do
+            db <- loadDataBase file
+            when (isNothing db) $ putStrLn $ "Failed to load database, " ++ file
+            return db
