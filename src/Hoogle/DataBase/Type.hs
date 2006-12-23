@@ -35,7 +35,7 @@ type ItemId = Int
 data DataBase = DataBase {
                     handle  :: Handle,
                     package :: String,
-                    version :: String,
+                    webdocs :: String,
                     
                     -- the static and cached information
                     modules :: Pending Modules, -- Prelude, Data.Map etc.
@@ -61,7 +61,7 @@ createDataBase tb file = do
     let attribs = [(a,b) | ItemAttribute a b <- map itemRest as]
 
     hPutString hndl "package"
-    hPutString hndl "1.0"
+    hPutString hndl (fromMaybe "" $ lookup "web" attribs)
 
     tablePos <- hGetPosn hndl
     replicateM_ 6 $ hPutInt hndl 0
