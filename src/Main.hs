@@ -102,7 +102,9 @@ exec CmdLine q = do
     
         when showDocs $ putStrLn $ fromMaybe "No documentation" $ locateWebDocs $ itemResult $ head res
         
-        when showInfo $ putStrLn "Info would go here..."
+        when showInfo $ do
+            putStrLn $ showTags $ renderResult $ head res
+            putStrLn "More info would go here"
         
         when (not (showDocs || showInfo)) $
             putStr $ unlines $ map (showTags . renderResult) res
