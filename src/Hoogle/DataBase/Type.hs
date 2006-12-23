@@ -6,6 +6,7 @@ module Hoogle.DataBase.Type(
 
 import Data.IORef
 import Data.Maybe
+import Data.List
 import System.IO
 import Control.Monad
 
@@ -120,14 +121,37 @@ ensureModules database = do
 
 
 -- forward methods
-searchName :: DataBase -> String -> IO [Result DataBase]
+searchName :: DataBase -> [String] -> IO [Result DataBase]
 searchName database query = do
     let hndl = handle database
-    hSetPos hndl (nameSearchPos database)
-    res <- searchTexts hndl query
-    mapM f res
+    res <- mapM (\x -> hSetPos hndl (nameSearchPos database) >> searchTexts hndl x) query
+    if length query == 1
+        then mapM f $ head res
+        else mergeResults database query res
     where
-        f = liftM (fixupTextMatch query) . loadResult . setResultDataBase database
+        f = liftM (fixupTextMatch (head query)) . loadResult . setResultDataBase database
+
+
+mergeResults :: DataBase -> [String] -> [[Result ()]] -> IO [Result DataBase]
+mergeResults database query xs = merge (map (sortBy cmp) xs)
+    where
+        getId = fromJust . itemId . itemResult
+        cmp a b = getId a `compare` getId b
+
+        merge xs | null tops = return []
+                 | otherwise = do
+                 result <- loadResult $ setResultDataBase database $ snd $ head nows
+                 let tm = computeTextMatch
+                                    (fromJust $ itemName $ itemResult result)
+                                    [(q, head $ textMatch $ fromJust $ textResult x) | (q,x) <- nows]
+                     result2 = result{textResult = Just tm}
+                 ans <- merge rest
+                 return (result2:ans)
+            where
+                nows = [(q,x) | (q,x:_) <- zip query xs, getId x == now]
+                rest = [if not (null x) && getId (head x) == now then tail x else x | x <- xs]
+                now = minimum $ map getId tops
+                tops = [head x | x <- xs, not $ null x]
 
 
 -- fill in the global methods of TextMatch

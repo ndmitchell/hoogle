@@ -27,7 +27,7 @@ searchRange databases query from len = do
 getResults :: [DataBase] -> Query -> IO [Result DataBase]
 getResults databases query = res >>= return . filterResults query
     where
-        res = if not (null $ names query) then performTextSearch databases (head $ names query)
+        res = if not (null $ names query) then performTextSearch databases (names query)
               else if isJust (typeSig query) then performTypeSearch databases (fromJust $ typeSig query)
               else error "Search.getResults: Doing a blank search!"
 
@@ -56,7 +56,7 @@ filterResults q xs = if null actions then xs
         doesMatch _ _ = False
 
 
-performTextSearch :: [DataBase] -> String -> IO [Result DataBase]
+performTextSearch :: [DataBase] -> [String] -> IO [Result DataBase]
 performTextSearch databases query = do
         res <- concatMapM (`searchName` query) databases
         res <- return $ map head $ groupBy eqItemId $ sortBy cmpItemId res
@@ -68,7 +68,8 @@ performTextSearch databases query = do
 
         priority x y = getStatus x `compare` getStatus y
         getStatus (Result (Just txt) typ item) =
-            (textElse txt
+            (negate $ length $ textMatch txt
+            ,textElse txt
             ,textCase txt
             ,itemPriority $ itemRest item
             ,(fromJust $ itemName item
