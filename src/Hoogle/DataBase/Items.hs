@@ -3,27 +3,41 @@ module Hoogle.DataBase.Items where
 
 import Hoogle.TypeSig.All
 import Hoogle.TextBase.All
+import Hoogle.DataBase.Docs
 
 import System.IO
 import Data.List
+import Data.Maybe
 import General.Binary
 import Control.Monad
 
 
 -- populate the itemId field as you go
 saveItems :: Handle -> [Item a] -> Maybe String -> IO [Item a]
-saveItems hndl tb haddock = mapM f tb
+saveItems hndl tb haddock = f Nothing tb
     where
-        f item@Item{itemRest=ItemInstance _} = return item
+        f :: Maybe ([String],Haddock) -> [Item a] -> IO [Item a]
+        f had (x:xs) | isItemInstance $ itemRest x = f had xs >>= return . (x:)
         
-        f x = do
+        f had (x:xs) = do
             i <- hGetPos hndl
-            saveItem hndl x
-            return $ x{itemId = Just i}
+
+            let modname = modName $ fromJust $ itemMod x
+            
+            had2 <- if isItemModule (itemRest x) || isNothing haddock then return Nothing
+                    else case had of
+                         Just (n,h) | n == modname -> return $ Just h
+                         _ -> loadHaddock (fromJust haddock) modname
+
+            saveItem had2 hndl x
+            
+            let x2 = x{itemId = Just i}
+            xs2 <- f (had2 >>= return . (,) modname) xs
+            return $ x2:xs2
 
 
-saveItem :: Handle -> Item a -> IO ()
-saveItem hndl item = do
+saveItem :: Maybe Haddock -> Handle -> Item a -> IO ()
+saveItem haddock hndl item = do
         putInt 0
         saveMod  (itemMod item)
         saveName (itemName item)

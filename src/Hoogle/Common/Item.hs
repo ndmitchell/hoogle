@@ -39,6 +39,12 @@ data ItemRest = ItemModule
 isItemAttribute (ItemAttribute{}) = True
 isItemAttribute _ = False
 
+isItemInstance (ItemInstance{}) = True
+isItemInstance _ = False
+
+isItemModule (ItemModule) = True
+isItemModule _ = False
+
 
 -- name is not given here
 data LHS = LHS Constraint [String] -- context => name vars
