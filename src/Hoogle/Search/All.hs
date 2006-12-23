@@ -60,20 +60,11 @@ performTextSearch :: [DataBase] -> String -> IO [Result DataBase]
 performTextSearch databases query = do
         res <- concatMapM (`searchName` query) databases
         res <- return $ map head $ groupBy eqItemId $ sortBy cmpItemId res
-        res <- mapM (\x -> loadResultItem x >>= loadResultModule) res
-        return $ sortBy priority $ map fixupTextMatch res
+        return $ sortBy priority res
     where
         cmpItemId x y = getItemId x `compare` getItemId y
         eqItemId x y = getItemId x == getItemId y
         getItemId = fromJust . itemId . itemResult
-
-        nquery = length query
-        fixupTextMatch (Result (Just txt) typ item) = Result (Just $ TextMatch loc (nname-nquery) badCase) typ item
-            where
-                loc = textLoc txt
-                name = fromJust $ itemName item
-                nname = length name
-                badCase = length $ filter id $ zipWith (/=) query (drop loc name)
 
         priority x y = getStatus x `compare` getStatus y
         getStatus (Result (Just txt) typ item) =
@@ -91,7 +82,6 @@ performTypeSearch :: [DataBase] -> TypeSig -> IO [Result DataBase]
 performTypeSearch databases query = do
         res <- concatMapM (`searchType` query) databases
         res <- return $ concat $ sortBy cmpResults res
-        res <- mapM (\x -> loadResultItem x >>= loadResultModule) res
         return res
     where
         cmpResults xs ys = f xs `compare` f ys

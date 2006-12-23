@@ -157,7 +157,8 @@ searchTexts hndl search = do
         
         -- item id, match to end, start position
         asResult :: Int -> Int -> Result ()
-        asResult idn pos = Result (Just $ TextMatch pos (-1) (-1)) Nothing blankItem{itemId=Just idn}
+        asResult idn pos = Result (Just $ TextMatch [TextMatchOne pos (length search)] (-1) (-1))
+                                  Nothing blankItem{itemId=Just idn}
     
         f xs = do (table,follow) <- readTree hndl
                   case xs of

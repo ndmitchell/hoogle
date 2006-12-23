@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), ItemId, createDataBase, loadDataBase,
-    searchName, searchType, loadResultItem, loadResultModule
+    searchName, searchType
     ) where
 
 import Data.IORef
@@ -121,10 +121,25 @@ ensureModules database = do
 
 -- forward methods
 searchName :: DataBase -> String -> IO [Result DataBase]
-searchName database str = do
+searchName database query = do
     let hndl = handle database
     hSetPos hndl (nameSearchPos database)
-    liftM (map (setResultDataBase database)) $ searchTexts hndl str
+    res <- searchTexts hndl query
+    mapM f res
+    where
+        f x = do
+            x <- loadResult $ setResultDataBase database x
+            return $ fixupTextMatch query x
+
+
+-- fill in the global methods of TextMatch
+-- given a list of TextMatchOne
+fixupTextMatch :: String -> Result a -> Result a
+fixupTextMatch query result = result{textResult = Just newTextResult}
+    where
+        name = fromJust $ itemName $ itemResult result
+        matches = textMatch $ fromJust $ textResult result
+        newTextResult = computeTextMatch name [(query,head matches)]
 
 
 -- each item in the same set must have the same
@@ -133,7 +148,12 @@ searchType :: DataBase -> TypeSig -> IO [[Result DataBase]]
 searchType database typesig = do
     let hndl = handle database
     hSetPos hndl (typeSearchPos database)
-    liftM (map (map (setResultDataBase database))) $ searchTypes hndl typesig
+    res <- searchTypes hndl typesig
+    mapM (mapM (loadResult . setResultDataBase database)) res
+
+
+loadResult :: Result DataBase -> IO (Result DataBase)
+loadResult res = loadResultItem res >>= loadResultModule
 
 
 loadResultItem :: Result DataBase -> IO (Result DataBase)

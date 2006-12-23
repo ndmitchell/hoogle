@@ -12,11 +12,14 @@ data Result a = Result {textResult :: Maybe TextMatch, typeResult :: Maybe TypeM
 
 
 data TextMatch = TextMatch {
-                    textLoc  :: Int, -- where does the match happen
+                    textMatch :: [TextMatchOne],
                     textElse :: Int, -- how many other chars are there
                     textCase :: Int -- how many chars have wrong case
                  }
                  deriving Show
+
+data TextMatchOne = TextMatchOne {textBegin :: Int, textLength :: Int}
+                    deriving Show
 
 data TypeMatch = TypeMatch {typeDiff :: [TypeDiff], typeOrder :: [Int]}
                  deriving Show
@@ -27,6 +30,27 @@ data TypeDiff = UnwrapLeft | UnwrapRight
               | ArgMissing
                 deriving Show
 
+
+computeTextMatch :: String -> [(String,TextMatchOne)] -> TextMatch
+computeTextMatch name matches = TextMatch (map snd matches) (length name - covered) cases
+    where
+        covered = sum $ map textLength $ mergeTextMatchOne $ map snd matches
+        
+        cases = sum $ map f matches
+        
+        f (query,TextMatchOne b l) = length $ filter id $ zipWith (/=) query name2
+            where name2 = take l $ drop b name
+
+
+mergeTextMatchOne :: [TextMatchOne] -> [TextMatchOne]
+mergeTextMatchOne = merge . sortBy cmp
+    where
+        cmp a b = textBegin a `compare` textBegin b
+        
+        merge (TextMatchOne b1 l1 : TextMatchOne b2 l2 : xs)
+            | b1+l1 >= b2 = merge (TextMatchOne b1 (b2+l2-b1) : xs)
+        merge (x:xs) = x : merge xs
+        merge [] = []
 
 
 renderResult :: Result a -> TagStr
@@ -46,10 +70,13 @@ renderResult (Result txt atyp item@(Item modu (Just name) typ _ _ rest)) =
     
         showName = case txt of
                 Nothing -> Str name
-                Just (TextMatch loc others _) -> Tags [Str pre, TagBold $ Str mid, Str post]
+                Just (TextMatch locs _ _) -> Tags $ f 0 name (mergeTextMatchOne locs)
                     where
-                        (pre,rest) = splitAt loc name
-                        (mid,post) = splitAt (length name - others) rest
+                        f p s [] = [Str s]
+                        f p s (TextMatchOne i n:xs) = Str pre : TagBold (Str mid) : f (i+n) post xs
+                            where
+                                (pre,rest) = splitAt (i-p) s
+                                (mid,post) = splitAt n rest
         
         showType (TypeArgs x xs) = case atyp of
             Nothing -> Str $ x ++ concat (intersperse " -> " xs)
