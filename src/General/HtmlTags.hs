@@ -33,14 +33,14 @@ parseHtmlTags ('<':xs)
         (tag,rest) = span isAlphaNum xs
         (attrs,rest2) = parseAttributes rest
 
-parseHtmlTags (x:xs) = [TextTag pre | not $ null pre] ++ parseHtmlTags post
+parseHtmlTags (x:xs) = [TextTag $ parseString pre | not $ null pre] ++ parseHtmlTags post
     where (pre,post) = break (== '<') (x:xs)
 
 
 parseAttributes :: String -> ([HtmlAttr], String)
 parseAttributes (x:xs) | isSpace x = parseAttributes xs
                        | not $ isAlpha x = ([], x:xs)
-                       | otherwise = ((lhs,rhs):attrs, over)
+                       | otherwise = ((parseString lhs, parseString rhs):attrs, over)
     where
         (attrs,over) = parseAttributes (dropWhile isSpace other)
     
@@ -54,6 +54,22 @@ parseValue ('\"':xs) = (a, drop 1 b)
     where (a,b) = break (== '\"') xs
 parseValue x = span isAlphaNum x
 
+
+
+escapes = [("gt",">")
+          ,("lt","<")
+          ,("amp","&")
+          ,("quot","\"")
+          ]
+
+
+parseString :: String -> String
+parseString ('&':xs) = case lookup a escapes of
+                            Nothing -> '&' : parseString xs
+                            Just x -> x ++ parseString (drop 1 b)
+    where (a,b) = break (== ';') xs
+parseString (x:xs) = x : parseString xs
+parseString [] = []
 
 
 isCloseTagName name (CloseTag n) = n == name
