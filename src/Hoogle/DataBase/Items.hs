@@ -17,6 +17,7 @@ saveItems :: Handle -> [Item ()] -> Maybe String -> IO [Item ()]
 saveItems hndl tb haddock = f Nothing tb
     where
         f :: Maybe ([String],Haddock) -> [Item ()] -> IO [Item ()]
+        f had [] = return []
         f had (x:xs) | isItemInstance $ itemRest x = f had xs >>= return . (x:)
         
         f had (x:xs) = do

@@ -6,8 +6,12 @@ module Hoogle.DataBase.Docs(
 
 import Hoogle.Common.All
 import General.All
+
 import System.IO
-import Text.Html
+import System.Directory
+import Text.Html(Html,primHtml)
+import System.FilePath
+import Data.List
 
 
 data Docs = Docs String
@@ -16,8 +20,12 @@ data Haddock = Haddock Html
 
 -- load a haddock file
 loadHaddock :: FilePath -> [String] -> IO (Maybe Haddock)
-loadHaddock haddock modu = return Nothing
-
+loadHaddock haddock modu = do
+    let file = haddock </> concat (intersperse "-" modu) <.> "html"
+    b <- doesFileExist file
+    if not b then return Nothing else do
+        src <- readFile file
+        return $ Just $ Haddock $ primHtml src
 
 
 -- find the documentation in the haddock
