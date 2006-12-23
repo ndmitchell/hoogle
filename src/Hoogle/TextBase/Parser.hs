@@ -23,10 +23,16 @@ parsecTextBase = do x <- anyLineSpace `sepBy` newline
         whites = skipMany whiteChar
         
         anyLineSpace = do whites ; x <- anyLine ; whites ; return x
-        anyLine = comment <|> liftM (:[]) item <|> blank
+        anyLine = comment <|> attribute <|> liftM (:[]) item <|> blank
     
         comment = string "--" >> skipMany (noneOf "\n") >> return []
         blank = return []
+
+        attribute = do char '@'
+                       x <- many1 (noneOf " ")
+                       whites
+                       xs <- many (noneOf "\n")
+                       return [mkAttribute x xs]
 
         item = modu <|> clas <|> inst <|> newtyp <|> typ <|> dat <|> func
         
@@ -87,6 +93,9 @@ mkFunc x y = Item Nothing (Just x) (Just $ TypeAST y) Nothing () ItemFunc
 
 mkKeyword :: String -> Item ()
 mkKeyword x = Item Nothing (Just x) Nothing Nothing () ItemKeyword
+
+mkAttribute :: String -> String -> Item ()
+mkAttribute x y = Item Nothing Nothing Nothing Nothing () (ItemAttribute x y)
 
 
 splitSig :: TypeSig -> (LHS, String)

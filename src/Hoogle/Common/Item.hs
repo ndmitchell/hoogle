@@ -34,8 +34,13 @@ data ItemRest = ItemModule
               | ItemData DataKeyword LHS
               | ItemInstance TypeSig
               | ItemKeyword
+              | ItemAttribute String String
               | ItemUnknown
               deriving Show
+
+
+isItemAttribute (ItemAttribute{}) = True
+isItemAttribute _ = False
 
 
 -- name is not given here

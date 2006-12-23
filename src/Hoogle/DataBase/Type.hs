@@ -57,6 +57,9 @@ createDataBase tb file = do
     hPutInt hndl 0 -- 0 for binary notice
     hPutInt hndl hooVersion -- verson number
 
+    (as,tb) <- return $ partition (isItemAttribute . itemRest) tb
+    let attribs = [(a,b) | ItemAttribute a b <- map itemRest as]
+
     hPutString hndl "package"
     hPutString hndl "1.0"
 
