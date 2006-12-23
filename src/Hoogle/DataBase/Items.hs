@@ -24,6 +24,7 @@ saveItems hndl tb = mapM f tb
 
 saveItem :: Handle -> Item a -> IO ()
 saveItem hndl item = do
+        putInt 0
         saveMod  (itemMod item)
         saveName (itemName item)
         saveTypeArgs (itemType item)
@@ -66,6 +67,7 @@ saveItem hndl item = do
 
 loadItem :: Handle -> IO (Item ())
 loadItem hndl = do
+        _ <- getInt -- documentation
         a <- loadMod
         b <- loadName
         c <- loadTypeArgs
