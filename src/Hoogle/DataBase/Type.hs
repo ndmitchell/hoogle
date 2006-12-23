@@ -215,6 +215,14 @@ setResultDataBase x (Result a b c) = Result a b (setItemDataBase x c)
 
 locateWebDocs :: Item DataBase -> Maybe String
 locateWebDocs item | null url = Nothing
-                   | otherwise = Just url
+                   | otherwise = case itemRest item of
+                        ItemModule -> Just $ url ++ modu ++ ['-'|not $ null modu] ++ fromJust (itemName item) ++ ".html"
+                        _ -> Just $ url ++ modu ++ ".html#" ++ code ++ nam
     where
+        nam = escape $ fromJust $ itemName item
+        modu = concat $ intersperse "-" $ fromModule $ fromJust $ itemMod item
         url = webdocs $ itemExtra item
+        
+        code = case itemRest item of
+                    ItemFunc{} -> "v%3A"
+                    _ -> "t%3A"

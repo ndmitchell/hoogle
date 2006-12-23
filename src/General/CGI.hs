@@ -12,7 +12,7 @@
 -}
 
 
-module Web.CGI(cgiArgs, escape, asCgi) where
+module General.CGI(cgiArgs, escape, asCgi) where
 
 import Hoogle.TextUtil
 import System.Environment
