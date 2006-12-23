@@ -92,6 +92,17 @@ saveItem haddock hndl item = do
         
 
 
+loadItemDocs :: Handle -> IO (Maybe Docs)
+loadItemDocs hndl = do
+    x <- hGetInt hndl
+    if x == 0
+        then return Nothing
+        else do
+            hSetPos hndl x
+            docs <- loadDocsHandle hndl
+            return $ Just docs
+
+
 loadItem :: Handle -> IO (Item ())
 loadItem hndl = do
         _ <- getInt -- documentation

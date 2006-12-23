@@ -231,4 +231,7 @@ locateWebDocs item
 
 
 loadDocs :: Item DataBase -> IO (Maybe Docs)
-loadDocs _ = return Nothing
+loadDocs item = do
+    let hndl = handle $ itemExtra item
+    hSetPos hndl (fromJust $ itemId item)
+    loadItemDocs hndl
