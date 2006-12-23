@@ -45,6 +45,9 @@ isItemInstance _ = False
 isItemModule (ItemModule) = True
 isItemModule _ = False
 
+isItemFunc (ItemFunc) = True
+isItemFunc _ = False
+
 
 -- name is not given here
 data LHS = LHS Constraint [String] -- context => name vars
