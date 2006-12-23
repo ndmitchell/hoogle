@@ -45,8 +45,10 @@ findDocs (Haddock tags) item
     | isItemFunc $ itemRest item = f tags
     | otherwise = Nothing
     where
+        lookName = "v%3A" ++ escapeUpper (fromJust $ itemName item)
+    
         f (OpenTag "TR" _ : OpenTag "TD" _ : OpenTag "A" [("NAME",name)] : rest)
-            | name == "v%3A" ++ fromJust (itemName item)
+            | name == lookName
             = Just $ Docs $ extractDocs rest
         f (x:xs) = f xs
         f [] = Nothing
@@ -54,7 +56,8 @@ findDocs (Haddock tags) item
         
         extractDocs = process . takeWhile (not . isCloseTagName "TD") . drop 1 . dropWhile (not . isOpenTagName "TD")
         
-        process = g False
+        process xs = if null res || last res == '\n' then res else res ++ "\n"
+            where res = g False xs
         
         g pre (TextTag x : xs) = (if pre then id else remSpaces) x ++ g pre xs
         g pre (OpenTag "PRE" _ : xs) = g True xs
