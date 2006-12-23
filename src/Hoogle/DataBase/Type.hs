@@ -127,9 +127,7 @@ searchName database query = do
     res <- searchTexts hndl query
     mapM f res
     where
-        f x = do
-            x <- loadResult $ setResultDataBase database x
-            return $ fixupTextMatch query x
+        f = liftM (fixupTextMatch query) . loadResult . setResultDataBase database
 
 
 -- fill in the global methods of TextMatch
