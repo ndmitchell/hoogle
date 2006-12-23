@@ -12,6 +12,7 @@ import System.Directory
 import System.FilePath
 import Data.List
 import Data.Maybe
+import Control.Monad
 
 
 data Docs = Docs String
@@ -32,10 +33,10 @@ loadHaddock haddock modu = do
 -- load it, serialise it to the current position
 -- return a bool, were you successful
 saveDocsHandle :: Handle -> Haddock -> Item () -> IO Bool
-saveDocsHandle handle haddock item =
+saveDocsHandle hndl haddock item =
     case findDocs haddock item of
         Nothing -> return False
-        Just x -> return False
+        Just (Docs x) -> hPutString hndl x >> return True
 
 
 findDocs :: Haddock -> Item () -> Maybe Docs
@@ -59,8 +60,7 @@ findDocs (Haddock tags) item
 
 
 loadDocsHandle :: Handle -> IO Docs
-loadDocsHandle _ = return $ Docs "hello neil"
-
+loadDocsHandle hndl = liftM Docs $ hGetString hndl
 
 
 renderDocs :: Docs -> TagStr
