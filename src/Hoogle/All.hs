@@ -1,9 +1,9 @@
 
 module Hoogle.All(
     Query(..), Flag(..), Scope(..), parseQuery, renderQuery, suggestQuery, usefulQuery,
-    DataBase, loadDataBase, newDataBase,
+    DataBase, loadDataBase, newDataBase, locateWebDocs,
     searchAll, searchRange,
-    Result, renderResult
+    Result(..), renderResult
     ) where
 
 import Hoogle.Query.All

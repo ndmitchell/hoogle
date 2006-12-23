@@ -1,7 +1,8 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), ItemId, createDataBase, loadDataBase,
-    searchName, searchType
+    searchName, searchType,
+    locateWebDocs
     ) where
 
 import Data.IORef
@@ -210,3 +211,10 @@ setItemDataBase x (Item a b c d _ f) = Item a b c d x f
 
 setResultDataBase :: DataBase -> Result a -> Result DataBase
 setResultDataBase x (Result a b c) = Result a b (setItemDataBase x c)
+
+
+locateWebDocs :: Item DataBase -> Maybe String
+locateWebDocs item | null url = Nothing
+                   | otherwise = Just url
+    where
+        url = webdocs $ itemExtra item

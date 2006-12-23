@@ -66,6 +66,8 @@ fDatabase = ["db","data","database"]
 fColor = ["c","col","color","colour"]
 fStart = ["s","start"]
 fCount = ["n","count","length","len"]
+fDocs = ["d","doc","docs"]
+fInfo = ["i","inf","info"]
 
 
 exec :: Origin -> Query -> IO ()
@@ -93,11 +95,21 @@ exec CmdLine q | hasFlag q fConvert = do
 exec CmdLine q | not $ usefulQuery q = putStr $ "No query given\n" ++ helpMsg
 
 exec CmdLine q = do
-    checkFlags q (fColor ++ fDatabase ++ fStart ++ fCount)
+    checkFlags q (fColor ++ fDatabase ++ fStart ++ fCount ++ fDocs ++ fInfo)
     databases <- collectDataBases q
     res <- searcher databases
-    putStr $ unlines $ map (showTags . renderResult) res
+    if null res then putStrLn "No results found" else do
+    
+        when showDocs $ putStrLn $ fromMaybe "No documentation" $ locateWebDocs $ itemResult $ head res
+        
+        when showInfo $ putStrLn "Info would go here..."
+        
+        when (not (showDocs || showInfo)) $
+            putStr $ unlines $ map (showTags . renderResult) res
     where
+        showDocs = hasFlag q fDocs
+        showInfo = hasFlag q fInfo
+    
         showTags = if hasFlag q fColor then showTagConsole else showTag
         
         searcher dbs | isJust start || isJust count
