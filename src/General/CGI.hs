@@ -12,7 +12,7 @@
 -}
 
 
-module General.CGI(cgiArgs, escape, asCgi) where
+module General.CGI(cgiArgs, escape, escapeUpper, escapeLower, asCgi) where
 
 import Hoogle.TextUtil
 import System.Environment
@@ -62,13 +62,19 @@ unescapeChar a b = chr $ (f a * 16) + f b
             | otherwise = ord (toLower x) - ord 'a' + 10
 
 
-escape :: String -> String
-escape (x:xs) | isAlphaNum x = x : escape xs
-              | otherwise    = '%' : escapeChar x ++ escape xs
-escape [] = []
+-- | Decide how you want to encode individual characters
+--   i.e. upper or lower case
+escapeWith :: (Char -> Char) -> String -> String
+escapeWith f (x:xs) | isAlphaNum x = x : escapeWith f xs
+                    | otherwise    = '%' : escapeCharWith f x ++ escapeWith f xs
+escapeWith f [] = []
 
 
-escapeChar :: Char -> String
-escapeChar x = case showHex (ord x) "" of
-                  [x] -> ['0',x]
-                  x   -> x
+escapeCharWith :: (Char -> Char) -> Char -> String
+escapeCharWith f x = case map f $ showHex (ord x) "" of
+                          [x] -> ['0',x]
+                          x   -> x
+
+escapeUpper = escapeWith toUpper
+escapeLower = escapeWith toLower
+escape = escapeLower
