@@ -13,10 +13,10 @@ import Control.Monad
 
 
 -- populate the itemId field as you go
-saveItems :: Handle -> [Item a] -> Maybe String -> IO [Item a]
+saveItems :: Handle -> [Item ()] -> Maybe String -> IO [Item ()]
 saveItems hndl tb haddock = f Nothing tb
     where
-        f :: Maybe ([String],Haddock) -> [Item a] -> IO [Item a]
+        f :: Maybe ([String],Haddock) -> [Item ()] -> IO [Item ()]
         f had (x:xs) | isItemInstance $ itemRest x = f had xs >>= return . (x:)
         
         f had (x:xs) = do
@@ -36,14 +36,26 @@ saveItems hndl tb haddock = f Nothing tb
             return $ x2:xs2
 
 
-saveItem :: Maybe Haddock -> Handle -> Item a -> IO ()
+saveItem :: Maybe Haddock -> Handle -> Item () -> IO ()
 saveItem haddock hndl item = do
+        start <- hGetPos hndl
         putInt 0
         saveMod  (itemMod item)
         saveName (itemName item)
         saveTypeArgs (itemType item)
         saveRest (itemRest item)
+        saveDocs start haddock
     where
+        saveDocs start Nothing = return ()
+        saveDocs start (Just haddock) = do
+            docs <- hGetPos hndl
+            b <- saveDocsHandle hndl haddock item
+            when b $ do
+                now <- hGetPos hndl
+                hSetPos hndl start
+                putInt docs
+                hSetPos hndl now
+
         saveMod Nothing = putInt 0
         saveMod (Just modu) = putInt $ modId modu
         

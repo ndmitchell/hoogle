@@ -23,7 +23,7 @@ loadHaddock haddock modu = return Nothing
 -- find the documentation in the haddock
 -- load it, serialise it to the current position
 -- return a bool, were you successful
-saveDocsHandle :: Haddock -> Item () -> Handle -> IO Bool
+saveDocsHandle :: Handle -> Haddock -> Item () -> IO Bool
 saveDocsHandle _ _ _ = return False
 
 
