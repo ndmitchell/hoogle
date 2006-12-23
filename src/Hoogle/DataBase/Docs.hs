@@ -12,6 +12,7 @@ import System.Directory
 import System.FilePath
 import Data.List
 import Data.Maybe
+import Data.Char
 import Control.Monad
 
 
@@ -53,10 +54,18 @@ findDocs (Haddock tags) item
         
         extractDocs = process . takeWhile (not . isCloseTagName "TD") . drop 1 . dropWhile (not . isOpenTagName "TD")
         
-        process x = concatMap g x
+        process = g False
         
-        g (TextTag x) = x
-        g _ = ""
+        g pre (TextTag x : xs) = (if pre then id else remSpaces) x ++ g pre xs
+        g pre (OpenTag "PRE" _ : xs) = g True xs
+        g pre (CloseTag "PRE" : xs) = g False xs
+        g pre (CloseTag "P" : xs) = "\n\n" ++ g pre xs
+        g pre (x:xs) = g pre xs
+        g pre [] = []
+        
+        remSpaces (x:y:xs) | isSpace x && isSpace y = remSpaces (' ':xs)
+        remSpaces (x:xs) = (if isSpace x then ' ' else x) : remSpaces xs
+        remSpaces [] = []
 
 
 loadDocsHandle :: Handle -> IO Docs
