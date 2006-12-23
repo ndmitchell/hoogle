@@ -11,8 +11,8 @@ import Control.Monad
 
 
 -- populate the itemId field as you go
-saveItems :: Handle -> [Item a] -> IO [Item a]
-saveItems hndl tb = mapM f tb
+saveItems :: Handle -> [Item a] -> Maybe String -> IO [Item a]
+saveItems hndl tb haddock = mapM f tb
     where
         f item@Item{itemRest=ItemInstance _} = return item
         

@@ -2,7 +2,8 @@
 module Hoogle.DataBase.Type(
     DataBase(..), ItemId, createDataBase, loadDataBase,
     searchName, searchType,
-    locateWebDocs
+    locateWebDocs,
+    Docs, loadDocs, renderDocs
     ) where
 
 import Data.IORef
@@ -18,6 +19,7 @@ import Hoogle.DataBase.Items
 import Hoogle.DataBase.Modules
 import Hoogle.DataBase.Texts
 import Hoogle.DataBase.Types
+import Hoogle.DataBase.Docs
 
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
@@ -69,7 +71,7 @@ createDataBase tb file = do
 
     posModule <- hGetPos hndl
     tb2 <- saveModules hndl tb
-    tb3 <- saveItems hndl tb2
+    tb3 <- saveItems hndl tb2 (lookup "local" attribs)
     
     (pos, err) <-
         mapAndUnzipM (\x -> do y <- hGetPos hndl ; z <- x ; return (y,z))
@@ -226,3 +228,7 @@ locateWebDocs item | null url = Nothing
         code = case itemRest item of
                     ItemFunc{} -> "v%3A"
                     _ -> "t%3A"
+
+
+loadDocs :: Item DataBase -> IO (Maybe Docs)
+loadDocs _ = return Nothing

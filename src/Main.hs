@@ -104,7 +104,10 @@ exec CmdLine q = do
         
         when showInfo $ do
             putStrLn $ showTags $ renderResult $ head res
-            putStrLn "More info would go here"
+            docs <- loadDocs $ itemResult $ head res
+            case docs of
+                Nothing -> putStrLn "No info on this item"
+                Just x -> putStrLn $ showTags $ renderDocs x
         
         when (not (showDocs || showInfo)) $
             putStr $ unlines $ map (showTags . renderResult) res
