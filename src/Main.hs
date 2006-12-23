@@ -84,6 +84,7 @@ exec CmdLine q | hasFlag q fConvert = do
         else do
         putStrLn $ "Convert, begining on " ++ input
         response <- newDataBase input output
+        print response
         if anyError response
             then putStrLn $ "Conversion failed"
             else putStrLn $ "Conversion successful, created: " ++ output
