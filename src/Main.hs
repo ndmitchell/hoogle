@@ -100,14 +100,16 @@ exec CmdLine q = do
     res <- searcher databases
     if null res then putStrLn "No results found" else do
     
-        when showDocs $ putStrLn $ fromMaybe "No documentation" $ locateWebDocs $ itemResult $ head res
-        
         when showInfo $ do
             putStrLn $ showTags $ renderResult $ head res
+            putStrLn ""
             docs <- loadDocs $ itemResult $ head res
             case docs of
                 Nothing -> putStrLn "No info on this item"
-                Just x -> putStr $ "\n" ++ (showTags $ renderDocs x)
+                Just x -> putStr $ showTags $ renderDocs x
+        
+        when (showInfo && showDocs) $ putStrLn ""
+        when showDocs $ putStrLn $ fromMaybe "No documentation" $ locateWebDocs $ itemResult $ head res
         
         when (not (showDocs || showInfo)) $
             putStr $ unlines $ map (showTags . renderResult) res
