@@ -107,7 +107,7 @@ exec CmdLine q = do
             docs <- loadDocs $ itemResult $ head res
             case docs of
                 Nothing -> putStrLn "No info on this item"
-                Just x -> putStrLn $ showTags $ renderDocs x
+                Just x -> putStr $ "\n" ++ (showTags $ renderDocs x)
         
         when (not (showDocs || showInfo)) $
             putStr $ unlines $ map (showTags . renderResult) res
