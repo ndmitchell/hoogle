@@ -204,7 +204,7 @@ loadResultModule result@Result{itemResult=x} =
         database = itemExtra x
         hndl = handle database
         
-        f mods (Just (ModuleId n)) = Just (Module (getModuleFromId mods n))
+        f mods (Just (Module _ n)) = Just (Module (getModuleFromId mods n) n)
         f mods x = x
 
 
@@ -222,7 +222,7 @@ locateWebDocs item | null url = Nothing
                         _ -> Just $ url ++ modu ++ ".html#" ++ code ++ nam
     where
         nam = escape $ fromJust $ itemName item
-        modu = concat $ intersperse "-" $ fromModule $ fromJust $ itemMod item
+        modu = concat $ intersperse "-" $ modName $ fromJust $ itemMod item
         url = webdocs $ itemExtra item
         
         code = case itemRest item of

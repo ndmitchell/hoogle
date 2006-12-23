@@ -71,7 +71,7 @@ parsecTextBase = do x <- anyLineSpace `sepBy` newline
 -- to an item
 
 mkModule :: [String] -> Item ()
-mkModule xs = Item (Just (Module $ init xs)) (Just $ last xs) Nothing Nothing () ItemModule
+mkModule xs = Item (Just (Module (init xs) 0)) (Just $ last xs) Nothing Nothing () ItemModule
 
 mkClass :: TypeSig -> Item ()
 mkClass x = Item Nothing (Just b) Nothing Nothing () (ItemClass a)

@@ -33,7 +33,7 @@ getResults databases query = res >>= return . filterResults query
 
 filterResults :: Query -> [Result DataBase] -> [Result DataBase]
 filterResults q xs = if null actions then xs
-                    else filter (f base actions . fromModule . fromJust . itemMod . itemResult) xs
+                    else filter (f base actions . modName . fromJust . itemMod . itemResult) xs
     where
         actions = filter isModule $ scope q
         
@@ -73,8 +73,8 @@ performTextSearch databases query = do
             ,textCase txt
             ,itemPriority $ itemRest item
             ,(fromJust $ itemName item
-             ,length $ fromModule $ fromJust $ itemMod item
-             ,fromModule $ fromJust $ itemMod item
+             ,length $ modName $ fromJust $ itemMod item
+             ,modName $ fromJust $ itemMod item
              )
             )
 

@@ -29,21 +29,20 @@ saveModules hndl tb = do
         return $ map (g mp) res
     where
         res = populateModules tb
-        modus = map head $ group $ sort $ map (fromModule . fromJust . itemMod) res
-        fromModule (Module x) = x
+        modus = map head $ group $ sort $ map (modName . fromJust . itemMod) res
 
         f modu = do
             hPutInt hndl $ length modu
             mapM_ (hPutString hndl) modu
 
-        g mp x@Item{itemMod=Just (Module modu)} = x{itemMod = Just (ModuleId (Map.findWithDefault 0 modu mp))}
+        g mp x@Item{itemMod=Just (Module modu _)} = x{itemMod = Just (Module modu (Map.findWithDefault 0 modu mp))}
 
         populateModules :: [Item ()] -> [Item ()]
         populateModules xs = f [] xs
             where
-                f modu (item@Item{itemMod=Just (Module xs),itemName=Just x,itemRest=ItemModule} : rest)
+                f modu (item@Item{itemMod=Just (Module xs 0),itemName=Just x,itemRest=ItemModule} : rest)
                         = item : f (xs ++ [x]) rest
-                f modu (x:xs) = x{itemMod=Just (Module modu)} : f modu xs
+                f modu (x:xs) = x{itemMod=Just (Module modu 0)} : f modu xs
                 f modu [] = []
 
 

@@ -65,8 +65,8 @@ renderResult (Result txt atyp item@(Item modu (Just name) typ _ _ rest)) =
     
         showMod = case modu of
                       Nothing -> Str ""
-                      Just (Module []) -> Tags []
-                      Just (Module xs) -> Tags [Str $ concat $ intersperse "." xs, Str "."]
+                      Just (Module [] _) -> Tags []
+                      Just (Module xs _) -> Tags [Str $ concat $ intersperse "." xs, Str "."]
     
         showName = case txt of
                 Nothing -> Str name

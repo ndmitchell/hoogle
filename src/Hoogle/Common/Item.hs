@@ -21,11 +21,8 @@ data Item a = Item {
 blankItem = Item Nothing Nothing Nothing Nothing () ItemUnknown
             
 
-data Module = Module [String]
-            | ModuleId Int
+data Module = Module {modName :: [String], modId :: Int}
               deriving Show
-
-fromModule (Module x) = x
 
 data ItemRest = ItemModule
               | ItemClass LHS

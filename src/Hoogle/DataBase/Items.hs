@@ -31,7 +31,7 @@ saveItem hndl item = do
         saveRest (itemRest item)
     where
         saveMod Nothing = putInt 0
-        saveMod (Just (ModuleId x)) = putInt x
+        saveMod (Just modu) = putInt $ modId modu
         
         saveName Nothing = putString ""
         saveName (Just x) = putString x
@@ -76,7 +76,7 @@ loadItem hndl = do
     where
         loadMod = do
             x <- getInt
-            return $ if x == 0 then Nothing else Just (ModuleId x)
+            return $ if x == 0 then Nothing else Just (Module [] x)
         
         loadName = do
             x <- getString
