@@ -43,10 +43,8 @@ serial xs = (save, load)
 
 
 instance BinaryDefer Int where
-    putDefer hndl x = hPutStr hndl (replicate (10 - length s) ' ' ++ s)
-        where s = show x
-
-    getDefer hndl = replicateM 10 (hGetChar hndl) >>= return . read
+    putDefer hndl x = putWord32le hndl x
+    getDefer hndl = getWord32le hndl
 
 
 instance BinaryDefer a => BinaryDefer [a] where
