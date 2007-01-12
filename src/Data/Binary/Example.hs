@@ -9,8 +9,8 @@ data Item = Foo Int Bool
           deriving Show
 
 
-instance DataFile Item where
-    dataFile = serial
+instance BinaryDefer Item where
+    bothDefer = serial
         [\ ~(Foo a b) -> unit Foo << a << b
         ,\ ~(Blah a) -> unit Blah <<~ a
         ]
@@ -19,11 +19,11 @@ instance DataFile Item where
 val = [Foo 1 True, Foo 3 False, Blah "neil ajsklsdafjkl safdkjlfdsajk ladsfjk lafdsjklafsdjkl", Blah "fred", Foo 18 True]
 
 save = do hndl <- openBinaryFile "temp.txt" WriteMode
-          dataWrite hndl val
+          putDefer hndl val
           hClose hndl
 
 load = do hndl <- openBinaryFile "temp.txt" ReadMode
-          val <- dataRead hndl
+          val <- getDefer hndl
           -- hClose hndl
           print (last val :: Item)
 

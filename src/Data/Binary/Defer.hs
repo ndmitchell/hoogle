@@ -10,18 +10,18 @@ import Control.Monad
 
 
 
-class DataFile a where
+class BinaryDefer a where
     -- take a data value
     -- return a function to save that data value
     -- and one to load it
-    dataFile :: (Handle -> a -> IO (), Handle -> IO a)
-    dataFile = (dataWrite, dataRead)
+    bothDefer :: (Handle -> a -> IO (), Handle -> IO a)
+    bothDefer = (putDefer, getDefer)
     
-    dataWrite :: Handle -> a -> IO ()
-    dataWrite = fst dataFile
+    putDefer :: Handle -> a -> IO ()
+    putDefer = fst bothDefer
     
-    dataRead :: Handle -> IO a
-    dataRead = snd dataFile
+    getDefer :: Handle -> IO a
+    getDefer = snd bothDefer
 
 
 serial :: [a -> (Handle -> Int -> IO (), Handle -> IO a)] -> (Handle -> a -> IO (), Handle -> IO a)
@@ -33,55 +33,55 @@ serial xs = (save, load)
                 f ((i,x):xs) = catch (fst (x value) hndl i) (const $ f xs)
 
         load hndl = do
-            i <- dataRead hndl
+            i <- getDefer hndl
             snd ((xs !! i) undefined) hndl
 
 
 
-instance DataFile Int where
-    dataWrite hndl x = hPutStr hndl (replicate (10 - length s) ' ' ++ s)
+instance BinaryDefer Int where
+    putDefer hndl x = hPutStr hndl (replicate (10 - length s) ' ' ++ s)
         where s = show x
 
-    dataRead hndl = replicateM 10 (hGetChar hndl) >>= return . read
+    getDefer hndl = replicateM 10 (hGetChar hndl) >>= return . read
 
 
-instance DataFile a => DataFile [a] where
-    dataWrite hndl xs = dataWrite hndl (length xs) >> mapM_ (dataWrite hndl) xs
+instance BinaryDefer a => BinaryDefer [a] where
+    putDefer hndl xs = putDefer hndl (length xs) >> mapM_ (putDefer hndl) xs
     
-    dataRead hndl = do i <- dataRead hndl; print i; replicateM i (dataRead hndl)
+    getDefer hndl = do i <- getDefer hndl; print i; replicateM i (getDefer hndl)
 
-instance DataFile Char where
-    dataWrite hndl x = dataWrite hndl (fromEnum x)
-    dataRead hndl = liftM toEnum $ dataRead hndl
+instance BinaryDefer Char where
+    putDefer hndl x = putDefer hndl (fromEnum x)
+    getDefer hndl = liftM toEnum $ getDefer hndl
 
-instance DataFile Bool where
-    dataWrite hndl x = dataWrite hndl (fromEnum x)
-    dataRead hndl = liftM toEnum $ dataRead hndl
+instance BinaryDefer Bool where
+    putDefer hndl x = putDefer hndl (fromEnum x)
+    getDefer hndl = liftM toEnum $ getDefer hndl
 
 
 unit :: a -> (Handle -> Int -> IO (), Handle -> IO a)
-unit f = (dataWrite, const $ return f)
+unit f = (putDefer, const $ return f)
 
 
-(<<) :: DataFile a => (Handle -> Int -> IO (), Handle -> IO (a -> b)) -> a -> (Handle -> Int -> IO (), Handle -> IO b)
-sl << x = combine sl x dataFile
+(<<) :: BinaryDefer a => (Handle -> Int -> IO (), Handle -> IO (a -> b)) -> a -> (Handle -> Int -> IO (), Handle -> IO b)
+sl << x = combine sl x bothDefer
 
-(<<~) :: DataFile a => (Handle -> Int -> IO (), Handle -> IO (a -> b)) -> a -> (Handle -> Int -> IO (), Handle -> IO b)
+(<<~) :: BinaryDefer a => (Handle -> Int -> IO (), Handle -> IO (a -> b)) -> a -> (Handle -> Int -> IO (), Handle -> IO b)
 sl <<~ x = combine sl x (lazyWrite, lazyRead)
     where
-        (save,load) = dataFile
+        (save,load) = bothDefer
         
         lazyWrite hndl x = do
             begin <- hGetPos hndl
-            dataWrite hndl (0 :: Int)
+            putDefer hndl (0 :: Int)
             save hndl x
             end <- hGetPos hndl
             hSetPos hndl begin
-            dataWrite hndl end
+            putDefer hndl end
             hSetPos hndl end
             
         lazyRead hndl = do
-            end <- dataRead hndl
+            end <- getDefer hndl
             begin <- hGetPos hndl
             hSetPos hndl end
             return $ unsafePerformIO (hSetPos hndl begin >> load hndl)
