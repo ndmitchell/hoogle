@@ -10,7 +10,8 @@ import Control.Exception (catch)
 import System.IO
 import Foreign(unsafePerformIO)
 import Control.Monad
-
+import Data.Bits
+import Data.Char
 
 
 class BinaryDefer a where
@@ -97,3 +98,37 @@ sl <<~ x = combine sl x (lazyWrite, lazyRead)
 
 combine :: (Handle -> Int -> IO (), Handle -> IO (a -> b)) -> a -> (Handle -> a -> IO (), Handle -> IO a) -> (Handle -> Int -> IO (), Handle -> IO b)
 combine (save,load) x (s,l) = (\hndl i -> x `seq` save hndl i >> s hndl x, \hndl -> do f <- load hndl; x2 <- l hndl; return (f x2))
+
+
+-- FROM the Binary module, thanks to the Hac 07 people!
+
+putWord32le :: Handle -> Int -> IO ()
+putWord32le hndl w32 = do
+    let w4 = (w32 `shiftR` 24)
+        w3 = (w32 `shiftR` 16) .&. 0xff
+        w2 = (w32 `shiftR`  8) .&. 0xff
+        w1 =  w32              .&. 0xff
+    putWord8 hndl w1
+    putWord8 hndl w2
+    putWord8 hndl w3
+    putWord8 hndl w4
+
+putWord8 :: Handle -> Int -> IO ()
+putWord8 hndl = hPutChar hndl . chr
+
+
+getWord32le :: Handle -> IO Int
+getWord32le hndl = do
+    w1 <- getWord8 hndl
+    w2 <- getWord8 hndl
+    w3 <- getWord8 hndl
+    w4 <- getWord8 hndl
+    return $! (w4 `shiftL` 24) .|.
+              (w3 `shiftL` 16) .|.
+              (w2 `shiftL`  8) .|.
+              (w1)
+
+
+getWord8 :: Handle -> IO Int
+getWord8 hndl = hGetChar hndl >>= return . ord
+
