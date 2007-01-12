@@ -1,5 +1,5 @@
 
-module DataFile.DataFile where
+module Data.Binary.Defer where
 
 import Prelude hiding (catch)
 import System.IO
