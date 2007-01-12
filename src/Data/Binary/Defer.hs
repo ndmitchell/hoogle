@@ -51,7 +51,7 @@ instance BinaryDefer Int where
 instance BinaryDefer a => BinaryDefer [a] where
     putDefer hndl xs = putDefer hndl (length xs) >> mapM_ (putDefer hndl) xs
     
-    getDefer hndl = do i <- getDefer hndl; print i; replicateM i (getDefer hndl)
+    getDefer hndl = do i <- getDefer hndl; replicateM i (getDefer hndl)
 
 instance BinaryDefer Char where
     putDefer hndl x = hPutChar hndl x
