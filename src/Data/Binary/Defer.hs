@@ -2,29 +2,12 @@
 module Data.Binary.Defer where
 
 import Prelude hiding (catch)
+import Control.Exception (catch)
+
 import System.IO
-import Foreign
+import Foreign(unsafePerformIO)
 import Control.Monad
-import Control.Exception
 
-import Debug.Trace
-
-
-data Item = Foo Int Bool
-          | Blah String
-          deriving Show
-
-
-val = [Foo 1 True, Foo 3 False, Blah "neil ajsklsdafjkl safdkjlfdsajk ladsfjk lafdsjklafsdjkl", Blah "fred", Foo 18 True]
-
-save = do hndl <- openBinaryFile "temp.txt" WriteMode
-          dataWrite hndl val
-          hClose hndl
-
-load = do hndl <- openBinaryFile "temp.txt" ReadMode
-          val <- dataRead hndl
-          -- hClose hndl
-          print (last val :: Item)
 
 
 class DataFile a where
@@ -39,13 +22,6 @@ class DataFile a where
     
     dataRead :: Handle -> IO a
     dataRead = snd dataFile
-
-
-instance DataFile Item where
-    dataFile = serial
-        [\ ~(Foo a b) -> unit Foo << a << b
-        ,\ ~(Blah a) -> unit Blah <<~ a
-        ]
 
 
 serial :: [a -> (Handle -> Int -> IO (), Handle -> IO a)] -> (Handle -> a -> IO (), Handle -> IO a)
@@ -66,10 +42,8 @@ instance DataFile Int where
     dataWrite hndl x = hPutStr hndl (replicate (10 - length s) ' ' ++ s)
         where s = show x
 
-    dataRead hndl = replicateM 10 (hGetChar2 hndl) >>= return . read
+    dataRead hndl = replicateM 10 (hGetChar hndl) >>= return . read
 
-
-hGetChar2 hndl = putStrLn "1" >> hGetChar hndl
 
 instance DataFile a => DataFile [a] where
     dataWrite hndl xs = dataWrite hndl (length xs) >> mapM_ (dataWrite hndl) xs
