@@ -1,5 +1,8 @@
 
-module Data.Binary.Defer where
+module Data.Binary.Defer(
+    BinaryDefer(..), serial,
+    unit, (<<), (<<~))
+    where
 
 import Prelude hiding (catch)
 import Control.Exception (catch)
