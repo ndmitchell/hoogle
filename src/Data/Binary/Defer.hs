@@ -54,12 +54,12 @@ instance BinaryDefer a => BinaryDefer [a] where
     getDefer hndl = do i <- getDefer hndl; print i; replicateM i (getDefer hndl)
 
 instance BinaryDefer Char where
-    putDefer hndl x = putDefer hndl (fromEnum x)
-    getDefer hndl = liftM toEnum $ getDefer hndl
+    putDefer hndl x = hPutChar hndl x
+    getDefer hndl = hGetChar hndl
 
 instance BinaryDefer Bool where
-    putDefer hndl x = putDefer hndl (fromEnum x)
-    getDefer hndl = liftM toEnum $ getDefer hndl
+    putDefer hndl x = putDefer hndl (if x then '1' else '0')
+    getDefer hndl = getDefer hndl >>= return . (== '1')
 
 
 unit :: a -> (Handle -> Int -> IO (), Handle -> IO a)
