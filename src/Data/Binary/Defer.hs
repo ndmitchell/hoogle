@@ -3,6 +3,7 @@ module Data.Binary.Defer(
     BinaryDefer(..), put,
     BinaryDeferStatic(..),
     defer, defers,
+    Lazy(..),
     unit, (<<), (<<~)
     ) where
 
@@ -121,3 +122,20 @@ unit f = (\hndl i -> when (i /= -1) (hPutInt hndl i) >> return [], const $ retur
             hSetPos hndl pos
             get hndl
 
+
+newtype Lazy x = Lazy {fromLazy :: x}
+
+instance BinaryDefer a => BinaryDefer (Lazy a) where
+    putDefer hndl (Lazy x) = do
+        i <- hGetPos hndl
+        hPutInt hndl 0
+        return [(i, put hndl x)]
+
+    get hndl = do
+            i <- hGetInt hndl
+            return $ Lazy $ unsafePerformIO $ f i
+        where
+            f i = hSetPos hndl i >> get hndl
+
+instance BinaryDefer a => BinaryDeferStatic (Lazy a) where
+    getSize _ = 4
