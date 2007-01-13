@@ -1,6 +1,8 @@
 
 module Data.Binary.Defer(
-    BinaryDefer(..), put, defer,
+    BinaryDefer(..), put,
+    BinaryDeferStatic(..),
+    defer, defers,
     unit, (<<), (<<~))
     where
 
@@ -38,12 +40,26 @@ put hndl x = putDefer hndl x >>= mapM_ f
             action
 
 
+class BinaryDefer a => BinaryDeferStatic a where
+    -- | Must be a constant, must not examine first argument
+    getSize :: a -> Int
+
+
 type Pending a = (Handle -> Int -> IO [(Int, IO ())], Handle -> IO a)
 type Both a = (Handle -> a -> IO [(Int, IO ())], Handle -> IO a)
 
 
-defer :: [a -> Pending a] -> Both a
-defer xs = (save, load)
+
+defer :: (a -> Pending a) -> Both a
+defer x = (save, load)
+    where
+        save hndl value = fst (x value) hndl (-1)
+
+        load hndl = snd (x undefined)  hndl
+            
+
+defers :: [a -> Pending a] -> Both a
+defers xs = (save, load)
     where
         save hndl value = f $ zip [0::Int ..] xs
             where
@@ -76,8 +92,13 @@ instance BinaryDefer Bool where
     get hndl = get hndl >>= return . (== '1')
 
 
+instance BinaryDeferStatic Int where getSize _ = 4
+instance BinaryDeferStatic Char where getSize _ = 1
+instance BinaryDeferStatic Bool where getSize _ = 1
+
+
 unit :: a -> Pending a
-unit f = (\hndl i -> putDefer hndl i >> return [], const $ return f)
+unit f = (\hndl i -> when (i /= -1) (hPutInt hndl i) >> return [], const $ return f)
 
 
 (<<) :: BinaryDefer a => Pending (a -> b) -> a -> Pending b
