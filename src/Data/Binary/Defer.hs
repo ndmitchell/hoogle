@@ -3,8 +3,8 @@ module Data.Binary.Defer(
     BinaryDefer(..), put,
     BinaryDeferStatic(..),
     defer, defers,
-    unit, (<<), (<<~))
-    where
+    unit, (<<), (<<~)
+    ) where
 
 import Prelude hiding (catch)
 import Control.Exception (catch)
@@ -12,8 +12,7 @@ import Control.Exception (catch)
 import System.IO
 import Foreign(unsafePerformIO)
 import Control.Monad
-import Data.Bits
-import Data.Char
+import Data.Binary.Defer.Internal
 
 
 class BinaryDefer a where
@@ -121,43 +120,4 @@ unit f = (\hndl i -> when (i /= -1) (hPutInt hndl i) >> return [], const $ retur
         lazyRead hndl pos = unsafePerformIO $ do
             hSetPos hndl pos
             get hndl
-
-hGetPos :: Handle -> IO Int
-hGetPos = liftM fromInteger . hTell
-
-hSetPos :: Handle -> Int -> IO ()
-hSetPos hndl = hSeek hndl AbsoluteSeek . toInteger
-
-
--- FROM the Binary module, thanks to the Hac 07 people!
-
-hPutInt :: Handle -> Int -> IO ()
-hPutInt hndl w32 = do
-    let w4 = (w32 `shiftR` 24)
-        w3 = (w32 `shiftR` 16) .&. 0xff
-        w2 = (w32 `shiftR`  8) .&. 0xff
-        w1 =  w32              .&. 0xff
-    putWord8 hndl w1
-    putWord8 hndl w2
-    putWord8 hndl w3
-    putWord8 hndl w4
-
-putWord8 :: Handle -> Int -> IO ()
-putWord8 hndl = hPutChar hndl . chr
-
-
-hGetInt :: Handle -> IO Int
-hGetInt hndl = do
-    w1 <- getWord8 hndl
-    w2 <- getWord8 hndl
-    w3 <- getWord8 hndl
-    w4 <- getWord8 hndl
-    return $! (w4 `shiftL` 24) .|.
-              (w3 `shiftL` 16) .|.
-              (w2 `shiftL`  8) .|.
-              (w1)
-
-
-getWord8 :: Handle -> IO Int
-getWord8 hndl = hGetChar hndl >>= return . ord
 
