@@ -1,6 +1,6 @@
 
 module Data.Binary.Defer(
-    BinaryDefer(..), put, serial,
+    BinaryDefer(..), put, defer,
     unit, (<<), (<<~))
     where
 
@@ -42,8 +42,8 @@ type Pending a = (Handle -> Int -> IO [(Int, IO ())], Handle -> IO a)
 type Both a = (Handle -> a -> IO [(Int, IO ())], Handle -> IO a)
 
 
-serial :: [a -> Pending a] -> Both a
-serial xs = (save, load)
+defer :: [a -> Pending a] -> Both a
+defer xs = (save, load)
     where
         save hndl value = f $ zip [0::Int ..] xs
             where

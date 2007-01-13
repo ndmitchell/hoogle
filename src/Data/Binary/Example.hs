@@ -10,7 +10,7 @@ data Item = Foo Int Bool
 
 
 instance BinaryDefer Item where
-    bothDefer = serial
+    bothDefer = defer
         [\ ~(Foo a b) -> unit Foo << a << b
         ,\ ~(Blah a) -> unit Blah <<~ a
         ]
