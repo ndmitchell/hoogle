@@ -16,14 +16,14 @@ instance BinaryDefer Item where
         ]
 
 
-val = [Foo 1 True, Foo 3 False, Blah "neil ajsklsdafjkl safdkjlfdsajk ladsfjk lafdsjklafsdjkl", Blah "fred", Foo 18 True]
+val = [Foo 1 True, Blah "neil ajsklsdafjkl safdkjlfdsajk ladsfjk lafdsjklafsdjkl", Blah "fred", Foo 18 True]
 
 save = do hndl <- openBinaryFile "temp.txt" WriteMode
-          putDefer hndl val
+          put hndl val
           hClose hndl
 
 load = do hndl <- openBinaryFile "temp.txt" ReadMode
-          val <- getDefer hndl
+          val <- get hndl
           -- hClose hndl
-          print (last val :: Item)
+          print (val :: [Item])
 
