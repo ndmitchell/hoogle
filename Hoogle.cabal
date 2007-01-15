@@ -5,6 +5,7 @@ Author:          Neil Mitchell
 Synopsis:        Haskell API Search
 Homepage:        http://www.haskell.org/hoogle/
 Stability:       Beta
+Cabal-Version:   >= 1.1.4
 Build-Depends:
                  base, parsec, FilePath
 
