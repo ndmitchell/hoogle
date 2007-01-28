@@ -12,6 +12,23 @@ import General.Binary
 import Control.Monad
 
 
+
+data ItemMap = ItemMap (Array ItemId (Lazy Item))
+
+data SaveItem = SaveItem String
+
+
+
+-- populate the itemId field as you go
+saveItems :: [Item] -> ([Item], ItemMap)
+saveItems items = listArray (0,n-1) zipWith (\i x -> itemId[i <- [0..]
+    where
+        n = length items
+
+
+
+
+
 -- populate the itemId field as you go
 saveItems :: Handle -> [Item ()] -> Maybe String -> IO [Item ()]
 saveItems hndl tb haddock = f Nothing tb

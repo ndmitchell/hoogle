@@ -1,5 +1,5 @@
 
-module Hoogle.DataBase.Type(
+module Hoogle.DataStore.Type(
     DataBase(..), ItemId, createDataBase, loadDataBase,
     searchName, searchType,
     locateWebDocs,
@@ -34,7 +34,7 @@ hooString = "HOOG"
 type ItemId = Int
 
 
-data DataStore = DataStore {
+data DataBase = DataBase {
                     package :: String,
                     webdocs :: String,
                     
@@ -42,13 +42,14 @@ data DataStore = DataStore {
                     kinds :: Kinds, -- [] 1, Ord 1
                     alias :: Alias, -- type String = [Char]
                     instances :: Instances, -- instance Ord Bool
+                    items :: ItemMap, -- Int -> Item
                     names :: NameSearch,
                     types :: TypeSearch
                 }
 
 instance BinaryDefer DataStore where
     deferBoth = defer
-        (\ ~(DataStore a b c d e f g h) -> unit DataStore << a << b <<~ c <<~ d <<~ e <<~ f <<~ g <<~ h) 
+        [\ ~(DataStore a b c d e f g h i) -> unit DataStore << a << b <<~ c <<~ d <<~ e <<~ f <<~ g <<~ h <<~ i]
 
 
 -- [] is success

@@ -7,18 +7,17 @@ import Hoogle.TypeSig.All
 -- define what an "Item" is, since it crops up so much
 -- allow enough flexibility for all users
 
-data Item a = Item {
-                  itemMod :: Maybe Module,
+data Item = Item {
+                  itemMod  :: Maybe Module,
                   itemName :: Maybe String,
                   itemType :: Maybe TypeVal,
-                  itemId :: Maybe Int,
-                  itemExtra :: a,
+                  itemId   :: Maybe Int,
                   itemRest :: ItemRest
               }
               deriving Show
             
 
-blankItem = Item Nothing Nothing Nothing Nothing () ItemUnknown
+blankItem = Item Nothing Nothing Nothing Nothing ItemUnknown
             
 
 data Module = Module {modName :: [String], modId :: Int}
