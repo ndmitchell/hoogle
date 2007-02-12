@@ -1,0 +1,19 @@
+Thanks to: Clemens Fruhwirth
+http://clemens.endorphin.org/weblog/archives/2007-01.shtml#e2007-01-09T09_57_26.txt
+
+Here comes a short emacs helper for Haskell coders. It allows you to hoogle lookup the symbol currently under your cursor. Drop hoogle.el into your ~/.(x)emacs dir, and add
+
+(require 'hoogle)
+(define-key haskell-mode-map [?\C-c ?h] 'hoogle-lookup)
+
+to your init.el.
+
+For educational purposes, here is the function that does all the (pretty-simple) magic.
+
+(defun hoogle-lookup (p)
+  (interactive "p")  
+  (let ((symbol-name (thing-at-point 'symbol)))
+    (unless (and (= 1 p) (stringp symbol-name))
+      (setq symbol-name (read-from-minibuffer "Hoogle lookup name: " "" 
+					      nil nil 'hoogle-history)))
+    (browse-url (concat hoogle-url-base symbol-name))))
