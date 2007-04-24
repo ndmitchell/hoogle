@@ -10,7 +10,7 @@ import Data.Array
 import Hoogle.Item.All
 
 
-data Modules = Modules (Array Int [String])
+data Modules = Modules (Array ModId [String])
 
 
 -- take a list of modules, which have a junk module id
@@ -27,6 +27,6 @@ createModules items =
             where id2 = fromJust $ Map.lookup modu modmap
 
 
-getModuleFromId :: Modules -> Int -> [String]
-getModuleFromId (Modules x) i = x ! i
+getModuleFromId :: Modules -> ModId -> Module
+getModuleFromId (Modules x) i = Module i (x ! i)
 
