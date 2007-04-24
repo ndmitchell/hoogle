@@ -1,60 +1,30 @@
 
-module Hoogle.DataBase.Modules(Modules, saveModules, loadModules, getModuleFromId) where
+module Hoogle.DataBase.Modules(Modules, createModules, getModuleFromId) where
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import System.IO
-import General.Binary
 import Data.List
-import Data.Array
 import Data.Maybe
-import Control.Monad
+import Data.Array
 
-import Hoogle.TextBase.All
+import Hoogle.Item.All
 
 
 data Modules = Modules (Array Int [String])
 
 
-
--- each module should be listed exactly once
--- module Data.Map, is given as in module Data, named Map
-
--- 0 is now allowed as a module Id
-saveModules :: Handle -> TextBase -> IO [Item ()]
-saveModules hndl tb = do
-        hPutInt hndl $ length modus
-        mapM_ f modus
-        let mp = Map.fromAscList $ zip modus [1..]
-        return $ map (g mp) res
+-- take a list of modules, which have a junk module id
+-- return a module data structure, and the new list of modules
+createModules :: [Item] -> ([Item],Modules)
+createModules items =
+        (map rename items, Modules $ listArray (0,length mods - 1) mods)
     where
-        res = populateModules tb
-        modus = map head $ group $ sort $ map (modName . fromJust . itemMod) res
-
-        f modu = do
-            hPutInt hndl $ length modu
-            mapM_ (hPutString hndl) modu
-
-        g mp x@Item{itemMod=Just (Module modu _)} = x{itemMod = Just (Module modu (Map.findWithDefault 0 modu mp))}
-
-        populateModules :: [Item ()] -> [Item ()]
-        populateModules xs = f [] xs
-            where
-                f modu (item@Item{itemMod=Just (Module xs 0),itemName=Just x,itemRest=ItemModule} : rest)
-                        = item : f (xs ++ [x]) rest
-                f modu (x:xs) = x{itemMod=Just (Module modu 0)} : f modu xs
-                f modu [] = []
-
-
-loadModules :: Handle -> IO Modules
-loadModules hndl = do
-        count <- hGetInt hndl
-        items <- replicateM count f
-        return $ Modules $ listArray (1,count) items
-    where
-        f = do
-            i <- hGetInt hndl
-            replicateM i (hGetString hndl)
+        mods = Set.toAscList $ Set.fromList $ concatMap getModu items
+        modmap = Map.fromAscList $ zip mods [0..]
+        
+        getModu = tail . inits . modName . itemMod
+        rename item@Item{itemMod=Module _ modu} = item{itemMod=Module id2 modu}
+            where id2 = fromJust $ Map.lookup modu modmap
 
 
 getModuleFromId :: Modules -> Int -> [String]
