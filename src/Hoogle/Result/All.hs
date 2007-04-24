@@ -7,7 +7,7 @@ import Data.List
 import Data.Maybe
 
 
-data Result a = Result {textResult :: Maybe TextMatch, typeResult :: Maybe TypeMatch, itemResult :: Item a}
+data Result = Result {textResult :: Maybe TextMatch, typeResult :: Maybe TypeMatch, itemResult :: Item}
                 deriving Show
 
 
@@ -53,8 +53,8 @@ mergeTextMatchOne = merge . sortBy cmp
         merge [] = []
 
 
-renderResult :: Result a -> TagStr
-renderResult (Result txt atyp item@(Item modu (Just name) typ _ _ rest)) =
+renderResult :: Result -> TagStr
+renderResult (Result txt atyp item@(Item modu (Just name) typ _ rest)) =
     case rest of
         ItemFunc -> Tags [showMod, showName, Str " :: ", showType $ fromJust typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
