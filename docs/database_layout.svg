@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="641.09003"
+   height="532.35999"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.45.1"
+   sodipodi:docbase="C:\Neil\cabaly\hoogle\docs"
+   sodipodi:docname="database_layout.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.0">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="352"
+     inkscape:cy="308.80436"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1024"
+     inkscape:window-height="708"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4"
+     width="641.09px"
+     height="532.36px" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect2160"
+       width="165.25331"
+       height="83.253319"
+       x="20.5"
+       y="143.60886" />
+    <text
+       xml:space="preserve"
+       style="font-size:24px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:sans"
+       x="21"
+       y="33.362183"
+       id="text3134"><tspan
+         sodipodi:role="line"
+         id="tspan3136"
+         x="21"
+         y="33.362183">Hoogle 4 database layout</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:italic;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:sans"
+       x="356.95703"
+       y="31.426636"
+       id="text3138"><tspan
+         sodipodi:role="line"
+         id="tspan3140"
+         x="356.95703"
+         y="31.426636">by Neil Mitchell</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:sans"
+       x="23.214844"
+       y="65.405151"
+       id="text3142"><tspan
+         sodipodi:role="line"
+         x="23.214844"
+         y="65.405151"
+         id="tspan3156">This diagram gives the layout and dependencies between</tspan><tspan
+         sodipodi:role="line"
+         x="23.214844"
+         y="85.405151"
+         id="tspan2221">the items within the binary database.</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="76.626663"
+       y="159.73553"
+       id="text3150"><tspan
+         sodipodi:role="line"
+         x="76.626663"
+         y="159.73553"
+         id="tspan3154">Kinds</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="25.177437"
+       y="179.45819"
+       id="text4131"><tspan
+         sodipodi:role="line"
+         x="25.177437"
+         y="179.45819"
+         id="tspan5106"
+         style="font-weight:normal">The arity of type</tspan><tspan
+         sodipodi:role="line"
+         x="25.177437"
+         y="199.45819"
+         style="font-weight:normal"
+         id="tspan2227">constructors - purely</tspan><tspan
+         sodipodi:role="line"
+         x="25.177437"
+         y="219.45819"
+         style="font-weight:normal"
+         id="tspan2229">for error messages.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5112"
+       width="165.25331"
+       height="83.253319"
+       x="22.246689"
+       y="422.85999" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="78.373337"
+       y="438.98663"
+       id="text5114"><tspan
+         sodipodi:role="line"
+         x="78.373337"
+         y="438.98663"
+         id="tspan5118">Modules</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="26.924118"
+       y="458.70929"
+       id="text5120"><tspan
+         sodipodi:role="line"
+         x="26.924118"
+         y="458.70929"
+         style="font-weight:normal"
+         id="tspan5126">ID indexed list of</tspan><tspan
+         sodipodi:role="line"
+         x="26.924118"
+         y="478.70929"
+         style="font-weight:normal"
+         id="tspan2238">module names.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5128"
+       width="165.25331"
+       height="83.253319"
+       x="20.246689"
+       y="282.85999" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="76.373337"
+       y="298.98663"
+       id="text5130"><tspan
+         sodipodi:role="line"
+         x="76.373337"
+         y="298.98663"
+         id="tspan5134">Items</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="24.924118"
+       y="318.70929"
+       id="text5136"><tspan
+         sodipodi:role="line"
+         x="24.924118"
+         y="318.70929"
+         style="font-weight:normal"
+         id="tspan5151">ID indexed list of</tspan><tspan
+         sodipodi:role="line"
+         x="24.924118"
+         y="338.70929"
+         style="font-weight:normal"
+         id="tspan2242">items.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5153"
+       width="165.25331"
+       height="83.253319"
+       x="240.37335"
+       y="215.73553" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="296.5"
+       y="231.86218"
+       id="text5155"><tspan
+         sodipodi:role="line"
+         x="296.5"
+         y="231.86218"
+         id="tspan5157">Text</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="245.05078"
+       y="251.58484"
+       id="text5159"><tspan
+         sodipodi:role="line"
+         x="245.05078"
+         y="251.58484"
+         style="font-weight:normal"
+         id="tspan5169">Textual strings stored</tspan><tspan
+         sodipodi:role="line"
+         x="245.05078"
+         y="271.58484"
+         style="font-weight:normal"
+         id="tspan2249">in a Trie.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5171"
+       width="165.25331"
+       height="83.253319"
+       x="450.37335"
+       y="282.73553" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="498.5"
+       y="298.86218"
+       id="text5173"><tspan
+         sodipodi:role="line"
+         x="498.5"
+         y="298.86218"
+         id="tspan5175">Instances</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="455.05078"
+       y="318.58484"
+       id="text5177"><tspan
+         sodipodi:role="line"
+         x="455.05078"
+         y="318.58484"
+         style="font-weight:normal"
+         id="tspan5187">The instance info.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5189"
+       width="165.25331"
+       height="83.253319"
+       x="450.37335"
+       y="423.73553" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="498.5"
+       y="439.86218"
+       id="text5191"><tspan
+         sodipodi:role="line"
+         x="498.5"
+         y="439.86218"
+         id="tspan5193">Aliases</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="455.05078"
+       y="459.58484"
+       id="text5195"><tspan
+         sodipodi:role="line"
+         x="455.05078"
+         y="459.58484"
+         style="font-weight:normal"
+         id="tspan5208">Type aliases from the</tspan><tspan
+         sodipodi:role="line"
+         x="455.05078"
+         y="479.58484"
+         style="font-weight:normal"
+         id="tspan2262">&quot;type&quot; keyword.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5210"
+       width="165.25331"
+       height="83.253319"
+       x="240.5"
+       y="356.60666" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="292.62665"
+       y="372.73331"
+       id="text5212"><tspan
+         sodipodi:role="line"
+         x="292.62665"
+         y="372.73331"
+         id="tspan5214">Types</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="245.17743"
+       y="392.45596"
+       id="text5216"><tspan
+         sodipodi:role="line"
+         x="245.17743"
+         y="392.45596"
+         style="font-weight:normal"
+         id="tspan5229">A list of all the type</tspan><tspan
+         sodipodi:role="line"
+         x="245.17743"
+         y="412.45596"
+         style="font-weight:normal"
+         id="tspan2253">signatures.</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 104.27154,422.35999 L 103.47515,366.6133"
+       id="path2264"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5112"
+       inkscape:connection-end="#rect5128" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 186,352.31966 L 240,370.4003"
+       id="path2266"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5128"
+       inkscape:connection-end="#rect5210" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 406.25331,424.82173 L 449.87335,438.77378"
+       id="path2268"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5210"
+       inkscape:connection-end="#rect5189" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 186,299.13837 L 239.87335,282.71047"
+       id="path2270"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5128"
+       inkscape:connection-end="#rect5153" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 406.25331,368.97444 L 449.87335,353.62108"
+       id="path2272"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5210"
+       inkscape:connection-end="#rect5171" />
+  </g>
+</svg>
