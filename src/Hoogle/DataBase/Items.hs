@@ -24,7 +24,7 @@ createItems items = (items2, Items $ listArray (0,length res - 1) (map Defer res
         wanted = not . null . itemName
 
 
-getItemFromId :: Items -> Int -> Item
+getItemFromId :: Items -> ItemId -> Item
 getItemFromId (Items x) i = fromDefer (x ! i)
 
 
