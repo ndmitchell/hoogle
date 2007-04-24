@@ -4,34 +4,40 @@ module Hoogle.Item.All where
 import Hoogle.TypeSig.All
 
 
--- define what an "Item" is, since it crops up so much
--- allow enough flexibility for all users
+-- | Blank items
+blankItem :: Item
+blankItem = Item 0 "" blankModule undefined
 
+blankModule :: Module
+blankModule = Module 0 []
+
+
+-- | An Item
 data Item = Item {
-                  itemMod  :: Maybe Module,
-                  itemName :: Maybe String,
-                  itemType :: Maybe TypeVal,
-                  itemId   :: Maybe Int,
-                  itemRest :: ItemRest
+                  itemId   :: Int, -- ^ an ID for the item
+                  itemName :: String, -- ^ The name of the item (blank for instance or attribute)
+                  itemMod  :: Module, -- ^ The module this item occurs within
+                  itemRest :: ItemRest -- ^ Further information, specific to its type
               }
               deriving Show
-            
 
-blankItem = Item Nothing Nothing Nothing Nothing ItemUnknown
-            
 
-data Module = Module {modName :: [String], modId :: Int}
+-- | A module in which functions reside
+data Module = Module {
+                  modId :: Int, -- ^ an ID for the module
+                  modName :: [String] -- ^ the name of the module
+              }
               deriving Show
 
-data ItemRest = ItemModule
+
+data ItemRest = ItemModule -- ^ Module A.B.C is mod=A.B name=C
               | ItemClass LHS
-              | ItemFunc
+              | ItemFunc TypeVal
               | ItemAlias LHS TypeVal
               | ItemData DataKeyword LHS
               | ItemInstance TypeSig
               | ItemKeyword
               | ItemAttribute String String
-              | ItemUnknown
               deriving Show
 
 
@@ -44,7 +50,7 @@ isItemInstance _ = False
 isItemModule (ItemModule) = True
 isItemModule _ = False
 
-isItemFunc (ItemFunc) = True
+isItemFunc (ItemFunc{}) = True
 isItemFunc _ = False
 
 
