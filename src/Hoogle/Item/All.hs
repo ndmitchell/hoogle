@@ -12,9 +12,13 @@ blankModule :: Module
 blankModule = Module 0 []
 
 
+type ItemId = Int
+type ModId = Int
+
+
 -- | An Item
 data Item = Item {
-                  itemId   :: Int, -- ^ an ID for the item
+                  itemId   :: ItemId, -- ^ an ID for the item
                   itemName :: String, -- ^ The name of the item (blank for instance or attribute)
                   itemMod  :: Module, -- ^ The module this item occurs within
                   itemRest :: ItemRest -- ^ Further information, specific to its type
@@ -24,7 +28,7 @@ data Item = Item {
 
 -- | A module in which functions reside
 data Module = Module {
-                  modId :: Int, -- ^ an ID for the module
+                  modId :: ModId, -- ^ an ID for the module
                   modName :: [String] -- ^ the name of the module
               }
               deriving Show
