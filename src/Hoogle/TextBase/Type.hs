@@ -1,6 +1,6 @@
 
-module Hoogle.TextBase.Type(TextBase, module Hoogle.Common.All) where
+module Hoogle.TextBase.Type(TextBase, module Hoogle.Item.All) where
 
-import Hoogle.Common.All
+import Hoogle.Item.All
 
-type TextBase = [Item ()]
+type TextBase = [Item]

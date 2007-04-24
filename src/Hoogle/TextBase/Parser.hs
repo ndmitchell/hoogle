@@ -70,32 +70,32 @@ parsecTextBase = do x <- anyLineSpace `sepBy` newline
 -- map from the parsed representation
 -- to an item
 
-mkModule :: [String] -> Item ()
-mkModule xs = Item (Just (Module (init xs) 0)) (Just $ last xs) Nothing Nothing () ItemModule
+mkModule :: [String] -> Item
+mkModule xs = blankItem{itemMod = Module 0 (init xs), itemName = last xs, itemRest = ItemModule}
 
-mkClass :: TypeSig -> Item ()
-mkClass x = Item Nothing (Just b) Nothing Nothing () (ItemClass a)
+mkClass :: TypeSig -> Item
+mkClass x = blankItem{itemName = b, itemRest = ItemClass a}
     where (a,b) = splitSig x
 
-mkInstance :: TypeSig -> Item ()
-mkInstance x = Item Nothing Nothing Nothing Nothing () (ItemInstance x)
+mkInstance :: TypeSig -> Item
+mkInstance x = blankItem{itemRest = ItemInstance x}
 
-mkTypeAlias :: TypeSig -> TypeSig -> Item ()
-mkTypeAlias x y = Item Nothing (Just b) Nothing Nothing () (ItemAlias a (TypeAST y))
+mkTypeAlias :: TypeSig -> TypeSig -> Item
+mkTypeAlias x y = blankItem{itemName = b, itemRest = ItemAlias a (TypeAST y)}
     where (a,b) = splitSig x
 
-mkData :: DataKeyword -> TypeSig -> Item ()
-mkData k x = Item Nothing (Just b) Nothing Nothing () (ItemData k a)
+mkData :: DataKeyword -> TypeSig -> Item
+mkData k x = blankItem{itemName = b, itemRest = ItemData k a}
     where (a,b) = splitSig x
 
-mkFunc :: String -> TypeSig -> Item ()
-mkFunc x y = Item Nothing (Just x) (Just $ TypeAST y) Nothing () ItemFunc
+mkFunc :: String -> TypeSig -> Item
+mkFunc x y = blankItem{itemName = x, itemRest = ItemFunc $ TypeAST y}
 
-mkKeyword :: String -> Item ()
-mkKeyword x = Item Nothing (Just x) Nothing Nothing () ItemKeyword
+mkKeyword :: String -> Item
+mkKeyword x = blankItem{itemName = x, itemRest = ItemKeyword}
 
-mkAttribute :: String -> String -> Item ()
-mkAttribute x y = Item Nothing Nothing Nothing Nothing () (ItemAttribute x y)
+mkAttribute :: String -> String -> Item
+mkAttribute x y = blankItem{itemRest = ItemAttribute x y}
 
 
 splitSig :: TypeSig -> (LHS, String)
