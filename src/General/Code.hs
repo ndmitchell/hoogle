@@ -3,6 +3,10 @@ module General.Code where
 
 import Data.List
 
+
+on f g x y = f (g x) (g y)
+
+
 -- | If anyone of them returns Nothing, the whole thing does
 mapMaybeAll :: (a -> Maybe b) -> [a] -> Maybe [b]
 mapMaybeAll f xs = g [] xs
