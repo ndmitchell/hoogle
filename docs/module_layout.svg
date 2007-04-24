@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="680.09003"
+   height="672.35999"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.45.1"
+   sodipodi:docbase="C:\Neil\cabaly\hoogle\docs"
+   sodipodi:docname="module_layout.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.0">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="375"
+     inkscape:cy="213.50068"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1024"
+     inkscape:window-height="708"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4"
+     width="680.09px"
+     height="672.36px" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect2160"
+       width="165.25331"
+       height="83.253319"
+       x="20.5"
+       y="143.60886" />
+    <text
+       xml:space="preserve"
+       style="font-size:24px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:sans"
+       x="21"
+       y="33.362183"
+       id="text3134"><tspan
+         sodipodi:role="line"
+         id="tspan3136"
+         x="21"
+         y="33.362183">Hoogle 4 module layout</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:italic;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:sans"
+       x="356.95703"
+       y="31.426636"
+       id="text3138"><tspan
+         sodipodi:role="line"
+         id="tspan3140"
+         x="356.95703"
+         y="31.426636">by Neil Mitchell</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:sans"
+       x="23.214844"
+       y="65.405151"
+       id="text3142"><tspan
+         sodipodi:role="line"
+         x="23.214844"
+         y="65.405151"
+         id="tspan3146">This diagram gives the dependancy tree between the modules.</tspan><tspan
+         sodipodi:role="line"
+         x="23.214844"
+         y="85.405151"
+         id="tspan3156">It does not cover the front-ends (i.e. console/web/GUI)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="76.626663"
+       y="159.73553"
+       id="text3150"><tspan
+         sodipodi:role="line"
+         id="tspan3152"
+         x="76.626663"
+         y="159.73553">Search</tspan><tspan
+         sodipodi:role="line"
+         x="76.626663"
+         y="179.73553"
+         id="tspan3154" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="25.177437"
+       y="179.45819"
+       id="text4131"><tspan
+         sodipodi:role="line"
+         x="25.177437"
+         y="179.45819"
+         id="tspan5106"
+         style="font-weight:normal">Do Hoogle searches</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5112"
+       width="165.25331"
+       height="83.253319"
+       x="361.37335"
+       y="142.73552" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="417.5"
+       y="158.86218"
+       id="text5114"><tspan
+         sodipodi:role="line"
+         id="tspan5116"
+         x="417.5"
+         y="158.86218">Convert</tspan><tspan
+         sodipodi:role="line"
+         x="417.5"
+         y="178.86218"
+         id="tspan5118" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="366.05078"
+       y="178.58484"
+       id="text5120"><tspan
+         sodipodi:role="line"
+         x="366.05078"
+         y="178.58484"
+         id="tspan5122"
+         style="font-weight:normal">Convert a --hoogle</tspan><tspan
+         sodipodi:role="line"
+         x="366.05078"
+         y="198.58484"
+         style="font-weight:normal"
+         id="tspan5124">result into a Hoogle</tspan><tspan
+         sodipodi:role="line"
+         x="366.05078"
+         y="218.58484"
+         style="font-weight:normal"
+         id="tspan5126">binary database.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5128"
+       width="165.25331"
+       height="83.253319"
+       x="241.37335"
+       y="283.73553" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="297.5"
+       y="299.86218"
+       id="text5130"><tspan
+         sodipodi:role="line"
+         x="297.5"
+         y="299.86218"
+         id="tspan5134">DataBase</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="246.05078"
+       y="319.58484"
+       id="text5136"><tspan
+         sodipodi:role="line"
+         x="246.05078"
+         y="319.58484"
+         style="font-weight:normal"
+         id="tspan5142">A Hoogle binary</tspan><tspan
+         sodipodi:role="line"
+         x="246.05078"
+         y="339.58484"
+         style="font-weight:normal"
+         id="tspan5151">database.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5153"
+       width="165.25331"
+       height="83.253319"
+       x="490.37335"
+       y="283.73553" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="546.5"
+       y="299.86218"
+       id="text5155"><tspan
+         sodipodi:role="line"
+         x="546.5"
+         y="299.86218"
+         id="tspan5157">TextBase</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="495.05078"
+       y="319.58484"
+       id="text5159"><tspan
+         sodipodi:role="line"
+         x="495.05078"
+         y="319.58484"
+         style="font-weight:normal"
+         id="tspan5163">A textual database</tspan><tspan
+         sodipodi:role="line"
+         x="495.05078"
+         y="339.58484"
+         style="font-weight:normal"
+         id="tspan5167">generated by</tspan><tspan
+         sodipodi:role="line"
+         x="495.05078"
+         y="359.58484"
+         style="font-weight:normal"
+         id="tspan5169">haddock --hoogle</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5171"
+       width="165.25331"
+       height="83.253319"
+       x="240.37335"
+       y="422.73553" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="308.5"
+       y="438.86218"
+       id="text5173"><tspan
+         sodipodi:role="line"
+         x="308.5"
+         y="438.86218"
+         id="tspan5175">Item</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="245.05078"
+       y="458.58484"
+       id="text5177"><tspan
+         sodipodi:role="line"
+         x="245.05078"
+         y="458.58484"
+         style="font-weight:normal"
+         id="tspan5181">An item - a function,</tspan><tspan
+         sodipodi:role="line"
+         x="245.05078"
+         y="478.58484"
+         style="font-weight:normal"
+         id="tspan5185">data type, instance,</tspan><tspan
+         sodipodi:role="line"
+         x="245.05078"
+         y="498.58484"
+         style="font-weight:normal"
+         id="tspan5187">module etc.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5189"
+       width="165.25331"
+       height="83.253319"
+       x="126.37335"
+       y="563.73553" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="174.5"
+       y="579.86218"
+       id="text5191"><tspan
+         sodipodi:role="line"
+         x="174.5"
+         y="579.86218"
+         id="tspan5193">TypeSig</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="131.05078"
+       y="599.58484"
+       id="text5195"><tspan
+         sodipodi:role="line"
+         x="131.05078"
+         y="599.58484"
+         style="font-weight:normal"
+         id="tspan5201">A Haskell type</tspan><tspan
+         sodipodi:role="line"
+         x="131.05078"
+         y="619.58484"
+         style="font-weight:normal"
+         id="tspan5208">signature.</tspan></text>
+    <rect
+       style="opacity:1;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect5210"
+       width="165.25331"
+       height="83.253319"
+       x="20.373352"
+       y="423.73553" />
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="72.5"
+       y="439.86218"
+       id="text5212"><tspan
+         sodipodi:role="line"
+         x="72.5"
+         y="439.86218"
+         id="tspan5214">Query</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       x="25.050781"
+       y="459.58484"
+       id="text5216"><tspan
+         sodipodi:role="line"
+         x="25.050781"
+         y="459.58484"
+         style="font-weight:normal"
+         id="tspan5222">A Hoogle query,</tspan><tspan
+         sodipodi:role="line"
+         x="25.050781"
+         y="479.58484"
+         style="font-weight:normal"
+         id="tspan5229">entered by the user.</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 103.01905,423.23553 L 103.10761,227.36217"
+       id="path5233"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5210"
+       inkscape:connection-end="#rect2160" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 359.85248,283.23553 L 408.14754,226.48884"
+       id="path5235"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5128"
+       inkscape:connection-end="#rect5112" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 482.54142,226.48884 L 534.4586,283.23553"
+       id="path5237"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5112"
+       inkscape:connection-end="#rect5153" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 323.69694,367.48885 L 323.30308,422.23553"
+       id="path5239"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5128"
+       inkscape:connection-end="#rect5171" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 288.94016,506.48885 L 243.05986,563.23553"
+       id="path5241"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5171"
+       inkscape:connection-end="#rect5189" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 134.89591,507.48885 L 177.10411,563.23553"
+       id="path5243"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect5210"
+       inkscape:connection-end="#rect5189" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 169.5284,227.36217 L 257.59826,283.23553"
+       id="path5245"
+       inkscape:connector-type="polyline"
+       inkscape:connection-start="#rect2160"
+       inkscape:connection-end="#rect5128" />
+  </g>
+</svg>
