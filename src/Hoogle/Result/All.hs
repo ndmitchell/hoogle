@@ -1,7 +1,7 @@
 
-module Hoogle.Common.Result where
+module Hoogle.Result.All where
 
-import Hoogle.Common.Item
+import Hoogle.Item.All
 import General.All
 import Data.List
 import Data.Maybe

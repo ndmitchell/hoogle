@@ -1,5 +1,5 @@
 
-module Hoogle.Common.Item where
+module Hoogle.Item.All where
 
 import Hoogle.TypeSig.All
 
