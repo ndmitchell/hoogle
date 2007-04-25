@@ -37,8 +37,8 @@
      showgrid="true"
      inkscape:window-width="1024"
      inkscape:window-height="708"
-     inkscape:window-x="-4"
-     inkscape:window-y="-4"
+     inkscape:window-x="0"
+     inkscape:window-y="26"
      width="860.09px"
      height="672.35999px" />
   <metadata
@@ -132,17 +132,13 @@
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-       x="615.5"
+       x="601.5"
        y="158.86218"
        id="text5114"><tspan
          sodipodi:role="line"
-         id="tspan5116"
-         x="615.5"
-         y="158.86218">Convert</tspan><tspan
-         sodipodi:role="line"
-         x="615.5"
-         y="178.86218"
-         id="tspan5118" /></text>
+         x="601.5"
+         y="158.86218"
+         id="tspan5118">Operations</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:16px;font-style:normal;font-weight:bold;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
