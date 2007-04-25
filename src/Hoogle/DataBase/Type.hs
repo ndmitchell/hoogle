@@ -11,6 +11,7 @@ import Hoogle.DataBase.Texts
 import Hoogle.Item.All
 
 import Data.List
+import Data.Binary.Defer
 import General.All
 
 
@@ -24,6 +25,8 @@ data DataBase = DataBase {
                     texts :: Texts
                 }
 
+instance BinaryDefer DataBase where
+    bothDefer = defer [\ ~(DataBase a b c d e) -> unit DataBase << a << b <<~ c <<~ d <<~ e]
 
 
 createDataBase :: [Item] -> DataBase
