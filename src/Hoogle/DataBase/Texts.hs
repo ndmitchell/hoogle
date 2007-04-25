@@ -15,6 +15,13 @@ data Texts = Texts (ListDefer ItemId) Trie
 data Trie = Trie {mapping :: [(Char,Defer Trie)], start :: Int, len :: Int}
 
 
+instance BinaryDefer Texts where
+    bothDefer = defer [\ ~(Texts a b) -> unit Texts << a << b]
+
+instance BinaryDefer Trie where
+    bothDefer = defer [\ ~(Trie a b c) -> unit Trie << a << b << c]
+
+
 {-
 TRIE data structure
 
