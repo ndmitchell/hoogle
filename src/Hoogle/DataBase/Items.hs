@@ -4,9 +4,13 @@ module Hoogle.DataBase.Items(Items, createItems, getItemFromId) where
 import Hoogle.Item.All
 import Data.Array
 import Data.Binary.Defer
+import Hoogle.DataBase.BinaryDefer
 
 
 data Items = Items (Array Int (Defer Item))
+
+instance BinaryDefer Items where
+    bothDefer = defer [\ ~(Items a) -> unit Items << a]
 
 
 -- extract the items that may be used in future, and assign them Id's
