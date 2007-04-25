@@ -6,11 +6,16 @@ import qualified Data.Set as Set
 import Data.List
 import Data.Maybe
 import Data.Array
+import Data.Binary.Defer
 
 import Hoogle.Item.All
+import Hoogle.DataBase.BinaryDefer
 
 
 data Modules = Modules (Array ModId [String])
+
+instance BinaryDefer Modules where
+    bothDefer = defer [\ ~(Modules a) -> unit Modules << a]
 
 
 -- take a list of modules, which have a junk module id
