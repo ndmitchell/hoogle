@@ -47,3 +47,5 @@ renderResult (ResultText item@Item{itemName=name} txt) =
             Nothing -> Str $ x ++ concat (intersperse " -> " xs)
             Just y -> Tags $ Str x : intersperse (Str " -> ") (zipWith f (typeOrder y) (init xs) ++ [Str $ last xs])
                 where f n x = TagColor n (Str x) -}
+
+        showType (TypeAST x) = Str $ show x
