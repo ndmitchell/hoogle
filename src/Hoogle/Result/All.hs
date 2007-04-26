@@ -1,6 +1,6 @@
 
 module Hoogle.Result.All(
-	Result, resultText,
+	Result(..), resultText,
 	Score, resultScore
 	) where
 
