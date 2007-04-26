@@ -24,6 +24,7 @@ data DataBase = DataBase {
                     modules :: Modules,
                     texts :: Texts
                 }
+                deriving Show
 
 instance BinaryDefer DataBase where
     bothDefer = defer [\ ~(DataBase a b c d e) -> unit DataBase << a << b <<~ c <<~ d <<~ e]
