@@ -64,6 +64,6 @@ searchTexts :: Texts -> String -> [ItemId]
 searchTexts (Texts list t) x = f t x
     where
         f t ""     = readListDefer list (start t) (len t)
-        f t (x:xs) = case lookup x (mapping t) of
+        f t (x:xs) = case lookup (toLower x) (mapping t) of
                           Nothing -> []
                           Just t2 -> f (fromDefer t2) xs
