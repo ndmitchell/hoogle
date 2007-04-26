@@ -29,7 +29,7 @@ createModules items =
         modmap = Map.fromAscList $ zip mods [0..]
 
         getModu = inits . modName . itemMod
-        rename item@Item{itemMod=Module _ modu} = item{itemMod=Module id2 modu}
+        rename item@Item{itemMod=Module _ modu} = item{itemMod=Module id2 []}
             where id2 = fromJust $ Map.lookup modu modmap
 
 
