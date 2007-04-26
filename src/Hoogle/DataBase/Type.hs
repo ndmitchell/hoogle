@@ -45,7 +45,7 @@ searchName :: DataBase -> [String] -> [Result]
 searchName db xs = map (resultText xs . getItem db) ans
     where
         res = map (IntSet.fromList . searchTexts (texts db)) xs
-        ans = IntSet.toList $ foldr1 IntSet.intersection res
+        ans = IntSet.toList $ IntSet.unions res
 
 
 getItem :: DataBase -> ItemId -> Item

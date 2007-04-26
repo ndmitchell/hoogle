@@ -23,17 +23,20 @@ data TextMatchOne = TextMatchOne {textBegin :: Int, textLength :: Int}
 
 resultTextMatch :: [String] -> Item -> TextMatch
 resultTextMatch names item = TextMatch matches (length $ itemName item) (sum cases)
-    where (matches,cases) = unzip $ map (`pickMatchOne` item) names
+    where (matches,cases) = unzip $ concatMap (`pickMatchOne` item) names
 
 
 
 
-pickMatchOne :: String -> Item -> (TextMatchOne,Int)
-pickMatchOne s i = (TextMatchOne begin (length s), bads)
+pickMatchOne :: String -> Item -> [(TextMatchOne,Int)]
+pickMatchOne s i =
+        case res of
+            (begin,bads):_ -> [(TextMatchOne begin (length s), bads)]
+            _ -> []
     where
         ls = map toLower s
-        ((begin,bads):_) = [(a, cas s b) | (a,b) <- zip [0..] (tails $ itemName i)
-                                         , ls `isPrefixOf` map toLower b]
+        res = [(a, cas s b) | (a,b) <- zip [0..] (tails $ itemName i)
+                            , ls `isPrefixOf` map toLower b]
         
         cas a b = length $ filter id $ zipWith (/=) a b
 
