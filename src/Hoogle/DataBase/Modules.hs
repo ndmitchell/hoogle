@@ -27,8 +27,8 @@ createModules items =
     where
         mods = Set.toAscList $ Set.fromList $ concatMap getModu items
         modmap = Map.fromAscList $ zip mods [0..]
-        
-        getModu = tail . inits . modName . itemMod
+
+        getModu = inits . modName . itemMod
         rename item@Item{itemMod=Module _ modu} = item{itemMod=Module id2 modu}
             where id2 = fromJust $ Map.lookup modu modmap
 
