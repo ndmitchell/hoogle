@@ -1,5 +1,7 @@
 
-module Hoogle.Result.All where
+module Hoogle.Result.All(Result, resultText) where
+
+import Hoogle.Result.Text
 
 import Hoogle.Item.All
 import General.All
@@ -7,54 +9,18 @@ import Data.List
 import Data.Maybe
 
 
-data Result = Result {textResult :: Maybe TextMatch, typeResult :: Maybe TypeMatch, itemResult :: Item}
-                deriving Show
+data Result = ResultText {itemResult :: Item, textResult :: TextMatch}
 
 
-data TextMatch = TextMatch {
-                    textMatch :: [TextMatchOne],
-                    textElse :: Int, -- how many other chars are there
-                    textCase :: Int -- how many chars have wrong case
-                 }
-                 deriving Show
 
-data TextMatchOne = TextMatchOne {textBegin :: Int, textLength :: Int}
-                    deriving Show
-
-data TypeMatch = TypeMatch {typeDiff :: [TypeDiff], typeOrder :: [Int]}
-                 deriving Show
+resultText :: [String] -> Item -> Result
+resultText names i = ResultText i (resultTextMatch names i)
 
 
-data TypeDiff = UnwrapLeft | UnwrapRight
-              | MultiLeft  | MultiRight
-              | ArgMissing
-                deriving Show
 
-
-computeTextMatch :: String -> [(String,TextMatchOne)] -> TextMatch
-computeTextMatch name matches = TextMatch (map snd matches) (length name - covered) cases
-    where
-        covered = sum $ map textLength $ mergeTextMatchOne $ map snd matches
-        
-        cases = sum $ map f matches
-        
-        f (query,TextMatchOne b l) = length $ filter id $ zipWith (/=) query name2
-            where name2 = take l $ drop b name
-
-
-mergeTextMatchOne :: [TextMatchOne] -> [TextMatchOne]
-mergeTextMatchOne = merge . sortBy cmp
-    where
-        cmp a b = textBegin a `compare` textBegin b
-        
-        merge (TextMatchOne b1 l1 : TextMatchOne b2 l2 : xs)
-            | b1+l1 >= b2 = merge (TextMatchOne b1 (b2+l2-b1) : xs)
-        merge (x:xs) = x : merge xs
-        merge [] = []
-
-
+{-
 renderResult :: Result -> TagStr
-renderResult (Result txt atyp item@Item{itemName=name}) =
+renderResult (Result item@Item{itemName=name} _ txt atyp) =
     case itemRest item of
         ItemFunc typ -> Tags [showMod, showName, Str " :: ", showType typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
@@ -79,4 +45,4 @@ renderResult (Result txt atyp item@Item{itemName=name}) =
             Nothing -> Str $ x ++ concat (intersperse " -> " xs)
             Just y -> Tags $ Str x : intersperse (Str " -> ") (zipWith f (typeOrder y) (init xs) ++ [Str $ last xs])
                 where f n x = TagColor n (Str x)
-
+-}
