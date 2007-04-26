@@ -8,6 +8,7 @@ import Hoogle.DataBase.BinaryDefer
 
 
 data Items = Items (Array Int (Defer Item))
+             deriving Show
 
 instance BinaryDefer Items where
     bothDefer = defer [\ ~(Items a) -> unit Items << a]
