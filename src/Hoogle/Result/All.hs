@@ -54,19 +54,16 @@ mergeTextMatchOne = merge . sortBy cmp
 
 
 renderResult :: Result -> TagStr
-renderResult (Result txt atyp item@(Item modu (Just name) typ _ rest)) =
-    case rest of
-        ItemFunc -> Tags [showMod, showName, Str " :: ", showType $ fromJust typ]
+renderResult (Result txt atyp item@Item{itemName=name}) =
+    case itemRest item of
+        ItemFunc typ -> Tags [showMod, showName, Str " :: ", showType typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
         ItemData kw (LHSStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
-        _ -> Str $ "renderResult, todo: " ++ name ++ " " ++ show rest
+        rest -> Str $ "renderResult, todo: " ++ name ++ " " ++ show rest
     where
         showKeyword s = TagUnderline $ Str s
     
-        showMod = case modu of
-                      Nothing -> Str ""
-                      Just (Module [] _) -> Tags []
-                      Just (Module xs _) -> Tags [Str $ concat $ intersperse "." xs, Str "."]
+        showMod = Str $ concatMap (++".") $ modName $ itemMod item
     
         showName = case txt of
                 Nothing -> Str name
