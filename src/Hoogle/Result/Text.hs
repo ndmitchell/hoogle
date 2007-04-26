@@ -1,10 +1,11 @@
 
 module Hoogle.Result.Text(
-    TextMatch, resultTextMatch,
+    TextMatch, resultTextMatch, renderResultText,
     TextScore, textScore
     ) where
 
 import Hoogle.Item.All
+import General.All
 import Data.Char
 import Data.List
 
@@ -50,3 +51,10 @@ textScore item txt = TextScore
     (itemName item)
     (length $ modName $ itemMod item)
     (modName $ itemMod item)
+
+
+renderResultText :: Item -> TextMatch -> TagStr
+renderResultText item match = Tags $ zipWith f [0..] (itemName item)
+    where
+        f i c = (if i `elem` bold then TagBold else id) $ Str [c]
+        bold = concat [take len [beg..] | TextMatchOne beg len <- textMatch match]

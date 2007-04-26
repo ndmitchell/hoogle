@@ -1,8 +1,8 @@
 
 module Hoogle.Result.All(
-	Result(..), resultText,
-	Score, resultScore
-	) where
+    Result(..), resultText, renderResult,
+    Score, resultScore
+    ) where
 
 import Hoogle.Result.Text
 
@@ -28,10 +28,8 @@ resultScore (ResultText i t) = ScoreText $ textScore i t
 
 
 
-
-{-
 renderResult :: Result -> TagStr
-renderResult (Result item@Item{itemName=name} _ txt atyp) =
+renderResult (ResultText item@Item{itemName=name} txt) =
     case itemRest item of
         ItemFunc typ -> Tags [showMod, showName, Str " :: ", showType typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
@@ -42,18 +40,9 @@ renderResult (Result item@Item{itemName=name} _ txt atyp) =
     
         showMod = Str $ concatMap (++".") $ modName $ itemMod item
     
-        showName = case txt of
-                Nothing -> Str name
-                Just (TextMatch locs _ _) -> Tags $ f 0 name (mergeTextMatchOne locs)
-                    where
-                        f p s [] = [Str s]
-                        f p s (TextMatchOne i n:xs) = Str pre : TagBold (Str mid) : f (i+n) post xs
-                            where
-                                (pre,rest) = splitAt (i-p) s
-                                (mid,post) = splitAt n rest
+        showName = renderResultText item txt
         
-        showType (TypeArgs x xs) = case atyp of
+        showType (TypeArgs x xs) = Str $ x ++ concat (intersperse " -> " xs) {- case Nothing of
             Nothing -> Str $ x ++ concat (intersperse " -> " xs)
             Just y -> Tags $ Str x : intersperse (Str " -> ") (zipWith f (typeOrder y) (init xs) ++ [Str $ last xs])
-                where f n x = TagColor n (Str x)
--}
+                where f n x = TagColor n (Str x) -}
