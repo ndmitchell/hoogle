@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), createDataBase,
-    locateWebDocs
+    locateWebDocs, searchName,
     ) where
 
 
@@ -13,6 +13,7 @@ import Hoogle.Item.All
 import Data.List
 import Data.Binary.Defer
 import General.All
+import qualified Data.IntSet as IntSet
 
 
 data DataBase = DataBase {
@@ -38,19 +39,21 @@ createDataBase items1 = DataBase "" "" newItems newModules (createTexts items3)
         (items3,newItems  ) = createItems items2
 
 
-{-
 -- forward methods
-searchName :: DataBase -> [String] -> IO [Result DataBase]
-searchName database query = do
-    let hndl = handle database
-    res <- mapM (\x -> hSetPos hndl (nameSearchPos database) >> searchTexts hndl x) query
-    if length query == 1
-        then mapM f $ head res
-        else mergeResults database query res
+searchName :: DataBase -> [String] -> [Item]
+searchName db xs = map (getItem db) ans
     where
-        f = liftM (fixupTextMatch (head query)) . loadResult . setResultDataBase database
+        res = map (IntSet.fromList . searchTexts (texts db)) xs
+        ans = IntSet.toList $ foldr1 IntSet.intersection res
 
 
+getItem :: DataBase -> ItemId -> Item
+getItem db i = item{itemMod = getModuleFromId (modules db) (modId $ itemMod item)}
+    where item = getItemFromId (items db) i
+                    
+
+
+{-
 mergeResults :: DataBase -> [String] -> [[Result ()]] -> IO [Result DataBase]
 mergeResults database query xs = merge (map (sortBy cmp) xs)
     where
