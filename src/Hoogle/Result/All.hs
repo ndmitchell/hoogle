@@ -13,6 +13,7 @@ import Data.Maybe
 
 
 data Result = ResultText {itemResult :: Item, textResult :: TextMatch}
+              deriving Show
 
 resultText :: [String] -> Item -> Result
 resultText names i = ResultText i (resultTextMatch names i)
