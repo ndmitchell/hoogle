@@ -4,6 +4,7 @@
 module Hoogle.DataBase.BinaryDefer where
 
 import Data.Binary.Defer
+import Data.Binary.Defer.List
 import Hoogle.Item.All
 
 import Data.Array
@@ -29,3 +30,10 @@ instance BinaryDefer Item where
 
 instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (a,b) where
     bothDefer = defer [\ ~(a,b) -> unit (,) << a << b]
+
+
+instance Show a => Show (Defer a) where
+    show (Defer a) = show a
+
+instance Show (ListDefer a) where
+    show _ = "ListDefer (show here)"
