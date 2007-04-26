@@ -1,5 +1,5 @@
 
-module Hoogle.Search.All where
+module Hoogle.Search.All(searchAll, searchRange) where
 
 import Data.Maybe
 import Data.List
@@ -7,12 +7,16 @@ import Control.Monad
 
 import Hoogle.DataBase.All
 import Hoogle.Query.All
-import Hoogle.Common.All
-import Hoogle.TypeSig.All
+import Hoogle.Result.All
 
 
+searchAll = undefined
+searchRange = undefined
+
+
+{-
 -- return all the results
-searchAll :: [DataBase] -> Query -> IO [Result DataBase]
+searchAll :: DataBase -> Query -> [Result]
 searchAll databases query = getResults databases query
 
 
@@ -54,12 +58,19 @@ filterResults q xs = if null actions then xs
         doesMatch [] y = True
         doesMatch (x:xs) (y:ys) = x == y && doesMatch xs ys
         doesMatch _ _ = False
+-}
 
 
-performTextSearch :: [DataBase] -> [String] -> IO [Result DataBase]
-performTextSearch databases query = do
-        res <- concatMapM (`searchName` query) databases
-        res <- return $ map head $ groupBy eqItemId $ sortBy cmpItemId res
+performTextSearch :: [DataBase] -> [String] -> [Result]
+performTextSearch databases query = concatMap (`searchName` query) databases
+
+
+{-
+
+
+do
+        res <- map (`searchName` query) databases
+        res <- return $ map head $ groupSortBy (compare `on` getItemId) res
         return $ sortBy priority res
     where
         cmpItemId x y = getItemId x `compare` getItemId y
@@ -77,8 +88,9 @@ performTextSearch databases query = do
              ,modName $ fromJust $ itemMod item
              )
             )
+-}
 
-
+{-
 performTypeSearch :: [DataBase] -> TypeSig -> IO [Result DataBase]
 performTypeSearch databases query = do
         res <- concatMapM (`searchType` query) databases
@@ -88,6 +100,4 @@ performTypeSearch databases query = do
         cmpResults xs ys = f xs `compare` f ys
             where
                 f = length . typeDiff . fromJust . typeResult . head
-
-
-concatMapM f x = liftM concat $ mapM f x
+-}
