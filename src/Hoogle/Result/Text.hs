@@ -48,8 +48,8 @@ data TextScore = TextScore Int Int Int Int String Int [String]
 textScore :: Item -> TextMatch -> TextScore
 textScore item txt = TextScore
     (negate $ length $ textMatch txt)
-    (textElse txt)
     (textCase txt)
+    (textElse txt)
     (itemPriority $ itemRest item)
     (itemName item)
     (length $ modName $ itemMod item)
