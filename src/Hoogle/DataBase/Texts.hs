@@ -11,8 +11,10 @@ import Data.Char
 
 
 data Texts = Texts (ListDefer ItemId) Trie
+             deriving Show
 
 data Trie = Trie {mapping :: [(Char,Defer Trie)], start :: Int, len :: Int}
+            deriving Show
 
 
 instance BinaryDefer Texts where
