@@ -53,13 +53,13 @@ instance BinaryDefer Module where
 
 instance BinaryDefer ItemRest where
     bothDefer = defer
-        [\ ~(ItemModule) -> unit ItemModule
+        [\ ~(x@ItemModule) -> unit ItemModule <<! x
         ,\ ~(ItemClass a) -> unit ItemClass << a
         ,\ ~(ItemFunc a) -> unit ItemFunc << a
         ,\ ~(ItemAlias a b) -> unit ItemAlias << a << b
         ,\ ~(ItemData a b) -> unit ItemData << a << b
         ,\ ~(ItemInstance a) -> unit ItemInstance << a
-        ,\ ~(ItemKeyword) -> unit ItemKeyword
+        ,\ ~(x@ItemKeyword) -> unit ItemKeyword <<! x
         ,\ ~(ItemAttribute a b) -> unit ItemAttribute << a << b
         ]
 
