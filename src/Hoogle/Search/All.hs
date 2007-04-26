@@ -29,7 +29,7 @@ searchRange databases query from len =
 
 
 getResults :: [DataBase] -> Query -> [Result]
-getResults databases query = filterResults query res
+getResults databases query = orderResults $ filterResults query res
     where
         res = if not (null $ names query) then performTextSearch databases (names query)
               else if isJust (typeSig query) then performTypeSearch databases (fromJust $ typeSig query)
