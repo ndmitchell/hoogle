@@ -2,6 +2,7 @@
 module Hoogle.Item.All where
 
 import Hoogle.TypeSig.All
+import Data.Binary.Defer
 
 
 -- | Blank items
@@ -44,6 +45,24 @@ data ItemRest = ItemModule -- ^ Module A.B.C is mod=A.B name=C
               | ItemAttribute String String
               deriving Show
 
+instance BinaryDefer Item where
+    bothDefer = defer [\ ~(Item a b c d) -> unit Item << a << b << c << d]
+
+instance BinaryDefer Module where
+    bothDefer = defer [\ ~(Module a b) -> unit Module << a << b]
+
+instance BinaryDefer ItemRest where
+    bothDefer = defer
+        [\ ~(ItemModule) -> unit ItemModule
+        ,\ ~(ItemClass a) -> unit ItemClass << a
+        ,\ ~(ItemFunc a) -> unit ItemFunc << a
+        ,\ ~(ItemAlias a b) -> unit ItemAlias << a << b
+        ,\ ~(ItemData a b) -> unit ItemData << a << b
+        ,\ ~(ItemInstance a) -> unit ItemInstance << a
+        ,\ ~(ItemKeyword) -> unit ItemKeyword
+        ,\ ~(ItemAttribute a b) -> unit ItemAttribute << a << b
+        ]
+
 
 isItemAttribute (ItemAttribute{}) = True
 isItemAttribute _ = False
@@ -77,6 +96,20 @@ data DataKeyword = NewTypeKeyword
 instance Show DataKeyword where
     show NewTypeKeyword = "newtype"
     show DataKeyword = "data"
+
+
+instance BinaryDefer LHS where
+    bothDefer = defer [\ ~(LHS a b) -> unit LHS << a << b
+                      ,\ ~(LHSStr a b) -> unit LHSStr << a << b ]
+
+instance BinaryDefer TypeVal where
+    bothDefer = defer [\ ~(TypeAST a) -> unit TypeAST << a
+                      ,\ ~(TypeStr a) -> unit TypeStr << a
+                      ,\ ~(TypeArgs a b) -> unit TypeArgs << a << b ]
+
+instance BinaryDefer DataKeyword where
+    bothDefer = defer [\ ~(NewTypeKeyword) -> unit NewTypeKeyword
+                      ,\ ~(DataKeyword) -> unit DataKeyword ]
 
 
 -- So that results are sorted in some rough order

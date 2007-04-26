@@ -2,6 +2,7 @@
 module Hoogle.TypeSig.Type where
 
 import Data.List
+import Data.Binary.Defer
 
 
 data TypeSig = TypeSig Constraint Type
@@ -16,6 +17,17 @@ data Type = TApp Type [Type] -- a list of types, first one being the constructor
           | TVar String -- unbound variables, "a"
           | TFun [Type]
           deriving Eq
+
+
+instance BinaryDefer TypeSig where
+    bothDefer = defer [\ ~(TypeSig a b) -> unit TypeSig << a << b]
+
+instance BinaryDefer Type where
+    bothDefer = defer [\ ~(TApp a b) -> unit TApp << a << b
+                      ,\ ~(TLit a) -> unit TLit << a
+                      ,\ ~(TVar a) -> unit TVar << a
+                      ,\ ~(TFun a) -> unit TFun << a
+                      ]
 
 
 normaliseTypeSig :: TypeSig -> TypeSig

@@ -25,8 +25,5 @@ instance (Ix a, BinaryDefer a, BinaryDefer b) => BinaryDefer (Array a b) where
         xs <- replicateM (rangeSize bound) (get hndl)
         return $ listArray bound xs
 
-instance BinaryDefer Item where
-    bothDefer = error "BinaryDefer Item, todo"
-
 instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (a,b) where
     bothDefer = defer [\ ~(a,b) -> unit (,) << a << b]
