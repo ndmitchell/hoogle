@@ -10,4 +10,5 @@ module Hoogle.All(
 import Hoogle.Query.All
 import Hoogle.DataBase.All
 import Hoogle.Search.All
-import Hoogle.Common.All
+import Hoogle.Item.All
+import Hoogle.Result.All
