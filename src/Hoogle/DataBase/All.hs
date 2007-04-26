@@ -1,17 +1,10 @@
 
 module Hoogle.DataBase.All(
     module Hoogle.DataBase.Type,
-    newDataBase
+    module Hoogle.DataBase.Serialise,
     ) where
 
-import General.All
 import Hoogle.DataBase.Type
-import Hoogle.TextBase.All
+import Hoogle.DataBase.Serialise
 
 
-newDataBase :: FilePath -> FilePath -> IO [Response]
-newDataBase infile outfile = do
-    x <- parseTextBase infile
-    case x of
-        Left x -> return [Error $ show x]
-        Right x -> createDataBase x outfile
