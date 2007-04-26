@@ -48,12 +48,15 @@ createTexts items = Texts (newListDefer $ map (snd . snd) xs) (f xs)
         xs = zip [0..] $ sort [(y, itemId x) | x <- items,
              not $ null $ itemName x, y <- tail $ inits $ map toLower $ itemName x]
 
+        text = fst . snd
+        tailText (a,(_:b,c)) = (a,(b,c))
+
         f [] = Trie [] 0 0
         f xs = Trie inner (fst $ head xs) (length xs)
-            where inner = map g $ groupBy ((==) `on` (head . fst . snd)) $
-                          dropWhile (null . fst . snd) xs
+            where inner = map g $ groupBy ((==) `on` (head . text)) $
+                          dropWhile (null . text) xs
         
-        g xs = (head $ fst $ snd $ head xs, Defer (f xs))
+        g xs = (head $ text $ head xs, Defer $ f $ map tailText xs)
 
 
 
