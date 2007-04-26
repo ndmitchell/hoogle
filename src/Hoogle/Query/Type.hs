@@ -2,6 +2,7 @@
 module Hoogle.Query.Type where
 
 import Data.Maybe
+import Data.Char
 
 import Hoogle.General
 import Hoogle.TypeSig.All
@@ -50,3 +51,7 @@ itemTypes =
 -- first is the name, second is optional data
 data Flag = Flag String String
             deriving (Eq, Show, Read)
+
+
+getFlag :: [String] -> [Flag] -> Maybe String
+getFlag names flags = listToMaybe [b | Flag a b <- flags, n <- names, map toLower a == n]
