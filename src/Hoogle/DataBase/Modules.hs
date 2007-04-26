@@ -13,6 +13,7 @@ import Hoogle.DataBase.BinaryDefer
 
 
 data Modules = Modules (Array ModId [String])
+               deriving Show
 
 instance BinaryDefer Modules where
     bothDefer = defer [\ ~(Modules a) -> unit Modules << a]
