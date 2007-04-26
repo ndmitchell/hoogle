@@ -9,6 +9,7 @@ import Hoogle.DataBase.Items
 import Hoogle.DataBase.Modules
 import Hoogle.DataBase.Texts
 import Hoogle.Item.All
+import Hoogle.Result.All
 
 import Data.List
 import Data.Binary.Defer
@@ -40,8 +41,8 @@ createDataBase items1 = DataBase "" "" newItems newModules (createTexts items3)
 
 
 -- forward methods
-searchName :: DataBase -> [String] -> [Item]
-searchName db xs = map (getItem db) ans
+searchName :: DataBase -> [String] -> [Result]
+searchName db xs = map (resultText xs . getItem db) ans
     where
         res = map (IntSet.fromList . searchTexts (texts db)) xs
         ans = IntSet.toList $ foldr1 IntSet.intersection res
