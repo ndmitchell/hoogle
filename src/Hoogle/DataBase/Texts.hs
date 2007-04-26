@@ -46,7 +46,7 @@ createTexts items = Texts (newListDefer $ map (snd . snd) xs) (f xs)
     where
         xs :: [(Int,(String,ItemId))]
         xs = zip [0..] $ sort [(y, itemId x) | x <- items,
-             not $ null $ itemName x, y <- tail $ inits $ map toLower $ itemName x]
+                    y <- init $ tails $ map toLower $ itemName x]
 
         text = fst . snd
         tailText (a,(_:b,c)) = (a,(b,c))
