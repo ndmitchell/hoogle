@@ -1,5 +1,5 @@
 
-module Operations.Convert(convert) where
+module Hoogle.Operations.Convert(convert) where
 
 import Hoogle.TextBase.All
 import Hoogle.DataBase.All
