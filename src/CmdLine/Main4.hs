@@ -7,8 +7,6 @@
 module CmdLine.Main where
 
 import Hoogle.All
-import Hoogle.Query.All
-import Hoogle.Common.All
 import General.All
 
 import System.Environment
@@ -30,9 +28,8 @@ main =
         case args of
             [] -> putStr helpMsg
             ["@",infile,outfile] -> do
-                res <- newDataBase infile outfile
-                putStr $ show res
-                putStrLn $ if anyError res then "Failed" else "Success"
+                convert infile outfile
+                putStrLn $ "Success, " ++ outfile ++ " created"
             _ -> hoogle $ safeArrow $ joinArgs args
     where
         joinArgs = concat . intersperse " " . map f
@@ -55,38 +52,45 @@ hoogle str =
         case query of
             Left x -> putStrLn $ "Parse error in query: " ++ show x
             Right x@Query{flags=flags}
-                | Version `elem` flags -> putStr versionMsg
-                | Help `elem` flags -> putStr helpMsg
+                | version flags -> putStr versionMsg
+                | help flags -> putStr helpMsg
                 | not (usefulQuery x) -> putStrLn "This query does not do anything useful"
                 | otherwise -> do
-                    let file = head $ [x | Path x <- flags] ++ ["base.hoo"]
+                    let file = fromMaybe "base.hoo" (path flags)
                     database <- loadDataBase file
-                    case database of
-                        Nothing -> putStrLn $ "Error, can't open the database " ++ file
-                        Just y -> hoogle2 y x
-                        
+                    hoogle2 database x
+
+
+version = isJust . getFlag ["v","version","ver"]
+help    = isJust . getFlag ["?","h","help"]
+color   = isJust . getFlag ["c","col","colour","color"]
+path    = getFlag ["p","path"]
+count x = getFlag ["count","n"] x >>= safeRead
+
+
+safeRead x = case reads x of
+                  [(a,"")] -> Just a
+                  _ -> Nothing
+
 
 
 -- cannot error, give preformed results
 hoogle2 :: DataBase -> Query -> IO ()
-hoogle2 database query =
+hoogle2 database query@Query{flags=flags} =
     do
         let suggest = suggestQuery query
         when (isJust suggest) $ putStrLn $ "Suggestion: " ++ showTag (fromJust suggest)
         
-        when (color && isJust (typeSig query)) $ putStrLn $ showTag $ renderQuery query
+        when (col && isJust (typeSig query)) $ putStrLn $ showTag $ renderQuery query
         
-        res <- case count of
-                    Nothing -> searchAll database query
-                    Just n -> searchRange database query 0 n
+        res <- return $ case count flags of
+                Nothing -> searchAll   [database] query
+                Just n  -> searchRange [database] query 0 (max 1 n)
         
         putStr $ unlines $ map (showTag . renderResult) res
     where
-        color = Color `elem` flags query
-        count = listToMaybe [n | Count n <- flags query, n > 0]
-        verbose = Verbose `elem` flags query
-        
-        showTag = if color then showTagConsole else show
+        col = color flags
+        showTag = if col then showTagConsole else show
         
 {-
 
@@ -205,7 +209,7 @@ versionMsg :: String
 versionMsg
     = unlines [
         "HOOGLE " ++ versionNum ++ " - Haskell API Search",
-        "(C) Neil Mitchell 2004-2006, York University, UK"
+        "(C) Neil Mitchell 2004-2007, York University, UK"
         ]
 
 
