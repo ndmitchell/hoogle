@@ -1,5 +1,8 @@
 
-module Hoogle.Result.Text(TextMatch, resultTextMatch) where
+module Hoogle.Result.Text(
+    TextMatch, resultTextMatch,
+    TextScore, textScore
+    ) where
 
 import Hoogle.Item.All
 import Data.Char
@@ -35,3 +38,15 @@ pickMatchOne s i = (TextMatchOne begin (length s), bads)
 
 
 
+data TextScore = TextScore Int Int Int Int String Int [String]
+                 deriving (Eq,Ord)
+
+textScore :: Item -> TextMatch -> TextScore
+textScore item txt = TextScore
+    (negate $ length $ textMatch txt)
+    (textElse txt)
+    (textCase txt)
+    (itemPriority $ itemRest item)
+    (itemName item)
+    (length $ modName $ itemMod item)
+    (modName $ itemMod item)

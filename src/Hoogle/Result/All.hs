@@ -1,5 +1,8 @@
 
-module Hoogle.Result.All(Result, resultText) where
+module Hoogle.Result.All(
+	Result, resultText,
+	Score, resultScore
+	) where
 
 import Hoogle.Result.Text
 
@@ -11,10 +14,18 @@ import Data.Maybe
 
 data Result = ResultText {itemResult :: Item, textResult :: TextMatch}
 
-
-
 resultText :: [String] -> Item -> Result
 resultText names i = ResultText i (resultTextMatch names i)
+
+
+
+data Score = ScoreText TextScore
+             deriving (Eq,Ord)
+
+
+resultScore :: Result -> Score
+resultScore (ResultText i t) = ScoreText $ textScore i t
+
 
 
 
