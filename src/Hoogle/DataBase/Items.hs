@@ -23,8 +23,11 @@ createItems items = (items2, Items $ listArray (0,length res - 1) (map Defer res
         -- number to use next, list of items = (ret,use)
         f :: Int -> [Item] -> ([Item],[Item])
         f i [] = ([],[])
-        f i (x:xs) = (x{itemId=if wanted x then i else 0}:a, b)
-            where (a,b) = f (if wanted x then i+1 else i) xs
+        f i (x:xs) = (x2:a, w [x2] [] ++ b)
+            where
+                x2 = x{itemId = w i 0}
+                (a,b) = f (w (i+1) i) xs
+                w yes no = if wanted x then yes else no
 
         wanted = not . null . itemName
 
