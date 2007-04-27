@@ -1,13 +1,12 @@
 
-module Hoogle.DataBase.Kinds(Kinds, saveKinds, loadKinds, checkTypeKind, checkClassKind) where
+module Hoogle.DataBase.Kinds(Kinds, createKinds, checkTypeKind, checkClassKind) where
 
-import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
+import Hoogle.Item.All
 
-import General.All
-import Data.List
 import qualified Data.Map as Map
-import System.IO
+import Data.List
+import Data.Binary.Defer
 
 
 -- roughly kinds, i.e. [] 1, () 0, Maybe 1
@@ -17,45 +16,25 @@ import System.IO
 type KindMap = Map.Map String [Int]
 
 data Kinds = Kinds {kindsClass :: KindMap, kindsType :: KindMap}
+             deriving Show
+
+instance BinaryDefer Kinds where
+    bothDefer = defer [\ ~(Kinds a b) -> unit Kinds << a << b]
 
 
-saveKinds :: Handle -> TextBase -> IO [Response]
-saveKinds hndl tb = outputMap kClass >> outputMap kType >> return errs
+createKinds :: [Item] -> Kinds
+createKinds = foldr f (Kinds Map.empty Map.empty)
     where
-        errs = getErrs "Class" kClass ++ getErrs "Type" kType
-            where
-                getErrs msg x = concatMap (getErr msg) (Map.toList x)
-            
-                getErr msg (a,[x]) = []
-                getErr msg (a,xs) = [Warn $ msg ++ " has multiple kinds, " ++ a ++ " has " ++ show xs]
-
-        outputMap k = do
-                hPutInt hndl $ Map.size k
-                mapM_ out $ Map.toAscList k
-            where
-                out (key,var) = do
-                    hPutString hndl key
-                    let lv = length var
-                    if lv == 1
-                        then hPutInt hndl $ head var
-                        else do
-                            hPutInt hndl (negate $ length var)
-                            mapM_ (hPutInt hndl) var
-
-        res@(Kinds kClass kType) = foldr f (Kinds Map.empty Map.empty) tb
-        
-        f (Item _ mname msig _ _ x) k =
-            case x of
-                ItemClass lhs -> fClass (joinLHS lhs) k
-                ItemFunc -> fType sig k
-                ItemAlias lhs (TypeAST rhs) -> fType (joinLHS lhs) $ fType rhs k
-                ItemData _ lhs -> fType (joinLHS lhs) k
+        f item k =
+            case itemRest item of
+                ItemClass lhs -> fClass (joinLhs lhs) k
+                ItemFunc (TypeTree sig) -> fType sig k
+                ItemAlias lhs (TypeTree rhs) -> fType (joinLhs lhs) $ fType rhs k
+                ItemData _ lhs -> fType (joinLhs lhs) k
                 ItemInstance x -> fClass x k
                 _ -> k
             where
-                Just name = mname
-                Just (TypeAST sig) = msig
-                joinLHS (LHS con free) = TypeSig con (TApp (TLit name) (map TVar free))
+                joinLhs (LhsTree con free) = TypeSig con (TApp (TLit (itemName item)) (map TVar free))
 
         fClass (TypeSig cons x) k = foldr gClass k (x:cons)
         fType (TypeSig cons x) k = gType x $ foldr gClass k cons
@@ -75,12 +54,7 @@ saveKinds hndl tb = outputMap kClass >> outputMap kType >> return errs
             where
                 res = Map.insertWith (\a b -> nub $ a ++ b) name [num] kp
                 kp = (if i == 0 then kindsClass else kindsType) k
-       
-        
 
-
-loadKinds :: Handle -> IO Kinds
-loadKinds hndl = error "todo"
 
 
 checkTypeKind :: Kinds -> String -> Int -> Bool
@@ -88,7 +62,6 @@ checkTypeKind kinds name num = checkKind (kindsType kinds) name num
 
 checkClassKind :: Kinds -> String -> Int -> Bool
 checkClassKind kinds name num = checkKind (kindsClass kinds) name num
-
 
 checkKind :: KindMap -> String -> Int -> Bool
 checkKind kmap name num = num `elem` Map.findWithDefault [] name kmap

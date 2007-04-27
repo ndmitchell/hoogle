@@ -8,6 +8,7 @@ module Hoogle.DataBase.Type(
 import Hoogle.DataBase.Items
 import Hoogle.DataBase.Modules
 import Hoogle.DataBase.Texts
+import Hoogle.DataBase.Kinds
 import Hoogle.Item.All
 import Hoogle.Result.All
 
@@ -24,20 +25,22 @@ data DataBase = DataBase {
                     -- the static and cached information
                     items :: Items,
                     modules :: Modules,
-                    texts :: Texts
+                    texts :: Texts,
+                    kinds :: Kinds
                 }
                 deriving Show
 
 instance BinaryDefer DataBase where
-    bothDefer = defer [\ ~(DataBase a b c d e) -> unit DataBase << a << b <<~ c <<~ d <<~ e]
+    bothDefer = defer [\ ~(DataBase a b c d e f) -> unit DataBase << a << b <<~ c <<~ d <<~ e <<~ f]
 
 
 createDataBase :: [Item] -> DataBase
-createDataBase items1 = DataBase "" "" newItems newModules (createTexts items3)
+createDataBase items1 = DataBase "" "" newItems newModules
+        (createTexts items) (createKinds items)
     where
         -- these are the two things that change the items
         (items2,newModules) = createModules items1
-        (items3,newItems  ) = createItems items2
+        (items ,newItems  ) = createItems items2
 
 
 -- forward methods
