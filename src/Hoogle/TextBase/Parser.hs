@@ -9,7 +9,21 @@ import Control.Monad
 
 
 parseTextBase :: FilePath -> IO (Either ParseError TextBase)
-parseTextBase file = parseFromFile parsecTextBase file
+parseTextBase file = do
+    res <- parseFromFile parsecTextBase file
+    return $ case res of
+        Right x -> Right $ fixupTextBase x
+        x -> x
+
+
+-- populate module info to every item
+fixupTextBase :: TextBase -> TextBase
+fixupTextBase xs = f blankModule xs
+    where
+        f modu (x@Item{itemRest=ItemModule} : xs) = x : f newmodu xs
+            where newmodu = Module 0 $ modName (itemMod x) ++ [itemName x]
+        f modu (x:xs) = x{itemMod=modu} : f modu xs
+        f _ [] = []
 
 
 parsecTextBase :: Parser TextBase
