@@ -36,10 +36,10 @@ data Module = Module {
 
 
 data ItemRest = ItemModule -- ^ Module A.B.C is mod=A.B name=C
-              | ItemClass LHS
+              | ItemClass Lhs
               | ItemFunc TypeVal
-              | ItemAlias LHS TypeVal
-              | ItemData DataKeyword LHS
+              | ItemAlias Lhs TypeVal
+              | ItemData DataKeyword Lhs
               | ItemInstance TypeSig
               | ItemKeyword
               | ItemAttribute String String
@@ -77,16 +77,19 @@ isItemFunc (ItemFunc{}) = True
 isItemFunc _ = False
 
 
+-- for types there are two different modules
+-- one is that we have just parsed in, at convert time (Tree)
+-- one is that we have read, and want display (Str)
+
 -- name is not given here
-data LHS = LHS Constraint [String] -- context => name vars
-         | LHSStr String String
+data Lhs = LhsTree Constraint [String] -- context => name vars
+         | LhsStr  String String
          deriving Show
 
 
-data TypeVal = TypeAST TypeSig
-             | TypeStr String
-             | TypeArgs String [String] -- context => arg0 -> arg1 .. -> argn
-             deriving Show
+data TypeVal = TypeTree TypeSig
+             | TypeStr  String [String] -- context => arg0 -> arg1 .. -> argn
+               deriving Show
 
 
 data DataKeyword = NewTypeKeyword
@@ -98,18 +101,17 @@ instance Show DataKeyword where
     show DataKeyword = "data"
 
 
-instance BinaryDefer LHS where
-    bothDefer = defer [\ ~(LHS a b) -> unit LHS << a << b
-                      ,\ ~(LHSStr a b) -> unit LHSStr << a << b ]
+-- note, we deliberately leave out LhsTree - it should not hit the database
+instance BinaryDefer Lhs where
+    bothDefer = defer [\ ~(LhsStr a b) -> unit LhsStr << a << b ]
 
+-- note, we deliberately leave out TypeTree - it should not hit the database
 instance BinaryDefer TypeVal where
-    bothDefer = defer [\ ~(TypeAST a) -> unit TypeAST << a
-                      ,\ ~(TypeStr a) -> unit TypeStr << a
-                      ,\ ~(TypeArgs a b) -> unit TypeArgs << a << b ]
+    bothDefer = defer [\ ~(TypeStr a b) -> unit TypeStr << a << b ]
 
 instance BinaryDefer DataKeyword where
-    bothDefer = defer [\ ~(NewTypeKeyword) -> unit NewTypeKeyword
-                      ,\ ~(DataKeyword) -> unit DataKeyword ]
+    bothDefer = defer [\ ~(x@NewTypeKeyword) -> unit NewTypeKeyword <<! x
+                      ,\ ~(x@DataKeyword   ) -> unit DataKeyword    <<! x ]
 
 
 -- So that results are sorted in some rough order
@@ -123,3 +125,17 @@ itemPriority x = case x of
     ItemData{} -> 4
     ItemFunc{} -> 5
     _ -> 6
+
+
+itemTreeStr :: Item -> Item
+itemTreeStr x = x{itemRest = f (itemRest x)}
+    where
+        f (ItemClass l) = ItemClass (lhsTreeStr l)
+        f (ItemFunc t) = ItemFunc (typeTreeStr t)
+        f (ItemAlias l t) = ItemAlias (lhsTreeStr l) (typeTreeStr t)
+        f (ItemData x l) = ItemData x (lhsTreeStr l)
+        f x = x
+
+
+lhsTreeStr (LhsTree x xs) = LhsStr (showConstraint x) (unwords xs)
+typeTreeStr (TypeTree (TypeSig c x)) = TypeStr (showConstraint c) (map show $ splitFun x)

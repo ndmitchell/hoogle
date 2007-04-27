@@ -95,7 +95,7 @@ mkInstance :: TypeSig -> Item
 mkInstance x = blankItem{itemRest = ItemInstance x}
 
 mkTypeAlias :: TypeSig -> TypeSig -> Item
-mkTypeAlias x y = blankItem{itemName = b, itemRest = ItemAlias a (TypeAST y)}
+mkTypeAlias x y = blankItem{itemName = b, itemRest = ItemAlias a (TypeTree y)}
     where (a,b) = splitSig x
 
 mkData :: DataKeyword -> TypeSig -> Item
@@ -103,7 +103,7 @@ mkData k x = blankItem{itemName = b, itemRest = ItemData k a}
     where (a,b) = splitSig x
 
 mkFunc :: String -> TypeSig -> Item
-mkFunc x y = blankItem{itemName = x, itemRest = ItemFunc $ TypeAST y}
+mkFunc x y = blankItem{itemName = x, itemRest = ItemFunc $ TypeTree y}
 
 mkKeyword :: String -> Item
 mkKeyword x = blankItem{itemName = x, itemRest = ItemKeyword}
@@ -112,9 +112,9 @@ mkAttribute :: String -> String -> Item
 mkAttribute x y = blankItem{itemRest = ItemAttribute x y}
 
 
-splitSig :: TypeSig -> (LHS, String)
-splitSig (TypeSig con (TLit x)) = (LHS con [], x)
-splitSig (TypeSig con (TApp (TLit x) xs)) = (LHS con [x | TVar x <- xs], x)
+splitSig :: TypeSig -> (Lhs, String)
+splitSig (TypeSig con (TLit x)) = (LhsTree con [], x)
+splitSig (TypeSig con (TApp (TLit x) xs)) = (LhsTree con [x | TVar x <- xs], x)
 
 -- error case, think about proper handling
-splitSig (TypeSig con x) = (LHS con [], show x)
+splitSig (TypeSig con x) = (LhsTree con [], show x)

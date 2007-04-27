@@ -34,7 +34,7 @@ renderResult (ResultText item@Item{itemName=name} txt) =
     case itemRest item of
         ItemFunc typ -> Tags [showMod, showName, Str " :: ", showType typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
-        ItemData kw (LHSStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
+        ItemData kw (LhsStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
         rest -> Str $ "renderResult, todo: " ++ name ++ " " ++ show rest
     where
         showKeyword s = TagUnderline $ Str s
@@ -43,9 +43,7 @@ renderResult (ResultText item@Item{itemName=name} txt) =
     
         showName = renderResultText item txt
         
-        showType (TypeArgs x xs) = Str $ x ++ concat (intersperse " -> " xs) {- case Nothing of
+        showType (TypeStr x xs) = Str $ x ++ concat (intersperse " -> " xs) {- case Nothing of
             Nothing -> Str $ x ++ concat (intersperse " -> " xs)
             Just y -> Tags $ Str x : intersperse (Str " -> ") (zipWith f (typeOrder y) (init xs) ++ [Str $ last xs])
                 where f n x = TagColor n (Str x) -}
-
-        showType (TypeAST x) = Str $ show x
