@@ -1,26 +1,85 @@
 
-module Hoogle.DataBase.Alias(Alias, saveAlias, loadAlias, followAlias) where
+module Hoogle.DataBase.Alias(
+    Alias, createAlias,
+    isAlias, followAlias
+    ) where
 
-import System.IO
 import Hoogle.TypeSig.All
-import Hoogle.TextBase.All
-import General.All
+import Hoogle.Item.All
+import Hoogle.DataBase.BinaryDefer
+
+import qualified Data.Map as Map
+import qualified Data.Set as Set
+import Data.Maybe
+import Data.List
+import Data.Char
+import Control.Monad
+import Data.Binary.Defer
 
 
--- free variables, type result
--- data TypeAlias = TypeAlias [String] TypeSig
+data Alias = Alias (Map.Map String (Int,TypeSig))
+             deriving Show
+
+instance BinaryDefer Alias where
+    bothDefer = defer [\ ~(Alias a) -> unit Alias << a]
 
 
-data Alias = Alias
+createAlias :: [Item] -> Alias
+createAlias xs = Alias $ Map.fromList [(s,(i,t)) | (i,(s,t)) <- zip [0..] res]
+    where res = orderAliases $ concatMap pickAlias xs
 
 
-saveAlias :: Handle -> TextBase -> IO [Response]
-saveAlias hndl tb = return []
+orderAliases :: [(String,TypeSig)] -> [(String,TypeSig)]
+orderAliases xs = f $ reqAlias (map fst xs) xs
+    where
+        f [] = []
+        f (x:xs) = map fst yes ++ f (map (g del) no)
+            where
+                (yes,no) = partition (null . snd) xs
+                (yes2,no2) = if null yes then ([x],xs) else (yes,no)
+                del = map (fst . fst) yes
+
+        g del (a,b) = (a, filter (`notElem` del) b)
 
 
-loadAlias :: Handle -> IO Alias
-loadAlias hndl = return Alias
+reqAlias :: [String] -> [(String,TypeSig)] -> [((String,TypeSig),[String])]
+reqAlias list xs = [((a,b), f b) | (a,b) <- xs]
+    where
+        f (TypeSig a b) = concatMap g (b:a)
+    
+        g (TApp x xs) = concatMap g (x:xs)
+        g (TFun xs) = concatMap g xs
+        g (TLit x) = [x | x `elem` list]
+        g _ = []
 
 
-followAlias :: Alias -> TypeSig -> Maybe TypeSig
-followAlias _ a = Just a
+pickAlias :: Item -> [(String,TypeSig)]
+pickAlias Item{itemName=name, itemRest=ItemAlias (LhsTree con1 free) (TypeTree (TypeSig con2 typ))} =
+        [(name, TypeSig (map f $ con1 ++ con2) (f typ))]
+    where
+        ren = zip free $ map (:[]) ['a'..]
+        
+        f (TApp x xs) = TApp (f x) (map f xs)
+        f (TFun xs) = TFun (map f xs)
+        f (TVar x) = TVar $ fromMaybe x $ lookup x ren
+        f x = x
+
+pickAlias _ = []
+
+
+
+isAlias :: Alias -> String -> Maybe Int
+isAlias (Alias a) x = liftM fst $ Map.lookup x a
+
+
+followAlias :: Alias -> TypeSig -> TypeSig
+followAlias (Alias a) (TypeSig con1 (TApp (TLit name) vars)) =
+        TypeSig (con1 ++ map f con2) (f typ)
+    where
+        (TypeSig con2 typ) = snd $ fromJust $ Map.lookup name a
+
+        f (TApp x xs) = TApp (f x) (map f xs)
+        f (TFun xs) = TFun (map f xs)
+        f (TVar [x]) | i >= 0 && i < length vars = vars !! i
+            where i = ord x - ord 'a'
+        f x = x
