@@ -23,8 +23,16 @@ interpretation of other things. There are two ways of encoding classes - 'or' an
 For example:
 
 Class (Data a Bool) is translated to:
-    Class (Data a b) ==> Class_Bool b
-    Class_Bool Bool ==> True
+    Class (Data a b) ==> (Class#0 a, Class#1 b)
+    Class#0 *
+    Class#1 Bool
+
+Class (Data Bool a) is translated to:
+    Class#0 Bool
+    Class#1 *
+
+This means that Class (Data a b) passes, since we have encoding the 'and' as an 'or'.
+This is intentional, but not accurate.
 -}
 
 type ClassName = String
