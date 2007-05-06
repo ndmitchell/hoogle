@@ -1,5 +1,5 @@
 
-module Hoogle.Result.Text(
+module Hoogle.Result.TextMatch(
     TextMatch, resultTextMatch, renderResultText,
     TextScore, textScore
     ) where

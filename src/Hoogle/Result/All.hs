@@ -4,7 +4,7 @@ module Hoogle.Result.All(
     Score, resultScore
     ) where
 
-import Hoogle.Result.Text
+import Hoogle.Result.TextMatch
 
 import Hoogle.Item.All
 import General.All
