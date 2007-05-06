@@ -10,6 +10,7 @@ import Hoogle.DataBase.Modules
 import Hoogle.DataBase.Texts
 import Hoogle.DataBase.Kinds
 import Hoogle.DataBase.Alias
+import Hoogle.DataBase.Instances
 import Hoogle.Item.All
 import Hoogle.Result.All
 
@@ -28,17 +29,20 @@ data DataBase = DataBase {
                     modules :: Modules,
                     texts :: Texts,
                     kinds :: Kinds,
-                    alias :: Alias
+                    alias :: Alias,
+                    instances :: Instances
                 }
                 deriving Show
 
 instance BinaryDefer DataBase where
-    bothDefer = defer [\ ~(DataBase a b c d e f g) -> unit DataBase << a << b <<~ c <<~ d <<~ e <<~ f <<~ g]
+    bothDefer = defer [\ ~(DataBase a b c d e f g h) ->
+        unit DataBase << a << b <<~ c <<~ d <<~ e <<~ f <<~ g <<~ h]
 
 
 createDataBase :: [Item] -> DataBase
 createDataBase items1 = DataBase "" "" newItems newModules
         (createTexts items) (createKinds items) (createAlias items)
+        (createInstances items)
     where
         -- these are the two things that change the items
         (items2,newModules) = createModules items1
