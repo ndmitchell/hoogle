@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), createDataBase,
-    locateWebDocs, searchName,
+    locateWebDocs, searchName, searchType
     ) where
 
 
@@ -13,6 +13,7 @@ import Hoogle.DataBase.Alias
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Types
 import Hoogle.Item.All
+import Hoogle.TypeSig.All
 import Hoogle.Result.All
 
 import Data.List
@@ -59,10 +60,15 @@ searchName db xs = map (resultText xs . getItem db) ans
         ans = IntSet.toList $ IntSet.unions res
 
 
+searchType :: DataBase -> TypeSig -> [Result]
+searchType db t = [resultType m (getItem db i) | (i,m) <- searchTypes d t]
+    where d = (types db, instances db, alias db)
+
+
 getItem :: DataBase -> ItemId -> Item
 getItem db i = item{itemMod = getModuleFromId (modules db) (modId $ itemMod item)}
     where item = getItemFromId (items db) i
-                    
+
 
 
 {-

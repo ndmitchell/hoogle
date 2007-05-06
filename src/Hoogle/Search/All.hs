@@ -73,5 +73,4 @@ performTextSearch databases query = concatMap (`searchName` query) databases
 
 
 performTypeSearch :: [DataBase] -> TypeSig -> [Result]
-performTypeSearch databases query = []
- --     concatMap (`searchType` query) databases
+performTypeSearch databases query = concatMap (`searchType` query) databases

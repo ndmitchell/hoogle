@@ -1,8 +1,16 @@
 
-module Hoogle.DataBase.Types(Types, createTypes) where
+module Hoogle.DataBase.Types(
+    Types, createTypes,
+    searchTypes
+    ) where
 
 import Hoogle.TypeSig.All
 import Hoogle.Item.All
+import Hoogle.Result.All
+
+import Hoogle.DataBase.Instances
+import Hoogle.DataBase.Alias
+
 import Data.Binary.Defer
 
 
@@ -39,3 +47,11 @@ createTypes xs = Types $ concatMap f xs
                 vals = splitFun t
 
         f x = []
+
+
+
+searchTypes :: (Types, Instances, Alias) -> TypeSig -> [(ItemId, TypeMatch)]
+searchTypes _ _ = []
+
+
+

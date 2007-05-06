@@ -1,10 +1,12 @@
 
 module Hoogle.Result.All(
     Result(..), resultText, renderResult,
+    TypeMatch(..), TypeDiff(..), resultType,
     Score, resultScore
     ) where
 
 import Hoogle.Result.TextMatch
+import Hoogle.Result.TypeMatch
 
 import Hoogle.Item.All
 import General.All
@@ -13,11 +15,14 @@ import Data.Maybe
 
 
 data Result = ResultText {itemResult :: Item, textResult :: TextMatch}
+            | ResultType {itemResult :: Item, typeResult :: TypeMatch}
               deriving Show
 
 resultText :: [String] -> Item -> Result
 resultText names i = ResultText i (resultTextMatch names i)
 
+resultType :: TypeMatch -> Item -> Result
+resultType a b = ResultType b a
 
 
 data Score = ScoreText TextScore
