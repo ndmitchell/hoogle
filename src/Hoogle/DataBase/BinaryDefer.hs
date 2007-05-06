@@ -10,6 +10,7 @@ import Hoogle.Item.All
 import Data.Array
 import Control.Monad
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 
 concatMapM f = liftM concat . mapM f
@@ -33,3 +34,7 @@ instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (a,b) where
 instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (Map.Map a b) where
     putDefer hndl xs = putDefer hndl (Map.toAscList xs)
     get hndl = liftM Map.fromDistinctAscList $ get hndl
+
+instance BinaryDefer a => BinaryDefer (Set.Set a) where
+    putDefer hndl xs = putDefer hndl (Set.toAscList xs)
+    get hndl = liftM Set.fromDistinctAscList $ get hndl
