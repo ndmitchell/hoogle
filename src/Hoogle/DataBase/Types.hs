@@ -74,18 +74,21 @@ matches d c1 c2 ts1 ts2 = sequence (zipWith (match d c1 c2) ts1 ts2) >>= return 
 
 
 match :: (Instances,Alias) -> Constraint -> Constraint -> Type -> Type -> Maybe [TypeDiff]
-match d c1 c2 (TLit t1) (TLit t2) | t1 == t2 = Just []
-match d c1 c2 a1@(TApp (TLit t1) u1) a2@(TApp (TLit t2) u2)
-    | t1 == t2 = matches d c1 c2 u1 u2
-    | isJust m1 && m1 >= m2 = let (c_1,a_1) = follow c1 a1 in cont c_1 c2 a_1 a2
-    | isJust m2 =             let (c_2,a_2) = follow c2 a2 in cont c1 c_2 a1 a_2
+match d@(inst,alia) c1 c2 t1 t2 = f (norm t1) (norm t2)
     where
-        a = snd d
-        m1 = isAlias a t1
-        m2 = isAlias a t2
+        f a1@(TApp (TLit t1) u1) a2@(TApp (TLit t2) u2)
+            | t1 == t2 = matches d c1 c2 u1 u2
+            | isJust m1 && m1 >= m2 = let (c_1,a_1) = follow c1 a1 in cont c_1 c2 a_1 a2
+            | isJust m2 =             let (c_2,a_2) = follow c2 a2 in cont c1 c_2 a1 a_2
+            where
+                m1 = isAlias alia t1
+                m2 = isAlias alia t2
 
-        follow c1 a1 = let TypeSig c_1 a_1 = followAlias a (TypeSig c1 a1) in (c_1, a_1)
-        cont c1 c2 a1 a2 = match d c1 c2 a1 a2 >>= return . (TypeAlias:)
+                follow c1 a1 = let TypeSig c_1 a_1 = followAlias alia (TypeSig c1 a1) in (c_1, a_1)
+                cont c1 c2 a1 a2 = match d c1 c2 a1 a2 >>= return . (TypeAlias:)
 
-match _ _ _ _ _ = Nothing
+        f _ _ = Nothing
 
+
+        norm (TLit x) = TApp (TLit x) []
+        norm x = x
