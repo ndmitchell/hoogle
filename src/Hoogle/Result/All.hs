@@ -26,11 +26,13 @@ resultType a b = ResultType b a
 
 
 data Score = ScoreText TextScore
+           | ScoreType TypeScore
              deriving (Eq,Ord)
 
 
 resultScore :: Result -> Score
 resultScore (ResultText i t) = ScoreText $ textScore i t
+resultScore (ResultType i t) = ScoreType $ typeScore i t
 
 
 
@@ -52,3 +54,18 @@ renderResult (ResultText item@Item{itemName=name} txt) =
             Nothing -> Str $ x ++ concat (intersperse " -> " xs)
             Just y -> Tags $ Str x : intersperse (Str " -> ") (zipWith f (typeOrder y) (init xs) ++ [Str $ last xs])
                 where f n x = TagColor n (Str x) -}
+
+renderResult (ResultType item@Item{itemName=name} typ) =
+    case itemRest item of
+        ItemFunc typ -> Tags [showMod, showName, Str " :: ", showType typ]
+        ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
+        ItemData kw (LhsStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
+        rest -> Str $ "renderResult, todo: " ++ name ++ " " ++ show rest
+    where
+        showKeyword s = TagUnderline $ Str s
+    
+        showMod = Str $ concatMap (++".") $ modName $ itemMod item
+    
+        showName = Str name
+        
+        showType (TypeStr x xs) = Str $ x ++ concat (intersperse " -> " xs)
