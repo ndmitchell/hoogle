@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.Type(
-    DataBase(..), createDataBase,
+    DataBase(..), createDataBase, showDataBase,
     locateWebDocs, searchName, searchType
     ) where
 
@@ -50,6 +50,11 @@ createDataBase items1 = DataBase "" "" newItems newModules
         -- these are the two things that change the items
         (items2,newModules) = createModules items1
         (items ,newItems  ) = createItems items2
+
+
+showDataBase :: String -> DataBase -> String
+showDataBase "alias" db = show (alias db)
+showDataBase sect db = "ERROR: do not know how to show section, " ++ show sect
 
 
 -- forward methods

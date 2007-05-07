@@ -50,6 +50,10 @@ adminMode ("@convert":from:to) = do
         putStrLn $ "Succes, " ++ dest ++ " created"
     where dest = if null to then replaceExtension from ".hoo" else head to
 
+adminMode ("@view":file:sect) = do
+        db <- loadDataBase file
+        if null sect then print db else putStrLn $ showDataBase (head sect) db
+
 adminMode _ = putStr $ unlines
     ["Unrecognised @admin command, expecting one of:"
     ,""
