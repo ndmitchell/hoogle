@@ -37,35 +37,21 @@ resultScore (ResultType i t) = ScoreType $ typeScore i t
 
 
 renderResult :: Result -> TagStr
-renderResult (ResultText item@Item{itemName=name} txt) =
+renderResult r =
     case itemRest item of
         ItemFunc typ -> Tags [showMod, showName, Str " :: ", showType typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
         ItemData kw (LhsStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
         rest -> Str $ "renderResult, todo: " ++ name ++ " " ++ show rest
     where
+        item@Item{itemName=name} = itemResult r
+    
         showKeyword s = TagUnderline $ Str s
     
         showMod = Str $ concatMap (++".") $ modName $ itemMod item
     
-        showName = renderResultText item txt
-        
-        showType (TypeStr x xs) = Str $ x ++ concat (intersperse " -> " xs) {- case Nothing of
-            Nothing -> Str $ x ++ concat (intersperse " -> " xs)
-            Just y -> Tags $ Str x : intersperse (Str " -> ") (zipWith f (typeOrder y) (init xs) ++ [Str $ last xs])
-                where f n x = TagColor n (Str x) -}
-
-renderResult (ResultType item@Item{itemName=name} typ) =
-    case itemRest item of
-        ItemFunc typ -> Tags [showMod, showName, Str " :: ", showType typ]
-        ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
-        ItemData kw (LhsStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
-        rest -> Str $ "renderResult, todo: " ++ name ++ " " ++ show rest
-    where
-        showKeyword s = TagUnderline $ Str s
-    
-        showMod = Str $ concatMap (++".") $ modName $ itemMod item
-    
-        showName = Str name
+        showName = case r of
+                       ResultText _ txt -> renderResultText item txt
+                       _ -> Str name
         
         showType (TypeStr x xs) = Str $ x ++ concat (intersperse " -> " xs)
