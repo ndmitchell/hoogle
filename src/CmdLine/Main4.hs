@@ -15,6 +15,7 @@ import Data.Maybe
 import Data.Char
 import System.Directory
 import Control.Monad
+import System.FilePath
 
 
 versionNum = "4.0 pre"
@@ -27,9 +28,7 @@ main =
         args <- getArgs
         case args of
             [] -> putStr helpMsg
-            ["@",infile,outfile] -> do
-                convert infile outfile
-                putStrLn $ "Success, " ++ outfile ++ " created"
+            (('@':_):_) -> adminMode args
             _ -> hoogle $ safeArrow $ joinArgs args
     where
         joinArgs = concat . intersperse " " . map f
@@ -42,6 +41,24 @@ main =
                 f ('-':'#':xs) = '-':'>':f xs
                 f (x:xs) = x : f xs
                 f [] = []
+
+
+-- | Features only available from the command line version
+adminMode :: [String] -> IO ()
+adminMode ("@convert":from:to) = do
+        convert from dest
+        putStrLn $ "Succes, " ++ dest ++ " created"
+    where dest = if null to then replaceExtension from ".hoo" else head to
+
+adminMode _ = putStr $ unlines
+    ["Unrecognised @admin command, expecting one of:"
+    ,""
+    ,"  @convert file.txt [file.hoo]"
+    ,"  @view file.hoo [section]"
+    ,""
+    ,"For normal help do --help."
+    ]
+
 
 
 -- do a search of some form
