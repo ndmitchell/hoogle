@@ -35,7 +35,7 @@ orderAliases xs = f $ reqAlias (map fst xs) xs
         f [] = []
         f (x:xs) = map fst yes ++ f (map (g del) no)
             where
-                (yes,no) = partition (null . snd) xs
+                (yes,no) = partition (null . snd) (x:xs)
                 (yes2,no2) = if null yes then ([x],xs) else (yes,no)
                 del = map (fst . fst) yes
 
