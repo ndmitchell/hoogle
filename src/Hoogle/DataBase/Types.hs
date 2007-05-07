@@ -12,6 +12,7 @@ import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Alias
 
 import Data.Binary.Defer
+import Data.Maybe
 
 
 data Types = Types [TypeInfo]
@@ -55,25 +56,36 @@ searchTypes (Types dbt,dbi,dba) (TypeSig c1 t) = concatMap f dbt
     where
         t1 = splitFun t
         f (TypeInfo c2 t2 perm) = [(i, TypeMatch [] d) | (m,d) <- ans, Permute i _ <- perm]
-            where ans = matchPermute c1 c2 t1 t2
+            where ans = matchPermute (dbi,dba) c1 c2 t1 t2
 
 
 
 type Mapping = [(Int,Int)]
 
-matchPermute :: Constraint -> Constraint -> [Type] -> [Type] -> [(Mapping,[TypeDiff])]
-matchPermute c1 c2 t1 t2 | length t1 == length t2 = 
-    case matches c1 c2 t1 t2 of
+matchPermute :: (Instances,Alias) -> Constraint -> Constraint -> [Type] -> [Type] -> [(Mapping,[TypeDiff])]
+matchPermute d c1 c2 t1 t2 | length t1 == length t2 = 
+    case matches d c1 c2 t1 t2 of
         Nothing -> []
         Just y -> [(zip [0..] [0..length t1 - 2], y)]
-matchPermute _ _ _ _ = []
+matchPermute _ _ _ _ _ = []
 
 
-matches c1 c2 ts1 ts2 = sequence (zipWith (match c1 c2) ts1 ts2) >>= return . concat
+matches d c1 c2 ts1 ts2 = sequence (zipWith (match d c1 c2) ts1 ts2) >>= return . concat
 
 
-match :: Constraint -> Constraint -> Type -> Type -> Maybe [TypeDiff]
-match c1 c2 (TLit t1) (TLit t2) | t1 == t2 = Just []
-match c1 c2 (TApp (TLit t1) u1) (TApp (TLit t2) u2) | t1 == t2 = matches c1 c2 u1 u2
-match _ _ _ _ = Nothing
+match :: (Instances,Alias) -> Constraint -> Constraint -> Type -> Type -> Maybe [TypeDiff]
+match d c1 c2 (TLit t1) (TLit t2) | t1 == t2 = Just []
+match d c1 c2 a1@(TApp (TLit t1) u1) a2@(TApp (TLit t2) u2)
+    | t1 == t2 = matches d c1 c2 u1 u2
+    | isJust m1 && m1 >= m2 = let (c_1,a_1) = follow c1 a1 in cont c_1 c2 a_1 a2
+    | isJust m2 =             let (c_2,a_2) = follow c2 a2 in cont c1 c_2 a1 a_2
+    where
+        a = snd d
+        m1 = isAlias a t1
+        m2 = isAlias a t2
+
+        follow c1 a1 = let TypeSig c_1 a_1 = followAlias a (TypeSig c1 a1) in (c_1, a_1)
+        cont c1 c2 a1 a2 = match d c1 c2 a1 a2 >>= return . (TypeAlias:)
+
+match _ _ _ _ _ = Nothing
 
