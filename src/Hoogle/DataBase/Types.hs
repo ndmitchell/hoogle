@@ -92,13 +92,8 @@ reduceAll inst alia sig1 sig2
 reduce :: Instances -> Alias -> TypeSig -> TypeSig -> Maybe (TypeDiff, TypeSig, TypeSig)
 reduce inst alia s1 s2 = f (reducers inst alia)
     where
-        n1 = norm s1; n2 = norm s2
-    
         f [] = Nothing
-        f (act:xs) = act n1 n2 `mplus` f xs
-
-        norm x@(TypeSig _ TApp{}) = x
-        norm (TypeSig x y) = TypeSig x (TApp y [])
+        f (act:xs) = act s1 s2 `mplus` f xs
 
 
 reducers :: Instances -> Alias -> [Reduce]
@@ -115,6 +110,7 @@ reduceAlias alia t1 t2
         m1 = test a1; m2 = test a2
         
         pick (TypeSig _ (TApp (TLit x) _)) = Just x
+        pick (TypeSig _ (TLit x)) = Just x
         pick _ = Nothing
         
         test t = isAlias alia =<< t

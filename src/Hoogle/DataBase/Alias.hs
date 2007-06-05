@@ -73,6 +73,7 @@ isAlias (Alias a) x = liftM fst $ Map.lookup x a
 
 
 followAlias :: Alias -> TypeSig -> TypeSig
+followAlias a (TypeSig c (TLit x)) = followAlias a (TypeSig c (TApp (TLit x) []))
 followAlias (Alias a) (TypeSig con1 (TApp (TLit name) vars)) =
         TypeSig (con1 ++ map f con2) (f typ)
     where
