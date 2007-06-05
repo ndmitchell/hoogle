@@ -11,7 +11,7 @@ data TypeMatch = TypeMatch [Int] [TypeDiff]
                  deriving Show
 
 data TypeDiff = TypeAlpha String String
-              | TypeAlias
+              | TypeAlias String
                 deriving (Show, Eq)
 
 

@@ -119,4 +119,4 @@ reduceAlias alia t1 t2
         
         test t = isAlias alia =<< t
 
-        diff (Just x) = TypeAlias
+        diff (Just x) = TypeAlias x
