@@ -74,21 +74,46 @@ matches d c1 c2 ts1 ts2 = sequence (zipWith (match d c1 c2) ts1 ts2) >>= return 
 
 
 match :: (Instances,Alias) -> Constraint -> Constraint -> Type -> Type -> Maybe [TypeDiff]
-match d@(inst,alia) c1 c2 t1 t2 = f (norm t1) (norm t2)
+match (inst,alia) c1 c2 t1 t2 = reduceAll inst alia (TypeSig c1 t1) (TypeSig c2 t2)
+
+
+type Reduce = TypeSig -> TypeSig -> Maybe (TypeSig, TypeSig)
+
+
+reduceAll :: Instances -> Alias -> TypeSig -> TypeSig -> Maybe [TypeDiff]
+reduceAll inst alia sig1 sig2
+    | sig1 == sig2 = Just []
+    | otherwise = do
+        (a,s1,s2) <- reduce inst alia sig1 sig2
+        b <- reduceAll inst alia s1 s2
+        return (a:b)
+
+reduce :: Instances -> Alias -> TypeSig -> TypeSig -> Maybe (TypeDiff, TypeSig, TypeSig)
+reduce inst alia s1 s2 = f (reducers inst alia)
     where
-        f a1@(TApp (TLit t1) u1) a2@(TApp (TLit t2) u2)
-            | t1 == t2 = matches d c1 c2 u1 u2
-            | isJust m1 && m1 >= m2 = let (c_1,a_1) = follow c1 a1 in cont c_1 c2 a_1 a2
-            | isJust m2 =             let (c_2,a_2) = follow c2 a2 in cont c1 c_2 a1 a_2
-            where
-                m1 = isAlias alia t1
-                m2 = isAlias alia t2
+        n1 = norm s1; n2 = norm s2
+    
+        f [] = Nothing
+        f ((cost,act):xs) =
+            case act n1 n2 of
+                Nothing -> f xs
+                Just (r1,r2) -> Just (cost,r1,r2)
 
-                follow c1 a1 = let TypeSig c_1 a_1 = followAlias alia (TypeSig c1 a1) in (c_1, a_1)
-                cont c1 c2 a1 a2 = match d c1 c2 a1 a2 >>= return . (TypeAlias:)
-
-        f _ _ = Nothing
+        norm x@(TypeSig _ TApp{}) = x
+        norm (TypeSig x y) = TypeSig x (TApp y [])
 
 
-        norm (TLit x) = TApp (TLit x) []
-        norm x = x
+reducers :: Instances -> Alias -> [(TypeDiff,Reduce)]
+reducers inst alia = [(TypeAlias,reduceAlias alia)]
+
+
+reduceAlias :: Alias -> Reduce
+reduceAlias alia t1 t2
+    | isJust m1 && m1 >= m2 = Just (followAlias alia t1, t2)
+    | isJust m2             = Just (t1, followAlias alia t2)
+    | otherwise = Nothing
+    where
+        m1 = test t1; m2 = test t2
+        test t = do
+            TypeSig _ (TApp (TLit x) _) <- return t
+            isAlias alia x
