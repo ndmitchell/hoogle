@@ -52,9 +52,16 @@ createDataBase items1 = DataBase "" "" newItems newModules
         (items ,newItems  ) = createItems items2
 
 
+sections = [("alias",show . alias)
+           ,("types",show . types)
+           ]
+
 showDataBase :: String -> DataBase -> String
-showDataBase "alias" db = show (alias db)
-showDataBase sect db = "ERROR: do not know how to show section, " ++ show sect
+showDataBase sect db =
+    case lookup sect sections of
+        Just i -> i db
+        Nothing -> "ERROR: do not know how to show section, " ++ show sect ++ "\n" ++
+                   "Must be one of: " ++ unwords (map fst sections)
 
 
 -- forward methods
