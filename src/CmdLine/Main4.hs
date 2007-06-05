@@ -47,7 +47,7 @@ main =
 adminMode :: [String] -> IO ()
 adminMode ("@convert":from:to) = do
         convert from dest
-        putStrLn $ "Succes, " ++ dest ++ " created"
+        putStrLn $ "Success, " ++ dest ++ " created"
     where dest = if null to then replaceExtension from ".hoo" else head to
 
 adminMode ("@view":file:sect) = do
