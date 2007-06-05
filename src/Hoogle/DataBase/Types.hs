@@ -13,6 +13,7 @@ import Hoogle.DataBase.Alias
 
 import Data.Binary.Defer
 import Data.Maybe
+import Control.Monad
 
 
 data Types = Types [TypeInfo]
@@ -77,7 +78,7 @@ match :: (Instances,Alias) -> Constraint -> Constraint -> Type -> Type -> Maybe 
 match (inst,alia) c1 c2 t1 t2 = reduceAll inst alia (TypeSig c1 t1) (TypeSig c2 t2)
 
 
-type Reduce = TypeSig -> TypeSig -> Maybe (TypeSig, TypeSig)
+type Reduce = TypeSig -> TypeSig -> Maybe (TypeDiff, TypeSig, TypeSig)
 
 
 reduceAll :: Instances -> Alias -> TypeSig -> TypeSig -> Maybe [TypeDiff]
@@ -94,26 +95,28 @@ reduce inst alia s1 s2 = f (reducers inst alia)
         n1 = norm s1; n2 = norm s2
     
         f [] = Nothing
-        f ((cost,act):xs) =
-            case act n1 n2 of
-                Nothing -> f xs
-                Just (r1,r2) -> Just (cost,r1,r2)
+        f (act:xs) = act n1 n2 `mplus` f xs
 
         norm x@(TypeSig _ TApp{}) = x
         norm (TypeSig x y) = TypeSig x (TApp y [])
 
 
-reducers :: Instances -> Alias -> [(TypeDiff,Reduce)]
-reducers inst alia = [(TypeAlias,reduceAlias alia)]
+reducers :: Instances -> Alias -> [Reduce]
+reducers inst alia = [reduceAlias alia]
 
 
 reduceAlias :: Alias -> Reduce
 reduceAlias alia t1 t2
-    | isJust m1 && m1 >= m2 = Just (followAlias alia t1, t2)
-    | isJust m2             = Just (t1, followAlias alia t2)
+    | isJust m1 && m1 >= m2 = Just (diff a1, followAlias alia t1, t2)
+    | isJust m2             = Just (diff a2, t1, followAlias alia t2)
     | otherwise = Nothing
     where
-        m1 = test t1; m2 = test t2
-        test t = do
-            TypeSig _ (TApp (TLit x) _) <- return t
-            isAlias alia x
+        a1 = pick t1; a2 = pick t2
+        m1 = test a1; m2 = test a2
+        
+        pick (TypeSig _ (TApp (TLit x) _)) = Just x
+        pick _ = Nothing
+        
+        test t = isAlias alia =<< t
+
+        diff (Just x) = TypeAlias
