@@ -5,6 +5,7 @@ import Hoogle.Query.Type
 import Hoogle.TypeSig.All
 import Text.ParserCombinators.Parsec
 import Data.Char
+import Control.Monad
 import Data.List
 import Data.Maybe
 
@@ -25,9 +26,7 @@ parseCmdlineQuery args = parseQuery $ concat $ intersperse " " $ map f args
 blank = Query [] [] Nothing [] []
 
 merge (Query a1 b1 c1 d1 e1) (Query a2 b2 c2 d2 e2) =
-        Query (a1++a2) (b1++b2) c3 (d1++d2) (e1++e2)
-    where
-        c3 = listToMaybe $ maybeToList c1 ++ maybeToList c2
+        Query (a1++a2) (b1++b2) (c1 `mplus` c2) (d1++d2) (e1++e2)
 
 merges xs = foldr merge blank xs
 
