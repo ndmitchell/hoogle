@@ -12,7 +12,9 @@ import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Alias
 
 import Data.Binary.Defer
+import Data.Generics.Uniplate
 import Data.Maybe
+import Data.List
 import Control.Monad
 
 
@@ -103,7 +105,7 @@ reduce inst alia s1 s2 = f (reducers inst alia)
 
 
 reducers :: Instances -> Alias -> [Reduce]
-reducers inst alia = [reduceEqual, reduceAlias alia, reduceAlpha, reduceDecompose inst alia]
+reducers inst alia = [reduceEqual, reduceAlias alia, reduceAlpha, reduceDecompose inst alia, reduceDeadContext]
 
 
 reduceEqual :: Reduce
@@ -138,3 +140,17 @@ reduceDecompose :: Instances -> Alias -> Reduce
 reduceDecompose inst alia (TypeSig c1 (TApp t1 ts1)) (TypeSig c2 (TApp t2 ts2))
     | length ts1 == length ts2 = Just ([], zip (map (TypeSig c1) $ t1:ts1) (map (TypeSig c2) $ t2:ts2))
 reduceDecompose _ _ _ _ = Nothing
+
+
+reduceDeadContext :: Reduce
+reduceDeadContext t1 t2 | isJust m1 || isJust m2 = Just ([], [(fromMaybe t1 m1, fromMaybe t2 m2)])
+    where
+        m1 = f t1; m2 = f t2
+
+        f (TypeSig cs t) | null kill = Nothing
+                         | otherwise = Just (TypeSig keep t)
+            where
+                free = [x | TVar x <- universe t]
+                (keep,kill) = partition g cs
+                g v = any (`elem` free) [x | TVar x <- universe v]
+reduceDeadContext _ _ = Nothing
