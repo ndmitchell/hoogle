@@ -12,6 +12,7 @@ import Hoogle.DataBase.Kinds
 import Hoogle.DataBase.Alias
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Types
+import Hoogle.DataBase.Reduce
 import Hoogle.Item.All
 import Hoogle.TypeSig.All
 import Hoogle.Result.All
@@ -73,8 +74,10 @@ searchName db xs = map (resultText xs . getItem db) ans
 
 
 searchType :: DataBase -> TypeSig -> [Result]
-searchType db t = [resultType m (getItem db i) | (i,m) <- searchTypes d t]
-    where d = (types db, instances db, alias db)
+searchType db t = [resultType m (getItem db i) | (i,m) <- searchTypes ts red t]
+    where
+        (ts,is,as) = (types db, instances db, alias db)
+        red = reduce is as
 
 
 getItem :: DataBase -> ItemId -> Item
