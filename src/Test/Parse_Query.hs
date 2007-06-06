@@ -19,4 +19,4 @@ parse_Query = do
     "Data.Map.map" === defaultQuery{scope = [PlusModule ["Data","Map"]], names = ["map"]}
 
     -- fails currently (no idea why)
-    -- "[a]" === defaultQuery{typeSig = Just (TypeSig [] (TApp (TLit "[]") [TVar "a"]))}
+    "[a]" === defaultQuery{typeSig = Just (TypeSig [] (TApp (TLit "[]") [TVar "a"]))}

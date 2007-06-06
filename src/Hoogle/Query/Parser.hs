@@ -13,7 +13,7 @@ import Data.Maybe
 ascSymbols = "!#$%&*+./<=>?@\\^|-~"
 
 parseQuery :: String -> Either ParseError Query
-parseQuery input = parse (do x <- parsecQuery ; eof ; return x) "" input
+parseQuery input = parse parsecQuery "" input
 
 
 parseCmdlineQuery :: [String] -> Either ParseError Query
@@ -32,8 +32,10 @@ merges xs = foldr merge blank xs
 
 
 parsecQuery :: Parser Query
-parsecQuery = do spaces ; try names <|> types
+parsecQuery = do spaces ; try (end names) <|> (end types)
     where
+        end f = do x <- f; eof; return x
+    
         names = do a <- many (flag <|> name)
                    b <- option blank (string "::" >> spaces >> types)
                    return (merge (merges a) b)
