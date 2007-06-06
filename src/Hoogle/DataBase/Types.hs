@@ -79,7 +79,7 @@ match :: (Instances,Alias) -> Constraint -> Constraint -> Type -> Type -> Maybe 
 match (inst,alia) c1 c2 t1 t2 = reduceAll inst alia (TypeSig c1 t1) (TypeSig c2 t2)
 
 
-type Reduce = TypeSig -> TypeSig -> Maybe (TypeDiff, TypeSig, TypeSig)
+type Reduce = TypeSig -> TypeSig -> Maybe ([TypeDiff], TypeSig, TypeSig)
 
 
 reduceAll :: Instances -> Alias -> TypeSig -> TypeSig -> Maybe [TypeDiff]
@@ -88,9 +88,9 @@ reduceAll inst alia sig1 sig2
     | otherwise = do
         (a,s1,s2) <- reduce inst alia sig1 sig2
         b <- reduceAll inst alia s1 s2
-        return (a:b)
+        return (a++b)
 
-reduce :: Instances -> Alias -> TypeSig -> TypeSig -> Maybe (TypeDiff, TypeSig, TypeSig)
+reduce :: Instances -> Alias -> Reduce
 reduce inst alia s1 s2 = f (reducers inst alia)
     where
         f [] = Nothing
@@ -116,10 +116,10 @@ reduceAlias alia t1 t2
         
         test t = isAlias alia =<< t
 
-        diff (Just x) = TypeAlias x
+        diff (Just x) = [TypeAlias x]
 
 
 reduceAlpha :: Reduce
 reduceAlpha t1@(TypeSig _ (TVar a1)) t2@(TypeSig _ (TVar a2)) | a1 /= a2 =
-    Just (TypeAlpha a1 a2, t1, renameVars (\x -> if x == a2 then a1 else x) t2)
+    Just ([TypeAlpha a1 a2], t1, renameVars (\x -> if x == a2 then a1 else x) t2)
 reduceAlpha _ _ = Nothing
