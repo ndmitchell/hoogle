@@ -3,11 +3,14 @@ module Hoogle.TypeSig.Type where
 
 import Data.List
 import Data.Binary.Defer
+import Data.Generics.UniplateOn
 
+
+---------------------------------------------------------------------
+-- DATA TYPES
 
 data TypeSig = TypeSig Constraint Type
                deriving Eq
-
 
 type Constraint = [Type]
 
@@ -18,6 +21,21 @@ data Type = TApp Type [Type] -- a list of types, first one being the constructor
           | TFun [Type]
           deriving Eq
 
+
+---------------------------------------------------------------------
+-- UNIPLATE INSTANCES
+
+onTypeSig :: ReplaceType TypeSig Type
+onTypeSig (TypeSig xs x) = (x:xs, \(x:xs) -> TypeSig xs x)
+
+instance Uniplate Type where
+    replaceChildren (TApp x xs) = (x:xs, \(x:xs) -> TApp x xs)
+    replaceChildren (TFun xs) = (xs, \xs -> TFun xs)
+    replaceChildren x = ([], \[] -> x)
+
+
+---------------------------------------------------------------------
+-- BINARYDEFER INSTANCES
 
 instance BinaryDefer TypeSig where
     bothDefer = defer [\ ~(TypeSig a b) -> unit TypeSig << a << b]
@@ -30,21 +48,8 @@ instance BinaryDefer Type where
                       ]
 
 
-normaliseTypeSig :: TypeSig -> TypeSig
-normaliseTypeSig (TypeSig a b) = TypeSig (map f a) (f b)
-    where
-        f (TApp x []) = f x
-        f (TApp x xs) = TApp (f x) (map f xs)
-        
-        f (TFun [x]) = f x
-        f (TFun xs) = TFun $ g (map f xs)
-        
-        f x = x
-        
-        g [] = []
-        g [TFun xs] = g xs
-        g (x:xs) = x : g xs
-
+---------------------------------------------------------------------
+-- SHOW INSTANCES
 
 showConstraint :: Constraint -> String
 showConstraint [] = ""
@@ -74,12 +79,29 @@ instance Show TypeSig where
     show (TypeSig x xs) = showConstraint x ++ show xs
 
 
-splitFun :: Type -> [Type]
-splitFun (TFun xs) = xs
-splitFun x = [x]
-
-
 -- shows an element within a function
 -- to get brackets right after splitFun
 showFun :: Type -> String
 showFun x = showsPrec 1 x ""
+
+
+---------------------------------------------------------------------
+-- OPERATIONS
+
+normaliseTypeSig :: TypeSig -> TypeSig
+normaliseTypeSig = transformOn onTypeSig f
+    where
+        f (TApp x []) = f x
+        f (TFun [x]) = f x
+        f (TFun xs) = TFun $ g xs
+        f x = x
+
+        g [] = []
+        g [TFun xs] = g xs
+        g (x:xs) = x : g xs
+
+
+splitFun :: Type -> [Type]
+splitFun (TFun xs) = xs
+splitFun x = [x]
+
