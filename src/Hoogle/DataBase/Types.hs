@@ -98,7 +98,7 @@ reduce inst alia s1 s2 = f (reducers inst alia)
 
 
 reducers :: Instances -> Alias -> [Reduce]
-reducers inst alia = [reduceAlias alia]
+reducers inst alia = [reduceAlias alia, reduceAlpha]
 
 
 reduceAlias :: Alias -> Reduce
@@ -117,3 +117,9 @@ reduceAlias alia t1 t2
         test t = isAlias alia =<< t
 
         diff (Just x) = TypeAlias x
+
+
+reduceAlpha :: Reduce
+reduceAlpha t1@(TypeSig _ (TVar a1)) t2@(TypeSig _ (TVar a2)) | a1 /= a2 =
+    Just (TypeAlpha a1 a2, t1, renameVars (\x -> if x == a2 then a1 else x) t2)
+reduceAlpha _ _ = Nothing
