@@ -90,12 +90,10 @@ reduceList inst alia (x:xs) = do
     return (a++b)
 
 reducePair :: Instances -> Alias -> (TypeSig,TypeSig) -> Maybe [TypeDiff]
-reducePair inst alia (sig1,sig2)
-    | sig1 == sig2 = Just []
-    | otherwise = do
-        (a,ss) <- reduce inst alia sig1 sig2
-        b <- reduceList inst alia ss
-        return (a++b)
+reducePair inst alia (sig1,sig2) = do
+    (a,ss) <- reduce inst alia sig1 sig2
+    b <- reduceList inst alia ss
+    return (a++b)
 
 reduce :: Instances -> Alias -> Reduce
 reduce inst alia s1 s2 = f (reducers inst alia)
@@ -105,8 +103,12 @@ reduce inst alia s1 s2 = f (reducers inst alia)
 
 
 reducers :: Instances -> Alias -> [Reduce]
-reducers inst alia = [reduceAlias alia, reduceAlpha, reduceDecompose inst alia]
+reducers inst alia = [reduceEqual, reduceAlias alia, reduceAlpha, reduceDecompose inst alia]
 
+
+reduceEqual :: Reduce
+reduceEqual t1 t2 | t1 == t2 = Just ([], [])
+                  | otherwise = Nothing
 
 reduceAlias :: Alias -> Reduce
 reduceAlias alia t1 t2
