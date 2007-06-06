@@ -53,8 +53,9 @@ createTypes xs = Types $ concatMap f xs
 
 
 searchTypes :: (Types, Instances, Alias) -> TypeSig -> [(ItemId, TypeMatch)]
-searchTypes (Types dbt,dbi,dba) (TypeSig c1 t) = concatMap f dbt
+searchTypes (Types dbt,dbi,dba) orig = concatMap f dbt
     where
+        TypeSig c1 t = renameVars ('$':) orig
         t1 = splitFun t
         f (TypeInfo c2 t2 perm) = [(i, TypeMatch [] d) | (m,d) <- ans, Permute i _ <- perm]
             where ans = matchPermute (dbi,dba) c1 c2 t1 t2
