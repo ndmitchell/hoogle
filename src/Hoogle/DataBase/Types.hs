@@ -76,18 +76,25 @@ matches d c1 c2 ts1 ts2 = sequence (zipWith (match d c1 c2) ts1 ts2) >>= return 
 
 
 match :: (Instances,Alias) -> Constraint -> Constraint -> Type -> Type -> Maybe [TypeDiff]
-match (inst,alia) c1 c2 t1 t2 = reduceAll inst alia (TypeSig c1 t1) (TypeSig c2 t2)
+match (inst,alia) c1 c2 t1 t2 = reducePair inst alia (TypeSig c1 t1, TypeSig c2 t2)
 
 
-type Reduce = TypeSig -> TypeSig -> Maybe ([TypeDiff], TypeSig, TypeSig)
+type Reduce = TypeSig -> TypeSig -> Maybe ([TypeDiff], [(TypeSig,TypeSig)])
 
 
-reduceAll :: Instances -> Alias -> TypeSig -> TypeSig -> Maybe [TypeDiff]
-reduceAll inst alia sig1 sig2
+reduceList :: Instances -> Alias -> [(TypeSig,TypeSig)] -> Maybe [TypeDiff]
+reduceList inst alia [] = Just []
+reduceList inst alia (x:xs) = do
+    a <- reducePair inst alia x
+    b <- reduceList inst alia xs
+    return (a++b)
+
+reducePair :: Instances -> Alias -> (TypeSig,TypeSig) -> Maybe [TypeDiff]
+reducePair inst alia (sig1,sig2)
     | sig1 == sig2 = Just []
     | otherwise = do
-        (a,s1,s2) <- reduce inst alia sig1 sig2
-        b <- reduceAll inst alia s1 s2
+        (a,ss) <- reduce inst alia sig1 sig2
+        b <- reduceList inst alia ss
         return (a++b)
 
 reduce :: Instances -> Alias -> Reduce
@@ -98,13 +105,13 @@ reduce inst alia s1 s2 = f (reducers inst alia)
 
 
 reducers :: Instances -> Alias -> [Reduce]
-reducers inst alia = [reduceAlias alia, reduceAlpha]
+reducers inst alia = [reduceAlias alia, reduceAlpha, reduceDecompose inst alia]
 
 
 reduceAlias :: Alias -> Reduce
 reduceAlias alia t1 t2
-    | isJust m1 && m1 >= m2 = Just (diff a1, followAlias alia t1, t2)
-    | isJust m2             = Just (diff a2, t1, followAlias alia t2)
+    | isJust m1 && m1 >= m2 = Just (diff a1, [(followAlias alia t1, t2)])
+    | isJust m2             = Just (diff a2, [(t1, followAlias alia t2)])
     | otherwise = Nothing
     where
         a1 = pick t1; a2 = pick t2
@@ -121,5 +128,11 @@ reduceAlias alia t1 t2
 
 reduceAlpha :: Reduce
 reduceAlpha t1@(TypeSig _ (TVar a1)) t2@(TypeSig _ (TVar a2)) | a1 /= a2 =
-    Just ([TypeAlpha a1 a2], t1, renameVars (\x -> if x == a2 then a1 else x) t2)
+    Just ([TypeAlpha a1 a2], [(t1, renameVars (\x -> if x == a2 then a1 else x) t2)])
 reduceAlpha _ _ = Nothing
+
+
+reduceDecompose :: Instances -> Alias -> Reduce
+reduceDecompose inst alia (TypeSig c1 (TApp t1 ts1)) (TypeSig c2 (TApp t2 ts2))
+    | length ts1 == length ts2 = Just ([], zip (map (TypeSig c1) $ t1:ts1) (map (TypeSig c2) $ t2:ts2))
+reduceDecompose _ _ _ _ = Nothing
