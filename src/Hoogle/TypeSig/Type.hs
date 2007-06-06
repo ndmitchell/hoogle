@@ -105,3 +105,9 @@ splitFun :: Type -> [Type]
 splitFun (TFun xs) = xs
 splitFun x = [x]
 
+
+renameVars :: (String -> String) -> TypeSig -> TypeSig
+renameVars f = transformOn onTypeSig g
+    where
+        g (TVar x) = TVar $ f x
+        g x = x
