@@ -3,6 +3,7 @@ module Hoogle.Query.Type where
 
 import Data.Maybe
 import Data.Char
+import Data.Generics.UniplateOn
 
 import Hoogle.General
 import Hoogle.TypeSig.All
@@ -57,3 +58,9 @@ data Flag = Flag String String
 
 getFlag :: [String] -> [Flag] -> Maybe String
 getFlag names flags = listToMaybe [b | Flag a b <- flags, n <- names, map toLower a == n]
+
+
+
+transformQueryType :: (Type -> Type) -> Query -> Query
+transformQueryType f q = q{typeSig = maybe Nothing (Just . transformOn onTypeSig f) (typeSig q)}
+
