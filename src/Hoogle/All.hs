@@ -4,7 +4,7 @@ module Hoogle.All(
     Flag(..), getFlag,
     DataBase, loadDataBase, showDataBase, convert,
     searchAll, searchRange,
-    Result(..), renderResult
+    Result(..), renderResult, verboseResult
     ) where
 
 import Hoogle.Query.All

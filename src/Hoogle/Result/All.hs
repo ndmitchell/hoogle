@@ -2,7 +2,7 @@
 module Hoogle.Result.All(
     Result(..), resultText, renderResult,
     TypeMatch(..), TypeDiff(..), resultType,
-    Score, resultScore
+    Score, resultScore, verboseResult
     ) where
 
 import Hoogle.Result.TextMatch
@@ -55,3 +55,8 @@ renderResult r =
                        _ -> Str name
         
         showType (TypeStr x xs) = Str $ x ++ concat (intersperse " -> " xs)
+
+
+verboseResult :: Result -> String
+verboseResult (ResultText{}) = ""
+verboseResult (ResultType _ t) = verboseTypeMatch t

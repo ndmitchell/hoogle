@@ -82,6 +82,7 @@ hoogle str =
                     hoogle2 database x
 
 
+verbose = isJust . getFlag ["verbose"]
 version = isJust . getFlag ["v","version","ver"]
 help    = isJust . getFlag ["?","h","help"]
 color   = isJust . getFlag ["c","col","colour","color"]
@@ -108,10 +109,14 @@ hoogle2 database query@Query{flags=flags} =
                 Nothing -> searchAll   [database] query
                 Just n  -> searchRange [database] query 0 (max 1 n)
         
-        putStr $ unlines $ map (showTag . renderResult) res
+        putStr $ unlines $ map f res
     where
         col = color flags
+        
+        f x = showTag (renderResult x) ++ showExtra x
         showTag = if col then showTagConsole else show
+        showExtra x = if verbose flags && not (null s) then " --" ++ s else ""
+            where s = verboseResult x
         
 {-
 
