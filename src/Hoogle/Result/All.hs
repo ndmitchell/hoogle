@@ -42,6 +42,7 @@ renderResult r =
         ItemFunc typ -> Tags [showMod, showName, Str " :: ", showType typ]
         ItemModule -> Tags [showKeyword "module",Str " ",showMod, showName]
         ItemData kw (LhsStr con free) -> Tags [showKeyword (show kw),Str " ",Str con,showMod,showName,Str free]
+        ItemAlias (LhsStr con free) x -> Tags [showKeyword "type",Str " ",showName,Str " = ",showType x]
         rest -> Str $ "renderResult, todo: " ++ name ++ " " ++ show rest
     where
         item@Item{itemName=name} = itemResult r

@@ -35,7 +35,6 @@ suggestQuery db q | q /= q2 = Just $ suggestSearch q2
         g (TApp x xs) = tApp x xs
         g x = x
 
-
 suggestQuery db q | q /= q2 = Just $ suggestSearch q2
     where
         q2 = transformQueryType f q
