@@ -22,6 +22,10 @@ data Type = TApp Type [Type] -- a list of types, first one being the constructor
           deriving Eq
 
 
+tApp :: Type -> [Type] -> Type
+tApp t [] = t
+tApp t ts = TApp t ts
+
 ---------------------------------------------------------------------
 -- UNIPLATE INSTANCES
 
