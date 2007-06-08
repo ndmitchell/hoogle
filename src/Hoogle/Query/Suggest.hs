@@ -2,11 +2,18 @@
 module Hoogle.Query.Suggest(suggestQuery) where
 
 import General.All
+import Data.List
+import Hoogle.DataBase.All
 import Hoogle.Query.Type
 
 
-suggestQuery :: Query -> Maybe TagStr
-suggestQuery _ = Nothing
+suggestQuery :: DataBase -> Query -> Maybe TagStr
+suggestQuery db q | "google" `elem` names q = Just $ Tags [TagHyperlink "http://www.google.com/" (Str "Google"), Str " rocks!"]
+
+suggestQuery db q | any f (names q) = Just $ Str "Can't think of anything more interesting to search for?"
+    where f x = length x == 6 && "oogle" `isSuffixOf` x
+
+suggestQuery _ _ = Nothing
 
 {-
 

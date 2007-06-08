@@ -100,7 +100,7 @@ safeRead x = case reads x of
 hoogle2 :: DataBase -> Query -> IO ()
 hoogle2 database query@Query{flags=flags} =
     do
-        let suggest = suggestQuery query
+        let suggest = suggestQuery database query
         when (isJust suggest) $ putStrLn $ "Suggestion: " ++ showTag (fromJust suggest)
         
         when (col && isJust (typeSig query)) $ putStrLn $ showTag $ renderQuery query
