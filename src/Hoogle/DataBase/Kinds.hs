@@ -1,5 +1,5 @@
 
-module Hoogle.DataBase.Kinds(Kinds, createKinds, checkTypeKind, checkClassKind) where
+module Hoogle.DataBase.Kinds(Kinds, createKinds, checkTypeKind, checkClassKind, getNameKinds) where
 
 import Hoogle.TypeSig.All
 import Hoogle.Item.All
@@ -65,3 +65,9 @@ checkClassKind kinds name num = checkKind (kindsClass kinds) name num
 
 checkKind :: KindMap -> String -> Int -> Bool
 checkKind kmap name num = num `elem` Map.findWithDefault [] name kmap
+
+
+getNameKinds :: Kinds -> String -> [Int]
+getNameKinds kinds name = f (kindsType kinds) `union` f (kindsClass kinds)
+    where f mp = Map.findWithDefault [] name mp
+

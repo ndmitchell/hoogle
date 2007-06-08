@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Type(
     DataBase(..), createDataBase, showDataBase,
-    locateWebDocs, searchName, searchType
+    locateWebDocs, searchName, searchType, getKinds
     ) where
 
 
@@ -83,6 +83,10 @@ searchType db t = [resultType m (getItem db i) | (i,m) <- searchTypes ts red t]
 getItem :: DataBase -> ItemId -> Item
 getItem db i = item{itemMod = getModuleFromId (modules db) (modId $ itemMod item)}
     where item = getItemFromId (items db) i
+
+
+getKinds :: DataBase -> String -> [Int]
+getKinds x = getNameKinds (kinds x)
 
 
 
