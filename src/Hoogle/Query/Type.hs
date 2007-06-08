@@ -64,3 +64,5 @@ getFlag names flags = listToMaybe [b | Flag a b <- flags, n <- names, map toLowe
 transformQueryType :: (Type -> Type) -> Query -> Query
 transformQueryType f q = q{typeSig = maybe Nothing (Just . transformOn onTypeSig f) (typeSig q)}
 
+universeQueryType :: Query -> [Type]
+universeQueryType = maybe [] (universeOn onTypeSig) . typeSig
