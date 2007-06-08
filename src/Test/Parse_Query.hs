@@ -17,6 +17,6 @@ parse_Query = do
     "map :: a -> b" === defaultQuery{names = ["map"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "+Data.Map map" === defaultQuery{scope = [PlusModule ["Data","Map"]], names = ["map"]}
     "Data.Map.map" === defaultQuery{scope = [PlusModule ["Data","Map"]], names = ["map"]}
-
-    -- fails currently (no idea why)
     "[a]" === defaultQuery{typeSig = Just (TypeSig [] (TApp (TLit "[]") [TVar "a"]))}
+    "++" === defaultQuery{names = ["++"]}
+    "(++)" === defaultQuery{names = ["++"]}
