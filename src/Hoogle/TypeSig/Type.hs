@@ -29,13 +29,13 @@ tApp t ts = TApp t ts
 ---------------------------------------------------------------------
 -- UNIPLATE INSTANCES
 
-onTypeSig :: ReplaceType TypeSig Type
+onTypeSig :: BiplateType TypeSig Type
 onTypeSig (TypeSig xs x) = (x:xs, \(x:xs) -> TypeSig xs x)
 
 instance Uniplate Type where
-    replaceChildren (TApp x xs) = (x:xs, \(x:xs) -> TApp x xs)
-    replaceChildren (TFun xs) = (xs, \xs -> TFun xs)
-    replaceChildren x = ([], \[] -> x)
+    uniplate (TApp x xs) = (x:xs, \(x:xs) -> TApp x xs)
+    uniplate (TFun xs) = (xs, \xs -> TFun xs)
+    uniplate x = ([], \[] -> x)
 
 
 ---------------------------------------------------------------------
