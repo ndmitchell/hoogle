@@ -17,7 +17,7 @@ module Web.Main where
 import Hoogle.Hoogle
 import Hoogle.TextUtil
 
-import Web.CGI
+import General.CGI
 import Web.Lambdabot
 import Web.HTML
 
