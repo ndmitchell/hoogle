@@ -14,7 +14,7 @@
 
 module Doc.Main where
 
-import Web.CGI
+import General.CGI
 import Data.Maybe
 import Data.Char
 import Data.List
