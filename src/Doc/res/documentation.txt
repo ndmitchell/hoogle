@@ -4,10 +4,10 @@ Control.Concurrent.Chan		base-3.0.0.0
 Control.Concurrent.MVar		base-3.0.0.0
 Control.Concurrent.QSem		base-3.0.0.0
 Control.Concurrent.QSemN		base-3.0.0.0
-Control.Concurrent.STM		stm
-Control.Concurrent.STM.TChan		stm
-Control.Concurrent.STM.TMVar		stm
-Control.Concurrent.STM.TVar		stm
+Control.Concurrent.STM		stm-2.1.1.0
+Control.Concurrent.STM.TChan		stm-2.1.1.0
+Control.Concurrent.STM.TMVar		stm-2.1.1.0
+Control.Concurrent.STM.TVar		stm-2.1.1.0
 Control.Concurrent.SampleVar		base-3.0.0.0
 Control.Exception		base-3.0.0.0
 Control.Monad		base-3.0.0.0
