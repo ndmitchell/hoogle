@@ -81,11 +81,11 @@ Data.Graph.Inductive.Tree		fgl
 Data.HashTable		base-3.0.0.0
 Data.IORef		base-3.0.0.0
 Data.Int		base-3.0.0.0
-Data.IntMap		base-3.0.0.0
-Data.IntSet		base-3.0.0.0
+Data.IntMap		containers-0.1.0.0
+Data.IntSet		containers-0.1.0.0
 Data.Ix		base-3.0.0.0
 Data.List		base-3.0.0.0
-Data.Map		base-3.0.0.0
+Data.Map		containers-0.1.0.0
 Data.Maybe		base-3.0.0.0
 Data.Monoid		base-3.0.0.0
 Data.PackedString		base-3.0.0.0
@@ -94,8 +94,8 @@ Data.Ratio		base-3.0.0.0
 Data.STRef		base-3.0.0.0
 Data.STRef.Lazy		base-3.0.0.0
 Data.STRef.Strict		base-3.0.0.0
-Data.Set		base-3.0.0.0
-Data.Tree		base-3.0.0.0
+Data.Set		containers-0.1.0.0
+Data.Tree		containers-0.1.0.0
 Data.Tuple		base-3.0.0.0
 Data.Typeable		base-3.0.0.0
 Data.Unique		base-3.0.0.0
