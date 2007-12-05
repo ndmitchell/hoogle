@@ -2,12 +2,15 @@
 module Main where
 
 import System.Cmd
+import System.Environment
 import System.Exit
 import System.Directory
 import System.FilePath
 import System.IO
+
 import Control.Monad
 import Data.List
+import Data.Maybe
 
 
 packages = ["http://darcs.haskell.org/packages/base/"
@@ -15,30 +18,44 @@ packages = ["http://darcs.haskell.org/packages/base/"
            ]
 
 main = do
+    args <- getArgs
+    let rebuild = "skip" `notElem` args
     createDirectoryIfMissing True "grab"
-    mapM_ generate packages
+    xs <- mapM (generate rebuild) packages
+    print xs
 
 
-generate url = do
+generate rebuild url = do
     let name = last $ words $ map (\x -> if x == '/' then ' ' else x) url
         dir = "grab" </> name
         exe = "grab" </> name </> "Setup"
-    b <- doesDirectoryExist dir
+    ans <- findDatabase name
 
-    if b
-        then system_ $ "darcs pull --repodir=" ++ dir
-        else system_ $ "darcs get --partial " ++ url ++ " --repodir=" ++ dir
+    when (rebuild || isNothing ans) $ do
+        b <- doesDirectoryExist dir
+        if b
+            then system_ $ "darcs pull --repodir=" ++ dir
+            else system_ $ "darcs get --partial " ++ url ++ " --repodir=" ++ dir
 
-    setCurrentDirectory $ "grab" </> name
-    removeFile_ "Setup.hs"
-    removeFile_ "Setup.lhs"
-    writeFile "Setup.hs" "import Distribution.Simple; main = defaultMain"
-    when (name == "base") $ fixupBaseCabal
-    system_ $ "ghc -i --make Setup"
-    system_ $ "setup configure"
-    system_ $ "setup haddock --hoogle"
+        setCurrentDirectory $ "grab" </> name
+        removeFile_ "Setup.hs"
+        removeFile_ "Setup.lhs"
+        writeFile "Setup.hs" "import Distribution.Simple; main = defaultMain"
+        when (name == "base") $ fixupBaseCabal
+        system_ $ "ghc -i --make Setup"
+        system_ $ "setup configure"
+        system_ $ "setup haddock --hoogle"
 
-    setCurrentDirectory "../.."
+        setCurrentDirectory "../.."
+
+    ans <- findDatabase name
+    return $ fromJust ans
+
+
+findDatabase name = do
+    let dir = "grab" </> name </> "dist" </> "doc" </> "html" </> name
+    files <- getDirectoryContents dir
+    return $ listToMaybe $ filter ((==) ".txt" . takeExtension) files
 
 
 system_ x = do
