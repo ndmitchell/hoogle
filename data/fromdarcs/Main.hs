@@ -15,6 +15,23 @@ import Data.Maybe
 
 packages = ["http://darcs.haskell.org/packages/base/"
            ,"http://darcs.haskell.org/packages/filepath/"
+           ,"http://darcs.haskell.org/packages/containers/"
+           ,"http://darcs.haskell.org/packages/array/"
+           ,"http://darcs.haskell.org/packages/directory/"
+           ,"http://darcs.haskell.org/packages/parsec/"
+           ,"http://darcs.haskell.org/packages/mtl/"
+           ,"http://darcs.haskell.org/packages/process/"
+           ,"http://darcs.haskell.org/packages/random/"
+           ,"http://darcs.haskell.org/packages/old-time/"
+           ,"http://darcs.haskell.org/packages/old-locale/"
+           ,"http://darcs.haskell.org/packages/network/"
+           ,"http://darcs.haskell.org/packages/template-haskell/"
+           ,"http://darcs.haskell.org/packages/cabal/"
+           ,"http://darcs.haskell.org/packages/time/"
+           ,"http://darcs.haskell.org/packages/packedstring/"
+           ,"http://darcs.haskell.org/packages/bytestring/"
+           ,"http://darcs.haskell.org/packages/stm/"
+           ,"http://darcs.haskell.org/packages/parallel/"
            ]
 
 main = do
@@ -22,8 +39,17 @@ main = do
     let rebuild = "skip" `notElem` args
     createDirectoryIfMissing True "grab"
     xs <- mapM (generate rebuild) packages
-    print xs
+    (entires,docs) <- mapAndUnzipM divide xs
+    writeFile "hoogle.txt" (unlines $ concat entires)
+    writeFile "documentation.txt" (unlines $ concat docs)
 
+
+divide file = do
+    s <- readFile file
+    let entries = lines s
+        name = takeBaseName file
+        docs = [drop 7 i ++ "\t" ++ name | i <- entries, "module " `isPrefixOf` i]
+    return (entries, docs)
 
 generate rebuild url = do
     let name = last $ words $ map (\x -> if x == '/' then ' ' else x) url
@@ -54,8 +80,9 @@ generate rebuild url = do
 
 findDatabase name = do
     let dir = "grab" </> name </> "dist" </> "doc" </> "html" </> name
-    files <- getDirectoryContents dir
-    return $ listToMaybe $ filter ((==) ".txt" . takeExtension) files
+    b <- doesDirectoryExist dir
+    files <- if not b then return [] else getDirectoryContents dir
+    return $ listToMaybe $ map (dir </>) $ filter ((==) ".txt" . takeExtension) files
 
 
 system_ x = do
