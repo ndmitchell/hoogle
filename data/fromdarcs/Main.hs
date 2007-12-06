@@ -26,7 +26,7 @@ packages = ["http://darcs.haskell.org/packages/base/"
            ,"http://darcs.haskell.org/packages/old-locale/"
            ,"http://darcs.haskell.org/packages/network/"
            ,"http://darcs.haskell.org/packages/template-haskell/"
-           ,"http://darcs.haskell.org/packages/cabal/"
+           ,"http://darcs.haskell.org/packages/Cabal/"
            ,"http://darcs.haskell.org/packages/time/"
            ,"http://darcs.haskell.org/packages/packedstring/"
            ,"http://darcs.haskell.org/packages/bytestring/"
@@ -60,7 +60,7 @@ generate rebuild url = do
     when (rebuild || isNothing ans) $ do
         b <- doesDirectoryExist dir
         if b
-            then system_ $ "darcs pull --repodir=" ++ dir
+            then system_ $ "darcs pull --all --repodir=" ++ dir
             else system_ $ "darcs get --partial " ++ url ++ " --repodir=" ++ dir
 
         setCurrentDirectory $ "grab" </> name
