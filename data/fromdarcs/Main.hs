@@ -11,6 +11,7 @@ import System.IO
 import Control.Monad
 import Data.List
 import Data.Maybe
+import Data.Char
 
 
 packages = ["http://darcs.haskell.org/packages/base/"
@@ -64,10 +65,7 @@ generate rebuild url = do
             else system_ $ "darcs get --partial " ++ url ++ " --repodir=" ++ dir
 
         setCurrentDirectory $ "grab" </> name
-        removeFile_ "Setup.hs"
-        removeFile_ "Setup.lhs"
-        writeFile "Setup.hs" "import Distribution.Simple; main = defaultMain"
-        when (name == "base") $ fixupBaseCabal
+        fixup name
         system_ $ "ghc -i --make Setup"
         system_ $ "setup configure"
         system_ $ "setup haddock --hoogle"
@@ -102,8 +100,33 @@ readFile' x = do
     hClose h
     return s
 
-fixupBaseCabal = do
-    x <- readFile' "base.cabal"
-    let (pre,post) = break ("impl(ghc)" `isInfixOf`) $ lines x
-        post2 = drop 1 $ dropWhile ('}' `notElem`) post
-    writeFile "base.cabal" $ unlines $ pre ++ post2
+fixup name = do
+    -- FIX THE SETUP FILE
+    removeFile_ "Setup.hs"
+    removeFile_ "Setup.lhs"
+    writeFile "Setup.hs" "import Distribution.Simple; main = defaultMain"
+
+    -- FIX THE CABAL FILE
+    let file = name <.> "cabal"
+    x <- readFile' file
+    
+    -- on the base, chop out a chunk
+    x <- return $ if name /= "base" then x else
+            let (pre,post) = break ("impl(ghc)" `isInfixOf`) $ lines x
+                post2 = drop 1 $ dropWhile ('}' `notElem`) post
+            in unlines $ pre ++ post2
+
+    -- trim build-depends as they may not exist on GHC 
+    let f x = let (a,b) = span isSpace x 
+              in if "build-depends" `isPrefixOf` b
+                 then a ++ "build-depends:"
+                 else x
+    x <- return $ unlines $ map f $ lines x
+
+    writeFile file x
+
+    -- INCLUDE FILES
+    let incdir = "include"
+        file = incdir </> ("Hs" ++ [toUpper $ head name] ++ tail name ++ "Config") <.> "h"
+    b <- doesDirectoryExist incdir
+    when b $ writeFile file ""
