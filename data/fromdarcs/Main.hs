@@ -14,25 +14,26 @@ import Data.Maybe
 import Data.Char
 
 
-packages = ["http://darcs.haskell.org/packages/base/"
-           ,"http://darcs.haskell.org/packages/filepath/"
-           ,"http://darcs.haskell.org/packages/containers/"
-           ,"http://darcs.haskell.org/packages/array/"
-           ,"http://darcs.haskell.org/packages/directory/"
-           ,"http://darcs.haskell.org/packages/parsec/"
-           ,"http://darcs.haskell.org/packages/mtl/"
-           ,"http://darcs.haskell.org/packages/process/"
-           ,"http://darcs.haskell.org/packages/random/"
-           ,"http://darcs.haskell.org/packages/old-time/"
-           ,"http://darcs.haskell.org/packages/old-locale/"
-           ,"http://darcs.haskell.org/packages/network/"
-           ,"http://darcs.haskell.org/packages/template-haskell/"
-           ,"http://darcs.haskell.org/packages/Cabal/"
-           ,"http://darcs.haskell.org/packages/time/"
-           ,"http://darcs.haskell.org/packages/packedstring/"
-           ,"http://darcs.haskell.org/packages/bytestring/"
-           ,"http://darcs.haskell.org/packages/stm/"
-           ,"http://darcs.haskell.org/packages/parallel/"
+packages = let a*b = (a,b) in
+           ["3.0.0.0" * "http://darcs.haskell.org/packages/base/"
+           ,"0.1.0.0" * "http://darcs.haskell.org/packages/array/"
+           ,"0.9.0.1" * "http://darcs.haskell.org/packages/bytestring/"
+           ,"1.2.2.0" * "http://darcs.haskell.org/packages/Cabal/"
+           ,"0.1.0.0" * "http://darcs.haskell.org/packages/containers/"
+           ,"1.0.0.0" * "http://darcs.haskell.org/packages/directory/"
+           ,"1.1.0.0" * "http://darcs.haskell.org/packages/filepath/"
+           ,"1.1.0.0" * "http://darcs.haskell.org/packages/mtl/"
+           ,"1.0.0.0" * "http://darcs.haskell.org/packages/old-locale/"
+           ,"1.0.0.0" * "http://darcs.haskell.org/packages/old-time/"
+           ,"0.1.0.0" * "http://darcs.haskell.org/packages/packedstring/"
+           ,"1.0.0.0" * "http://darcs.haskell.org/packages/parallel/"
+           ,"2.1.0.0" * "http://darcs.haskell.org/packages/parsec/"
+           ,"1.0.0.0" * "http://darcs.haskell.org/packages/process/"
+           ,"1.0.0.0" * "http://darcs.haskell.org/packages/random/"
+           ,"2.1.1.0" * "http://darcs.haskell.org/packages/stm/"
+           ,"2.2.0.0" * "http://darcs.haskell.org/packages/template-haskell/"
+           ,"1.1.2.0" * "http://darcs.haskell.org/packages/time/"
+           --,"http://darcs.haskell.org/packages/network/"
            ]
 
 main = do
@@ -45,14 +46,16 @@ main = do
     writeFile "documentation.txt" (unlines $ concat docs)
 
 
-divide file = do
+bad = ["GM ::", "GT ::"]
+
+divide (version,file) = do
     s <- readFile file
-    let entries = lines s
-        name = takeBaseName file
+    let entries = filter (\x -> not $ any (`isPrefixOf` x) bad) $ lines s
+        name = takeWhile (/= '-') (takeBaseName file) ++ "-" ++ version
         docs = [drop 7 i ++ "\t" ++ name | i <- entries, "module " `isPrefixOf` i]
     return (entries, docs)
 
-generate rebuild url = do
+generate rebuild (ver,url) = do
     let name = last $ words $ map (\x -> if x == '/' then ' ' else x) url
         dir = "grab" </> name
         exe = "grab" </> name </> "Setup"
@@ -73,7 +76,7 @@ generate rebuild url = do
         setCurrentDirectory "../.."
 
     ans <- findDatabase name
-    return $ fromJust ans
+    return (ver,fromJust ans)
 
 
 findDatabase name = do
@@ -109,12 +112,6 @@ fixup name = do
     -- FIX THE CABAL FILE
     let file = name <.> "cabal"
     x <- readFile' file
-    
-    -- on the base, chop out a chunk
-    x <- return $ if name /= "base" then x else
-            let (pre,post) = break ("impl(ghc)" `isInfixOf`) $ lines x
-                post2 = drop 1 $ dropWhile ('}' `notElem`) post
-            in unlines $ pre ++ post2
 
     -- trim build-depends as they may not exist on GHC 
     let f x = let (a,b) = span isSpace x 
