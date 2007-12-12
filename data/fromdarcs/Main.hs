@@ -111,4 +111,4 @@ fixup name = do
     let incdir = "include"
         file = incdir </> ("Hs" ++ [toUpper $ head name] ++ tail name ++ "Config") <.> "h"
     b <- doesDirectoryExist incdir
-    when b $ writeFile file ""
+    when b $ copyFile "../../Config.h" file

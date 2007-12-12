@@ -1,0 +1,3 @@
+#define CONST_O_BINARY 0
+#define HAVE_FTRUNCATE
+#define READDIR_ERRNO_EOF 0
