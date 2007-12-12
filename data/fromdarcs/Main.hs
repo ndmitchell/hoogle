@@ -16,7 +16,7 @@ import Data.Char
 
 packages = ["base","Cabal","HUnit","QuickCheck","array","arrows","bytestring"
            ,"cgi","containers","directory","filepath","haskell-src","mtl"
-           ,"network","old-locale","old-time","packedstring","parallel"
+           , {- "network", -} "old-locale","old-time","packedstring","parallel"
            ,"parsec","pretty","process","random","stm","template-haskell"
            ,"time","xhtml"]
 
