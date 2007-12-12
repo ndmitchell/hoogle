@@ -109,6 +109,7 @@ fixup name = do
 
     -- INCLUDE FILES
     let incdir = "include"
-        file = incdir </> ("Hs" ++ [toUpper $ head name] ++ tail name ++ "Config") <.> "h"
+        n:ame = if "old-" `isPrefixOf` name then drop 4 name else name
+        file = incdir </> ("Hs" ++ [toUpper n] ++ ame ++ "Config") <.> "h"
     b <- doesDirectoryExist incdir
     when b $ copyFile "../../Config.h" file
