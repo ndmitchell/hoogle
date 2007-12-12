@@ -28,8 +28,8 @@ main = do
     createDirectoryIfMissing True "grab"
     xs <- mapM (generate rebuild) packages
     (entires,docs) <- mapAndUnzipM divide xs
-    writeFile "hoogle.txt" (unlines $ concat entires)
-    writeFile "documentation.txt" (unlines $ concat docs)
+    writeBinaryFile "hoogle.txt" (unlines $ concat entires)
+    writeBinaryFile "documentation.txt" (unlines $ concat docs)
 
 
 bad = ["GM ::", "GT ::"]
@@ -87,6 +87,9 @@ readFile' x = do
     () <- length s `seq` return ()
     hClose h
     return s
+
+writeBinaryFile file x = do
+    withBinaryFile file WriteMode (\h -> hPutStr h x)
 
 fixup name = do
     -- FIX THE SETUP FILE
