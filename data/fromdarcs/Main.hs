@@ -100,7 +100,7 @@ fixup name = do
 
     -- trim build-depends as they may not exist on GHC 
     let f x = let (a,b) = span isSpace x 
-              in if "build-depends" `isPrefixOf` b
+              in if "build-depends" `isPrefixOf` map toLower b
                  then a ++ "build-depends:"
                  else x
     x <- return $ unlines $ map f $ lines x
