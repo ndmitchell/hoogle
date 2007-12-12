@@ -14,27 +14,13 @@ import Data.Maybe
 import Data.Char
 
 
-packages = let a*b = (a,b) in
-           ["3.0.0.0" * "http://darcs.haskell.org/packages/base/"
-           ,"0.1.0.0" * "http://darcs.haskell.org/packages/array/"
-           ,"0.9.0.1" * "http://darcs.haskell.org/packages/bytestring/"
-           ,"1.2.2.0" * "http://darcs.haskell.org/packages/Cabal/"
-           ,"0.1.0.0" * "http://darcs.haskell.org/packages/containers/"
-           ,"1.0.0.0" * "http://darcs.haskell.org/packages/directory/"
-           ,"1.1.0.0" * "http://darcs.haskell.org/packages/filepath/"
-           ,"1.1.0.0" * "http://darcs.haskell.org/packages/mtl/"
-           ,"1.0.0.0" * "http://darcs.haskell.org/packages/old-locale/"
-           ,"1.0.0.0" * "http://darcs.haskell.org/packages/old-time/"
-           ,"0.1.0.0" * "http://darcs.haskell.org/packages/packedstring/"
-           ,"1.0.0.0" * "http://darcs.haskell.org/packages/parallel/"
-           ,"2.1.0.0" * "http://darcs.haskell.org/packages/parsec/"
-           ,"1.0.0.0" * "http://darcs.haskell.org/packages/process/"
-           ,"1.0.0.0" * "http://darcs.haskell.org/packages/random/"
-           ,"2.1.1.0" * "http://darcs.haskell.org/packages/stm/"
-           ,"2.2.0.0" * "http://darcs.haskell.org/packages/template-haskell/"
-           ,"1.1.2.0" * "http://darcs.haskell.org/packages/time/"
-           --,"http://darcs.haskell.org/packages/network/"
-           ]
+packages = ["base","Cabal","HUnit","QuickCheck","array","arrows","bytestring"
+           ,"cgi","containers","directory","filepath","haskell-src","mtl"
+           ,"network","old-locale","old-time","packedstring","parallel"
+           ,"parsec","pretty","process","random","stm","template-haskell"
+           ,"time","xhtml"]
+
+prefix = "http://darcs.haskell.org/ghc-6.8/packages/"
 
 main = do
     args <- getArgs
@@ -48,14 +34,14 @@ main = do
 
 bad = ["GM ::", "GT ::"]
 
-divide (version,file) = do
+divide file = do
     s <- readFile file
     let entries = filter (\x -> not $ any (`isPrefixOf` x) bad) $ lines s
-        name = takeWhile (/= '-') (takeBaseName file) ++ "-" ++ version
+        name = takeWhile (/= '-') (takeBaseName file)
         docs = [drop 7 i ++ "\t" ++ name | i <- entries, "module " `isPrefixOf` i]
     return (entries, docs)
 
-generate rebuild (ver,url) = do
+generate rebuild url = do
     let name = last $ words $ map (\x -> if x == '/' then ' ' else x) url
         dir = "grab" </> name
         exe = "grab" </> name </> "Setup"
@@ -65,7 +51,7 @@ generate rebuild (ver,url) = do
         b <- doesDirectoryExist dir
         if b
             then system_ $ "darcs pull --all --repodir=" ++ dir
-            else system_ $ "darcs get --partial " ++ url ++ " --repodir=" ++ dir
+            else system_ $ "darcs get --partial " ++ prefix ++ url ++ "/ --repodir=" ++ dir
 
         setCurrentDirectory $ "grab" </> name
         fixup name
@@ -75,8 +61,7 @@ generate rebuild (ver,url) = do
 
         setCurrentDirectory "../.."
 
-    ans <- findDatabase name
-    return (ver,fromJust ans)
+    liftM fromJust $ findDatabase name
 
 
 findDatabase name = do
