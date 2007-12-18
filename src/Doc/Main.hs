@@ -36,7 +36,7 @@ main = do x <- cgiArgs
 hoodoc :: Maybe String -> Maybe String -> String -> IO String
 
 -- keywords are special
-hoodoc (Just "keyword") _ name = return $ "http://www.haskell.org/hawiki/Keywords#" ++ escape name
+hoodoc (Just "keyword") _ name = return $ "http://www.haskell.org/haskellwiki/Keywords#" ++ escape name
 
 -- if you have no name, just direct them straight at the module page
 hoodoc _ (Just modu) "" = calcPage modu ""
