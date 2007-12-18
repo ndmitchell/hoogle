@@ -35,7 +35,7 @@ hoogleSuggest _ (Search _ (SearchType (c,t))) |
         any dubiousVar (allTVar t) = Just $ Tags
         [Str "Did you mean: ", Tag "a" (Tags $ f $ showConType (c, mapUnbound safeVar t))]
     where
-        dubiousVar x = length x > 1
+        dubiousVar x = length x > 1 && isLower (head x)
         safeVar x | dubiousVar x = TLit $ '{' : toUpper (head x) : tail x ++ "}"
                   | otherwise = TVar x
         
