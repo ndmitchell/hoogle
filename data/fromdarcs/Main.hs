@@ -20,6 +20,11 @@ packages = ["base","Cabal","HUnit","QuickCheck","array","arrows","bytestring"
            ,"parsec","pretty","process","random","stm","template-haskell"
            ,"time","xhtml"]
 
+keywords = ["|","->","<-","@","!","::","~","_","as","case","class","data"
+           ,"default","deriving","do","else","forall","hiding","if","import"
+           ,"in","infix","infixl","infixr","instance","let","module","newtype"
+           ,"of","qualified","then","type","where"]
+
 prefix = "http://darcs.haskell.org/ghc-6.8/packages/"
 
 main = do
@@ -39,7 +44,8 @@ divide file = do
     let entries = filter (\x -> not $ any (`isPrefixOf` x) bad) $ lines s
         name = takeWhile (/= '-') (takeBaseName file)
         docs = [drop 7 i ++ "\t" ++ name | i <- entries, "module " `isPrefixOf` i]
-    return (entries, docs)
+        expand x = if x == "module Prelude" then x:map ("keyword "++) keywords else [x]
+    return (concatMap expand entries, docs)
 
 generate rebuild url = do
     let name = last $ words $ map (\x -> if x == '/' then ' ' else x) url

@@ -2209,6 +2209,39 @@ readListDefault :: Read a => ReadS [a]
 readListPrecDefault :: Read a => ReadPrec [a]
 
 module Prelude
+keyword |
+keyword ->
+keyword <-
+keyword @
+keyword !
+keyword ::
+keyword ~
+keyword _
+keyword as
+keyword case
+keyword class
+keyword data
+keyword default
+keyword deriving
+keyword do
+keyword else
+keyword forall
+keyword hiding
+keyword if
+keyword import
+keyword in
+keyword infix
+keyword infixl
+keyword infixr
+keyword instance
+keyword let
+keyword module
+keyword newtype
+keyword of
+keyword qualified
+keyword then
+keyword type
+keyword where
 data Bool
 False :: Bool
 True :: Bool
