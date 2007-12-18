@@ -1,6 +1,3 @@
-#
-# Simple Makefile for command line tool
-#
 
 GHC=            ghc
 HC_OPTS=        -O
@@ -24,7 +21,9 @@ deploy:
 	mkdir -p deploy
 	mkdir -p deploy/res
 	mkdir -p deploy/haddock
-	wget http://www.cse.unsw.edu.au/~dons/lambdabot/State/where --output-document=deploy/res/lambdabot.txt --no-clobber
+	rm deploy/res/lambdabot.*
+	wget http://www.cse.unsw.edu.au/~dons/lambdabot/State/where --output-document=deploy/res/lambdabot.txt.gz --no-clobber
+	gunzip deploy/res/lambdabot.txt.gz
 	cd src && $(GHC) $(HC_OPTS) --make -o ../deploy/index.cgi Web.hs
 	cd src && $(GHC) $(HC_OPTS) --make -o ../deploy/hoodoc.cgi Doc.hs
 	cp -r web/* deploy
