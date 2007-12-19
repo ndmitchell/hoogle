@@ -21,7 +21,7 @@ data SearchMode = SearchName String
 
 parseSearch :: String -> Search
 parseSearch x = Search x $
-                if isHaskellName x3
+                if not (null x3) && isHaskellName x3
                 then SearchName x3
                 else case parseConType x2 of
                          Right x -> SearchError x
