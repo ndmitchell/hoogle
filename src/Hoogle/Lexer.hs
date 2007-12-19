@@ -19,6 +19,7 @@ module Hoogle.Lexer (
 
 import Prelude
 import Data.Char
+import Data.List
 
 -- | The data structure for a lexeme
 data Lexeme = OpenSquare  -- ^ \[
@@ -53,6 +54,7 @@ instance Show Lexeme where
 
 -- | The main lexer
 lexer :: String -> Either [Lexeme] String
+
 lexer ('(':xs) | all isSymbolChar a = 
         if null bs then Right "Parse Error: Missing closing bracket ')'"
         else case lexRest [] (tail bs) of
@@ -60,6 +62,8 @@ lexer ('(':xs) | all isSymbolChar a =
                   Right x -> Right x
     where (a,bs) = break (== ')') xs
     
+lexer xs | "keyword " `isPrefixOf` xs = Left [VarName "keyword", VarName $ drop 8 xs]
+
 lexer x = lexRest [] x
 
 
