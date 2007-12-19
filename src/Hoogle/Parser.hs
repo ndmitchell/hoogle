@@ -75,6 +75,7 @@ readConType xs = (con, readType res)
 
 
 readConstraint :: [Lexeme] -> (Constraint, [Lexeme])
+readConstraint (TypeColon:x) = readConstraint x
 readConstraint x = if not (EqArrow `elem` x) then ([],x)
                    else (f (readType a) ++ con, lexe)
     where
