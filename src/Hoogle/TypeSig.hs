@@ -35,6 +35,7 @@ instance Show Item where
     show (TypeAlias name args typ) = name ++ concatMap (' ':) args ++ " = " ++ showConType typ
     show (Data new typ) = (if new then "newtype" else "data") ++ " " ++ showConType typ
     show (Instance typ) = "instance " ++ showConType typ
+    show (Keyword name) = "keyword " ++ name
           
 
 
