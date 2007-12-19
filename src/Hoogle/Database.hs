@@ -47,7 +47,7 @@ loadTextfile x = Database {
         }
     where
         -- all the items in the file
-        items = catLefts $ map parser $ filter validLine $ lines x
+        (items,errs) = splitEithers $ map parser $ filter validLine $ lines x
         
         (instances, namedItems) = partition isInstance items
         (modules, modnamed) = modulify namedItems
