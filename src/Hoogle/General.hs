@@ -65,6 +65,14 @@ catLefts (_:xs) = catLefts xs
 catLefts [] = []
 
 
+splitEithers :: [Either a b] -> ([a],[b])
+splitEithers [] = ([],[])
+splitEithers (x:xs) = case x of
+                          Left  y -> (y:a,b)
+                          Right y -> (a,y:b)
+    where
+        (a,b) = splitEithers xs
+
 fromLeft (Left x) = x
 
 
