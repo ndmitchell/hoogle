@@ -42,7 +42,7 @@ bad = ["GM ::", "GT ::"]
 divide file = do
     s <- readFile file
     let entries = filter (\x -> not $ any (`isPrefixOf` x) bad) $ lines s
-        name = takeWhile (/= '-') (takeBaseName file)
+        name = reverse $ drop 1 $ dropWhile (/= '-') $ reverse $ takeBaseName file
         docs = [drop 7 i ++ "\t" ++ name | i <- entries, "module " `isPrefixOf` i]
         expand x = if x == "module Prelude" then x:map ("keyword "++) keywords else [x]
     return (concatMap expand entries, docs)
