@@ -5,6 +5,9 @@ License-File:    LICENSE
 Author:          Neil Mitchell <ndm@cs.york.ac.uk>
 Category:        Development
 Synopsis:        Haskell API Search
+Description:     Hoogle is a Haskell API search engine, written by Neil Mitchell.
+                 It allows you to search many standard Haskell libraries by either function name,
+                 or by approximate type signature.
 Homepage:        http://www.haskell.org/hoogle/
 Stability:       Beta
 Cabal-Version:   >= 1.1.4
