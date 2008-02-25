@@ -1,7 +1,7 @@
 {-
     This file is part of Hoogle, (c) Neil Mitchell 2004-2005
     http://www.cs.york.ac.uk/~ndm/hoogle/
-    
+
     This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike License.
     To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/2.0/
     or send a letter to Creative Commons, 559 Nathan Abbott Way, Stanford, California 94305, USA.
@@ -24,20 +24,20 @@ import System.Directory
 
 -- | The main function
 main :: IO ()
-main = do 
+main = do
         args <- getArgs
         let newargs = map safeArrow args
             (flags,query) = parseArgs newargs
-            
+
             path = fromPath $ fromMaybe (Path "hoogle.txt") (find isPath flags)
             verbose = Verbose `elem` flags
             help = HelpMsg `elem` flags
             color = Color `elem` flags
             count = fromCount $ fromMaybe (Count 0) (find isCount flags)
-            
+
             query2 = concat $ intersperse " " query
             query3 = if help then "" else query2
-        
+
         if null query3
             then putStr helpMsg
             else do
@@ -60,10 +60,10 @@ test x = hoogle "" True 10 x
 
 hoogle :: FilePath -> Bool -> Int -> Bool -> String -> IO ()
 hoogle _ _ _ _ "" = putStr helpMsg
-hoogle p verbose count color x = 
+hoogle p verbose count color x =
         case hoogleParseError search of
             Just x -> putStrLn $ "Hoogle Error: " ++ x
-            Nothing -> 
+            Nothing ->
                 do
                     case hoogleSuggest False search of
                         Just a -> putStrLn $ (if color then showTag else showText) a
@@ -71,14 +71,14 @@ hoogle p verbose count color x =
                     if color
                         then putStrLn $ "Searching for: " ++ showTag (hoogleSearch search)
                         else return ()
-                    
+
                     res <- if count == 0 then hoogleResults p search else hoogleRange p search 0 count
                     case res of
                         [] -> putStrLn "No matches found"
                         xs -> putStr $ unlines $ map f xs
     where
         search = hoogleParse x
-    
+
         f res = showResult color res ++
                 if verbose
                 then " @ " ++ show (resultScore res) ++ " " ++ show (resultInfo res)
@@ -101,13 +101,13 @@ showTag x = f [] x
         f a (Tag code x) = case getCode code of
                             Nothing -> f a x
                             Just val -> tag (val:a) ++ f (val:a) x ++ tag a
-        
+
         getCode "b" = Just "1"
         getCode "a" = Just "4"
         getCode "u" = Just "4"
         getCode [x] | x <= '6' && x >= '1' = Just ['3', x]
         getCode _ = Nothing
-        
+
         tag stack = chr 27 : '[' : (concat $ intersperse ";" $ ("0":reverse stack)) ++ "m"
 
 
@@ -119,7 +119,7 @@ helpMsg
         "(C) Neil Mitchell 2004-2006, York University, UK",
         "",
         usageInfo ("Usage: hoogle [OPTION...] search") opts,
-        
+
         "examples:",
         "  hoogle map",
         "  hoogle (a -> b) -> [a] -> [b]",
