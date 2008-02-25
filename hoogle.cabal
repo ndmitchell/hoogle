@@ -1,8 +1,10 @@
+Cabal-Version:   >= 1.2
+Build-type:      Simple
 Name:            hoogle
 Version:         3.0
 License:         GPL
 License-File:    LICENSE
-Author:          Neil Mitchell <ndm@cs.york.ac.uk>
+Author:          Neil Mitchell <ndmitchell@gmail.com>
 Category:        Development
 Synopsis:        Haskell API Search
 Description:     Hoogle is a Haskell API search engine, written by Neil Mitchell.
@@ -10,10 +12,18 @@ Description:     Hoogle is a Haskell API search engine, written by Neil Mitchell
                  or by approximate type signature.
 Homepage:        http://www.haskell.org/hoogle/
 Stability:       Beta
-Cabal-Version:   >= 1.1.4
-Build-Depends:
-                 base
+Extra-Source-Files:
+    hoogle.txt
+    README.txt
 
-Executable:      hoogle
-Main-Is:         CmdLine.hs
-Hs-Source-Dirs:  src
+Flag splitBase
+    Description: Choose the new smaller, split-up base package.
+
+Executable hoogle
+    Main-Is:         CmdLine.hs
+    Hs-Source-Dirs:  src
+
+    if flag(splitBase)
+        build-depends: base >= 3, directory, containers
+    else
+        build-depends: base < 3
