@@ -96,7 +96,7 @@ anyPage webData@WebData{webSearch = webSearch} body
                                     [toAttribute ("href" := "http://www.cs.york.ac.uk/~ndm/")]
                                     [toXMLs (pcdata "Neil Mitchell")])),
                               toXMLs (pcdata " "),
-                              toXMLs (pcdata "2004-2006\n            ")]))]))])
+                              toXMLs (pcdata "2004-2008\n            ")]))]))])
  
 {-# LINE 59 "HTML.hsx" #-}
 searchPage :: (ToXMLs a) => WebData -> a -> String
