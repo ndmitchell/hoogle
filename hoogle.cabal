@@ -1,7 +1,7 @@
 Cabal-Version:   >= 1.2
 Build-type:      Simple
 Name:            hoogle
-Version:         3.0
+Version:         3.1
 License:         GPL
 License-File:    LICENSE
 Author:          Neil Mitchell <ndmitchell@gmail.com>

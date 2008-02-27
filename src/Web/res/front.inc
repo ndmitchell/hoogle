@@ -51,7 +51,7 @@ function on_load()
 
 <div style="width:100%;margin-top:30px;margin-bottom:30px;text-align:center;">
 	<img style="vertical-align:top;" src="res/hoogle_default_large.png" alt="Hoogle" />
-	<sup style="font-family:serif;font-weight:bold;font-size:16pt;">3
+	<sup style="font-family:serif;font-weight:bold;font-size:16pt;">3.1
 		<span style="color:#b00;">[&beta;]</span>
 	</sup><br/>
 	<i>The Haskell API Search Engine</i><br/>
