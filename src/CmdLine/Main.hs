@@ -21,6 +21,8 @@ import Data.Char
 import System.Console.GetOpt
 import System.Directory
 
+import Paths_hoogle
+
 
 -- | The main function
 main :: IO ()
@@ -41,18 +43,37 @@ main = do
 
         if null query3
             then putStr helpMsg
-            else do
-                path2 <- checkPath path
-                if null path2
-                    then putStrLn $ "Could not find hoogle database, looked for: " ++ path
-                    else hoogle path2 verbose count color query3
+            else case path of
+                    Left tried -> putStr $ unlines $ "Could not find hoogle database, looked for:" :
+                                                     map ("  "++) tried
+                    Right path -> hoogle path verbose count color query3
     where
         safeArrow "-#" = " ->"
         safeArrow "->" = " ->"
         safeArrow xs   = map (\x -> if x == '#' then '>' else x) xs
 
 
-findPath flags = return $ fromPath $ fromMaybe (Path "hoogle.txt") (find isPath flags)
+-- | Given a list of flags, either give the answer, or say where you tried searching
+findPath :: [Flag] -> IO (Either [FilePath] FilePath)
+findPath flags = do
+        let pflags = [x | Path x <- flags]
+        try <- if null pflags then defaults else return pflags
+        x <- checkPaths try
+        return $ maybe (Left try) Right x
+    where
+        checkPaths [] = return Nothing
+        checkPaths (x:xs) = do
+            b <- doesFileExist x
+            if b then return (Just x) else checkPaths xs
+
+        defaults = do
+            installed <- getDataFileName "hoogle.txt"
+
+            prog <- getProgName
+            path <- findExecutable prog
+            beside <- return [setFileName x "hoogle.txt" | Just x <- [path]]
+
+            return $ nub ([installed] ++ beside ++ ["hoogle.txt"])
 
 
 test x = hoogle "" True 10 x
@@ -163,22 +184,6 @@ parseArgs :: [String] -> ([Flag], [String])
 parseArgs argv = case getOpt Permute opts argv of
         (flags,query,[]) -> (flags,query)
         (_,_,err)        -> error $ concat err ++ helpMsg
-
-
--- | If a path is given check that it exists
---   If not then try relative to yourself
-checkPath :: FilePath -> IO FilePath
-checkPath file = do
-    b <- doesFileExist file
-    if b then return file else do
-        prog <- getProgName
-        path <- findExecutable prog
-        case path of
-            Nothing -> return ""
-            Just path -> do
-                file <- return $ setFileName path file
-                b <- doesFileExist file
-                if b then return file else return ""
 
 
 setFileName :: FilePath -> String -> FilePath
