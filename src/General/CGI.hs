@@ -85,11 +85,10 @@ escape = escapeLower
 escapeHTML :: String -> String
 escapeHTML = concatMap f
     where
-        f :: Char -> String
         f '<' = "&lt;"
         f '>' = "&gt;"
         f '&' = "&amp;"
-        f  x  = x:[]
+        f  x  = [x]
 
 
 escapeAttrib :: String -> String
