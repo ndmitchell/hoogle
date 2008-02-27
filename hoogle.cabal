@@ -13,8 +13,10 @@ Description:     Hoogle is a Haskell API search engine, written by Neil Mitchell
 Homepage:        http://www.haskell.org/hoogle/
 Stability:       Beta
 Extra-Source-Files:
-    hoogle.txt
     README.txt
+Data-Files:
+    hoogle.txt
+
 
 Flag splitBase
     Description: Choose the new smaller, split-up base package.
