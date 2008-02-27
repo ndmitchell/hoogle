@@ -139,7 +139,7 @@ searchPage
                               [toAttribute ("name" := "q"), toAttribute ("id" := "txt"),
                                toAttribute ("type" := "text"),
                                toAttribute ("style" := "width:300px;margin-right:5px;"),
-                               toAttribute ("value" := (webSearch webData))])),
+                               toAttribute ("value" := (escapeHTML $ webSearch webData))])),
                         toXMLs
                           ((genETag (Nothing, "input")
                               [toAttribute ("style" := "padding-left:15px;padding-right:15px;"),

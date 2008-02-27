@@ -76,7 +76,7 @@ searchPage webData@WebData{webPackage=webPackage, webLogo=webLogo} inner = anyPa
                 <% iff (webLogo /= "default")
                     <input name="q" type="hidden" value=webLogo />
                 %>
-                <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(webSearch webData) />
+                <input name="q" id="txt" type="text" style="width:300px;margin-right:5px;" value=(escapeHTML $ webSearch webData) />
                 <input style="padding-left:15px;padding-right:15px;" type="submit" value="Search" />
             </div>
         </form>
