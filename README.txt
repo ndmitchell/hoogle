@@ -20,7 +20,11 @@ http://www.haskell.org/haskellwiki/Hoogle
 Building
 --------
 
-To build the source type "ghc --make" on the files.
+To build the source type follow the standard Cabal procedure:
+
+$ runhaskell Setup configure
+$ runhaskell Setup build
+$ runhaskell Setup install
 
 Folders
 -------
