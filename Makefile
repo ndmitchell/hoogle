@@ -9,7 +9,7 @@ all: hoogle
 hoogle: 
 	cd src && $(GHC) $(HC_OPTS) --make -o a.out CmdLine.hs
 	mv src/a.out ./$@
-	cp src/hoogle.txt .
+	cp hoogle.txt .
 
 
 clean:
@@ -27,7 +27,7 @@ deploy:
 	cd src && $(GHC) $(HC_OPTS) --make -o ../deploy/index.cgi Web.hs
 	cd src && $(GHC) $(HC_OPTS) --make -o ../deploy/hoodoc.cgi Doc.hs
 	cp -r web/* deploy
-	cp src/hoogle.txt deploy/res/hoogle.txt
+	cp hoogle.txt deploy/res/hoogle.txt
 	cp src/Web/res/* deploy/res
 	cp src/Doc/res/* deploy/res
 	haddock --html --title=Hoogle --odir=deploy/haddock --prologue=docs/haddock.txt src/*.hs src/*/*.hs
