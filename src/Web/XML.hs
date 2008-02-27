@@ -60,5 +60,7 @@ instance Show XML where
     show (RawData x) = x
 
 instance Show Attribute where
+    -- should really be escapeAttrib, but this destroys
+    -- the URL's from the results, should fix that!
     show (Attribute name value) = name ++ "=\"" ++ value ++ "\""
 
