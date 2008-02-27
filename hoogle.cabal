@@ -32,3 +32,20 @@ Executable hoogle
         Build-Depends: base >= 3, directory, containers
     else
         Build-Depends: base < 3
+
+    Other-Modules:
+        CmdLine.Main
+        Hoogle.Database
+        Hoogle.General
+        Hoogle.Hoogle
+        Hoogle.Lexer
+        Hoogle.Match
+        Hoogle.MatchClass
+        Hoogle.MatchName
+        Hoogle.MatchType
+        Hoogle.Parser
+        Hoogle.Result
+        Hoogle.Search
+        Hoogle.TextUtil
+        Hoogle.TypeAlias
+        Hoogle.TypeSig
