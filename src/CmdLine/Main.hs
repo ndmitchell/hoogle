@@ -29,8 +29,9 @@ main = do
         let newargs = map safeArrow args
             (flags,query) = parseArgs newargs
 
-            path = fromPath $ fromMaybe (Path "hoogle.txt") (find isPath flags)
-            verbose = Verbose `elem` flags
+        path <- findPath flags
+
+        let verbose = Verbose `elem` flags
             help = HelpMsg `elem` flags
             color = Color `elem` flags
             count = fromCount $ fromMaybe (Count 0) (find isCount flags)
@@ -49,6 +50,9 @@ main = do
         safeArrow "-#" = " ->"
         safeArrow "->" = " ->"
         safeArrow xs   = map (\x -> if x == '#' then '>' else x) xs
+
+
+findPath flags = return $ fromPath $ fromMaybe (Path "hoogle.txt") (find isPath flags)
 
 
 test x = hoogle "" True 10 x
