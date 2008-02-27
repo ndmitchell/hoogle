@@ -203,7 +203,7 @@ innerNoResult
 {-# LINE 122 "HTML.hsx" #-}
 htmlAnswers :: WebData -> String -> String
 {-# LINE 123 "HTML.hsx" #-}
-htmlAnswers webData inner = searchPage webData inner
+htmlAnswers webData inner = searchPage webData (rawXml inner)
  
 {-# LINE 130 "HTML.hsx" #-}
 htmlFront :: WebData -> String

@@ -2,6 +2,7 @@
 
 module Web.XML where
 
+import General.CGI
 
 -- the data
 
@@ -40,7 +41,7 @@ instance ToXMLs XML where
     toXMLs x = x
 
 instance ToXMLs String where
-    toXMLs x = PCData x
+    toXMLs x = PCData $ escapeHTML x
 
 instance ToXMLs a => ToXMLs (Maybe a) where
     toXMLs Nothing = XmlList []

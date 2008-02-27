@@ -169,7 +169,7 @@ sherlock xs = "\n<!--\n<sherlock>\n" ++ concatMap f xs ++ "</sherlock>\n-->\n"
 
                  
 showTags :: TagStr -> String
-showTags (Str x) = x
+showTags (Str x) = escapeHTML x
 showTags (Tag "b" x) = "<b>" ++ showTags x ++ "</b>"
 showTags (Tag "u" x) = "<i>" ++ showTags x ++ "</i>"
 showTags (Tag "a" x) = "<a href='" ++ url ++ "'>" ++ showTags x ++ "</a>"

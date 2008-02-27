@@ -120,7 +120,7 @@ innerNoResult = show $
 
 
 htmlAnswers :: WebData -> String -> String
-htmlAnswers webData inner = searchPage webData inner
+htmlAnswers webData inner = searchPage webData (rawXml inner)
 
 
 
