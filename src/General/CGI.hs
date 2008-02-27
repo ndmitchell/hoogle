@@ -12,7 +12,7 @@
 -}
 
 
-module General.CGI(cgiArgs, escape, escapeUpper, escapeLower, asCgi, escapeHTML) where
+module General.CGI(cgiArgs, escape, escapeUpper, escapeLower, asCgi, escapeHTML, escapeAttrib) where
 
 import Hoogle.TextUtil
 import System.Environment
@@ -90,3 +90,10 @@ escapeHTML = concatMap f
         f '>' = "&gt;"
         f '&' = "&amp;"
         f  x  = x:[]
+
+
+escapeAttrib :: String -> String
+escapeAttrib = concatMap f . escapeHTML
+    where
+        f '\"' = "&quot;"
+        f x = [x]
