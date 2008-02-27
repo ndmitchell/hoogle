@@ -29,6 +29,6 @@ Executable hoogle
     Hs-Source-Dirs:  src
 
     if flag(splitBase)
-        build-depends: base >= 3, directory, containers
+        Build-Depends: base >= 3, directory, containers
     else
-        build-depends: base < 3
+        Build-Depends: base < 3
