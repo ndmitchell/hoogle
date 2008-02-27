@@ -6,17 +6,19 @@ module Web.HTML
 import Web.XML
 {-# LINE 7 "HTML.hsx" #-}
 import Hoogle.General
+{-# LINE 8 "HTML.hsx" #-}
+import General.CGI
  
-{-# LINE 10 "HTML.hsx" #-}
+{-# LINE 11 "HTML.hsx" #-}
 data WebData = WebData{webSearch :: String, webPackage :: String,
                        webLogo :: String}
-{-# LINE 15 "HTML.hsx" #-}
+{-# LINE 16 "HTML.hsx" #-}
 doctype
   = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
-{-# LINE 18 "HTML.hsx" #-}
+{-# LINE 19 "HTML.hsx" #-}
 anyPage webData@WebData{webSearch = webSearch} body
   = doctype ++ "\n" ++ show html
-  where {-# LINE 20 "HTML.hsx" #-}
+  where {-# LINE 21 "HTML.hsx" #-}
         html
           = (genTag (Nothing, "html") []
                [toXMLs
@@ -98,9 +100,9 @@ anyPage webData@WebData{webSearch = webSearch} body
                               toXMLs (pcdata " "),
                               toXMLs (pcdata "2004-2008\n            ")]))]))])
  
-{-# LINE 59 "HTML.hsx" #-}
-searchPage :: (ToXMLs a) => WebData -> a -> String
 {-# LINE 60 "HTML.hsx" #-}
+searchPage :: (ToXMLs a) => WebData -> a -> String
+{-# LINE 61 "HTML.hsx" #-}
 searchPage
   webData@WebData{webPackage = webPackage, webLogo = webLogo} inner
   = anyPage webData
@@ -139,7 +141,7 @@ searchPage
                               [toAttribute ("name" := "q"), toAttribute ("id" := "txt"),
                                toAttribute ("type" := "text"),
                                toAttribute ("style" := "width:300px;margin-right:5px;"),
-                               toAttribute ("value" := (escapeHTML $ webSearch webData))])),
+                               toAttribute ("value" := (escapeAttrib $ webSearch webData))])),
                         toXMLs
                           ((genETag (Nothing, "input")
                               [toAttribute ("style" := "padding-left:15px;padding-right:15px;"),
@@ -147,9 +149,9 @@ searchPage
                                toAttribute ("value" := "Search")]))]))])),
           toXMLs (inner)])
  
-{-# LINE 89 "HTML.hsx" #-}
-htmlError :: WebData -> String -> String
 {-# LINE 90 "HTML.hsx" #-}
+htmlError :: WebData -> String -> String
+{-# LINE 91 "HTML.hsx" #-}
 htmlError webData errmsg
   = searchPage webData $
       (genTag (Nothing, "hsx") []
@@ -174,9 +176,9 @@ htmlError webData errmsg
                                  (pcdata
                                     "This is probably a parse error, check for matching brackets etc.")]))]))]))])
  
-{-# LINE 110 "HTML.hsx" #-}
-innerNoResult :: String
 {-# LINE 111 "HTML.hsx" #-}
+innerNoResult :: String
+{-# LINE 112 "HTML.hsx" #-}
 innerNoResult
   = show $
       (genTag (Nothing, "div") [toAttribute ("id" := "failure")]
@@ -200,14 +202,14 @@ innerNoResult
                         toXMLs ((genTag (Nothing, "tt") [] [toXMLs (pcdata "concat")])),
                         toXMLs (pcdata " "), toXMLs (pcdata "individually.")]))]))])
  
-{-# LINE 122 "HTML.hsx" #-}
-htmlAnswers :: WebData -> String -> String
 {-# LINE 123 "HTML.hsx" #-}
+htmlAnswers :: WebData -> String -> String
+{-# LINE 124 "HTML.hsx" #-}
 htmlAnswers webData inner = searchPage webData (rawXml inner)
  
-{-# LINE 130 "HTML.hsx" #-}
-htmlFront :: WebData -> String
 {-# LINE 131 "HTML.hsx" #-}
+htmlFront :: WebData -> String
+{-# LINE 132 "HTML.hsx" #-}
 htmlFront
   webData@WebData{webPackage = webPackage, webLogo = webLogo}
   = anyPage webData $
