@@ -3,9 +3,9 @@ README FOR HOOGLE
 
 A Haskell API search. To invoke it type
 
-	hoogle "[a] -# [b]"
+	hoogle "[a] -> [b]"
 
-Where -# is used instead of -> so it does not conflict with the console.
+Note the quotes, otherwise you will redirect the output to the file [b].
 
 
 Web Version
