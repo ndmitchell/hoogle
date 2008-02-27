@@ -21,7 +21,7 @@ deploy:
 	mkdir -p deploy
 	mkdir -p deploy/res
 	mkdir -p deploy/haddock
-	rm deploy/res/lambdabot.*
+	rm -f deploy/res/lambdabot.*
 	wget http://www.cse.unsw.edu.au/~dons/lambdabot/State/where --output-document=deploy/res/lambdabot.txt.gz --no-clobber
 	gunzip deploy/res/lambdabot.txt.gz
 	cd src && $(GHC) $(HC_OPTS) --make -o ../deploy/index.cgi Web.hs
