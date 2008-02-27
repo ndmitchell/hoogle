@@ -18,6 +18,7 @@ import General.CGI
 import Data.Maybe
 import Data.Char
 import Data.List
+import Numeric
 
 
 main = do x <- cgiArgs
@@ -36,7 +37,11 @@ main = do x <- cgiArgs
 hoodoc :: Maybe String -> Maybe String -> String -> IO String
 
 -- keywords are special
-hoodoc (Just "keyword") _ name = return $ "http://www.haskell.org/haskellwiki/Keywords#" ++ escape name
+hoodoc (Just "keyword") _ name = return $ "http://www.haskell.org/haskellwiki/Keywords#" ++ concatMap f name
+    where
+        f x | isAlpha x || x `elem` "_-:" = [x]
+            | otherwise = '.' : map toUpper (showHex (ord x) "")
+
 
 -- if you have no name, just direct them straight at the module page
 hoodoc _ (Just modu) "" = calcPage modu ""
