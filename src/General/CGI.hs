@@ -12,7 +12,7 @@
 -}
 
 
-module General.CGI(cgiArgs, escape, escapeUpper, escapeLower, asCgi) where
+module General.CGI(cgiArgs, escape, escapeUpper, escapeLower, asCgi, escapeHTML) where
 
 import Hoogle.TextUtil
 import System.Environment
@@ -78,3 +78,15 @@ escapeCharWith f x = case map f $ showHex (ord x) "" of
 escapeUpper = escapeWith toUpper
 escapeLower = escapeWith toLower
 escape = escapeLower
+
+
+
+-- | Take a piece of text and escape all the HTML special bits
+escapeHTML :: String -> String
+escapeHTML = concatMap f
+    where
+        f :: Char -> String
+        f '<' = "&lt;"
+        f '>' = "&gt;"
+        f '&' = "&amp;"
+        f  x  = x:[]

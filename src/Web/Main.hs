@@ -244,15 +244,3 @@ hitCount = do x <- readHitCount
         writeHitCount x = writeFile hitFile (show x)
         
         parseHitCount = read . head . lines
-              
-
--- | Take a piece of text and escape all the HTML special bits
-escapeHTML :: String -> String
-escapeHTML = concatMap f
-    where
-        f :: Char -> String
-        f '<' = "&lt;"
-        f '>' = "&gt;"
-        f '&' = "&amp;"
-        f  x  = x:[]
-
