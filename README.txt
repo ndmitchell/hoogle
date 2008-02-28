@@ -3,7 +3,7 @@ README FOR HOOGLE
 
 A Haskell API search. To invoke it type
 
-	hoogle "[a] -> [b]"
+    hoogle "[a] -> [b]"
 
 Note the quotes, otherwise you will redirect the output to the file [b].
 
