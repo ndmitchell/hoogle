@@ -232,7 +232,7 @@ htmlFront
             ((genTag (Nothing, "sup")
                 [toAttribute
                    ("style" := "font-family:serif;font-weight:bold;font-size:16pt;")]
-                [toXMLs (pcdata "3\n            "),
+                [toXMLs (pcdata "3.1\n            "),
                  toXMLs
                    ((genTag (Nothing, "span") [toAttribute ("style" := "color:#b00;")]
                        [toXMLs (pcdata "[&beta;]")]))])),

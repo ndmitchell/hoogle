@@ -135,7 +135,7 @@ htmlFront webData@WebData{webPackage=webPackage, webLogo=webLogo} = anyPage webD
             <img style="vertical-align:top;" src=("res/" ++ webPackage ++ "_large.png") alt=webPackage />
         %>
         <img style="vertical-align:top;" src=("res/hoogle_" ++ webLogo ++ "_large.png") alt="Hoogle" />
-        <sup style="font-family:serif;font-weight:bold;font-size:16pt;">3
+        <sup style="font-family:serif;font-weight:bold;font-size:16pt;">3.1
             <span style="color:#b00;">[&beta;]</span>
         </sup><br/>
         <i>The Haskell API Search Engine</i>
