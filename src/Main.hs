@@ -15,23 +15,6 @@ main = do
 
 {-
 
-hasFlag :: Query -> [String] -> Bool
-hasFlag q s = isJust $ getFlag q s
-
-
-getFlag :: Query -> [String] -> Maybe String
-getFlag query s = listToMaybe $ getFlags query s
-
-getFlags :: Query -> [String] -> [String]
-getFlags query s = [extra | Flag name extra <- flags query, name `elem` s]
-
-
-checkFlags :: Query -> [String] -> IO ()
-checkFlags query s = when (not $ null extra) $
-        putStrLn $ "Warning, unrecognised flag" ++ ['s'|length extra > 1] ++ " (ignored): " ++
-                   concat (intersperse ", " extra)
-    where extra = [name | Flag name _ <- flags query] \\ s
-
 
 versionMsg = unlines
     ["HOOGLE - (C) Neil Mitchell 2004-2007, University of York, UK"
@@ -40,19 +23,6 @@ versionMsg = unlines
 
 helpMsg = unlines
     ["Go to the website for help, http://haskell.org/hoogle/"]
-
-
-
-fVersion = ["v","ver","version"]
-fHelp = ["h","help"]
-fConvert = ["conv","convert"]
-fOutput = ["o","out","output"]
-fDatabase = ["db","data","database"]
-fColor = ["c","col","color","colour"]
-fStart = ["s","start"]
-fCount = ["n","count","length","len"]
-fDocs = ["d","doc","docs"]
-fInfo = ["i","inf","info"]
 
 
 exec :: Origin -> Query -> IO ()
