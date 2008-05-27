@@ -31,8 +31,7 @@ Folders
 
 The folders in the distribution, and their meaning are:
 
-data - programs that generate a hoogle data file
+data - tools to generate a hoogle data file
 docs - documentation on hoogle
-src  - source code to the hoogle front ends, and the main code
-test - regression tests
-web  - additional front end stuff for the web module
+src  - source code
+web  - additional resources for the web front end (css, jpg etc.)
