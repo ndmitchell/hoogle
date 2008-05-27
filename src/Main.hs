@@ -1,29 +1,19 @@
 
 module Main where
 
-import Web.All
 import CmdLine.All
-import Hoogle.All
-import General.All
-
-import Control.Monad
-import Data.Maybe
-import Data.List
-import System.FilePath
-import System.Directory
-
-
-data Origin = Web
-            | CmdLine
+import Web.All
 
 
 main :: IO ()
-main = return () {- do
-    (origin,query) <- getQuery
-    case parseQuery query of
-        Left err -> putStr $ cmdParseError query err
-        Right q -> exec origin q -}
+main = do
+    q <- cmdQuery
+    if queryWeb q
+        then actionWeb q
+        else actionCmdLine q
 
+
+{-
 
 hasFlag :: Query -> [String] -> Bool
 hasFlag q s = isJust $ getFlag q s
@@ -173,4 +163,5 @@ collectDataBases q =  return [] {- do
             db <- loadDataBase file
             when (isNothing db) $ putStrLn $ "Failed to load database, " ++ file
             return db
+-}
 -}
