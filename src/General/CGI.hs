@@ -8,22 +8,24 @@ module General.CGI(cgiArgs, escape, escapeUpper, escapeLower, asCgi, escapeHTML,
 
 import General.TextUtil
 import System.Environment
+import Control.Monad
 import Data.Maybe
 import Data.Char
 import Numeric
 import Data.List
 
 
-cgiVariable :: IO String
-cgiVariable = catch (getEnv "QUERY_STRING")
-                    (\ _ -> do x <- getArgs
-                               return $ concat $ intersperse " " x)
+cgiVariable :: IO (Maybe String)
+cgiVariable = catch (liftM Just $ getEnv "QUERY_STRING")
+                    (const $ return Nothing)
 
 
-cgiArgs :: IO [(String, String)]
+cgiArgs :: IO (Maybe [(String, String)])
 cgiArgs = do x <- cgiVariable
-             let args = if '=' `elem` x then x else "q=" ++ x
-             return $ parseArgs args
+             return $ case x of
+                Nothing -> Nothing
+                Just y -> Just $ parseArgs $ ['=' | '=' `notElem` y] ++ y
+
 
 asCgi :: [(String, String)] -> String
 asCgi x = concat $ intersperse "&" $ map f x
