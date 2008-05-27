@@ -16,20 +16,9 @@ main = do
 {-
 
 
-versionMsg = unlines
-    ["HOOGLE - (C) Neil Mitchell 2004-2007, University of York, UK"
-    ,"Version 4.0 pre"
-    ]
-
-helpMsg = unlines
-    ["Go to the website for help, http://haskell.org/hoogle/"]
-
 
 exec :: Origin -> Query -> IO ()
 
-exec CmdLine q | hasFlag q fVersion = putStr versionMsg
-
-exec CmdLine q | hasFlag q fHelp = putStr helpMsg
 
 {-
 exec CmdLine q | hasFlag q fConvert = do
