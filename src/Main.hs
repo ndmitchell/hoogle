@@ -17,17 +17,12 @@ data Origin = Web
             | CmdLine
 
 
-getQuery :: IO (Origin, String)
-getQuery = do web <- webQuery
-              case web of
-                  Just x -> return (Web, x)
-                  Nothing -> return (CmdLine, "")
-
-main = do
+main :: IO ()
+main = return () {- do
     (origin,query) <- getQuery
     case parseQuery query of
         Left err -> putStr $ cmdParseError query err
-        Right q -> exec origin q
+        Right q -> exec origin q -}
 
 
 hasFlag :: Query -> [String] -> Bool
