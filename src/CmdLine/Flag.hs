@@ -19,7 +19,7 @@ data CmdFlag = Version         -- ^ Version information
              | Color Bool      -- ^ Colors on the console
              | Start Int       -- ^ First result to show
              | Count Int       -- ^ Number of results to show
-               deriving ( {-! Enum !-} )
+               deriving (Eq {-! Enum !-} )
 
 
 -- | flags that are passed in through web arguments,
