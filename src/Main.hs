@@ -76,6 +76,7 @@ exec CmdLine q | hasFlag q fVersion = putStr versionMsg
 
 exec CmdLine q | hasFlag q fHelp = putStr helpMsg
 
+{-
 exec CmdLine q | hasFlag q fConvert = do
     let input  = fromMaybe "" (getFlag q fConvert)
         output = fromMaybe (replaceExtension input "hoo") (getFlag q fOutput)
@@ -90,10 +91,11 @@ exec CmdLine q | hasFlag q fConvert = do
         if anyError response
             then putStrLn $ "Conversion failed"
             else putStrLn $ "Conversion successful, created: " ++ output
-    
+-}
 
 exec CmdLine q | not $ usefulQuery q = putStr $ "No query given\n" ++ helpMsg
 
+{-
 exec CmdLine q = do
     checkFlags q (fColor ++ fDatabase ++ fStart ++ fCount ++ fDocs ++ fInfo)
     databases <- collectDataBases q
@@ -133,7 +135,7 @@ exec CmdLine q = do
                     case (reads x :: [(Int,String)]) of
                         [(n,"")] | n > 0 -> Just n
                         _ -> Nothing
-
+-}
 
 {- RULES
 For each /db=... flag, it must be either a file (load it) or a folder (look for +packages in it)
@@ -141,7 +143,7 @@ If always check the current directory if all /db directives fail
 If no /db files and no +packages then default to +base
 -}
 collectDataBases :: Query -> IO [DataBase]
-collectDataBases q = do
+collectDataBases q =  return [] {- do
     (files,dirs) <- f (getFlags q fDatabase)
     let packs = [x | PlusPackage x <- scope q]
     files2 <- mapM (g (dirs++[""])) (if null packs && null files then ["base"] else packs)
@@ -176,3 +178,4 @@ collectDataBases q = do
             db <- loadDataBase file
             when (isNothing db) $ putStrLn $ "Failed to load database, " ++ file
             return db
+-}
