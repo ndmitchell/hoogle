@@ -17,12 +17,9 @@ import Data.List
 
 -- | Return the q parameter, if there is any CGI variable
 webQuery :: IO (Maybe String)
-webQuery = do v <- var
-              return $ case v of
-                  Nothing -> Nothing
-                  Just x -> Just $ f x
+webQuery = var
     where
-        var = catch (liftM Just $ getEnv "QUERY_STRING")
+        var = catch (liftM (Just . f) $ getEnv "QUERY_STRING")
                     (const $ return Nothing)
 
         f x | '=' `notElem` x = f ("q=" ++ x)
