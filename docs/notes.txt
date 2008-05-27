@@ -1,0 +1,18 @@
+Notes
+=====
+
+These are general notes about the source code.
+
+
+Overall Binary
+--------------
+
+Hoogle provides one single binary, which performs all the operations. It functions in one of several modes:
+
+* Command line version
+
+* Interactive version
+
+* Score generator
+
+* Web version
