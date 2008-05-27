@@ -13,8 +13,8 @@ Web Version
 
 A web version is available at http://www.haskell.org/hoogle
 
-All the appropriate documentation/credits/reference material is on the Haskell wiki at
-http://www.haskell.org/haskellwiki/Hoogle
+All the appropriate documentation/credits/reference material is on the
+Haskell wiki at http://www.haskell.org/haskellwiki/Hoogle
 
 
 Building
