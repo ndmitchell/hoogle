@@ -1,5 +1,5 @@
 
-module CmdLine.Actions(cmdParseError) where
+module CmdLine.Action(cmdParseError) where
 
 import Text.ParserCombinators.Parsec
 

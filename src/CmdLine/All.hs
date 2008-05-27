@@ -1,8 +1,8 @@
 
 module CmdLine.All(
     module CmdLine.Query,
-    module CmdLine.Actions
+    module CmdLine.Action
     ) where
 
 import CmdLine.Query
-import CmdLine.Actions
+import CmdLine.Action
