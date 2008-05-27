@@ -21,7 +21,7 @@ getQuery :: IO (Origin, String)
 getQuery = do web <- webQuery
               case web of
                   Just x -> return (Web, x)
-                  Nothing -> liftM ((,) CmdLine) cmdQuery 
+                  Nothing -> return (CmdLine, "")
 
 main = do
     (origin,query) <- getQuery
