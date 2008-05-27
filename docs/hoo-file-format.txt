@@ -1,15 +1,13 @@
 .hoo File Format
 ================
 
-This document describes the file format for .hoo files
-
-These files are read by Hoogle to find out what functions are available
+This document describes the file format for .hoo files. These files are read by Hoogle to find out what functions a library provides.
 
 
 Syntax
 ------
 
-The file is a text file. Each line is one entry, there is no way to span a line over multiple lines. Blank lines are ignored. Any line in which the first character is a # is ignored, #'s appearing later on the same line are not comments. There is no indentation, all lines are white-space trimmed before being examined.
+The file is a text file. Each line is one entry, there is no way to span a line over multiple lines. Blank lines are ignored. Any line in which the first character is a # is ignored, #'s appearing later on the same line are not comments. There is no indentation, all lines are white-space trimmed before being examined. As far as possible, the syntax corresponds to that of Haskell.
 
 
 Module
@@ -18,12 +16,9 @@ Module
 The first content line of each file must be a module declaration. Once a module declaration is seen, all signatures after that are counted as being in that module. If another module declaration is given, then all subsequent lines are in that new module. This means that multiple hoo files concatentated are a valid hoo file.
 
 
-Declarations
-------------
+Example
+-------
 
-Some example declarations:
-
--- <example> --
 # comment
 module Prelude
 module Data.Char
@@ -47,7 +42,6 @@ class Eq a => Ord a
 == :: Eq a => a -> a -> Bool
 
 type String = [Char]
--- </exampe> --
 
 
 Special Cases
@@ -60,4 +54,8 @@ The following extensions are supported:
 * GADT's
 * Multiparameter type classes
 * Functional dependencies
-* MagicHash operators, i.e. foo#
+* MagicHash syntax, i.e. foo#
+
+The following extensions are not supported:
+* Implicit parameters
+* Type classes
