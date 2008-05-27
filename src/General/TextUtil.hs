@@ -2,7 +2,7 @@
     General text utility functions
 -}
 
-module Hoogle.TextUtil where
+module General.TextUtil where
 
 import Prelude
 import Data.Maybe

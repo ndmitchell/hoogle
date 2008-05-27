@@ -5,7 +5,7 @@
 
 module Web.Query(webQuery) where
 
-import Hoogle.TextUtil
+import General.TextUtil
 import System.Environment
 import Data.Maybe
 import Data.Char

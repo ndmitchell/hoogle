@@ -6,7 +6,7 @@
 
 module General.CGI(cgiArgs, escape, escapeUpper, escapeLower, asCgi, escapeHTML, escapeAttrib) where
 
-import Hoogle.TextUtil
+import General.TextUtil
 import System.Environment
 import Data.Maybe
 import Data.Char
