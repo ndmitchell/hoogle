@@ -1,7 +1,7 @@
 
 module Hoogle.All(
     Query(..), parseQuery, renderQuery, suggestQuery, usefulQuery,
-    Flag(..), getFlag,
+    Flag(..),
     DataBase, loadDataBase, showDataBase, convert,
     searchAll, searchRange,
     Result(..), renderResult, verboseResult
