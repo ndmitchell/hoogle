@@ -1,5 +1,5 @@
 
-module Hoogle.Query.Parser(parseQuery, parseCmdlineQuery, parsecQuery) where
+module Hoogle.Query.Parser(parseQuery, parseCmdLineQuery, parsecQuery) where
 
 import Hoogle.Query.Type
 import Hoogle.TypeSig.All
@@ -16,8 +16,8 @@ parseQuery :: String -> Either ParseError Query
 parseQuery input = parse parsecQuery "" input
 
 
-parseCmdlineQuery :: [String] -> Either ParseError Query
-parseCmdlineQuery args = parseQuery $ concat $ intersperse " " $ map f args
+parseCmdLineQuery :: [String] -> Either ParseError Query
+parseCmdLineQuery args = parseQuery $ concat $ intersperse " " $ map f args
     where
         f x | any isSpace x = "\"" ++ x ++ "\""
             | otherwise = x
