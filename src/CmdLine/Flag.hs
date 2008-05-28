@@ -16,6 +16,7 @@ import Data.Char
 data CmdFlag = Version         -- ^ Version information
              | Web             -- ^ Operate as a CGI process
              | Help            -- ^ Help text
+             | Test            -- ^ Run the regression tests
              | Color Bool      -- ^ Colors on the console
              | Start Int       -- ^ First result to show
              | Count Int       -- ^ Number of results to show
@@ -59,6 +60,7 @@ parseFlag key val
     | test ["c","col","color","colour"] = f1 parseBool Color
     | test ["s","start"] = f1 parseUint Start
     | test ["n","count","length","len"] = f1 parseUint Count
+    | test ["test"] = f0 Test
     | otherwise = Nothing
     where
         key2 = map toLower key
