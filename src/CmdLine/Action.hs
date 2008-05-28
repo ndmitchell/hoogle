@@ -4,6 +4,7 @@ module CmdLine.Action(actionCmdLine) where
 import CmdLine.Flag
 import CmdLine.Query
 import Data.List
+import Test.All
 import Text.ParserCombinators.Parsec
 import System.Exit
 
@@ -33,5 +34,7 @@ actionCmdLine q | Version `elem` queryFlags q = putStr $ unlines
 actionCmdLine q | Help `elem` queryFlags q =
     putStrLn "Go to the website for help, http://haskell.org/hoogle/"
 
+
+actionCmdLine q | Test `elem` queryFlags q = test
 
 actionCmdLine _ = error "todo"
