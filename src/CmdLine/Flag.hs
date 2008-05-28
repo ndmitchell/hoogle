@@ -34,7 +34,7 @@ data Permission = PWebArgs | PWebQuery | PCmdLine
 data Argument = ArgNone CmdFlag
               | ArgBool (Bool -> CmdFlag)
               | ArgInt  (Int  -> CmdFlag)
-              | ArgUint (Int  -> CmdFlag)
+              | ArgNat  (Int  -> CmdFlag)
 
 data FlagInfo = FlagInfo {
     argument :: Argument,
@@ -48,8 +48,8 @@ flagInfo =
     ,f (ArgNone Help) ["?","help","h"] [PCmdLine] "Show help message"
     ,f (ArgNone Web) ["w","web"] [PCmdLine] "Run as though it was a CGI script"
     ,f (ArgBool Color) ["c","color","col","colour"] [PCmdLine] "Show color output (default=false)"
-    ,f (ArgUint Start) ["s","start"] [PCmdLine,PWebArgs] "First result to show (default=1)"
-    ,f (ArgUint Count) ["n","count","length","len"] [PCmdLine,PWebArgs] "Number of results to show (default=all)"
+    ,f (ArgNat  Start) ["s","start"] [PCmdLine,PWebArgs] "First result to show (default=1)"
+    ,f (ArgNat  Count) ["n","count","length","len"] [PCmdLine,PWebArgs] "Number of results to show (default=all)"
     ,f (ArgNone Test) ["test"] [PCmdLine] "Run the regression tests"
     ]
     where f = FlagInfo
@@ -92,8 +92,8 @@ flagsHelp = unlines $ map f res
         longOpt (x:_) = x
 
         typ (ArgNone _) = ""
-        typ (ArgInt _) = "=INT"
-        typ (ArgUint _) = "=UINT"
+        typ (ArgInt  _) = "=INT"
+        typ (ArgNat  _) = "=NAT"
         typ (ArgBool _) = "=BOOL"
 
 
@@ -123,14 +123,14 @@ parseFlag perm key val = do
 parseArg :: Argument -> String -> Maybe CmdFlag
 parseArg (ArgNone v) xs = if null xs then Just v else Nothing
 parseArg (ArgBool v) xs = liftM v $ parseBool xs
-parseArg (ArgUint v) xs = liftM v $ parseUint xs
+parseArg (ArgNat  v) xs = liftM v $ parseNat  xs
 parseArg (ArgInt  v) xs = liftM v $ parseInt  xs
 
 
-parseUint :: String -> Maybe Int
-parseUint x = case parseInt x of
-                   Just y | y >= 0 -> Just y
-                   _ -> Nothing
+parseNat :: String -> Maybe Int
+parseNat x = case parseInt x of
+                  Just y | y >= 0 -> Just y
+                  _ -> Nothing
 
 
 parseInt :: String -> Maybe Int
