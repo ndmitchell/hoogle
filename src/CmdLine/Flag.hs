@@ -5,13 +5,14 @@
 -}
 
 module CmdLine.Flag(
-    CmdFlag(..),
+    CmdFlag(..), flagsHelp,
     flagsWebArgs, flagsWebQuery, flagsCmdLine
     ) where
 
 import Control.Monad
 import Data.Char
 import Data.Maybe
+import General.All
 
 ---------------------------------------------------------------------
 -- The flags
@@ -54,6 +55,9 @@ flagInfo =
     where f = FlagInfo
 
 
+---------------------------------------------------------------------
+-- Operations on Flags
+
 -- | flags that are passed in through web arguments,
 --   i.e. ?foo=bar&...
 flagsWebArgs :: [(String,String)] -> ([CmdFlag],[String])
@@ -69,6 +73,32 @@ flagsWebQuery = parseFlags PWebQuery
 flagsCmdLine :: [(String,String)] -> ([CmdFlag],[String])
 flagsCmdLine = parseFlags PCmdLine
 
+
+flagsHelp :: String
+flagsHelp = unlines $ map f res
+    where
+        f (a,b,c) = "  " ++ (if null a then "    " else "--" ++ a ++ ",") ++
+                    " --" ++ b ++ replicate (maxLong - length b) ' ' ++
+                    "  " ++ c
+
+        maxLong = maximum $ map (length . snd3) res
+        res = [ (shortOpt (names i), longOpt (names i) ++ typ (argument i), description i)
+              | i <- flagInfo, PCmdLine `elem` permissions i]
+
+        shortOpt ([x]:_) = [x]
+        shortOpt _ = ""
+        
+        longOpt ([_]:x:_) = x
+        longOpt (x:_) = x
+
+        typ (ArgNone _) = ""
+        typ (ArgInt _) = "=INT"
+        typ (ArgUint _) = "=UINT"
+        typ (ArgBool _) = "=BOOL"
+
+
+---------------------------------------------------------------------
+-- Parsing Flags
 
 -- check no flag is specified twice
 parseFlags :: Permission -> [(String,String)] -> ([CmdFlag],[String])

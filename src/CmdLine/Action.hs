@@ -32,7 +32,10 @@ actionCmdLine q | Version `elem` queryFlags q = putStr $ unlines
 
 
 actionCmdLine q | Help `elem` queryFlags q =
-    putStrLn "Go to the website for help, http://haskell.org/hoogle/"
+    putStr $ "Go to the website for full help, http://haskell.org/hoogle/\n" ++
+             "\n" ++
+             "Flag reference:\n" ++
+             flagsHelp
 
 
 actionCmdLine q | Test `elem` queryFlags q = test
