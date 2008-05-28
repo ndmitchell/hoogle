@@ -11,7 +11,10 @@ module CmdLine.Flag(
 
 import Control.Monad
 import Data.Char
+import Data.Maybe
 
+---------------------------------------------------------------------
+-- The flags
 
 data CmdFlag = Version         -- ^ Version information
              | Web             -- ^ Operate as a CGI process
@@ -23,28 +26,56 @@ data CmdFlag = Version         -- ^ Version information
                deriving (Eq {-! Enum !-} )
 
 
+-- | In which circumstances are you allowed to pass this command
+data Permission = PWebArgs | PWebQuery | PCmdLine
+                  deriving Eq
+
+data Argument = ArgNone CmdFlag
+              | ArgBool (Bool -> CmdFlag)
+              | ArgInt  (Int  -> CmdFlag)
+              | ArgUint (Int  -> CmdFlag)
+
+data FlagInfo = FlagInfo {
+    argument :: Argument,
+    names :: [String],
+    permissions :: [Permission],
+    description :: String
+    }
+
+flagInfo =
+    [f (ArgNone Version) ["v","version","ver"] [PCmdLine] "Print out version information"
+    ,f (ArgNone Help) ["?","help","h"] [PCmdLine] "Show help message"
+    ,f (ArgNone Web) ["w","web"] [PCmdLine] "Run as though it was a CGI script"
+    ,f (ArgBool Color) ["c","color","col","colour"] [PCmdLine] "Show color output (default=false)"
+    ,f (ArgUint Start) ["s","start"] [PCmdLine,PWebArgs] "First result to show (default=1)"
+    ,f (ArgUint Count) ["n","count","length","len"] [PCmdLine,PWebArgs] "Number of results to show (default=all)"
+    ,f (ArgNone Test) ["test"] [PCmdLine] "Run the regression tests"
+    ]
+    where f = FlagInfo
+
+
 -- | flags that are passed in through web arguments,
 --   i.e. ?foo=bar&...
 flagsWebArgs :: [(String,String)] -> ([CmdFlag],[String])
-flagsWebArgs xs = ([], map fst xs)
+flagsWebArgs = parseFlags PWebArgs
 
 
 -- | flags that are given in the web query string
 flagsWebQuery :: [(String,String)] -> ([CmdFlag],[String])
-flagsWebQuery = flagsWebArgs
+flagsWebQuery = parseFlags PWebQuery
 
 
 -- | flags that are given in a query on the command line
 flagsCmdLine :: [(String,String)] -> ([CmdFlag],[String])
-flagsCmdLine = parseFlags
+flagsCmdLine = parseFlags PCmdLine
 
 
 -- check no flag is specified twice
-parseFlags :: [(String,String)] -> ([CmdFlag],[String])
-parseFlags xs = f [] xs
+parseFlags :: Permission -> [(String,String)] -> ([CmdFlag],[String])
+parseFlags perm xs = f [] xs
     where
         f seen [] = ([], [])
-        f seen ((key,val):xs) = case parseFlag key val of
+        f seen ((key,val):xs) = case parseFlag perm key val of
                 Just x | xe `notElem` seen -> (x:a,b)
                     where xe = fromEnum x
                           (a,b) = f (xe:seen) xs
@@ -52,24 +83,18 @@ parseFlags xs = f [] xs
                     where (a,b) = f seen xs
 
 
-parseFlag :: String -> String -> Maybe CmdFlag
-parseFlag key val
-    | test ["v","ver","version"] = f0 Version
-    | test ["?","h","help"] = f0 Help
-    | test ["w","web"] = f0 Web
-    | test ["c","col","color","colour"] = f1 parseBool Color
-    | test ["s","start"] = f1 parseUint Start
-    | test ["n","count","length","len"] = f1 parseUint Count
-    | test ["test"] = f0 Test
-    | otherwise = Nothing
-    where
-        key2 = map toLower key
-        test = elem key2
-        
-        f0 res | null val = Just res
-               | otherwise = Nothing
+parseFlag :: Permission -> String -> String -> Maybe CmdFlag
+parseFlag perm key val = do
+    let key2 = map toLower key
+    i <- listToMaybe [i | i <- flagInfo, key2 `elem` names i, perm `elem` permissions i]
+    parseArg (argument i) val
 
-        f1 f res = liftM res $ f val
+
+parseArg :: Argument -> String -> Maybe CmdFlag
+parseArg (ArgNone v) xs = if null xs then Just v else Nothing
+parseArg (ArgBool v) xs = liftM v $ parseBool xs
+parseArg (ArgUint v) xs = liftM v $ parseUint xs
+parseArg (ArgInt  v) xs = liftM v $ parseInt  xs
 
 
 parseUint :: String -> Maybe Int
