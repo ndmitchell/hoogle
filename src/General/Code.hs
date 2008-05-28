@@ -4,6 +4,10 @@ module General.Code where
 import Data.List
 
 
+fst3 (a,b,c) = a
+snd3 (a,b,c) = b
+thd3 (a,b,c) = c
+
 on f g x y = f (g x) (g y)
 
 
