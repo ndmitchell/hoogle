@@ -6,6 +6,7 @@ import CmdLine.Query
 import Control.Monad
 import Data.List
 import General.All
+import Hoogle.All
 import Test.All
 import Text.ParserCombinators.Parsec
 import Safe
@@ -57,12 +58,7 @@ actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
     when (not exist) $ failMessage ["Convert, input file not found: " ++ infile]
 
     putStrLn $ "Converting " ++ infile
-    putStrLn "Todo: conversion code"
-    -- response <- newDataBase infile outfile
-    -- when (not $ null response) $ print response
-    -- if anyError response
-    --     then putStrLn $ "Conversion failed"
-    --     else putStrLn $ "Conversion successful, created " ++ outfile
+    convert infile outfile
 
 
 actionCmdLine _ = error "todo"
