@@ -143,8 +143,8 @@ parseInt x = case reads x of
 
 
 parseBool :: String -> Maybe Bool
-parseBool v | v2 `elem` ["","yes","1","true","meep"] = Just True
-            | v2 `elem` ["no","0","false","moop"] = Just False 
+parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = Just True
+            | v2 `elem` ["off","no","0","false","moop"] = Just False 
             | otherwise = Nothing
     where v2 = map toLower v
 
