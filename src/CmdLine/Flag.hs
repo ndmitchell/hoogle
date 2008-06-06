@@ -17,13 +17,15 @@ import General.All
 ---------------------------------------------------------------------
 -- The flags
 
-data CmdFlag = Version         -- ^ Version information
-             | Web             -- ^ Operate as a CGI process
-             | Help            -- ^ Help text
-             | Test            -- ^ Run the regression tests
-             | Color Bool      -- ^ Colors on the console
-             | Start Int       -- ^ First result to show
-             | Count Int       -- ^ Number of results to show
+data CmdFlag = Version          -- ^ Version information
+             | Web              -- ^ Operate as a CGI process
+             | Help             -- ^ Help text
+             | Test             -- ^ Run the regression tests
+             | Color Bool       -- ^ Colors on the console
+             | Start Int        -- ^ First result to show
+             | Count Int        -- ^ Number of results to show
+             | Convert          -- ^ Convert a database
+             | Output FilePath  -- ^ Output file
                deriving (Eq {-! Enum !-} )
 
 
@@ -32,9 +34,10 @@ data Permission = PWebArgs | PWebQuery | PCmdLine
                   deriving Eq
 
 data Argument = ArgNone CmdFlag
-              | ArgBool (Bool -> CmdFlag)
-              | ArgInt  (Int  -> CmdFlag)
-              | ArgNat  (Int  -> CmdFlag)
+              | ArgBool (Bool     -> CmdFlag)
+              | ArgInt  (Int      -> CmdFlag)
+              | ArgNat  (Int      -> CmdFlag)
+              | ArgFile (FilePath -> CmdFlag)
 
 data FlagInfo = FlagInfo {
     argument :: Argument,
@@ -146,22 +149,29 @@ parseBool v | v2 `elem` ["","yes","1","true","meep"] = Just True
     where v2 = map toLower v
 
 
+
 --------------------------------------------------------
 -- DERIVES GENERATED CODE
 -- DO NOT MODIFY BELOW THIS LINE
--- CHECKSUM: 83803175
+-- CHECKSUM: 1015425617
 
 instance Enum CmdFlag
     where toEnum 0 = Version{}
           toEnum 1 = Web{}
           toEnum 2 = Help{}
-          toEnum 3 = Color{}
-          toEnum 4 = Start{}
-          toEnum 5 = Count{}
+          toEnum 3 = Test{}
+          toEnum 4 = Color{}
+          toEnum 5 = Start{}
+          toEnum 6 = Count{}
+          toEnum 7 = Convert{}
+          toEnum 8 = Output{}
           toEnum n = error ((++) "toEnum " ((++) (show n) ", not defined for CmdFlag"))
           fromEnum (Version {}) = 0
           fromEnum (Web {}) = 1
           fromEnum (Help {}) = 2
-          fromEnum (Color {}) = 3
-          fromEnum (Start {}) = 4
-          fromEnum (Count {}) = 5
+          fromEnum (Test {}) = 3
+          fromEnum (Color {}) = 4
+          fromEnum (Start {}) = 5
+          fromEnum (Count {}) = 6
+          fromEnum (Convert {}) = 7
+          fromEnum (Output {}) = 8
