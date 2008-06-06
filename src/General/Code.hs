@@ -71,3 +71,7 @@ iff b a = if b then Just a else Nothing
 
 setEq :: Eq a => [a] -> [a] -> Bool
 setEq xs ys = all (`elem` ys) xs && all (`elem` xs) ys
+
+
+elemEnum :: Enum a => a -> [a] -> Bool
+elemEnum x ys = fromEnum x `elem` map fromEnum ys
