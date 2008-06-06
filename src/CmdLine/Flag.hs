@@ -17,15 +17,15 @@ import General.All
 ---------------------------------------------------------------------
 -- The flags
 
-data CmdFlag = Version          -- ^ Version information
-             | Web              -- ^ Operate as a CGI process
-             | Help             -- ^ Help text
-             | Test             -- ^ Run the regression tests
-             | Color Bool       -- ^ Colors on the console
-             | Start Int        -- ^ First result to show
-             | Count Int        -- ^ Number of results to show
-             | Convert          -- ^ Convert a database
-             | Output FilePath  -- ^ Output file
+data CmdFlag = Version           -- ^ Version information
+             | Web               -- ^ Operate as a CGI process
+             | Help              -- ^ Help text
+             | Test              -- ^ Run the regression tests
+             | Color Bool        -- ^ Colors on the console
+             | Start Int         -- ^ First result to show
+             | Count Int         -- ^ Number of results to show
+             | Convert FilePath  -- ^ Convert a database
+             | Output FilePath   -- ^ Output file
                deriving (Eq {-! Enum !-} )
 
 
@@ -54,6 +54,8 @@ flagInfo =
     ,f (ArgNat  Start) ["s","start"] [PCmdLine,PWebArgs] "First result to show (default=1)"
     ,f (ArgNat  Count) ["n","count","length","len"] [PCmdLine,PWebArgs] "Number of results to show (default=all)"
     ,f (ArgNone Test) ["test"] [PCmdLine] "Run the regression tests"
+    ,f (ArgFile Convert) ["convert"] [PCmdLine] "Convert a database"
+    ,f (ArgFile Output) ["output"] [PCmdLine] "Output file for convert"
     ]
     where f = FlagInfo
 
@@ -98,6 +100,7 @@ flagsHelp = unlines $ map f res
         typ (ArgInt  _) = "=INT"
         typ (ArgNat  _) = "=NAT"
         typ (ArgBool _) = "=BOOL"
+        typ (ArgFile _) = "=FILE"
 
 
 ---------------------------------------------------------------------
@@ -126,6 +129,7 @@ parseFlag perm key val = do
 parseArg :: Argument -> String -> Maybe CmdFlag
 parseArg (ArgNone v) xs = if null xs then Just v else Nothing
 parseArg (ArgBool v) xs = liftM v $ parseBool xs
+parseArg (ArgFile v) xs = liftM v $ parseFile xs
 parseArg (ArgNat  v) xs = liftM v $ parseNat  xs
 parseArg (ArgInt  v) xs = liftM v $ parseInt  xs
 
@@ -140,6 +144,10 @@ parseInt :: String -> Maybe Int
 parseInt x = case reads x of
                   [(a,"")] -> Just a
                   _ -> Nothing
+
+
+parseFile :: String -> Maybe String
+parseFile x = if null x then Nothing else Just x
 
 
 parseBool :: String -> Maybe Bool
