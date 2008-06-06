@@ -7,6 +7,11 @@ import Data.List
 import Test.All
 import Text.ParserCombinators.Parsec
 import System.Exit
+import System.FilePath
+
+
+failMessage :: [String] -> IO ()
+failMessage msg = putStr (unlines msg) >> exitFailure
 
 
 actionCmdLine :: CmdQuery -> IO ()
@@ -20,10 +25,9 @@ actionCmdLine CmdQuery{queryText = text, query = Left err} = do
 
 
 actionCmdLine q | not $ null $ queryBadFlags q = do
-    putStr $ unlines ["Unrecognised or malformed flags:"
-                     ,"  " ++ concat (intersperse ", " $ map show $ queryBadFlags q)
-                     ,"For details on correct flags pass --help"]
-    exitFailure
+    failMessage ["Unrecognised or malformed flags:"
+                ,"  " ++ concat (intersperse ", " $ map show $ queryBadFlags q)
+                ,"For details on correct flags pass --help"]
 
 
 actionCmdLine q | Version `elem` queryFlags q = putStr $ unlines
