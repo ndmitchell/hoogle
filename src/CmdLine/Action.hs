@@ -3,9 +3,13 @@ module CmdLine.Action(actionCmdLine) where
 
 import CmdLine.Flag
 import CmdLine.Query
+import Control.Monad
 import Data.List
+import General.All
 import Test.All
 import Text.ParserCombinators.Parsec
+import Safe
+import System.Directory
 import System.Exit
 import System.FilePath
 
@@ -43,5 +47,22 @@ actionCmdLine q | Help `elem` queryFlags q =
 
 
 actionCmdLine q | Test `elem` queryFlags q = test
+
+
+actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
+    let infile = head [x | Convert x <- queryFlags q]
+        outfile = headDef (replaceExtension infile "hoo") [x | Output x <- queryFlags q]
+
+    exist <- doesFileExist infile
+    when (not exist) $ failMessage ["Convert, input file not found: " ++ infile]
+
+    putStrLn $ "Converting " ++ infile
+    putStrLn "Todo: conversion code"
+    -- response <- newDataBase infile outfile
+    -- when (not $ null response) $ print response
+    -- if anyError response
+    --     then putStrLn $ "Conversion failed"
+    --     else putStrLn $ "Conversion successful, created " ++ outfile
+
 
 actionCmdLine _ = error "todo"
