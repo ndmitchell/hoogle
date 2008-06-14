@@ -68,14 +68,16 @@ parsecTextBase = do x <- anyLineSpace `sepBy` newline
         dataAny d = liftM (mkData d) parsecTypeSig
 
         
-        func = do name <- between (char '(') (char ')') (many1 $ noneOf ")") <|> keyword
+        func = do name <- between (char '(') (char ')') keysymbol <|> keysymbol <|> keyword
                   whites
                   (do string "::" ; whites
                       typ <- parsecTypeSig
                       return $ mkFunc name typ
                     ) <|> (return $ mkKeyword name)
         
-        
+        keysymbol = many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
+        ascSymbol = "!#$%&*+./<=>?@\\^|-~:"
+
         keyword = do x <- letter
                      xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#")
                      return (x:xs)
