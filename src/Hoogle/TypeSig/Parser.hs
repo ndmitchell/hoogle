@@ -29,8 +29,10 @@ parsecTypeSig = do whites
     
         typ0 = function
         typ1 = application
-        typ2 = tuple <|> list <|> atom
-    
+        typ2 = tuple <|> list <|> atom <|> bang
+
+        bang = wchar '!' >> typ2
+
         -- match (a,b) and (,)
         -- also pick up ( -> )
         tuple = do wchar '('
