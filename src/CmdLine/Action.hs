@@ -61,4 +61,9 @@ actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
     convert infile outfile
 
 
+actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
+    db <- loadDataBase $ head [x | Dump x <- queryFlags q]
+    print db
+
+
 actionCmdLine _ = error "todo"

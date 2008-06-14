@@ -26,6 +26,7 @@ data CmdFlag = Version           -- ^ Version information
              | Count Int         -- ^ Number of results to show
              | Convert FilePath  -- ^ Convert a database
              | Output FilePath   -- ^ Output file
+             | Dump FilePath     -- ^ Dump a database to a file
                deriving (Eq {-! Enum !-} )
 
 
@@ -56,6 +57,7 @@ flagInfo =
     ,f (ArgNone Test) ["test"] [PCmdLine] "Run the regression tests"
     ,f (ArgFile Convert) ["convert"] [PCmdLine] "Convert a database"
     ,f (ArgFile Output) ["output"] [PCmdLine] "Output file for convert"
+    ,f (ArgFile Dump) ["dump"] [PCmdLine] "Dump a database for debugging"
     ]
     where f = FlagInfo
 
@@ -161,7 +163,7 @@ parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = Just True
 --------------------------------------------------------
 -- DERIVES GENERATED CODE
 -- DO NOT MODIFY BELOW THIS LINE
--- CHECKSUM: 1015425617
+-- CHECKSUM: 1672940787
 
 instance Enum CmdFlag
     where toEnum 0 = Version{}
@@ -173,6 +175,7 @@ instance Enum CmdFlag
           toEnum 6 = Count{}
           toEnum 7 = Convert{}
           toEnum 8 = Output{}
+          toEnum 9 = Dump{}
           toEnum n = error ((++) "toEnum " ((++) (show n) ", not defined for CmdFlag"))
           fromEnum (Version {}) = 0
           fromEnum (Web {}) = 1
@@ -183,3 +186,4 @@ instance Enum CmdFlag
           fromEnum (Count {}) = 6
           fromEnum (Convert {}) = 7
           fromEnum (Output {}) = 8
+          fromEnum (Dump {}) = 9
