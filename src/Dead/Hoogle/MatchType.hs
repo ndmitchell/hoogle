@@ -64,7 +64,7 @@ buildTypeCode (con,typ) = TypeCode (length args) $ map asBound bound ++ concatMa
         
         asBound (var, TLit x) = DataBind x var
         
-        -- TODO: Multiparameter type classes
+        -- Note: Does not handle Multiparameter type classes
         asFree x = FreeSet items : [ClassBind c [i] | i <- items, c <- classes]
             where
                 items = map fst x
