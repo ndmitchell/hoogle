@@ -1,5 +1,5 @@
 
-module Data.Binary.Defer.Internal(
+module Data.Binary.Raw(
     hGetInt, hPutInt,
     hGetPos, hSetPos
     ) where

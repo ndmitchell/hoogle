@@ -6,7 +6,7 @@ import Control.Monad
 import Foreign (unsafePerformIO)
 
 import Data.Binary.Defer
-import Data.Binary.Defer.Internal
+import Data.Binary.Raw
 
 
 data ListDefer a = ListWrite [a]

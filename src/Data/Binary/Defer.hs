@@ -26,7 +26,7 @@ import Control.Exception (catch)
 import System.IO
 import Foreign(unsafePerformIO)
 import Control.Monad
-import Data.Binary.Defer.Internal
+import Data.Binary.Raw
 
 
 class BinaryDefer a where
