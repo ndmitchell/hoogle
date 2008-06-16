@@ -22,3 +22,15 @@ createDataBase :: [TextItem] -> DataBase
 createDataBase xs = DataBase items
         (createTextSearch ys) (createTypeSearch ys) (createSuggest ys)
     where (items,ys) = createItems xs
+
+
+saveDataBase :: FilePath -> DataBase -> IO ()
+saveDataBase = undefined
+
+
+loadDataBase :: FilePath -> IO DataBase
+loadDataBase = undefined
+
+
+showDataBase :: DataBase -> String
+showDataBase = undefined
