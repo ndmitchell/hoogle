@@ -6,7 +6,7 @@ module General.Index(
     ) where
 
 import Data.Array
-
+import Data.Binary.Defer
 
 type Id = Int
 
@@ -21,3 +21,7 @@ data Lookup a = Lookup {lookupKey :: Id, lookupVal :: a}
 
 newLookup :: Id -> Index a -> Lookup a
 newLookup i (Index xs) = Lookup i (xs ! i)
+
+
+instance BinaryDefer (Index a)
+instance BinaryDefer (Lookup a)
