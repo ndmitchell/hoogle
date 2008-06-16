@@ -1,7 +1,7 @@
 
 module Hoogle.Item.All where
 
-import General.Defer.Index
+import Data.Binary.Defer.Index
 import Data.List
 
 

@@ -1,5 +1,5 @@
 
-module General.Defer.Index(
+module Data.Binary.Defer.Index(
     Id,
     Index, newIndex,
     Lookup, newLookup, lookupKey, lookupVal
