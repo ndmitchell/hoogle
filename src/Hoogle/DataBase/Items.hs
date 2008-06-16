@@ -19,6 +19,10 @@ data Items = Items
 instance BinaryDefer Items where
     bothDefer = defer [\ ~(Items a b c) -> unit Items <<~ a <<~ b <<~ c]
 
+instance Show Items where
+    show (Items a b c) = f "Packages" a ++ f "Modules" b ++ f "Entrys" c
+        where f header x = "== " ++ header ++ "==\n\n" ++ show x ++ "\n\n"
+
 
 -- temporary state structure
 data S = S {pkg :: Package

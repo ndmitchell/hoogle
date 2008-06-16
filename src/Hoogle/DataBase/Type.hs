@@ -26,3 +26,9 @@ instance BinaryDefer DataBase where
     bothDefer = defer [\ ~(DataBase a b c d) ->
         unit DataBase <<~ a <<~ b <<~ c <<~ d]
 
+
+instance Show DataBase where
+    show (DataBase a b c d) =
+        f "Items" a ++ f "TextSearch" b ++ f "TypeSearch" c ++ f "Suggest" d
+        where
+            f header x = "= " ++ header ++ " =\n\n" ++ show a ++ "\n\n"

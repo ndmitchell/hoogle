@@ -11,6 +11,7 @@ data Package = Package
     ,haddockURL :: String
     ,hscolourURL :: String
     }
+    deriving Show
 
 
 data Module = Module
@@ -18,6 +19,7 @@ data Module = Module
     ,moduleName :: [String]
     ,modulePackage :: Lookup Package
     }
+    deriving Show
 
 
 data Entry = Entry
@@ -25,6 +27,7 @@ data Entry = Entry
     ,entryModule :: Maybe (Lookup Module)
     ,entryText :: [EntryText]
     }
+    deriving Show
 
 
 data EntryText = Keyword String
@@ -32,3 +35,4 @@ data EntryText = Keyword String
                | Focus String -- the bit text search starts from
                | ArgPos Int String
                | Result String
+                 deriving Show
