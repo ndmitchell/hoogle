@@ -27,11 +27,12 @@ suggestQuery db q | q /= q2 = Just $ suggestSearch q2
         f (TApp (TApp x []) y) = TApp x y
         f x = x
 
-        g (TApp (TLit x) xs) | length xs `notElem` is && not (null is) =
-                tApp (TLit x) $ take i $ xs ++ repeat (TVar $ '\0' : newvar)
-            where
-                i = maximum is
-                is = getKinds db x
+        -- TODO: reinstate once getKinds is implemented
+        --g (TApp (TLit x) xs) | length xs `notElem` is && not (null is) =
+        --        tApp (TLit x) $ take i $ xs ++ repeat (TVar $ '\0' : newvar)
+        --    where
+        --        i = maximum is
+        --        is = getKinds db x
         g (TApp x xs) = tApp x xs
         g x = x
 
