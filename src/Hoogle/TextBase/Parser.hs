@@ -32,7 +32,7 @@ parsecTextBase = do x <- anyLineSpace `sepBy` newline
                        xs <- many (satisfy isAlpha)
                        whites
                        ys <- many (noneOf "\n")
-                       return [ItemAttribute xs ys]
+                       return [ItemAttribute (x:xs) ys]
 
         item = modu <|> clas <|> inst <|> newtyp <|> typ <|> dat <|> func
         
