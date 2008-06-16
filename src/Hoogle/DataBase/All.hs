@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.All where
 
-
+import Hoogle.TextBase.All
 import Hoogle.DataBase.Items
 import Hoogle.DataBase.Suggest
 import Hoogle.DataBase.TypeSearch
@@ -16,3 +16,9 @@ data DataBase = DataBase
     ,typeSearch :: TypeSearch
     ,suggest :: Suggest
     }
+
+
+createDataBase :: [TextItem] -> DataBase
+createDataBase xs = DataBase items
+        (createTextSearch ys) (createTypeSearch ys) (createSuggest ys)
+    where (items,ys) = createItems xs
