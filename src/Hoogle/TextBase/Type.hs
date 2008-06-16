@@ -13,12 +13,12 @@ data TextItem = ItemModule [String]
               | ItemData DataKeyword TypeSig
               | ItemInstance TypeSig
               | ItemAttribute String String
-              deriving Show
+              deriving (Show,Eq)
 
 
 data DataKeyword = NewTypeKeyword
                  | DataKeyword
-                 deriving Show
+                 deriving (Show,Eq)
 
 
 {- TODO: put this somewhere sensible
