@@ -2,6 +2,7 @@
 module Hoogle.Item.All where
 
 import General.Index
+import Data.List
 
 
 data Package = Package
@@ -11,7 +12,6 @@ data Package = Package
     ,haddockURL :: String
     ,hscolourURL :: String
     }
-    deriving Show
 
 
 data Module = Module
@@ -19,7 +19,6 @@ data Module = Module
     ,moduleName :: [String]
     ,modulePackage :: Lookup Package
     }
-    deriving Show
 
 
 data Entry = Entry
@@ -27,7 +26,6 @@ data Entry = Entry
     ,entryModule :: Maybe (Lookup Module)
     ,entryText :: [EntryText]
     }
-    deriving Show
 
 
 data EntryText = Keyword String
@@ -36,3 +34,28 @@ data EntryText = Keyword String
                | ArgPos Int String
                | Result String
                  deriving Show
+
+
+showModule = concat . intersperse "."
+
+instance Show Package where
+    show (Package a b c d e) = unwords ["#" ++ show a,b,c,d,e]
+
+instance Show Module where
+    show (Module a b c) = unwords ["#" ++ show a, showModule b,
+        "{" ++ show c, packageName (lookupVal c) ++ "}"]
+
+instance Show Entry where
+    show (Entry a b c) = unwords ["#" ++ show a, concatMap f c, m]
+        where
+            m = case b of
+                    Nothing -> ""
+                    Just y -> "{" ++ show y ++ " " ++ showModule (moduleName $ lookupVal y) ++ "}"
+
+            f (Keyword x) = x
+            f (Text x) = x
+            f (Focus x) = x
+            f (ArgPos _ x) = x
+            f (Result x) = x
+
+
