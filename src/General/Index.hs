@@ -28,8 +28,7 @@ instance BinaryDefer (Lookup a)
 
 
 instance Show a => Show (Index a) where
-    show (Index xs) = concat $ zipWith f [0..] (elems xs)
-        where f i x = "#" ++ show i ++ " " ++ show x
+    show (Index xs) = unlines $ map show $ elems xs
 
 instance Show (Lookup a) where
     show (Lookup key _) = "#" ++ show key

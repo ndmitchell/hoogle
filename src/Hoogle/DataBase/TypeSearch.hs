@@ -3,7 +3,7 @@ module Hoogle.DataBase.TypeSearch where
 
 import Data.Binary.Defer
 
-data TypeSearch = TypeSearch
+data TypeSearch = TypeSearch deriving Show
 
 createTypeSearch :: a -> TypeSearch
 createTypeSearch _ = TypeSearch

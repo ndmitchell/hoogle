@@ -31,4 +31,4 @@ instance Show DataBase where
     show (DataBase a b c d) =
         f "Items" a ++ f "TextSearch" b ++ f "TypeSearch" c ++ f "Suggest" d
         where
-            f header x = "= " ++ header ++ " =\n\n" ++ show a ++ "\n\n"
+            f header x = "= " ++ header ++ " =\n\n" ++ show x ++ "\n\n"
