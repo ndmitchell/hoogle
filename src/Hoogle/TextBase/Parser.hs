@@ -1,5 +1,5 @@
 
-module Hoogle.TextBase.Parser(parseTextBase,parsecTextBase) where
+module Hoogle.TextBase.Parser(parseTextBase,parseTextBaseString) where
 
 import Hoogle.TextBase.Type
 import Hoogle.TypeSig.All
@@ -10,6 +10,10 @@ import Control.Monad
 
 parseTextBase :: FilePath -> IO (Either ParseError TextBase)
 parseTextBase = parseFromFile parsecTextBase
+
+
+parseTextBaseString :: String -> Either ParseError TextBase
+parseTextBaseString = parse parsecTextBase ""
 
 
 parsecTextBase :: Parser TextBase
