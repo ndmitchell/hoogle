@@ -12,7 +12,6 @@ data TextItem = ItemModule [String]
               | ItemAlias TypeSig TypeSig
               | ItemData DataKeyword TypeSig
               | ItemInstance TypeSig
-              | ItemKeyword String
               | ItemAttribute String String
               deriving Show
 
