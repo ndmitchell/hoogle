@@ -11,4 +11,7 @@ convert tb db = do
     res <- parseTextBase tb
     case res of
         Left  x -> error $ show x
-        Right x -> saveDataBase db (createDataBase x)
+        Right x -> do
+            let y = createDataBase x
+            print y
+            -- saveDataBase db y
