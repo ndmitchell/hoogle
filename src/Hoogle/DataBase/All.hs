@@ -14,7 +14,3 @@ createDataBase :: [TextItem] -> DataBase
 createDataBase xs = DataBase items
         (createTextSearch ys) (createTypeSearch ys) (createSuggest ys)
     where (items,ys) = createItems xs
-
-
-showDataBase :: DataBase -> String
-showDataBase = undefined
