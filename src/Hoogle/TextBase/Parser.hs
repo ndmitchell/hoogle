@@ -1,5 +1,5 @@
 
-module Hoogle.TextBase.Parser(parseTextBase) where
+module Hoogle.TextBase.Parser(parseTextBase,parsecTextBase) where
 
 import Hoogle.TextBase.Type
 import Hoogle.TypeSig.All
