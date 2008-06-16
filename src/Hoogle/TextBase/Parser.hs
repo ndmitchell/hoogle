@@ -28,11 +28,11 @@ parsecTextBase = do x <- anyLineSpace `sepBy` newline
         comment = string "--" >> skipMany (noneOf "\n") >> return []
         blank = return []
 
-        attribute = do char '@'
-                       x <- many1 (noneOf " ")
+        attribute = do x <- try (char '@' >> satisfy isAlpha)
+                       xs <- many (satisfy isAlpha)
                        whites
-                       xs <- many (noneOf "\n")
-                       return [ItemAttribute x xs]
+                       ys <- many (noneOf "\n")
+                       return [ItemAttribute xs ys]
 
         item = modu <|> clas <|> inst <|> newtyp <|> typ <|> dat <|> func
         
