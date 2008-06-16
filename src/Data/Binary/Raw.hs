@@ -1,6 +1,7 @@
 
 module Data.Binary.Raw(
     hGetInt, hPutInt,
+    hGetByte, hPutByte,
     hGetPos, hSetPos
     ) where
 
@@ -25,27 +26,27 @@ hPutInt hndl w32 = do
         w3 = (w32 `shiftR` 16) .&. 0xff
         w2 = (w32 `shiftR`  8) .&. 0xff
         w1 =  w32              .&. 0xff
-    putWord8 hndl w1
-    putWord8 hndl w2
-    putWord8 hndl w3
-    putWord8 hndl w4
+    hPutByte hndl w1
+    hPutByte hndl w2
+    hPutByte hndl w3
+    hPutByte hndl w4
 
-putWord8 :: Handle -> Int -> IO ()
-putWord8 hndl = hPutChar hndl . chr
+hPutByte :: Handle -> Int -> IO ()
+hPutByte hndl = hPutChar hndl . chr
 
 
 hGetInt :: Handle -> IO Int
 hGetInt hndl = do
-    w1 <- getWord8 hndl
-    w2 <- getWord8 hndl
-    w3 <- getWord8 hndl
-    w4 <- getWord8 hndl
+    w1 <- hGetByte hndl
+    w2 <- hGetByte hndl
+    w3 <- hGetByte hndl
+    w4 <- hGetByte hndl
     return $! (w4 `shiftL` 24) .|.
               (w3 `shiftL` 16) .|.
               (w2 `shiftL`  8) .|.
               (w1)
 
 
-getWord8 :: Handle -> IO Int
-getWord8 hndl = hGetChar hndl >>= return . ord
+hGetByte :: Handle -> IO Int
+hGetByte hndl = hGetChar hndl >>= return . ord
 
