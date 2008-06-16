@@ -7,6 +7,7 @@ import General.Index
 import Hoogle.TextBase.All
 import qualified Data.Map as Map
 import Hoogle.Item.All
+import Data.Binary.Defer hiding (get,put)
 
 
 data Items = Items
@@ -14,6 +15,9 @@ data Items = Items
     ,modules :: Index Module
     ,entrys :: Index Entry
     }
+
+instance BinaryDefer Items where
+    bothDefer = defer [\ ~(Items a b c) -> unit Items <<~ a <<~ b <<~ c]
 
 
 -- temporary state structure
