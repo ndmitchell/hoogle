@@ -1,7 +1,14 @@
 
-module Hoogle.DataBase.Item where
+module Hoogle.DataBase.Items where
 
 import General.Index
+
+
+data Items = Items
+    {packages :: Index Package
+    ,modules :: Index Module
+    ,entrys :: Index Entry
+    }
 
 
 data Package = Package
@@ -19,8 +26,8 @@ data Module = Module
     }
 
 
-data Item = Item
-    {itemId :: Id
-    ,itemModule :: Lookup Module
-    ,itemText :: String
+data Entry = Entry
+    {entryId :: Id
+    ,entryModule :: Lookup Module
+    ,entryText :: String
     }
