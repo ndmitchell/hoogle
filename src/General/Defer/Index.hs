@@ -1,5 +1,5 @@
 
-module General.Index(
+module General.Defer.Index(
     Id,
     Index, newIndex,
     Lookup, newLookup, lookupKey, lookupVal

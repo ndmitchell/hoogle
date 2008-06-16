@@ -3,7 +3,7 @@ module Hoogle.DataBase.Items where
 
 import Control.Monad.State
 import Data.Maybe
-import General.Index
+import General.Defer.Index
 import Hoogle.TextBase.All
 import qualified Data.Map as Map
 import Hoogle.Item.All
