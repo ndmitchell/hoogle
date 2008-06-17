@@ -102,11 +102,27 @@ instance BinaryDefer a => BinaryDefer [a] where
 
 
 ---------------------------------------------------------------------
--- BinaryDeferStatic
+-- BinaryDeferFixed
 
-class BinaryDeferStatic a where
+class BinaryDefer a => BinaryDeferFixed a where
     size :: a -> Int
+    size _ = 4
+    
+    putFixed :: a -> DeferPut ()
+    putFixed = putDefer . put
 
-instance BinaryDeferStatic Int  where size _ = 4
-instance BinaryDeferStatic Char where size _ = 1
-instance BinaryDeferStatic Bool where size _ = 1
+    getFixed :: DeferGet a
+    getFixed = getDefer get
+
+
+instance BinaryDeferFixed Int where
+    size _ = 4
+    putFixed = put; getFixed = get
+
+instance BinaryDeferFixed Char where
+    size _ = 1
+    putFixed = put; getFixed = get
+    
+instance BinaryDeferFixed Bool where
+    size _ = 1
+    putFixed = put; getFixed = get
