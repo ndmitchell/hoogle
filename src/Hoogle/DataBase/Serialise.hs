@@ -4,6 +4,7 @@ module Hoogle.DataBase.Serialise(
     ) where
 
 import Data.Binary.Defer
+import Data.Binary.Raw
 import System.IO
 import Control.Monad
 
@@ -16,24 +17,28 @@ hooString = "HOOG"
 
 saveDataBase :: FilePath -> DataBase -> IO ()
 saveDataBase file db = do
-    hndl <- openBinaryFile file WriteMode
-    put hndl hooString
-    put hndl hooVersion
-    put hndl db
-    hClose hndl
+    h <- openBinaryFile file WriteMode
+    mapM_ (hPutChar h) hooString
+    hPutInt h hooVersion
+    runDeferPut h (put db)
+    hClose h
 
 
 loadDataBase :: FilePath -> IO DataBase
 loadDataBase file = do
-    hndl <- openBinaryFile file ReadMode
+    h <- openBinaryFile file ReadMode
+    size <- hFileSize h
 
-    str <- get hndl
+    when (size < 8) $
+        error $ "Not a hoogle database: " ++ file
+
+    str <- replicateM 4 (hGetChar h)
     when (str /= hooString) $
         error $ "Not a hoogle database: " ++ file
 
-    ver <- get hndl
+    ver <- hGetInt h
     when (ver /= hooVersion) $
         error $ "Wrong hoogle database version: " ++ show ver ++
                 " found, expected " ++ show hooVersion
 
-    get hndl
+    runDeferGet h get

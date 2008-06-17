@@ -23,8 +23,8 @@ data DataBase = DataBase
 
 
 instance BinaryDefer DataBase where
-    bothDefer = defer [\ ~(DataBase a b c d) ->
-        unit DataBase <<~ a <<~ b <<~ c <<~ d]
+    put (DataBase a b c d) = put a >> put b >> put c >> put d
+    get = get4 DataBase
 
 
 instance Show DataBase where

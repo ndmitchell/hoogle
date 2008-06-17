@@ -8,6 +8,7 @@ import Hoogle.TextBase.All
 import qualified Data.Map as Map
 import Hoogle.Item.All
 import Data.Binary.Defer hiding (get,put)
+import qualified Data.Binary.Defer as D
 
 
 data Items = Items
@@ -17,7 +18,8 @@ data Items = Items
     }
 
 instance BinaryDefer Items where
-    bothDefer = defer [\ ~(Items a b c) -> unit Items <<~ a <<~ b <<~ c]
+    put (Items a b c) = D.put a >> D.put b >> D.put c
+    get = get3 Items
 
 instance Show Items where
     show (Items a b c) = f "Packages" a ++ f "Modules" b ++ f "Entrys" c

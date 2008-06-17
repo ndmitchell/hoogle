@@ -2,7 +2,6 @@
 module Hoogle.TypeSig.Type where
 
 import Data.List
-import Data.Binary.Defer
 import Data.Generics.UniplateOn
 
 
@@ -38,20 +37,6 @@ instance Uniplate Type where
     uniplate (TApp x xs) = (x:xs, \(x:xs) -> TApp x xs)
     uniplate (TFun xs) = (xs, \xs -> TFun xs)
     uniplate x = ([], \[] -> x)
-
-
----------------------------------------------------------------------
--- BINARYDEFER INSTANCES
-
-instance BinaryDefer TypeSig where
-    bothDefer = defer [\ ~(TypeSig a b) -> unit TypeSig << a << b]
-
-instance BinaryDefer Type where
-    bothDefer = defer [\ ~(TApp a b) -> unit TApp << a << b
-                      ,\ ~(TLit a) -> unit TLit << a
-                      ,\ ~(TVar a) -> unit TVar << a
-                      ,\ ~(TFun a) -> unit TFun << a
-                      ]
 
 
 ---------------------------------------------------------------------
