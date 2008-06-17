@@ -35,14 +35,18 @@ instance Show a => Show (Array a) where
 instance BinaryDefer a => BinaryDefer (Array a) where
     put (Array xs) = putDefer $ do
         putInt $ snd $ bounds xs
-        mapM_ (putDefer . put) (A.elems xs)
+        mapM_ putFixed (A.elems xs)
 
-    get = getDefer $ do
-        n <- getInt
-        h <- ask
-        i <- lift $ hGetPos h
-        return $ Array $ listArray (0,n) $ map (f h i) [0..n]
+    get = getDefer ans
         where
-            f h i j = unsafePerformIO $ do
-                hSetPos h (i + 4*j)
-                runDeferGet h (getDefer get)
+            ans = do
+                n <- getInt
+                h <- ask
+                i <- lift $ hGetPos h
+                let f j = unsafePerformIO $ do
+                             hSetPos h (i + sz*j)
+                             runDeferGet h getFixed
+                return $ Array $ listArray (0,n) $ map f [0..n]
+
+            unwrap = undefined :: DeferGet (Array a) -> a
+            sz = size $ unwrap ans
