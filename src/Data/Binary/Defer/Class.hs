@@ -3,6 +3,7 @@ module Data.Binary.Defer.Class where
 
 import Control.Monad
 import Data.Binary.Defer.Monad
+import Data.Binary.Raw
 
 
 ---------------------------------------------------------------------
@@ -87,12 +88,12 @@ instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (Either a b) where
 -- chunk is lazy, but the first is not
 instance BinaryDefer a => BinaryDefer [a] where
     put xs | null b = putByte (length a) >> mapM_ put a
-           | otherwise = putByte (-1) >> mapM_ put a >> putDefer (put b)
+           | otherwise = putByte maxByte >> mapM_ put a >> putDefer (put b)
         where (a,b) = splitAt 100 xs
 
     get = do
         i <- getByte
-        if i /= (-1) then do
+        if i /= maxByte then do
             replicateM i get
          else do
             xs <- replicateM 100 get
