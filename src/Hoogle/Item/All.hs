@@ -60,6 +60,29 @@ instance Show Entry where
             f (Result x) = x
 
 
-instance BinaryDefer Package
-instance BinaryDefer Module
-instance BinaryDefer Entry
+instance BinaryDefer Package where
+    put (Package a b c d e) = put a >> put b >> put c >> put d >> put e
+    get = get5 Package
+
+instance BinaryDefer Module where
+    put (Module a b c) = put a >> put b >> put c
+    get = get3 Module
+
+instance BinaryDefer Entry where
+    put (Entry a b c) = put a >> put b >> put c
+    get = get3 Entry
+
+instance BinaryDefer EntryText where
+    put (Keyword a)  = putByte 0 >> put a
+    put (Text a)     = putByte 1 >> put a
+    put (Focus a)    = putByte 2 >> put a
+    put (ArgPos a b) = putByte 3 >> put a >> put b
+    put (Result a)   = putByte 4 >> put a
+
+    get = do i <- getByte
+             case i of
+                0 -> get1 Keyword
+                1 -> get1 Text
+                2 -> get1 Focus
+                3 -> get2 ArgPos
+                4 -> get1 Result
