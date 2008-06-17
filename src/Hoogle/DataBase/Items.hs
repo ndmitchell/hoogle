@@ -68,6 +68,7 @@ createItems xs = unS $ execState (mapM f xs) s0
         f i = addEntry i True (render i)
 
 
+        -- TODO: Add Focus elements for these renderings
         render (ItemClass i) = [Keyword "class", Text " ", Text (show i)]
         render (ItemFunc name typ) = [Focus name, Text " :: ", Text (show typ)]
         render (ItemAlias a b) = [Keyword "type", Text (" " ++ show a ++ " = " ++ show b)]
