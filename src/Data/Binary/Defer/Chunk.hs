@@ -44,3 +44,7 @@ instance BinaryDefer a => BinaryDefer (Vector a) where
     get = do
         i <- getInt
         liftM Vector $ replicateM i get
+
+instance Show a => Show (Chunk a) where
+    show (Chunk xs) = unlines $ zipWith f [0..] $ concatMap unVector $ elems xs
+        where f i x = show i ++ " = " ++ show x
