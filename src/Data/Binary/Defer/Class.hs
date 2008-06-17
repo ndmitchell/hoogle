@@ -25,6 +25,7 @@ instance BinaryDefer Bool where
     put x = putChr (if x then '1' else '0')
     get = liftM (== '1') getChr
 
+
 -- strategy: write out in 100 byte chunks, where each successive
 -- chunk is lazy, but the first is not
 instance BinaryDefer a => BinaryDefer [a] where
