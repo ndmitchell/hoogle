@@ -2,7 +2,7 @@
 module Data.Binary.Defer.Index(
     Id,
     Index, newIndex,
-    Lookup, newLookup, lookupKey, lookupVal
+    Lookup, newLookup, lookupKey, lookupIndex
     ) where
 
 import Data.Binary.Defer
@@ -22,8 +22,8 @@ newtype Lookup a = Lookup {lookupKey :: Id}
 newLookup :: Id -> Lookup a
 newLookup i = Lookup i
 
-lookupVal :: Index a -> Lookup a -> a
-lookupVal (Index xs) (Lookup i) = xs ! i
+lookupIndex :: Lookup a -> Index a -> a
+lookupIndex (Lookup i) (Index xs) = xs ! i
 
 
 instance BinaryDefer a => BinaryDefer (Index a) where
