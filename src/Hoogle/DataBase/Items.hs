@@ -19,7 +19,7 @@ data Items = Items
 
 instance BinaryDefer Items where
     put (Items a b c) = D.put a >> D.put b >> D.put c
-    get = get3 Items
+    get = liftM linkItems $ get3 Items
 
 instance Show Items where
     show (Items a b c) = f "Packages" a ++ f "Modules" b ++ f "Entrys" c
@@ -81,3 +81,12 @@ createItems xs = res
             let entI = entId s
                 e = Entry entI (if modu then modCur s else Nothing) txt
             put $ s{entId = entI + 1, ents = (i, Just e) : ents s}
+
+
+linkItems :: Items -> Items
+linkItems (Items pkgs mods ents) = Items pkgs mods2 ents2
+    where
+        mods2 = flip fmap mods $ \x ->
+            x{modulePackage = newLookup (lookupKey $ modulePackage x) pkgs}
+        ents2 = flip fmap ents $ \x ->
+            x{entryModule = liftM (\x -> newLookup (lookupKey x) mods2) (entryModule x)}
