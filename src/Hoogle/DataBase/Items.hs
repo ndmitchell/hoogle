@@ -14,7 +14,7 @@ import qualified Data.Binary.Defer as D
 data Items = Items
     {packages :: Index Package
     ,modules :: Index Module
-    ,entrys :: Index Entry
+    ,entries :: Index Entry
     }
 
 instance BinaryDefer Items where
@@ -22,7 +22,7 @@ instance BinaryDefer Items where
     get = get3 Items
 
 instance Show Items where
-    show (Items a b c) = f "Packages" a ++ f "Modules" b ++ f "Entrys" c
+    show (Items a b c) = f "Packages" a ++ f "Modules" b ++ f "Entries" c
         where f header x = "== " ++ header ++ " ==\n\n" ++ show x ++ "\n\n"
 
 

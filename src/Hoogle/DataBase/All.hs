@@ -18,4 +18,4 @@ createDataBase xs = DataBase items
 
 
 searchText :: DataBase -> String -> [(Entry,EntryView,TextScore)]
-searchText db = searchTextSearch (textSearch db) (entrys $ items db)
+searchText db = searchTextSearch (textSearch db) (entries $ items db)
