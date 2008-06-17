@@ -1,5 +1,5 @@
 
-module Data.Binary.Defer.Class(BinaryDefer(..)) where
+module Data.Binary.Defer.Class where
 
 import Control.Monad
 import Data.Binary.Defer.Monad
@@ -12,6 +12,10 @@ class BinaryDefer a where
     put :: a -> DeferPut ()
     get :: DeferGet a
 
+get1 f = do x1 <- get; return (f x1)
+get2 f = do x1 <- get; x2 <- get; return (f x1 x2)
+get3 f = do x1 <- get; x2 <- get; x3 <- get; return (f x1 x2 x3)
+get4 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; return (f x1 x2 x3 x4)
 
 instance BinaryDefer Int where
     put = putInt
