@@ -12,10 +12,12 @@ class BinaryDefer a where
     put :: a -> DeferPut ()
     get :: DeferGet a
 
+get0 = return
 get1 f = do x1 <- get; return (f x1)
 get2 f = do x1 <- get; x2 <- get; return (f x1 x2)
 get3 f = do x1 <- get; x2 <- get; x3 <- get; return (f x1 x2 x3)
 get4 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; return (f x1 x2 x3 x4)
+get5 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; x5 <- get; return (f x1 x2 x3 x4 x5)
 
 instance BinaryDefer Int where
     put = putInt
