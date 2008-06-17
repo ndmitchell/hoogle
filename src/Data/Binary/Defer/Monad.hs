@@ -18,6 +18,9 @@ putInt, putByte :: Int -> DeferPut ()
 putInt  x = do h <- asks fst; lift $ hPutInt  h x
 putByte x = do h <- asks fst; lift $ hPutByte h x
 
+putChr :: Char -> DeferPut ()
+putChr  x = do h <- asks fst; lift $ hPutChar h x
+
 putDefer :: DeferPut () -> DeferPut ()
 putDefer x = do
     (h,ref) <- ask
@@ -49,6 +52,9 @@ type DeferGet a = ReaderT Handle IO a
 getInt, getByte :: DeferGet Int
 getInt  = do h <- ask; lift $ hGetInt  h
 getByte = do h <- ask; lift $ hGetByte h
+
+getChr :: DeferGet Char
+getChr  = do h <- ask; lift $ hGetChar h
 
 getDefer :: DeferGet a -> DeferGet a
 getDefer x = do
