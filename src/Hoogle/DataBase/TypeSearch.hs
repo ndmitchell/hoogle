@@ -9,3 +9,5 @@ createTypeSearch :: a -> TypeSearch
 createTypeSearch _ = TypeSearch
 
 instance BinaryDefer TypeSearch
+    put _ = return ()
+    get = return TypeSearch

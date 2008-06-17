@@ -9,3 +9,5 @@ createSuggest :: a -> Suggest
 createSuggest _ = Suggest
 
 instance BinaryDefer Suggest
+    put _ = return ()
+    get = return Suggest

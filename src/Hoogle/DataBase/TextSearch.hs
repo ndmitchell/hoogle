@@ -8,4 +8,7 @@ data TextSearch = TextSearch deriving Show
 createTextSearch :: a -> TextSearch
 createTextSearch _ = TextSearch
 
-instance BinaryDefer TextSearch
+instance BinaryDefer TextSearch where
+    put _ = return ()
+    get = return TextSearch
+
