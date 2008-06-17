@@ -1,7 +1,7 @@
 
 module Data.Binary.Raw(
     hGetInt, hPutInt,
-    hGetByte, hPutByte,
+    hGetByte, hPutByte, maxByte,
     hGetPos, hSetPos
     ) where
 
@@ -17,6 +17,9 @@ hGetPos = liftM fromInteger . hTell
 hSetPos :: Handle -> Int -> IO ()
 hSetPos hndl = hSeek hndl AbsoluteSeek . toInteger
 
+
+maxByte :: Int
+maxByte = 0xff
 
 -- FROM the Binary module, thanks to the Hac 07 people!
 
