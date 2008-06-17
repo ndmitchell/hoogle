@@ -1,5 +1,8 @@
 
-module Hoogle.DataBase.TextSearch where
+module Hoogle.DataBase.TextSearch
+    (TextSearch, createTextSearch
+    ,TextScore, searchText
+    ) where
 
 import Data.Binary.Defer
 import Data.Binary.Defer.Trie
