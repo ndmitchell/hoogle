@@ -36,6 +36,9 @@ data EntryText = Keyword String
                | Result String
                  deriving Show
 
+data EntryView = FocusOn (Int,Int) -- characters (a,b) [a..b] should be focused
+               | ArgPosNum Int Int -- argument a b, a is remapped to b
+
 
 showModule = concat . intersperse "."
 
