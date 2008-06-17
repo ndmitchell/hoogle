@@ -33,15 +33,14 @@ instance Show a => Show (Array a) where
     show (Array x) = show x
 
 instance BinaryDefer a => BinaryDefer (Array a) where
-    put (Array xs) = do
+    put (Array xs) = putDefer $ do
         putInt $ snd $ bounds xs
         mapM_ (putDefer . put) (A.elems xs)
 
-    get = do
+    get = getDefer $ do
         n <- getInt
         h <- ask
         i <- lift $ hGetPos h
-        lift $ hSetPos h (i + 4*n + 4)
         return $ Array $ listArray (0,n) $ map (f h i) [0..n]
         where
             f h i j = unsafePerformIO $ do
