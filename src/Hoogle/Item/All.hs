@@ -1,6 +1,7 @@
 
 module Hoogle.Item.All where
 
+import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Data.List
 
@@ -59,3 +60,6 @@ instance Show Entry where
             f (Result x) = x
 
 
+instance BinaryDefer Package
+instance BinaryDefer Module
+instance BinaryDefer Entry
