@@ -12,6 +12,9 @@ import Hoogle.Item.All
 import Hoogle.TextBase.All
 
 
+---------------------------------------------------------------------
+-- DATA TYPES
+
 data TextSearch = TextSearch (Trie (Int,Int)) (Chunk (Int,Lookup Entry))
                   deriving Show
 
@@ -49,10 +52,10 @@ Given: x (from,to) (start,id)
 
 All items in the list ['from'..'to'] have the string 'x'
 starting at position 'start' in the name given by 'id'.
-
-Note the list has been sorted, and all prefixes appear.
 -}
 
+---------------------------------------------------------------------
+-- CREATION
 
 createTextSearch :: [(TextItem, Maybe Entry)] -> TextSearch
 createTextSearch xs = TextSearch
