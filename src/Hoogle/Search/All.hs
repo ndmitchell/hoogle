@@ -1,5 +1,5 @@
 
-module Hoogle.Search.All(searchAll, searchRange) where
+module Hoogle.Search.All(Result(..), searchAll, searchRange) where
 
 import Data.Maybe
 import Data.List
@@ -8,10 +8,19 @@ import General.Code
 
 import Hoogle.DataBase.All
 import Hoogle.Query.All
-import Hoogle.Item.All
 import Hoogle.TypeSig.All
-import Hoogle.Result.All
 
+
+
+data Result = Result
+    {resultDataBase :: Int
+    ,resultEntry :: Entry
+    ,resultModPkg :: Maybe (Module,Package)
+    ,resultView :: EntryView
+    ,resultScore :: [Score]
+    }
+
+data Score = TextScore TextScore
 
 
 -- return all the results
@@ -21,6 +30,7 @@ searchAll databases query = getResults databases query
 
 -- should be possible to fast-path certain searches, currently not done
 -- start (0 based), length
+-- TODO: should be (Int,Int) like arrays
 searchRange :: [DataBase] -> Query -> Int -> Int -> [Result]
 searchRange databases query from len =
         take len $ drop from res
@@ -38,8 +48,8 @@ getResults databases query = orderResults $ filterResults query res
 
 -- | Apply the PlusModule and MinusModule modes
 filterResults :: Query -> [Result] -> [Result]
-filterResults q xs = if null actions then xs
-                     else filter (f base actions . modName . itemMod . itemResult) xs
+filterResults q xs = xs {- TODO: if null actions then xs
+                     else filter (f base actions . modName . itemMod . itemResult) xs -}
     where
         actions = filter isModule $ scope q
         
@@ -64,13 +74,15 @@ filterResults q xs = if null actions then xs
 
 -- | Put the results in the correct order, by score
 orderResults :: [Result] -> [Result]
-orderResults = map snd . sortBy (compare `on` fst) . map (\x -> (resultScore x, x))
+orderResults = id -- TODO: map snd . sortBy (compare `on` fst) . map (\x -> (resultScore x, x))
 
 
 -- | Perform a text query
 performTextSearch :: [DataBase] -> [String] -> [Result]
-performTextSearch databases query = concatMap (`searchName` query) databases
+performTextSearch databases (query:_) = concat $ zipWith f [0..] databases
+    where
+        f i db = [Result i e (entryParents db e) v [TextScore s] | (e,v,s) <- searchText db query]
 
 
 performTypeSearch :: [DataBase] -> TypeSig -> [Result]
-performTypeSearch databases query = concatMap (`searchType` query) databases
+performTypeSearch databases query = [] -- TODO: concatMap (`searchType` query) databases
