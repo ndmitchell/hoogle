@@ -31,6 +31,13 @@ instance BinaryDefer Bool where
     put x = putChr (if x then '1' else '0')
     get = liftM (== '1') getChr
 
+instance BinaryDefer a => BinaryDefer (Maybe a) where
+    put Nothing = putByte 0
+    put (Just a) = putByte 1 >> put a
+
+    get = do i <- getByte
+             if i == 1 then get1 Just else get0 Nothing
+   
 
 -- strategy: write out in 100 byte chunks, where each successive
 -- chunk is lazy, but the first is not
