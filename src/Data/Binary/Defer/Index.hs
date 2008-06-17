@@ -17,10 +17,13 @@ newIndex :: [a] -> Index a
 newIndex = Index . array
 
 
-data Lookup a = Lookup {lookupKey :: Id, lookupVal :: a}
+newtype Lookup a = Lookup {lookupKey :: Id}
 
-newLookup :: Id -> Index a -> Lookup a
-newLookup i (Index xs) = Lookup i (xs ! i)
+newLookup :: Id -> Lookup a
+newLookup i = Lookup i
+
+lookupVal :: Index a -> Lookup a -> a
+lookupVal (Index xs) (Lookup i) = xs ! i
 
 
 instance BinaryDefer a => BinaryDefer (Index a) where
@@ -28,16 +31,15 @@ instance BinaryDefer a => BinaryDefer (Index a) where
     get = get1 Index
 
 instance BinaryDefer (Lookup a) where
-    put (Lookup key val) = put key
-    get = get1 (`Lookup` undefined)
+    put (Lookup key) = put key
+    get = get1 Lookup
 
 
 instance Show a => Show (Index a) where
     show (Index xs) = unlines $ map show $ elems xs
 
 instance Show (Lookup a) where
-    show (Lookup key _) = "#" ++ show key
-
+    show (Lookup key) = "#" ++ show key
 
 instance Functor Index where
     fmap f (Index x) = Index $ fmap f x

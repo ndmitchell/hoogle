@@ -44,14 +44,14 @@ instance Show Package where
 
 instance Show Module where
     show (Module a b c) = unwords ["#" ++ show a, showModule b,
-        "{" ++ show c, packageName (lookupVal c) ++ "}"]
+        "{" ++ show c ++ "}"]
 
 instance Show Entry where
     show (Entry a b c) = unwords ["#" ++ show a, concatMap f c, m]
         where
             m = case b of
                     Nothing -> ""
-                    Just y -> "{" ++ show y ++ " " ++ showModule (moduleName $ lookupVal y) ++ "}"
+                    Just y -> "{" ++ show y ++ "}"
 
             f (Keyword x) = x
             f (Text x) = x

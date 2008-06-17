@@ -19,7 +19,7 @@ data Items = Items
 
 instance BinaryDefer Items where
     put (Items a b c) = D.put a >> D.put b >> D.put c
-    get = liftM linkItems $ get3 Items
+    get = get3 Items
 
 instance Show Items where
     show (Items a b c) = f "Packages" a ++ f "Modules" b ++ f "Entrys" c
@@ -36,10 +36,9 @@ data S = S {pkg :: Package
            }
 
 createItems :: [TextItem] -> (Items, [(TextItem, Maybe Entry)])
-createItems xs = res
+createItems xs = unS $ execState (mapM f xs) s0
     where
         s0 = S (Package 0 "" "" "" "") 0 [] Nothing 0 []
-        res = unS $ execState (mapM f xs) s0
 
         unS s = (Items (newIndex [pkg s])
                        (newIndex $ reverse $ mods s)
@@ -60,9 +59,9 @@ createItems xs = res
         f i@(ItemModule xs) = do
             s <- get
             let modI = modId s
-                m = Module modI xs (newLookup 0 $ packages $ fst res)
+                m = Module modI xs (newLookup 0)
             put s{modId = modI + 1, mods = m : mods s
-                 ,modCur = Just $ newLookup modI $ modules $ fst res}
+                 ,modCur = Just $ newLookup modI}
             addEntry i False
                 [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 
@@ -81,12 +80,3 @@ createItems xs = res
             let entI = entId s
                 e = Entry entI (if modu then modCur s else Nothing) txt
             put $ s{entId = entI + 1, ents = (i, Just e) : ents s}
-
-
-linkItems :: Items -> Items
-linkItems (Items pkgs mods ents) = Items pkgs mods2 ents2
-    where
-        mods2 = flip fmap mods $ \x ->
-            x{modulePackage = newLookup (lookupKey $ modulePackage x) pkgs}
-        ents2 = flip fmap ents $ \x ->
-            x{entryModule = liftM (\x -> newLookup (lookupKey x) mods2) (entryModule x)}
