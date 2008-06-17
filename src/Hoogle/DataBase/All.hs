@@ -7,6 +7,7 @@ module Hoogle.DataBase.All
     ,module Hoogle.DataBase.Serialise
     ) where
 
+import Data.Binary.Defer.Index
 import Hoogle.TextBase.All
 import Hoogle.DataBase.Type
 import Hoogle.DataBase.Item
@@ -21,3 +22,11 @@ createDataBase xs = DataBase items
 
 searchText :: DataBase -> String -> [(Entry,EntryView,TextScore)]
 searchText db = searchTextSearch (textSearch db) (entries $ items db)
+
+
+entryParents :: DataBase -> Entry -> Maybe (Module, Package)
+entryParents db e = case entryModule e of
+    Nothing -> Nothing
+    Just i -> let m = lookupIndex i (modules $ items db)
+                  p = lookupIndex (modulePackage m) (packages $ items db)
+              in Just (m,p)
