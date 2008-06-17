@@ -41,6 +41,7 @@ instance BinaryDefer a => BinaryDefer (Array a) where
         n <- getInt
         h <- ask
         i <- lift $ hGetPos h
+        lift $ hSetPos h (i + 4*n + 4)
         return $ Array $ listArray (0,n) $ map (f h i) [0..n]
         where
             f h i j = unsafePerformIO $ do
