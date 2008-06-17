@@ -33,7 +33,7 @@ data EntryText = Keyword String
                | Text String
                | Focus String -- the bit text search starts from
                | ArgPos Int String
-               | Result String
+               | ArgRes String
                  deriving Show
 
 data EntryView = FocusOn (Int,Int) -- characters (a,b) [a..b] should be focused
@@ -60,7 +60,7 @@ instance Show Entry where
             f (Text x) = x
             f (Focus x) = x
             f (ArgPos _ x) = x
-            f (Result x) = x
+            f (ArgRes x) = x
 
 
 instance BinaryDefer Package where
@@ -80,7 +80,7 @@ instance BinaryDefer EntryText where
     put (Text a)     = putByte 1 >> put a
     put (Focus a)    = putByte 2 >> put a
     put (ArgPos a b) = putByte 3 >> put a >> put b
-    put (Result a)   = putByte 4 >> put a
+    put (ArgRes a)   = putByte 4 >> put a
 
     get = do i <- getByte
              case i of
@@ -88,4 +88,4 @@ instance BinaryDefer EntryText where
                 1 -> get1 Text
                 2 -> get1 Focus
                 3 -> get2 ArgPos
-                4 -> get1 Result
+                4 -> get1 ArgRes
