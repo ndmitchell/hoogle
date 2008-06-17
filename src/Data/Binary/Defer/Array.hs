@@ -26,6 +26,11 @@ elems (Array a) = A.elems a
 instance Functor Array where
     fmap f (Array x) = Array (fmap f x)
 
+instance Eq a => Eq (Array a) where
+    Array x == Array y = x == y
+
+instance Show a => Show (Array a) where
+    show (Array x) = show x
 
 instance BinaryDefer a => BinaryDefer (Array a) where
     put (Array xs) = do
