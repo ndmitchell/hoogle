@@ -37,3 +37,7 @@ instance Show a => Show (Index a) where
 
 instance Show (Lookup a) where
     show (Lookup key _) = "#" ++ show key
+
+
+instance Functor Index where
+    fmap f (Index x) = Index $ fmap f x

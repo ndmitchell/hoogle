@@ -23,6 +23,10 @@ elems :: Array a -> [a]
 elems (Array a) = A.elems a
 
 
+instance Functor Array where
+    fmap f (Array x) = Array (fmap f x)
+
+
 instance BinaryDefer a => BinaryDefer (Array a) where
     put (Array xs) = do
         putInt $ snd $ bounds xs
