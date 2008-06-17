@@ -23,8 +23,8 @@ newChunk = Chunk . array . f
             where (a,b) = splitAt chunkSize xs
 
 
-lookupChunk :: Chunk a -> (Int,Int) -> [a]
-lookupChunk (Chunk xs) (from,to)
+lookupChunk :: (Int,Int) -> Chunk a -> [a]
+lookupChunk (from,to) (Chunk xs)
     | m == 0 = f from
     | otherwise = drop (chunkSize - m) (unVector $ xs ! d) ++ f (d+1)
     where
