@@ -5,7 +5,6 @@ module Hoogle.DataBase.All
     ,module Hoogle.DataBase.Serialise
     ) where
 
-import Hoogle.Item.All
 import Hoogle.TextBase.All
 import Hoogle.DataBase.Type
 import Hoogle.DataBase.Serialise

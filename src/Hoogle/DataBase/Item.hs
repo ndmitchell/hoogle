@@ -1,5 +1,5 @@
 
-module Hoogle.Item.All where
+module Hoogle.DataBase.Item where
 
 import Data.Binary.Defer
 import Data.Binary.Defer.Index

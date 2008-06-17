@@ -1,12 +1,14 @@
 
 module Hoogle.DataBase.Type
     (module Hoogle.DataBase.Type
+    ,module Hoogle.DataBase.Item
     ,module Hoogle.DataBase.Items
     ,module Hoogle.DataBase.Suggest
     ,module Hoogle.DataBase.TypeSearch
     ,module Hoogle.DataBase.TextSearch
     ) where
 
+import Hoogle.DataBase.Item
 import Hoogle.DataBase.Items
 import Hoogle.DataBase.Suggest
 import Hoogle.DataBase.TypeSearch

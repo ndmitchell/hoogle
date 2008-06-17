@@ -5,7 +5,7 @@ import Control.Monad.State
 import Data.Maybe
 import Data.Binary.Defer.Index
 import Hoogle.TextBase.All
-import Hoogle.Item.All
+import Hoogle.DataBase.Item
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
 

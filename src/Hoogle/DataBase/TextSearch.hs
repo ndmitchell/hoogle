@@ -11,7 +11,7 @@ import Data.Binary.Defer.Index
 import Data.Char
 import Data.List
 import General.Code
-import Hoogle.Item.All
+import Hoogle.DataBase.Item
 import Hoogle.TextBase.All
 
 
