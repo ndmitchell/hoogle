@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.TextSearch
     (TextSearch, createTextSearch
-    ,TextScore, searchText
+    ,TextScore, searchTextSearch
     ) where
 
 import Data.Binary.Defer
@@ -96,8 +96,8 @@ prefixes = init . tails
 data TextScore = TextScore
                  deriving (Eq,Ord)
 
-searchText :: TextSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
-searchText (TextSearch trie chunk) ents str =
+searchTextSearch :: TextSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
+searchTextSearch (TextSearch trie chunk) ents str =
     case lookupTrie str trie of
         Nothing -> []
         Just i -> [(lookupIndex e ents, FocusOn (p,nstr), TextScore)
