@@ -23,7 +23,7 @@ instance BinaryDefer Items where
 
 instance Show Items where
     show (Items a b c) = f "Packages" a ++ f "Modules" b ++ f "Entrys" c
-        where f header x = "== " ++ header ++ "==\n\n" ++ show x ++ "\n\n"
+        where f header x = "== " ++ header ++ " ==\n\n" ++ show x ++ "\n\n"
 
 
 -- temporary state structure
