@@ -2,14 +2,11 @@
 module Hoogle.All(
     Query(..), parseQuery, renderQuery, suggestQuery, usefulQuery,
     Flag(..),
-    DataBase, loadDataBase, convert -- ,
-    -- searchAll, searchRange,
-    -- TODO: reinstate
-    -- Result(..), renderResult, verboseResult
+    DataBase, loadDataBase, convert,
+    searchAll, searchRange, Result(..)
     ) where
 
 import Hoogle.Query.All
 import Hoogle.DataBase.All
--- import Hoogle.Search.All
--- TODO: reinstate, import Hoogle.Result.All
+import Hoogle.Search.All
 import Hoogle.Operations.All
