@@ -1,12 +1,15 @@
 
 module Hoogle.DataBase.All
     (DataBase
+    ,TextScore
     ,module Hoogle.DataBase.All
+    ,module Hoogle.DataBase.Item
     ,module Hoogle.DataBase.Serialise
     ) where
 
 import Hoogle.TextBase.All
 import Hoogle.DataBase.Type
+import Hoogle.DataBase.Item
 import Hoogle.DataBase.Serialise
 
 
