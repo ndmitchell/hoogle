@@ -85,3 +85,19 @@ extractText xs = [(map toLower s, newLookup $ entryId e)
 substrs, prefixes :: [a] -> [[a]]
 substrs = concatMap (tail . inits) . prefixes
 prefixes = init . tails
+
+
+---------------------------------------------------------------------
+-- SEARCHING
+
+data TextScore = TextScore
+                 deriving (Eq,Ord)
+
+searchText :: TextSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
+searchText (TextSearch trie chunk) ents str =
+    case lookupTrie str trie of
+        Nothing -> []
+        Just i -> [(lookupIndex e ents, FocusOn (p,nstr), TextScore)
+                  |(p,e) <- lookupChunk i chunk]
+    where
+        nstr = length str
