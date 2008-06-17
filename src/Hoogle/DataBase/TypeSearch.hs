@@ -8,6 +8,6 @@ data TypeSearch = TypeSearch deriving Show
 createTypeSearch :: a -> TypeSearch
 createTypeSearch _ = TypeSearch
 
-instance BinaryDefer TypeSearch
+instance BinaryDefer TypeSearch where
     put _ = return ()
     get = return TypeSearch
