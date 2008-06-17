@@ -8,6 +8,7 @@ import Control.Monad
 import Data.Binary.Raw
 import Data.Binary.Defer
 import Data.Binary.Defer.Array
+import Data.Binary.Defer.Trie
 import System.IO
 
 
@@ -30,7 +31,8 @@ value = (
             -- test long strings
             take 2000 $ cycle ['a'..'z'],
             -- test the custom types
-            array [(i::Int,True,"neil") | i <- [1..40]],
+            (array [(i::Int,True,"neil") | i <- [1..40]]
+            ,newTrie [("neil",'a'),("fred",'c'),("",'r'),("ne",'z')]),
             -- check things are not messed up previously
             "final check"
         )
