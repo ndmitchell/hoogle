@@ -26,6 +26,7 @@ data Module = Module
 data Entry = Entry
     {entryId :: Id
     ,entryModule :: Maybe (Lookup Module)
+    ,entryName :: String
     ,entryText :: [EntryText]
     }
 
@@ -69,7 +70,7 @@ instance Show Module where
         "{" ++ show c ++ "}"]
 
 instance Show Entry where
-    show (Entry a b c) = unwords ["#" ++ show a, concatMap f c, m]
+    show (Entry a b c d) = unwords ["#" ++ show a, concatMap f d, m]
         where
             m = case b of
                     Nothing -> ""
@@ -91,8 +92,8 @@ instance BinaryDefer Module where
     get = get3 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c) = put a >> put b >> put c
-    get = get3 Entry
+    put (Entry a b c d) = put a >> put b >> put c >> put d
+    get = get4 Entry
 
 instance BinaryDefer EntryText where
     put (Keyword a)  = putByte 0 >> put a
