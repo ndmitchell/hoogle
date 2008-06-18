@@ -39,6 +39,11 @@ dataFileDir flags = f [x | DataPath x <- flags]
         f [] = return ([],[])
         f (x:xs) = do
             ft <- fileType x
+            (x,ft) <- if (ft == NotFound && not (hasExtension x))
+                      then do x <- return $ x <.> "hoo"
+                              liftM ((,) x) (fileType x)
+                      else return (x,ft)
+
             when (ft == NotFound) $
                 failMessage ["File given with the --data flag does not exist"
                             ,"    " ++ x]
@@ -52,6 +57,6 @@ resolveName dirs x = f (dirs ++ ["."])
     where
         f [] = failMessage ["DataBase not found","    " ++ x] >> return ""
         f (d:ds) = do
-            let s = d </> x
+            let s = d </> x <.> "hoo"
             b <- doesFileExist s
             if b then return s else f ds
