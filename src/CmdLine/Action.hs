@@ -66,4 +66,9 @@ actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
     print db
 
 
+actionCmdLine q | not $ usefulQuery $ fromRight $ query q = do
+    failMessage ["No query entered"
+                ,"Try --help for command line options"]
+
+
 actionCmdLine _ = error "todo"
