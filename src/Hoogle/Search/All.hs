@@ -1,10 +1,13 @@
 
-module Hoogle.Search.All(Result(..), searchAll, searchRange) where
+module Hoogle.Search.All(
+    Result(..), renderResult,
+    searchAll, searchRange
+    ) where
 
 import Data.Maybe
 import Data.List
 import Control.Monad
-import General.Code
+import General.All
 
 import Hoogle.DataBase.All
 import Hoogle.Query.All
@@ -23,6 +26,11 @@ data Result = Result
 
 data Score = TextScore TextScore
              deriving Show
+
+-- return the module it is in, and the text to go beside it
+renderResult :: Result -> (Maybe [String], TagStr)
+renderResult r = (liftM (moduleName . fst) $ resultModPkg r
+                 ,renderEntryText (resultView r) (entryText $ resultEntry r))
 
 
 -- return all the results
