@@ -96,9 +96,14 @@ prefixes = init . tails
 type NBool = Bool -- negated boolean
 
 -- lower is better
-data TextScore = TextScore {atStart :: NBool
-                           ,caseCorrect :: NBool}
-                 deriving (Eq,Ord,Show)
+data TextScore = TSExact | TSStart | TSNone
+                 deriving (Eq,Ord)
+
+instance Show TextScore where
+    show TSExact = "exact"
+    show TSStart = "start"
+    show TSNone = "_"
+
 
 searchTextSearch :: TextSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
 searchTextSearch (TextSearch trie chunk) ents str =
@@ -109,4 +114,5 @@ searchTextSearch (TextSearch trie chunk) ents str =
                   ,let ent = lookupIndex e ents]
     where
         nstr = length str
-        score p ent = TextScore (p /= 0) (entryName ent /= str)
+        score p ent | p == 0 = if entryName ent == str then TSExact else TSStart
+                    | otherwise = TSNone
