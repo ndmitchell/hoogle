@@ -15,7 +15,12 @@ data Result = Result
     deriving Show
 
 data Score = TextScore TextScore
-             deriving (Show,Eq,Ord)
+             deriving (Eq,Ord)
+
+instance Show Score where
+    showList xs = showString $ "{" ++ unwords (map show xs) ++ "}"
+    show (TextScore x) = show x
+
 
 -- return (module it is in, the text to go beside it, verbose scoring info)
 renderResult :: Result -> (Maybe [String], TagStr, String)
