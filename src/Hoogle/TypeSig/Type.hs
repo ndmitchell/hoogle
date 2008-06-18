@@ -27,6 +27,17 @@ tApp :: Type -> [Type] -> Type
 tApp t [] = t
 tApp t ts = TApp t ts
 
+
+fromTFun :: Type -> [Type]
+fromTFun (TFun x) = x
+fromTFun x = [x]
+
+
+fromTApp :: Type -> (Type, [Type])
+fromTApp (TApp x y) = (x,y)
+fromTApp x = (x,[])
+
+
 ---------------------------------------------------------------------
 -- UNIPLATE INSTANCES
 
