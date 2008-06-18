@@ -47,7 +47,7 @@ data EntryView = FocusOn (Int,Int) -- characters (a,b) [a..b] should be focused
 renderEntryText :: [EntryView] -> [EntryText] -> TagStr
 renderEntryText view = Tags . map f
     where
-        f (Keyword x) = TagBold $ Str x
+        f (Keyword x) = TagUnderline $ Str x
         f (Text x) = Str x
         f (ArgPos i s) = Str s
         f (ArgRes s) = Str s
