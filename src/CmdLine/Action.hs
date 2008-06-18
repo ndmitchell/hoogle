@@ -16,10 +16,6 @@ import System.Exit
 import System.FilePath
 
 
-failMessage :: [String] -> IO ()
-failMessage msg = putStr (unlines msg) >> exitFailure
-
-
 actionCmdLine :: CmdQuery -> IO ()
 
 actionCmdLine CmdQuery{queryText = text, query = Left err} = do

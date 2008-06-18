@@ -5,6 +5,7 @@
 -}
 
 module CmdLine.Flag(
+    failMessage,
     CmdFlag(..), flagsHelp,
     flagsWebArgs, flagsWebQuery, flagsCmdLine
     ) where
@@ -13,6 +14,11 @@ import Control.Monad
 import Data.Char
 import Data.Maybe
 import General.All
+
+
+-- useful command line auxiliary
+failMessage :: [String] -> IO ()
+failMessage msg = putStr (unlines msg) >> exitFailure
 
 ---------------------------------------------------------------------
 -- The flags
