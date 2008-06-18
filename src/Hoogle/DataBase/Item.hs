@@ -58,12 +58,22 @@ renderEntryText view = Tags . map f
         f (Text x) = Str x
         f (ArgPos i s) = Str s
         f (ArgRes s) = Str s
-        
-        -- TODO: very inefficient, should be improved
-        --       should at least coallese adjacent Bold/Text's
-        f (Focus x) = Tags [g $ Str [x] | (i,x) <- zip [0..] x
-                           ,let g = if i `elem` bold then TagBold else id]
-            where bold = concat [[i..j] | FocusOn (i,j) <- view]
+        f (Focus x) = renderFocus [i | FocusOn i <- view] x
+
+
+renderFocus :: [(Int,Int)] -> String -> TagStr
+renderFocus marks = Tags . f (combine $ sort marks) 0
+    where
+        f [] i s = [Str s | s /= []]
+        f ((a,b):xs) i s =
+                [Str s1 | s1 /= []] ++ [TagBold $ Str s3] ++ f xs (b+1) s4
+            where
+                (s1,s2) = splitAt (a - i) s
+                (s3,s4) = splitAt (1 + b-a) s2
+
+        combine ((a,b):(c,d):e) | c <= b = combine ((a,max b d):e)
+        combine (x:xs) = x : combine xs
+        combine [] = []
 
 
 showModule = concat . intersperse "."
