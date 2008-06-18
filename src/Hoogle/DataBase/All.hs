@@ -25,6 +25,10 @@ searchName :: DataBase -> String -> [(Entry,EntryView,TextScore)]
 searchName db = searchNameSearch (nameSearch db) (entries $ items db)
 
 
+searchType :: DataBase -> TypeSig -> [(Entry,EntryView,TypeScore)]
+searchType db = searchTypeSearch (typeSearch db) (entries $ items db)
+
+
 entryParents :: DataBase -> Entry -> Maybe (Module, Package)
 entryParents db e = case entryModule e of
     Nothing -> Nothing
