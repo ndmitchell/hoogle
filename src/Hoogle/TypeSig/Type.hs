@@ -40,6 +40,20 @@ isTLitTuple :: String -> Bool
 isTLitTuple x = ',' `elem` x
 
 
+insertTApp, removeTApp :: Type -> Type
+insertTApp = transform f
+    where
+        f (TApp (TApp x []) y) = TApp x y
+        f (TApp x y) = TApp x y
+        f (TFun x) = TFun x
+        f x = TApp x []
+
+removeTApp = transform f
+    where
+        f (TApp x []) = x
+        f x = x
+
+
 ---------------------------------------------------------------------
 -- UNIPLATE INSTANCES
 
