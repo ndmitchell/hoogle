@@ -3,8 +3,10 @@ module CmdLine.Search(actionSearch) where
 
 import CmdLine.Flag
 import Control.Monad
-import General.Code
+import General.All
 import Hoogle.Query.All
+import Hoogle.Search.All
+import Hoogle.DataBase.All
 import Hoogle.All
 import System.Directory
 import System.FilePath
@@ -15,7 +17,11 @@ actionSearch flags q = do
     db <- getDataBases flags q
     dbs <- mapM loadDataBase db
     let res = searchAll dbs q
-    putStr $ unlines $ map show res
+    putStr $ unlines $ map (f . renderResult) res
+    where
+        showTag = if Color True `elem` flags then showTagConsole else show
+        f (Just m, r) = showModule m ++ " " ++ showTag r
+        f (Nothing, r) = showTag r
 
 ---------------------------------------------------------------------
 -- Pick the DataBase's
