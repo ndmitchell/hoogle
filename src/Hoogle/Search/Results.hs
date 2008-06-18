@@ -1,5 +1,7 @@
 
-module Hoogle.Search.Results where
+module Hoogle.Search.Results(
+    filterResults, orderResults
+    ) where
 
 import Data.Char
 import Data.List
