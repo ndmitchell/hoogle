@@ -24,15 +24,14 @@ newChunk = Chunk . array . f
 
 
 lookupChunk :: (Int,Int) -> Chunk a -> [a]
-lookupChunk (from,to) (Chunk xs)
-    | m == 0 = f from
-    | otherwise = drop (chunkSize - m) (unVector $ xs ! d) ++ f (d+1)
+lookupChunk (from,to) (Chunk xs) =
+        drop m $ f d (1 + m + to-from)
     where
         (d,m) = from `divMod` chunkSize
-        (d2,m2) = to `divMod` chunkSize
 
-        f i | i == d2 = if m2 == 0 then [] else take m2 (unVector $ xs ! d2)
-            | otherwise = unVector (xs ! i) ++ f i
+        f i n | n == 0 = []
+              | n < chunkSize = take n $ unVector $ xs ! i
+              | otherwise = unVector (xs ! i) ++ f (i+1) (n-chunkSize)
 
 
 instance BinaryDefer a => BinaryDefer (Chunk a) where
