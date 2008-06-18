@@ -17,7 +17,9 @@ actionSearch flags q = do
     db <- getDataBases flags q
     dbs <- mapM loadDataBase db
     let res = searchAll dbs q
-    putStr $ unlines $ map (f . renderResult) res
+    if null res
+        then putStrLn "No results found"
+        else putStr $ unlines $ map (f . renderResult) res
     where
         showTag = if Color True `elem` flags then showTagConsole else show
         f (Just m, r) = showModule m ++ " " ++ showTag r
