@@ -15,6 +15,7 @@ import Data.Generics.Uniplate
 
 newtype Suggest = Suggest (Trie SuggestItem)
 
+-- if something is both a data and a ctor, no need to mention the ctor
 data SuggestItem = SuggestItem
     {suggestCtor :: Maybe String -- constructor (and who the type is)
     ,suggestData :: [(String,Int)] -- data type, name (case correct), and possible kinds
@@ -50,7 +51,9 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
             where f m (s,i) = Map.insertWith join (map toLower s) i m
 
         join (SuggestItem a1 b1 c1) (SuggestItem a2 b2 c2) =
-            SuggestItem (a1 `mplus` a2) (nub $ b1++b2) (nub $ c1++c2)
+            SuggestItem
+                (if null b1 && null b2 then a1 `mplus` a2 else Nothing)
+                (nub $ b1++b2) (nub $ c1++c2)
 
         sData  c n = (c, SuggestItem Nothing [(c,n)] [])
         sClass c n = (c, SuggestItem Nothing [] [(c,n)])
