@@ -14,11 +14,13 @@ data Result = Result
     }
     deriving Show
 
-data Score = TextScore TextScore
+data Score = TypeScore TypeScore
+           | TextScore TextScore
              deriving (Eq,Ord)
 
 instance Show Score where
     showList xs = showString $ "{" ++ unwords (map show xs) ++ "}"
+    show (TypeScore x) = show x
     show (TextScore x) = show x
 
 
