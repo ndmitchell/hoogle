@@ -20,8 +20,12 @@ actionSearch flags q = do
         putStr $ unlines $ "= DATABASES =" : map ("  "++) db
 
     dbs <- mapM loadDataBase db
-    let res = search dbs q
+    let sug = suggestQuery dbs q
+    when (isJust sug) $
+        putStrLn $ showTag $ fromJust sug
+
     when verbose $ putStrLn "= ANSWERS ="
+    let res = search dbs q
     if null res
         then putStrLn "No results found"
         else putStr $ unlines $ map (f . renderResult) res
