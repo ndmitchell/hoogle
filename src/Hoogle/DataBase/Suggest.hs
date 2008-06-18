@@ -13,23 +13,32 @@ import Hoogle.DataBase.Item
 import Data.Generics.Uniplate
 
 
-newtype Suggest = Suggest (Trie SuggestItem) deriving Show
+newtype Suggest = Suggest (Trie SuggestItem)
 
 data SuggestItem = SuggestItem
     {suggestCtor :: Maybe String -- constructor (and who the type is)
     ,suggestData :: [(String,Int)] -- data type, name (case correct), and possible kinds
     ,suggestClass :: [(String,Int)] -- class, name (case correct), kinds
     }
-    deriving Show
 
 
-instance BinaryDefer SuggestItem where
-    put (SuggestItem a b c) = put a >> put b >> put c
-    get = get3 SuggestItem
+instance Show Suggest where
+    show (Suggest x) = show x
+
+instance Show SuggestItem where
+    show (SuggestItem a b c) = concat $ intersperse ", " $
+        ["ctor " ++ x | Just x <- [a]] ++ f "data" b ++ f "class" c
+        where
+            f msg xs = [msg ++ " " ++ a ++ " " ++ show b | (a,b) <- xs]
+
 
 instance BinaryDefer Suggest where
     put (Suggest x) = put x
     get = get1 Suggest
+
+instance BinaryDefer SuggestItem where
+    put (SuggestItem a b c) = put a >> put b >> put c
+    get = get3 SuggestItem
 
 
 createSuggest :: [(TextItem, Maybe Entry)] -> Suggest
