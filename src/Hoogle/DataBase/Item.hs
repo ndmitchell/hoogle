@@ -4,6 +4,7 @@ module Hoogle.DataBase.Item where
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Data.List
+import General.All
 
 
 data Package = Package
@@ -39,6 +40,23 @@ data EntryText = Keyword String
 data EntryView = FocusOn (Int,Int) -- characters (a,b) [a..b] should be focused
                | ArgPosNum Int Int -- argument a b, a is remapped to b
                  deriving Show
+
+
+renderEntryText :: [EntryView] -> [EntryText] -> TagStr
+renderEntryText view = Tags . map f
+    where
+        f (Keyword x) = TagBold $ Str x
+        f (Text x) = Str x
+        f (ArgPos i s) = Str s
+        f (ArgRes s) = Str s
+        
+        -- TODO: very inefficient, should be improved
+        --       should at least coallese adjacent Bold/Text's
+        f (Focus x) = Tags [g $ Str [x] | (i,x) <- zip [0..] x
+                           ,let g = if i `elem` bold then TagBold else id]
+            where bold = concat [[i..j] | FocusOn (i,j) <- view]
+
+
 
 
 showModule = concat . intersperse "."
