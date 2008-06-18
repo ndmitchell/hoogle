@@ -109,7 +109,7 @@ askSuggest sug q@(TypeSig con typ)
         -- try and improve the type --
         typ2 = removeTApp $ transform f $ insertTApp typ
             where
-                free = map (:[]) ['a'..] \\ [x | TVar x <- universe typ]
+                free = map (TVar . (:[])) $ ['a'..] \\ [x | TVar [x] <- universe typ]
 
                 f (TVar x) | isJust m && not (null d) = TLit $ fst $ head d
                     where m@ ~(Just SuggestItem{suggestData=d}) = get x
