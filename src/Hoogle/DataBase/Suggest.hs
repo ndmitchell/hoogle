@@ -120,4 +120,13 @@ askSuggest sug q@(TypeSig con typ)
                              else TLit $ fst $ head $ d
                     where m@ ~(Just SuggestItem{suggestData=d, suggestCtor=c}) = get x
 
+                f (TApp (TLit x) xs) | isJust m && not (null kinds) && n `notElem` kinds =
+                        TApp (TLit x) $ if maximum kinds > n
+                        then xs ++ take (minimum (filter (> n) kinds) - n) free
+                        else take (maximum kinds) xs
+                    where
+                        m@ ~(Just SuggestItem{suggestData=d}) = get x
+                        kinds = [b | (a,b) <- d, a == x]
+                        n = length xs
+
                 f x = x
