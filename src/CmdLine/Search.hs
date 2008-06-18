@@ -5,6 +5,7 @@ import CmdLine.Flag
 import Control.Monad
 import General.Code
 import Hoogle.Query.All
+import Hoogle.All
 import System.Directory
 import System.FilePath
 
@@ -12,9 +13,9 @@ import System.FilePath
 actionSearch :: [CmdFlag] -> Query -> IO ()
 actionSearch flags q = do
     db <- getDataBases flags q
-    print db
-    error "todo"
-
+    dbs <- mapM loadDataBase db
+    let res = searchAll dbs q
+    putStr $ unlines $ map show res
 
 ---------------------------------------------------------------------
 -- Pick the DataBase's
