@@ -23,18 +23,3 @@ data DataKeyword = NewTypeKeyword
 instance Show DataKeyword where
     show NewTypeKeyword = "newtype"
     show DataKeyword = "data"
-
-
-{- TODO: put this somewhere sensible
--- So that results are sorted in some rough order
--- lower is more powerful
-itemPriority :: ItemRest -> Int
-itemPriority x = case x of
-    ItemKeyword{} -> 0
-    ItemModule{} -> 1
-    ItemClass{} -> 2
-    ItemAlias{} -> 3
-    ItemData{} -> 4
-    ItemFunc{} -> 5
-    _ -> 6
--}
