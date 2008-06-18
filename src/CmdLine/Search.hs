@@ -34,11 +34,10 @@ actionSearch flags q = do
                   count = listToMaybe [i | Count i <- flags]
 
         verbose = Verbose `elem` flags
-        color = Color True `elem` flags
+        showTag = if Color True `elem` flags then showTagConsole else show
 
         f (m,r,v) = maybe "" (\m -> showModule m ++ " ") m ++
-                    (if color then showTagConsole else show) r ++
-                    (if verbose then " " ++ v else "")
+                    showTag r ++ (if verbose then " " ++ v else "")
 
 
 ---------------------------------------------------------------------
