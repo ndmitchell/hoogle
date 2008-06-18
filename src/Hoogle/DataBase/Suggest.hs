@@ -107,4 +107,11 @@ askSuggest sug q@(TypeSig con typ)
                    | otherwise -> null (suggestData i) && isNothing (suggestCtor i)
 
         -- try and improve the type --
-        typ2 = typ
+        typ2 = removeTApp $ transform f $ insertTApp typ
+            where
+                free = map (:[]) ['a'..] \\ [x | TVar x <- universe typ]
+
+                f (TVar c) = case get c of
+                                Just (SuggestItem{suggestData=(c,_):_}) -> TLit c
+                                Nothing -> TVar c
+                f x = x
