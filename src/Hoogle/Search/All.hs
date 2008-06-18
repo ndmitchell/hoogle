@@ -16,7 +16,7 @@ data Result = Result
     {resultDataBase :: Int
     ,resultEntry :: Entry
     ,resultModPkg :: Maybe (Module,Package)
-    ,resultView :: EntryView
+    ,resultView :: [EntryView]
     ,resultScore :: [Score]
     }
     deriving Show
@@ -83,7 +83,7 @@ orderResults = id -- TODO: map snd . sortBy (compare `on` fst) . map (\x -> (res
 performTextSearch :: [DataBase] -> [String] -> [Result]
 performTextSearch databases (query:_) = concat $ zipWith f [0..] databases
     where
-        f i db = [Result i e (entryParents db e) v [TextScore s] | (e,v,s) <- searchText db query]
+        f i db = [Result i e (entryParents db e) [v] [TextScore s] | (e,v,s) <- searchText db query]
 
 
 performTypeSearch :: [DataBase] -> TypeSig -> [Result]
