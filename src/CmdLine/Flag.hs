@@ -14,6 +14,7 @@ import Control.Monad
 import Data.Char
 import Data.Maybe
 import General.All
+import System.Exit
 
 
 -- useful command line auxiliary
