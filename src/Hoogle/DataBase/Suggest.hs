@@ -55,7 +55,7 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
 
         getTextItem :: TextItem -> [(String,SuggestItem)]
         getTextItem (ItemClass x   ) = getTypeSig sClass x
-        getTextItem (ItemFunc _ x  ) = getTypeSig sData x -- TODO: add ctors here
+        getTextItem (ItemFunc n x  ) = getTypeSig sData x ++ getCtor n x
         getTextItem (ItemAlias x y ) = getTypeSig sData x ++ getTypeSig sData y
         getTextItem (ItemData _ x  ) = getTypeSig sData x
         getTextItem (ItemInstance x) = getTypeSig sClass x
@@ -66,3 +66,6 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
         getType typ x =
             [typ c (length ys) | TApp (TLit c) ys <- [x], c `notElem` [",","->"]] ++
             concatMap (getType sData) (children x)
+
+        getCtor name@(n:_) (TypeSig _ x) | isUpper n = [] -- TODO: Finish
+        getCtor _ _ = []
