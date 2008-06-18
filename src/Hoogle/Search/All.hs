@@ -33,7 +33,6 @@ getResults query = mergeDataBaseResults . map (mergeQueryResults query . f)
               map (nameSearch d) (names query)
 
 
--- | Perform a text query
 nameSearch :: DataBase -> String -> [Result]
 nameSearch db query = [Result e (entryParents db e) [v] [TextScore s]
                       | (e,v,s) <- searchName db query]
