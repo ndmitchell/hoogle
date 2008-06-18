@@ -79,3 +79,7 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
             [ (name, SuggestItem (Just c) [] [])
             | n:_ <- [name], isUpper n
             , (TLit c,_) <- [fromTApp $ last $ fromTFun x]]
+
+
+askSuggest :: [Suggest] -> TypeSig -> Maybe (Either String TypeSig)
+askSuggest sug _ = Nothing

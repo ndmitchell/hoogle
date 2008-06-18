@@ -9,6 +9,7 @@ module Hoogle.DataBase.All
 
 import Data.Binary.Defer.Index
 import Hoogle.TextBase.All
+import Hoogle.TypeSig.All
 import Hoogle.DataBase.Type
 import Hoogle.DataBase.Item
 import Hoogle.DataBase.Serialise
@@ -30,3 +31,7 @@ entryParents db e = case entryModule e of
     Just i -> let m = lookupIndex i (modules $ items db)
                   p = lookupIndex (modulePackage m) (packages $ items db)
               in Just (m,p)
+
+
+suggestion :: [DataBase] -> TypeSig -> Maybe (Either String TypeSig)
+suggestion db = askSuggest (map suggest db)
