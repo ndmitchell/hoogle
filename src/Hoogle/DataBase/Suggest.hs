@@ -68,5 +68,7 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
                                , c /= "->" && '.' `notElem` c] ++
             concatMap (getType sData) (children x)
 
-        getCtor name@(n:_) (TypeSig _ x) | isUpper n = [] -- TODO: Finish
-        getCtor _ _ = []
+        getCtor name (TypeSig _ x) =
+            [ (name, SuggestItem (Just c) [] [])
+            | n:_ <- [name], isUpper n
+            , (TLit c,_) <- [fromTApp x]]
