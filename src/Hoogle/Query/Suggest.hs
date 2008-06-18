@@ -6,9 +6,7 @@ import Data.List
 import Data.Char
 import Data.Maybe
 import Hoogle.DataBase.All
-import Hoogle.TypeSig.All
 import Hoogle.Query.Type
-import Hoogle.Query.Render
 
 
 suggestQuery :: [DataBase] -> Query -> Maybe TagStr
