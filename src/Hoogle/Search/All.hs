@@ -19,8 +19,10 @@ data Result = Result
     ,resultView :: EntryView
     ,resultScore :: [Score]
     }
+    deriving Show
 
 data Score = TextScore TextScore
+             deriving Show
 
 
 -- return all the results

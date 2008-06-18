@@ -94,7 +94,7 @@ prefixes = init . tails
 -- SEARCHING
 
 data TextScore = TextScore
-                 deriving (Eq,Ord)
+                 deriving (Eq,Ord,Show)
 
 searchTextSearch :: TextSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
 searchTextSearch (TextSearch trie chunk) ents str =
