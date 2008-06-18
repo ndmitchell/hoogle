@@ -111,7 +111,6 @@ askSuggest sug q@(TypeSig con typ)
             where
                 free = map (:[]) ['a'..] \\ [x | TVar x <- universe typ]
 
-                f (TVar c) = case get c of
-                                Just (SuggestItem{suggestData=(c,_):_}) -> TLit c
-                                Nothing -> TVar c
+                f (TVar c) | isJust i && not (null s) = TLit $ fst $ head s
+                    where i@ ~(Just SuggestItem{suggestData=s}) = get c
                 f x = x
