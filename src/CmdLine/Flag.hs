@@ -47,6 +47,7 @@ data Argument = ArgNone CmdFlag
               | ArgBool (Bool     -> CmdFlag)
               | ArgInt  (Int      -> CmdFlag)
               | ArgNat  (Int      -> CmdFlag)
+              | ArgPos  (Int      -> CmdFlag)
               | ArgFile (FilePath -> CmdFlag)
 
 data FlagInfo = FlagInfo {
@@ -61,8 +62,8 @@ flagInfo =
     ,f (ArgNone Help) ["?","help","h"] [PCmdLine] "Show help message"
     ,f (ArgNone Web) ["w","web"] [PCmdLine] "Run as though it was a CGI script"
     ,f (ArgBool Color) ["c","color","col","colour"] [PCmdLine] "Show color output (default=false)"
-    ,f (ArgNat  Start) ["s","start"] [PCmdLine,PWebArgs] "First result to show (default=1)"
-    ,f (ArgNat  Count) ["n","count","length","len"] [PCmdLine,PWebArgs] "Number of results to show (default=all)"
+    ,f (ArgPos  Start) ["s","start"] [PCmdLine,PWebArgs] "First result to show (default=1)"
+    ,f (ArgPos  Count) ["n","count","length","len"] [PCmdLine,PWebArgs] "Number of results to show (default=all)"
     ,f (ArgNone Test) ["test"] [PCmdLine] "Run the regression tests"
     ,f (ArgFile Convert) ["convert"] [PCmdLine] "Convert a database"
     ,f (ArgFile Output) ["output"] [PCmdLine] "Output file for convert"
@@ -112,6 +113,7 @@ flagsHelp = unlines $ map f res
         typ (ArgNone _) = ""
         typ (ArgInt  _) = "=INT"
         typ (ArgNat  _) = "=NAT"
+        typ (ArgPos  _) = "=POS"
         typ (ArgBool _) = "=BOOL"
         typ (ArgFile _) = "=FILE"
 
@@ -145,11 +147,18 @@ parseArg (ArgBool v) xs = liftM v $ parseBool xs
 parseArg (ArgFile v) xs = liftM v $ parseFile xs
 parseArg (ArgNat  v) xs = liftM v $ parseNat  xs
 parseArg (ArgInt  v) xs = liftM v $ parseInt  xs
+parseArg (ArgPos  v) xs = liftM v $ parsePos  xs
 
 
 parseNat :: String -> Maybe Int
 parseNat x = case parseInt x of
                   Just y | y >= 0 -> Just y
+                  _ -> Nothing
+
+
+parsePos :: String -> Maybe Int
+parsePos x = case parseInt x of
+                  Just y | y > 0 -> Just y
                   _ -> Nothing
 
 
