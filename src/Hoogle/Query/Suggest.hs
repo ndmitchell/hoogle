@@ -11,7 +11,7 @@ import Hoogle.Query.Type
 import Hoogle.Query.Render
 
 
-suggestQuery :: DataBase -> Query -> Maybe TagStr
+suggestQuery :: [DataBase] -> Query -> Maybe TagStr
 suggestQuery db q | "google" `elem` names q = Just $ Tags [TagHyperlink "http://www.google.com/" (Str "Google"), Str " rocks!"]
 
 suggestQuery db q | any f (names q) = Just $ Str "Can't think of anything more interesting to search for?"
