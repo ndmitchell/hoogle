@@ -13,5 +13,11 @@ convert tb db = do
         Left  x -> error $ show x
         Right x -> do
             let y = createDataBase x
-            print y
-            -- saveDataBase db y
+            saveDataBase db y
+
+            -- <debugging>
+            z <- loadDataBase db
+            print z
+            if show y == show z then return () else
+                error "Database did not match"
+            -- </debugging>
