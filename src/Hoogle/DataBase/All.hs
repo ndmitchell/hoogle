@@ -16,12 +16,12 @@ import Hoogle.DataBase.Serialise
 
 createDataBase :: [TextItem] -> DataBase
 createDataBase xs = DataBase items
-        (createTextSearch ys) (createTypeSearch ys) (createSuggest ys)
+        (createNameSearch ys) (createTypeSearch ys) (createSuggest ys)
     where (items,ys) = createItems xs
 
 
-searchText :: DataBase -> String -> [(Entry,EntryView,TextScore)]
-searchText db = searchTextSearch (textSearch db) (entries $ items db)
+searchName :: DataBase -> String -> [(Entry,EntryView,TextScore)]
+searchName db = searchNameSearch (nameSearch db) (entries $ items db)
 
 
 entryParents :: DataBase -> Entry -> Maybe (Module, Package)

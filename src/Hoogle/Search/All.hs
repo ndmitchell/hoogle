@@ -30,13 +30,13 @@ getResults :: Query -> [DataBase] -> [Result]
 getResults query = mergeDataBaseResults . map (mergeQueryResults query . f)
     where
         f d = [typeSearch d q | Just q <- [typeSig query]] ++
-              map (textSearch d) (names query)
+              map (nameSearch d) (names query)
 
 
 -- | Perform a text query
-textSearch :: DataBase -> String -> [Result]
-textSearch db query = [Result e (entryParents db e) [v] [TextScore s]
-                      | (e,v,s) <- searchText db query]
+nameSearch :: DataBase -> String -> [Result]
+nameSearch db query = [Result e (entryParents db e) [v] [TextScore s]
+                      | (e,v,s) <- searchName db query]
 
 
 typeSearch :: DataBase -> TypeSig -> [Result]

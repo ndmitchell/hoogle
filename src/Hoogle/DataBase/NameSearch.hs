@@ -1,9 +1,7 @@
 
--- TODO: Rename to NameSearch
-
-module Hoogle.DataBase.TextSearch
-    (TextSearch, createTextSearch
-    ,TextScore, searchTextSearch
+module Hoogle.DataBase.NameSearch
+    (NameSearch, createNameSearch
+    ,TextScore, searchNameSearch
     ) where
 
 import Data.Binary.Defer
@@ -20,12 +18,12 @@ import Hoogle.TextBase.All
 ---------------------------------------------------------------------
 -- DATA TYPES
 
-data TextSearch = TextSearch (Trie (Int,Int)) (Chunk (Int,Lookup Entry))
+data NameSearch = NameSearch (Trie (Int,Int)) (Chunk (Int,Lookup Entry))
                   deriving Show
 
-instance BinaryDefer TextSearch where
-    put (TextSearch a b) = put a >> put b
-    get = get2 TextSearch
+instance BinaryDefer NameSearch where
+    put (NameSearch a b) = put a >> put b
+    get = get2 NameSearch
 
 {-
 TRIE data structure
@@ -62,8 +60,8 @@ starting at position 'start' in the name given by 'id'.
 ---------------------------------------------------------------------
 -- CREATION
 
-createTextSearch :: [(TextItem, Maybe Entry)] -> TextSearch
-createTextSearch xs = TextSearch
+createNameSearch :: [(TextItem, Maybe Entry)] -> NameSearch
+createNameSearch xs = NameSearch
         (newTrie $ f sub (zip [0..] pre))
         (newChunk $ map snd pre)
     where
@@ -107,8 +105,8 @@ instance Show TextScore where
     show TSNone = "_"
 
 
-searchTextSearch :: TextSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
-searchTextSearch (TextSearch trie chunk) ents str =
+searchNameSearch :: NameSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
+searchNameSearch (NameSearch trie chunk) ents str =
     case lookupTrie (map toLower str) trie of
         Nothing -> []
         Just i -> [(ent, FocusOn (p,p+nstr-1), score p ent)

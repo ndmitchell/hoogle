@@ -5,20 +5,20 @@ module Hoogle.DataBase.Type
     ,module Hoogle.DataBase.Items
     ,module Hoogle.DataBase.Suggest
     ,module Hoogle.DataBase.TypeSearch
-    ,module Hoogle.DataBase.TextSearch
+    ,module Hoogle.DataBase.NameSearch
     ) where
 
 import Hoogle.DataBase.Item
 import Hoogle.DataBase.Items
 import Hoogle.DataBase.Suggest
 import Hoogle.DataBase.TypeSearch
-import Hoogle.DataBase.TextSearch
+import Hoogle.DataBase.NameSearch
 import Data.Binary.Defer
 
 
 data DataBase = DataBase
     {items :: Items
-    ,textSearch :: TextSearch
+    ,nameSearch :: NameSearch
     ,typeSearch :: TypeSearch
     ,suggest :: Suggest
     }
@@ -31,6 +31,6 @@ instance BinaryDefer DataBase where
 
 instance Show DataBase where
     show (DataBase a b c d) =
-        f "Items" a ++ f "TextSearch" b ++ f "TypeSearch" c ++ f "Suggest" d
+        f "Items" a ++ f "NameSearch" b ++ f "TypeSearch" c ++ f "Suggest" d
         where
             f header x = "= " ++ header ++ " =\n\n" ++ show x ++ "\n\n"
