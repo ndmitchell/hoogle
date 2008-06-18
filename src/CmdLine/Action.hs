@@ -12,18 +12,15 @@ import Test.All
 import Text.ParserCombinators.Parsec
 import Safe
 import System.Directory
-import System.Exit
 import System.FilePath
 
 
 actionCmdLine :: CmdQuery -> IO ()
 
 actionCmdLine CmdQuery{queryText = text, query = Left err} = do
-    putStrLn $ msg ++ show err
-    exitFailure
-    where
-        msg = unlines ["Parse error:", "  " ++ text,
-                        replicate (sourceColumn (errorPos err) + 1) ' ' ++ "^"]
+    failMessage ["Parse error:", "  " ++ text
+                ,replicate (sourceColumn (errorPos err) + 1) ' ' ++ "^"
+                ,show err]
 
 
 actionCmdLine q | not $ null $ queryBadFlags q = do
