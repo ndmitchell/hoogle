@@ -2,6 +2,7 @@
 module General.Code where
 
 import Data.List
+import System.Directory
 
 
 fst3 (a,b,c) = a
@@ -76,3 +77,15 @@ setEq xs ys = all (`elem` ys) xs && all (`elem` xs) ys
 
 elemEnum :: Enum a => a -> [a] -> Bool
 elemEnum x ys = fromEnum x `elem` map fromEnum ys
+
+
+
+data FileType = File | Directory | NotFound
+                deriving (Eq,Show)
+
+fileType :: FilePath -> IO FileType
+fileType x = do
+    b <- doesFileExist x
+    if b then return File else do
+        b <- doesDirectoryExist x
+        return $ if b then Directory else NotFound
