@@ -24,6 +24,8 @@ suggestQuery db q | isJust $ typeSig q =
         Just (Left s) -> Just $ Str s
         Just (Right t) -> Just $ Str $ "Did you mean: " ++ show t
 
+suggestQuery db q = Nothing
+
 {-
 | q /= q2 = Just $ suggestSearch q2
     where
