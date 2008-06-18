@@ -6,6 +6,7 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Trie
 import Data.Char
 import Data.List
+import Data.Maybe
 import qualified Data.Map as Map
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
@@ -13,7 +14,7 @@ import Hoogle.DataBase.Item
 import Data.Generics.Uniplate
 
 
-newtype Suggest = Suggest (Trie SuggestItem)
+newtype Suggest = Suggest {fromSuggest :: Trie SuggestItem}
 
 -- if something is both a data and a ctor, no need to mention the ctor
 data SuggestItem = SuggestItem
@@ -84,4 +85,26 @@ joinItem (SuggestItem a1 b1 c1) (SuggestItem a2 b2 c2) =
 
 
 askSuggest :: [Suggest] -> TypeSig -> Maybe (Either String TypeSig)
-askSuggest sug _ = Nothing
+askSuggest sug q@(TypeSig con typ)
+        | q2 /= q = Just (Right q2)
+        | not $ null datas = unknown "type" datas
+        | not $ null classes = unknown "class" classes
+        | otherwise = Nothing
+    where
+        tries = map fromSuggest sug
+        get x = case catMaybes $ map (lookupTrie x) tries of
+                    [] -> Nothing
+                    xs -> Just $ foldr1 joinItem xs
+
+        -- figure out if you have a totally unknown thing --
+        classes = [x | c <- con, (TLit x,_) <- [fromTApp c], bad True x]
+        datas = [x | TLit x <- concatMap universe $ typ : concatMap (snd . fromTApp) con, bad False x]
+        unknown typ (x:_) = Just $ Left $ "Warning: Unknown " ++ typ ++ " " ++ x
+
+        bad cls name = case get name of
+            Nothing -> True
+            Just i | cls -> null $ suggestClass i
+                   | otherwise -> null (suggestData i) && isNothing (suggestCtor i)
+
+        -- try and improve the type --
+        q2 = q
