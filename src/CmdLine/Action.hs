@@ -3,6 +3,7 @@ module CmdLine.Action(actionCmdLine) where
 
 import CmdLine.Flag
 import CmdLine.Query
+import CmdLine.Search
 import Control.Monad
 import Data.List
 import General.All
@@ -71,4 +72,4 @@ actionCmdLine q | not $ usefulQuery $ fromRight $ query q = do
                 ,"Try --help for command line options"]
 
 
-actionCmdLine _ = error "todo"
+actionCmdLine q = actionSearch (queryFlags q) (fromRight $ query q)
