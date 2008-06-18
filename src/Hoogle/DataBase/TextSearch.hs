@@ -109,6 +109,4 @@ searchTextSearch (TextSearch trie chunk) ents str =
                   ,let ent = lookupIndex e ents]
     where
         nstr = length str
-
-        score p ent = TextScore (p /= 0) (estr /= str)
-            where estr = head [i | Focus i <- entryText ent]
+        score p ent = TextScore (p /= 0) (entryText ent /= str)
