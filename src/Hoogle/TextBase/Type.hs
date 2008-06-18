@@ -18,7 +18,11 @@ data TextItem = ItemModule [String]
 
 data DataKeyword = NewTypeKeyword
                  | DataKeyword
-                 deriving (Show,Eq)
+                 deriving Eq
+
+instance Show DataKeyword where
+    show NewTypeKeyword = "newtype"
+    show DataKeyword = "data"
 
 
 {- TODO: put this somewhere sensible
