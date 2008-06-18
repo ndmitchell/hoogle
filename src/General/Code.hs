@@ -63,6 +63,7 @@ catLefts [] = []
 
 
 fromLeft (Left x) = x
+fromRight (Right x) = x
 
 
 iff :: Bool -> a -> Maybe a
