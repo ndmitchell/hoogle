@@ -4,7 +4,7 @@ module Hoogle.Query.Suggest(suggestQuery) where
 import General.All
 import Data.List
 import Data.Char
-import Data.Generics.UniplateOn
+import Data.Maybe
 import Hoogle.DataBase.All
 import Hoogle.TypeSig.All
 import Hoogle.Query.Type
@@ -18,7 +18,14 @@ suggestQuery db q | "google" `elem` map (map toLower) (names q) =
 suggestQuery db q | any f (names q) = Just $ Str "Can't think of anything more interesting to search for?"
     where f x = length x == 6 && "oogle" `isSuffixOf` x
 
-suggestQuery db q | q /= q2 = Just $ suggestSearch q2
+suggestQuery db q | isJust $ typeSig q =
+    case suggestion db (fromJust $ typeSig q) of
+        Nothing -> Nothing
+        Just (Left s) -> Just $ Str s
+        Just (Right t) -> Just $ Str $ "Did you mean: " ++ show t
+
+{-
+| q /= q2 = Just $ suggestSearch q2
     where
         newvar = head $ [c:cs | c <- ['a'..'z'], cs <- "":map show [1..]] \\ vars
         vars = [x | TVar x <- universeQueryType q]
@@ -66,3 +73,4 @@ suggestSearch x = TagHyperlink (showUrl x) (showText x)
             where
                 (a,b) = break (== '\0') xs
                 (c,d) = break (== '\0') (tail b)
+-}
