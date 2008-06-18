@@ -4,6 +4,7 @@ module CmdLine.Search(actionSearch) where
 import CmdLine.Flag
 import Control.Monad
 import Data.Maybe
+import Data.List
 import General.All
 import Hoogle.Query.All
 import Hoogle.Search.All
@@ -57,7 +58,7 @@ getDataBases flags q = do
         let pkg1 = [x | PlusPackage x <- scope q]
             pkg2 = if null pkg1 && null files then ["default"] else pkg1
         files2 <- mapM (resolveName dirs) pkg2
-        return $ files++files2
+        return $ nub $ files++files2
 
 
 -- return the (files,dirs), error message if one does not exist
