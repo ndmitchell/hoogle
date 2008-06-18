@@ -4,6 +4,7 @@ module Hoogle.Search.All(
     searchAll, searchRange
     ) where
 
+import Data.Char
 import Data.Maybe
 import Data.List
 import Control.Monad
@@ -25,7 +26,7 @@ data Result = Result
     deriving Show
 
 data Score = TextScore TextScore
-             deriving Show
+             deriving (Show,Eq,Ord)
 
 -- return the module it is in, and the text to go beside it
 renderResult :: Result -> (Maybe [String], TagStr)
@@ -82,7 +83,11 @@ filterResults q xs = xs {- TODO: if null actions then xs
 
 -- | Put the results in the correct order, by score
 orderResults :: [Result] -> [Result]
-orderResults = id -- TODO: map snd . sortBy (compare `on` fst) . map (\x -> (resultScore x, x))
+orderResults = map snd . sortBy (compare `on` fst) . map (\x -> (f x, x))
+    where
+        f r = (resultScore r
+              ,maybe 0 (length . moduleName . fst) $ resultModPkg r
+              ,map toLower $ entryName $ resultEntry r)
 
 
 -- | Perform a text query
