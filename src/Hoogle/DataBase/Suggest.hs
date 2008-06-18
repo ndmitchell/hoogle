@@ -111,7 +111,7 @@ askSuggest sug q@(TypeSig con typ)
             where
                 free = map (TVar . (:[])) $ ['a'..] \\ [x | TVar [x] <- universe typ]
 
-                f (TVar x) | isJust m && not (null d) = TLit $ fst $ head d
+                f (TVar x) | length x > 1 && isJust m && not (null d) = TLit $ fst $ head d
                     where m@ ~(Just SuggestItem{suggestData=d}) = get x
 
                 f (TLit x) | isJust m && x `notElem` (map fst d) &&
