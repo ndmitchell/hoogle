@@ -12,21 +12,28 @@ import Hoogle.Query.All
 import Hoogle.Search.Result
 
 
--- | Apply the PlusModule and MinusModule modes
+-- | Apply the PlusModule, MinusModule and MinusPackage modes
 filterResults :: Query -> [Result] -> [Result]
-filterResults q xs = xs {- TODO: if null actions then xs
-                     else filter (f base actions . modName . itemMod . itemResult) xs -}
+filterResults q = f mods correctModule . f pkgs correctPackage
     where
-        actions = filter isModule $ scope q
-        
-        isModule (PlusModule  _) = True
-        isModule (MinusModule _) = True
-        isModule _ = False
-        
-        base = case head actions of
-                    PlusModule _ -> False
-                    _ -> True
-        
+        f [] act = id
+        f xs act = filter (maybe True (act xs) . resultModPkg)
+
+        mods = filter (\x -> isPlusModule x || isMinusModule x) $ scope q
+        pkgs = [x | MinusPackage x <- scope q]
+
+
+-- pkgs is a non-empty list of MinusPackage values
+correctPackage :: [String] -> (Module,Package) -> Bool
+correctPackage pkgs = (`notElem` pkgs) . packageName . snd
+
+
+-- mods is a non-empty list of PlusModule/MinusModule
+correctModule :: [Scope] -> (Module,Package) -> Bool
+correctModule mods = f base mods . moduleName . fst
+    where
+        base = isMinusModule $ head mods
+
         f z [] y = z
         f z (PlusModule  x:xs) y | doesMatch x y = f True  xs y
         f z (MinusModule x:xs) y | doesMatch x y = f False xs y
