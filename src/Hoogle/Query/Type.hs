@@ -35,6 +35,9 @@ data Scope = PlusPackage  String
            | MinusModule [String]
            deriving (Eq, Show, Read)
 
+isPlusModule  (PlusModule  _) = True; isPlusModule  _ = False
+isMinusModule (MinusModule _) = True; isMinusModule _ = False
+
 
 data ItemType = ItemModule
               | ItemType
