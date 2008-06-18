@@ -1,4 +1,3 @@
--- TODO Flesh this out as a proper test
 
 module Test.Parse_TextBase(parse_TextBase) where
 
