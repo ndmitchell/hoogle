@@ -1,6 +1,7 @@
 
 module Hoogle.DataBase.Item where
 
+import Control.Monad
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Data.List
@@ -29,6 +30,7 @@ data Entry = Entry
     ,entryModule :: Maybe (Lookup Module)
     ,entryName :: String
     ,entryText :: [EntryText]
+    ,entryType :: EntryType
     }
 
 
@@ -42,6 +44,11 @@ data EntryText = Keyword String
 data EntryView = FocusOn (Int,Int) -- characters (a,b) [a..b] should be focused
                | ArgPosNum Int Int -- argument a b, a is remapped to b
                  deriving Show
+
+data EntryType = EntryModule
+               | EntryKeyword
+               | EntryOther
+                 deriving (Eq,Enum,Show)
 
 
 renderEntryText :: [EntryView] -> [EntryText] -> TagStr
@@ -59,8 +66,6 @@ renderEntryText view = Tags . map f
             where bold = concat [[i..j] | FocusOn (i,j) <- view]
 
 
-
-
 showModule = concat . intersperse "."
 
 instance Show Package where
@@ -71,7 +76,7 @@ instance Show Module where
         "{" ++ show c ++ "}"]
 
 instance Show Entry where
-    show (Entry a b c d) = unwords ["#" ++ show a, concatMap f d, m]
+    show (Entry a b c d e) = unwords ["#" ++ show a, concatMap f d, m]
         where
             m = case b of
                     Nothing -> ""
@@ -93,8 +98,8 @@ instance BinaryDefer Module where
     get = get3 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d) = put a >> put b >> put c >> put d
-    get = get4 Entry
+    put (Entry a b c d e) = put a >> put b >> put c >> put d >> put e
+    get = get5 Entry
 
 instance BinaryDefer EntryText where
     put (Keyword a)  = putByte 0 >> put a
@@ -110,3 +115,7 @@ instance BinaryDefer EntryText where
                 2 -> get1 Focus
                 3 -> get2 ArgPos
                 4 -> get1 ArgRes
+
+instance BinaryDefer EntryType where
+    put = put . fromEnum
+    get = liftM toEnum get

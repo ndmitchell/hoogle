@@ -48,7 +48,7 @@ createItems xs = unS $ execState (mapM f xs) s0
         f :: TextItem -> State S ()
         f i@ItemInstance{} = addTextItem i
 
-        f i@(ItemAttribute "keyword" name) = addEntry i False
+        f i@(ItemAttribute "keyword" name) = addEntry i False EntryKeyword
                 [Keyword "keyword",Text " ",Focus name]
 
         f i@(ItemAttribute name val) = do
@@ -62,10 +62,10 @@ createItems xs = unS $ execState (mapM f xs) s0
                 m = Module modI xs (newLookup 0)
             put s{modId = modI + 1, mods = m : mods s
                  ,modCur = Just $ newLookup modI}
-            addEntry i False
+            addEntry i False EntryModule
                 [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 
-        f i = addEntry i True (render i)
+        f i = addEntry i True EntryOther (render i)
 
 
         -- TODO: Add Focus elements for these renderings
@@ -76,11 +76,11 @@ createItems xs = unS $ execState (mapM f xs) s0
 
         addTextItem i = modify $ \s -> s{ents = (i,Nothing) : ents s}
 
-        addEntry i modu txt = do
+        addEntry i modu typ txt = do
             s <- get
             let entI = entId s
                 e = Entry entI
                           (if modu then modCur s else Nothing)
                           (headDef "" [i | Focus i <- txt])
-                          txt
+                          txt typ
             put $ s{entId = entI + 1, ents = (i, Just e) : ents s}
