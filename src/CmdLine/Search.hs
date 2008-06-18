@@ -3,6 +3,7 @@ module CmdLine.Search(actionSearch) where
 
 import CmdLine.Flag
 import Control.Monad
+import Data.Maybe
 import General.All
 import Hoogle.Query.All
 import Hoogle.Search.All
@@ -19,12 +20,19 @@ actionSearch flags q = do
         putStr $ unlines $ "= DATABASES =" : map ("  "++) db
 
     dbs <- mapM loadDataBase db
-    let res = searchAll dbs q
+    let res = search dbs q
     when verbose $ putStrLn "= ANSWERS ="
     if null res
         then putStrLn "No results found"
         else putStr $ unlines $ map (f . renderResult) res
     where
+        search | isNothing start && isNothing count = searchAll
+               | otherwise = let s = max 0 $ fromMaybe 1 start - 1
+                                 n = fromMaybe maxBound count
+                             in searchRange (s, s+n - 1)
+            where start = listToMaybe [i | Start i <- flags]
+                  count = listToMaybe [i | Count i <- flags]
+
         verbose = Verbose `elem` flags
         color = Color True `elem` flags
 
