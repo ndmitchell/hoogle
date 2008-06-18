@@ -41,6 +41,8 @@ instance BinaryDefer SuggestItem where
     get = get3 SuggestItem
 
 
+-- note: do not look inside class's for data type information
+--       as they may have higher-kinds and get it wrong
 createSuggest :: [(TextItem, Maybe Entry)] -> Suggest
 createSuggest xs = Suggest $ newTrie $ Map.toList res
     where
@@ -54,21 +56,23 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
         sClass c n = (c, SuggestItem Nothing [] [(c,n)])
 
         getTextItem :: TextItem -> [(String,SuggestItem)]
-        getTextItem (ItemClass x   ) = getTypeSig sClass x
-        getTextItem (ItemFunc n x  ) = getTypeSig sData x ++ getCtor n x
-        getTextItem (ItemAlias x y ) = getTypeSig sData x ++ getTypeSig sData y
-        getTextItem (ItemData _ x  ) = getTypeSig sData x
-        getTextItem (ItemInstance x) = getTypeSig sClass x
+        getTextItem (ItemClass x   ) = getTypeSig True x
+        getTextItem (ItemFunc n x  ) = getTypeSig False x ++ getCtor n x
+        getTextItem (ItemAlias x y ) = getTypeSig False x ++ getTypeSig False y
+        getTextItem (ItemData _ x  ) = getTypeSig False x
+        getTextItem (ItemInstance x) = getTypeSig True x
         getTextItem _ = []
 
-        getTypeSig typ (TypeSig x y) = concatMap (getType sClass) x ++ getType typ y
+        getTypeSig cls (TypeSig x y) = concatMap (getType True) x ++ getType cls y
 
-        getType typ x =
-            [typ c (length ys) | TApp (TLit c) ys <- [x]
-                               , c /= "->" && not (isTLitTuple c)] ++
-            concatMap (getType sData) (children x)
+        getType cls (TApp (TLit c) ys) = add cls c (length ys) ++
+                                         if cls then [] else concatMap (getType False) ys
+        getType cls (TLit c) = add cls c 0
+        getType cls x = if cls then [] else concatMap (getType False) $ children x
+
+        add cls c i = [(if cls then sClass else sData) c i | not (isTLitTuple c)]
 
         getCtor name (TypeSig _ x) =
             [ (name, SuggestItem (Just c) [] [])
             | n:_ <- [name], isUpper n
-            , (TLit c,_) <- [fromTApp x]]
+            , (TLit c,_) <- [fromTApp $ last $ fromTFun x]]
