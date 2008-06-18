@@ -65,7 +65,7 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
 
         getType typ x =
             [typ c (length ys) | TApp (TLit c) ys <- [x]
-                               , c /= "->" && '.' `notElem` c] ++
+                               , c /= "->" && not (isTLitTuple c)] ++
             concatMap (getType sData) (children x)
 
         getCtor name (TypeSig _ x) =
