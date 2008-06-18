@@ -38,6 +38,10 @@ fromTApp (TApp x y) = (x,y)
 fromTApp x = (x,[])
 
 
+isTLitTuple :: String -> Bool
+isTLitTuple x = ',' `elem` x
+
+
 ---------------------------------------------------------------------
 -- UNIPLATE INSTANCES
 
