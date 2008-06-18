@@ -48,12 +48,7 @@ createSuggest :: [(TextItem, Maybe Entry)] -> Suggest
 createSuggest xs = Suggest $ newTrie $ Map.toList res
     where
         res = foldl f Map.empty $ concatMap (getTextItem . fst) xs
-            where f m (s,i) = Map.insertWith join (map toLower s) i m
-
-        join (SuggestItem a1 b1 c1) (SuggestItem a2 b2 c2) =
-            SuggestItem
-                (if null b1 && null b2 then a1 `mplus` a2 else Nothing)
-                (nub $ b1++b2) (nub $ c1++c2)
+            where f m (s,i) = Map.insertWith joinItem (map toLower s) i m
 
         sData  c n = (c, SuggestItem Nothing [(c,n)] [])
         sClass c n = (c, SuggestItem Nothing [] [(c,n)])
@@ -79,6 +74,13 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
             [ (name, SuggestItem (Just c) [] [])
             | n:_ <- [name], isUpper n
             , (TLit c,_) <- [fromTApp $ last $ fromTFun x]]
+
+
+joinItem :: SuggestItem -> SuggestItem -> SuggestItem
+joinItem (SuggestItem a1 b1 c1) (SuggestItem a2 b2 c2) =
+    SuggestItem
+        (if null b1 && null b2 then a1 `mplus` a2 else Nothing)
+        (nub $ b1++b2) (nub $ c1++c2)
 
 
 askSuggest :: [Suggest] -> TypeSig -> Maybe (Either String TypeSig)
