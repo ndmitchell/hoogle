@@ -92,7 +92,7 @@ askSuggest sug q@(TypeSig con typ)
         | otherwise = Nothing
     where
         tries = map fromSuggest sug
-        get x = case catMaybes $ map (lookupTrie x) tries of
+        get x = case catMaybes $ map (lookupTrie $ map toLower x) tries of
                     [] -> Nothing
                     xs -> Just $ foldr1 joinItem xs
 
@@ -111,6 +111,13 @@ askSuggest sug q@(TypeSig con typ)
             where
                 free = map (:[]) ['a'..] \\ [x | TVar x <- universe typ]
 
-                f (TVar c) | isJust i && not (null s) = TLit $ fst $ head s
-                    where i@ ~(Just SuggestItem{suggestData=s}) = get c
+                f (TVar x) | isJust m && not (null d) = TLit $ fst $ head d
+                    where m@ ~(Just SuggestItem{suggestData=d}) = get x
+
+                f (TLit x) | isJust m && x `notElem` (map fst d) &&
+                             (not (null d) || isJust c)
+                           = if isJust c then TLit $ fromJust c
+                             else TLit $ fst $ head $ d
+                    where m@ ~(Just SuggestItem{suggestData=d, suggestCtor=c}) = get x
+
                 f x = x
