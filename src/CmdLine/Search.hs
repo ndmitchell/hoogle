@@ -27,7 +27,7 @@ getDataBases :: [CmdFlag] -> Query -> IO [FilePath]
 getDataBases flags q = do
         (files,dirs) <- dataFileDir flags
         let pkg1 = [x | PlusPackage x <- scope q]
-            pkg2 = if null pkg1 then ["default"] else pkg1
+            pkg2 = if null pkg1 && null files then ["default"] else pkg1
         files2 <- mapM (resolveName dirs) pkg2
         return $ files++files2
 
