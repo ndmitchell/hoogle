@@ -39,11 +39,9 @@ searchAll databases query = getResults databases query
 
 
 -- should be possible to fast-path certain searches, currently not done
--- start (0 based), length
--- TODO: should be (Int,Int) like arrays
-searchRange :: [DataBase] -> Query -> Int -> Int -> [Result]
-searchRange databases query from len =
-        take len $ drop from res
+searchRange :: [DataBase] -> Query -> (Int,Int) -> [Result]
+searchRange databases query (from,to) =
+        take (1 + to-from) $ drop from res
     where
         res = getResults databases query
 
