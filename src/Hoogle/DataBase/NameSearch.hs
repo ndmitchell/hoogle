@@ -93,8 +93,6 @@ prefixes = init . tails
 ---------------------------------------------------------------------
 -- SEARCHING
 
-type NBool = Bool -- negated boolean
-
 -- lower is better
 data TextScore = TSExact | TSStart | TSNone
                  deriving (Eq,Ord)
