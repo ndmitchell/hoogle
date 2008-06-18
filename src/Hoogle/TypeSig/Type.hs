@@ -17,9 +17,9 @@ type Constraint = [Type]
 -- TApp (TLit "->") xs == TFun xs
 -- TFun is the top level, below than is TLit
 data Type = TApp Type [Type] -- a list of types, first one being the constructor
-          | TLit String -- bound variables, Maybe, ":", "(,)", "(,,)" (tuple), "->" (function)
+          | TLit String -- bound variables, Maybe, ":", "(,)", "(,,)" (tuple)
           | TVar String -- unbound variables, "a"
-          | TFun [Type] -- TODO: eliminate this constructor
+          | TFun [Type]
           deriving Eq
 
 
