@@ -111,15 +111,8 @@ askSuggest sug q@(TypeSig con typ)
             where
                 free = map (TVar . (:[])) $ ['a'..] \\ [x | TVar [x] <- universe typ]
 
-                f (TVar x) | length x > 1 && isJust m && not (null d) = TLit $ fst $ head d
-                    where m@ ~(Just SuggestItem{suggestData=d}) = get x
-
-                f (TLit x) | isJust m && x `notElem` (map fst d) &&
-                             (not (null d) || isJust c)
-                           = if isJust c then TLit $ fromJust c
-                             else TLit $ fst $ head $ d
-                    where m@ ~(Just SuggestItem{suggestData=d, suggestCtor=c}) = get x
-
+                f (TVar x) | length x > 1 = g (TVar x) x
+                f (TLit x) = g (TLit x) x
                 f (TApp (TLit x) xs) | isJust m && not (null kinds) && n `notElem` kinds =
                         TApp (TLit x) $ if maximum kinds > n
                         then xs ++ take (minimum (filter (> n) kinds) - n) free
@@ -128,5 +121,12 @@ askSuggest sug q@(TypeSig con typ)
                         m@ ~(Just SuggestItem{suggestData=d}) = get x
                         kinds = [b | (a,b) <- d, a == x]
                         n = length xs
-
                 f x = x
+
+
+                g def x | isJust m && x `notElem` (map fst d) &&
+                          (not (null d) || isJust c)
+                        = if isJust c then TLit $ fromJust c
+                          else TLit $ fst $ head $ d
+                    where m@ ~(Just SuggestItem{suggestData=d, suggestCtor=c}) = get x
+                g def x = def
