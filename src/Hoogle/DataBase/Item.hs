@@ -23,6 +23,7 @@ data Module = Module
     }
 
 
+-- invariant: entryName == head [i | Focus i <- entryText]
 data Entry = Entry
     {entryId :: Id
     ,entryModule :: Maybe (Lookup Module)
