@@ -1,4 +1,6 @@
 
+-- TODO: Rename to NameSearch
+
 module Hoogle.DataBase.TextSearch
     (TextSearch, createTextSearch
     ,TextScore, searchTextSearch
