@@ -109,4 +109,4 @@ searchTextSearch (TextSearch trie chunk) ents str =
                   ,let ent = lookupIndex e ents]
     where
         nstr = length str
-        score p ent = TextScore (p /= 0) (entryText ent /= str)
+        score p ent = TextScore (p /= 0) (entryName ent /= str)
