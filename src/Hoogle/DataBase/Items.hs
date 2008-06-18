@@ -5,6 +5,7 @@ import Control.Monad.State
 import Data.Maybe
 import Data.Binary.Defer.Index
 import Hoogle.TextBase.All
+import Hoogle.TypeSig.All
 import Hoogle.DataBase.Item
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
@@ -68,11 +69,14 @@ createItems xs = unS $ execState (mapM f xs) s0
         f i = addEntry i True EntryOther (render i)
 
 
-        -- TODO: Add Focus elements for these renderings
-        render (ItemClass i) = [Keyword "class", Text " ", Text (show i)]
+        render (ItemClass i) = [Keyword "class", Text " "] ++ typeHead i
         render (ItemFunc name typ) = [Focus name, Text " :: ", Text (show typ)]
-        render (ItemAlias a b) = [Keyword "type", Text (" " ++ show a ++ " = " ++ show b)]
-        render (ItemData d t) = [Keyword (show d), Text (show t)]
+        render (ItemAlias a b) = [Keyword "type", Text " "] ++ typeHead a ++ [Text $ " = " ++ show b]
+        render (ItemData d t) = [Keyword (show d), Text " "] ++ typeHead t
+
+        typeHead (TypeSig con sig) = [Text $ showConstraint con, Focus a, Text b]
+            where (a,b) = break (== ' ') $ show sig
+
 
         addTextItem i = modify $ \s -> s{ents = (i,Nothing) : ents s}
 
