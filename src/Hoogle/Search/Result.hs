@@ -19,5 +19,6 @@ data Score = TextScore TextScore
 
 -- return the module it is in, and the text to go beside it
 renderResult :: Result -> (Maybe [String], TagStr)
-renderResult r = (liftM (moduleName . fst) $ resultModPkg r
+renderResult r = (if entryType (resultEntry r) == EntryModule then Nothing
+                  else liftM (moduleName . fst) $ resultModPkg r
                  ,renderEntryText (resultView r) (entryText $ resultEntry r))

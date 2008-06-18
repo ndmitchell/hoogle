@@ -62,7 +62,7 @@ createItems xs = unS $ execState (mapM f xs) s0
                 m = Module modI xs (newLookup 0)
             put s{modId = modI + 1, mods = m : mods s
                  ,modCur = Just $ newLookup modI}
-            addEntry i False EntryModule
+            addEntry i True EntryModule
                 [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 
         f i = addEntry i True EntryOther (render i)
