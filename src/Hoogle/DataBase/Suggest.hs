@@ -86,7 +86,7 @@ joinItem (SuggestItem a1 b1 c1) (SuggestItem a2 b2 c2) =
 
 askSuggest :: [Suggest] -> TypeSig -> Maybe (Either String TypeSig)
 askSuggest sug q@(TypeSig con typ)
-        | q2 /= q = Just (Right q2)
+        | typ2 /= typ = Just (Right $ TypeSig con typ2)
         | not $ null datas = unknown "type" datas
         | not $ null classes = unknown "class" classes
         | otherwise = Nothing
@@ -107,4 +107,4 @@ askSuggest sug q@(TypeSig con typ)
                    | otherwise -> null (suggestData i) && isNothing (suggestCtor i)
 
         -- try and improve the type --
-        q2 = q
+        typ2 = typ
