@@ -17,8 +17,9 @@ data Result = Result
 data Score = TextScore TextScore
              deriving (Show,Eq,Ord)
 
--- return the module it is in, and the text to go beside it
-renderResult :: Result -> (Maybe [String], TagStr)
+-- return (module it is in, the text to go beside it, verbose scoring info)
+renderResult :: Result -> (Maybe [String], TagStr, String)
 renderResult r = (if entryType (resultEntry r) == EntryModule then Nothing
                   else liftM (moduleName . fst) $ resultModPkg r
-                 ,renderEntryText (resultView r) (entryText $ resultEntry r))
+                 ,renderEntryText (resultView r) (entryText $ resultEntry r)
+                 ,show $ resultScore r)

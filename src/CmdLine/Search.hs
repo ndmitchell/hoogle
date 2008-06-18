@@ -15,15 +15,23 @@ import System.FilePath
 actionSearch :: [CmdFlag] -> Query -> IO ()
 actionSearch flags q = do
     db <- getDataBases flags q
+    when verbose $
+        putStr $ unlines $ "= DATABASES =" : map ("  "++) db
+
     dbs <- mapM loadDataBase db
     let res = searchAll dbs q
+    when verbose $ putStrLn "= ANSWERS ="
     if null res
         then putStrLn "No results found"
         else putStr $ unlines $ map (f . renderResult) res
     where
-        showTag = if Color True `elem` flags then showTagConsole else show
-        f (Just m, r) = showModule m ++ " " ++ showTag r
-        f (Nothing, r) = showTag r
+        verbose = Verbose `elem` flags
+        color = Color True `elem` flags
+
+        f (m,r,v) = maybe "" (\m -> showModule m ++ " ") m ++
+                    (if color then showTagConsole else show) r ++
+                    (if verbose then " " ++ v else "")
+
 
 ---------------------------------------------------------------------
 -- Pick the DataBase's
