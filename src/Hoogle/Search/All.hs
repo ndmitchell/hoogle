@@ -17,8 +17,7 @@ import Hoogle.TypeSig.All
 
 
 data Result = Result
-    {resultDataBase :: Int
-    ,resultEntry :: Entry
+    {resultEntry :: Entry
     ,resultModPkg :: Maybe (Module,Package)
     ,resultView :: [EntryView]
     ,resultScore :: [Score]
@@ -92,9 +91,9 @@ orderResults = map snd . sortBy (compare `on` fst) . map (\x -> (f x, x))
 
 -- | Perform a text query
 performTextSearch :: [DataBase] -> [String] -> [Result]
-performTextSearch databases (query:_) = concat $ zipWith f [0..] databases
+performTextSearch databases (query:_) = concatMap f databases
     where
-        f i db = [Result i e (entryParents db e) [v] [TextScore s] | (e,v,s) <- searchText db query]
+        f db = [Result e (entryParents db e) [v] [TextScore s] | (e,v,s) <- searchText db query]
 
 
 performTypeSearch :: [DataBase] -> TypeSig -> [Result]
