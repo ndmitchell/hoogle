@@ -14,6 +14,8 @@ data Result = Result
     }
     deriving Show
 
+-- TypeScore must be less than TextScore
+-- so that when name :: type is searched, type takes preference
 data Score = TypeScore TypeScore
            | TextScore TextScore
              deriving (Eq,Ord)
