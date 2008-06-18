@@ -100,7 +100,7 @@ searchTextSearch :: TextSearch -> Index Entry -> String -> [(Entry,EntryView,Tex
 searchTextSearch (TextSearch trie chunk) ents str =
     case lookupTrie str trie of
         Nothing -> []
-        Just i -> [(lookupIndex e ents, FocusOn (p,nstr), TextScore)
+        Just i -> [(lookupIndex e ents, FocusOn (p,p+nstr-1), TextScore)
                   |(p,e) <- lookupChunk i chunk]
     where
         nstr = length str
