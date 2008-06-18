@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.All
     (DataBase
-    ,TextScore
+    ,TextScore, TypeScore
     ,module Hoogle.DataBase.All
     ,module Hoogle.DataBase.Item
     ,module Hoogle.DataBase.Serialise
