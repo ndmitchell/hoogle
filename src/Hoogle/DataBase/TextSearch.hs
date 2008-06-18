@@ -93,14 +93,22 @@ prefixes = init . tails
 ---------------------------------------------------------------------
 -- SEARCHING
 
-data TextScore = TextScore
+type NBool = Bool -- negated boolean
+
+-- lower is better
+data TextScore = TextScore {atStart :: NBool
+                           ,caseCorrect :: NBool}
                  deriving (Eq,Ord,Show)
 
 searchTextSearch :: TextSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
 searchTextSearch (TextSearch trie chunk) ents str =
-    case lookupTrie str trie of
+    case lookupTrie (map toLower str) trie of
         Nothing -> []
-        Just i -> [(lookupIndex e ents, FocusOn (p,p+nstr-1), TextScore)
-                  |(p,e) <- lookupChunk i chunk]
+        Just i -> [(ent, FocusOn (p,p+nstr-1), score p ent)
+                  |(p,e) <- lookupChunk i chunk
+                  ,let ent = lookupIndex e ents]
     where
         nstr = length str
+
+        score p ent = TextScore (p /= 0) (estr /= str)
+            where estr = head [i | Focus i <- entryText ent]
