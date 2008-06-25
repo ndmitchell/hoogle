@@ -1,9 +1,11 @@
 
 module Data.Key(
-    Key, toKey, fromKey, sortKeys
+    Key, toKey, fromKey,
+    sortKeys, sortFst
     ) where
 
 import Data.List
+import General.Code
 
 
 data Key k v = Key k v
@@ -26,3 +28,7 @@ fromKey (Key k v) = v
 
 sortKeys :: Ord k => (v -> k) -> [v] -> [v]
 sortKeys f = map fromKey . sort . map (toKey f)
+
+
+sortFst :: Ord k => [(k,v)] -> [(k,v)]
+sortFst = sortBy (compare `on` fst)
