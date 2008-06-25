@@ -128,10 +128,22 @@ searchNameSearch :: NameSearch -> Index Entry -> String -> [(Entry,EntryView,Tex
 searchNameSearch (NameSearch trie chunk) ents str =
     case lookupTrie (map toLower str) trie of
         Nothing -> []
-        Just i -> [(ent, FocusOn (rangeStartCount p nstr), score p ent)
-                      |(p,e) <- lookupChunk (rangeStartCount (nameStart i) (nameCountAny i)) chunk
-                      ,let ent = lookupIndex e ents]
+        Just i -> order exact0E ++ order (exact0S ++ start) ++ order none
+            where
+                (exact0,exactN) = partition ((==) 0 . fst) exact
+                (partial0,partialN) = partition ((==) 0 . fst) partial
+                (exact,partial) = splitAt (nameCountAll i) $
+                    lookupChunk (rangeStartCount (nameStart i) (nameCountAny i)) chunk
+
+                none = map (f $ const TSNone) $ exactN ++ partialN
+                (exact0E,exact0S) = partition ((==) TSExact . thd3 . snd) $ map (f test) exact0
+                start = map (f $ const TSStart) partial0
+                test e = if entryName e == str then TSExact else TSStart
     where
         nstr = length str
-        score p ent | p == 0 = if entryName ent == str then TSExact else TSStart
-                    | otherwise = TSNone
+
+        f :: (Entry -> TextScore) -> (Int, Lookup Entry) -> (Int, (Entry,EntryView,TextScore))
+        f score (p,e) = (entryId ent, (ent, FocusOn (rangeStartCount p nstr), score ent))
+            where ent = lookupIndex e ents
+
+        order = map snd . sortBy (compare `on` fst)
