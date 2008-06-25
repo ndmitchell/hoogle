@@ -33,10 +33,10 @@ actionSearch flags q = do
         else putStr $ unlines $ map (f . renderResult) res
     where
         search | isNothing start && isNothing count = searchAll
-               | otherwise = let s = fromMaybe 1 start - 1
+               | otherwise = let s = fromMaybe 0 start
                                  n = fromMaybe maxBound count
                              in searchRange (rangeStartCount s n)
-            where start = listToMaybe [i | Start i <- flags]
+            where start = listToMaybe [i-1 | Start i <- flags]
                   count = listToMaybe [i | Count i <- flags]
 
         verbose = Verbose `elem` flags
