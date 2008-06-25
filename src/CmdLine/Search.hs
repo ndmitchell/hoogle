@@ -5,6 +5,7 @@ import CmdLine.Flag
 import Control.Monad
 import Data.Maybe
 import Data.List
+import Data.Range
 import General.All
 import Hoogle.Query.All
 import Hoogle.Search.All
@@ -32,9 +33,9 @@ actionSearch flags q = do
         else putStr $ unlines $ map (f . renderResult) res
     where
         search | isNothing start && isNothing count = searchAll
-               | otherwise = let s = max 0 $ fromMaybe 1 start - 1
+               | otherwise = let s = fromMaybe 1 start - 1
                                  n = fromMaybe maxBound count
-                             in searchRange (s, s+n - 1)
+                             in searchRange (rangeStartCount s n)
             where start = listToMaybe [i | Start i <- flags]
                   count = listToMaybe [i | Count i <- flags]
 
