@@ -5,6 +5,7 @@ import Control.Monad
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Data.List
+import Data.Range
 import General.All
 
 
@@ -41,7 +42,7 @@ data EntryText = Keyword String
                | ArgRes String
                  deriving Show
 
-data EntryView = FocusOn (Int,Int) -- characters (a,b) [a..b] should be focused
+data EntryView = FocusOn Range -- characters in the range should be focused
                | ArgPosNum Int Int -- argument a b, a is remapped to b
                  deriving Show
 
@@ -61,19 +62,17 @@ renderEntryText view = Tags . map f
         f (Focus x) = renderFocus [i | FocusOn i <- view] x
 
 
-renderFocus :: [(Int,Int)] -> String -> TagStr
-renderFocus marks = Tags . f (combine $ sort marks) 0
+renderFocus :: [Range] -> String -> TagStr
+renderFocus rs = Tags . f (mergeRanges rs) 0
     where
-        f [] i s = [Str s | s /= []]
-        f ((a,b):xs) i s =
-                [Str s1 | s1 /= []] ++ [TagBold $ Str s3] ++ f xs (b+1) s4
-            where
-                (s1,s2) = splitAt (a - i) s
-                (s3,s4) = splitAt (1 + b-a) s2
+        str s = [Str s | s /= ""]
 
-        combine ((a,b):(c,d):e) | c <= b = combine ((a,max b d):e)
-        combine (x:xs) = x : combine xs
-        combine [] = []
+        f [] i s = str s
+        f (r:rs) i s =
+                str s1 ++ [TagBold $ Str s3] ++ f rs (rangeEnd r + 1) s4
+            where
+                (s1,s2) = splitAt (rangeStart r - i) s
+                (s3,s4) = splitAt (rangeCount r) s2
 
 
 showModule = concat . intersperse "."

@@ -120,7 +120,7 @@ searchNameSearch :: NameSearch -> Index Entry -> String -> [(Entry,EntryView,Tex
 searchNameSearch (NameSearch trie chunk) ents str =
     case lookupTrie (map toLower str) trie of
         Nothing -> []
-        Just (i,j) -> [(ent, FocusOn (p,p+nstr-1), score p ent)
+        Just (i,j) -> [(ent, FocusOn (rangeStartCount p nstr), score p ent)
                       |(p,e) <- lookupChunk (rangeStartEnd i j) chunk
                       ,let ent = lookupIndex e ents]
     where
