@@ -3,6 +3,7 @@ module General.Code where
 
 import Data.List
 import System.Directory
+import qualified Data.IntSet as IntSet
 
 
 fst3 (a,b,c) = a
@@ -98,3 +99,12 @@ sortOn f = sortBy (compare `on` f)
 sortFst :: Ord k => [(k,v)] -> [(k,v)]
 sortFst = sortOn fst
 
+
+
+nubIntOn :: (v -> Int) -> [v] -> [v]
+nubIntOn f = g IntSet.empty
+    where
+        g m [] = []
+        g m (x:xs) | IntSet.member i m = g m xs
+                   | otherwise = x : g (IntSet.insert i m) xs
+            where i = f x
