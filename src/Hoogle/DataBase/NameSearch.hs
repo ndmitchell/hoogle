@@ -31,12 +31,25 @@ import Hoogle.TextBase.All
 ---------------------------------------------------------------------
 -- DATA TYPES
 
-data NameSearch = NameSearch (Trie (Int,Int)) (Chunk (Int,Lookup Entry))
+data NameSearch = NameSearch (Trie NameItem) (Chunk (Int,Lookup Entry))
                   deriving Show
+
+data NameItem = NameItem {nameStart :: Int
+                         ,nameCountAll :: Int -- number that match exactly
+                         ,nameCountAny :: Int -- number that match a prefix
+                         }
+
+instance Show NameItem where
+    show (NameItem a b c) = unwords $ map show [a,b,c]
+
 
 instance BinaryDefer NameSearch where
     put (NameSearch a b) = put a >> put b
     get = get2 NameSearch
+
+instance BinaryDefer NameItem where
+    put (NameItem a b c) = put a >> put b >> put c
+    get = get3 NameItem
 
 {-
 TRIE data structure
@@ -44,30 +57,25 @@ TRIE data structure
 Given the functions "map" and "pm" we would generate:
 
 Trie:
-"ap"   (0,0)
-"m"    (1,2)
-"ma"   (2,2)  
-"map"  (2,2)
-"p"    (3,4)
-"pm"   (4,4)
+"ap"   (0,1,1)
+"m"    (1,1,2)
+"ma"   (2,0,1)  
+"map"  (2,1,1)
+"p"    (3,1,2)
+"pm"   (4,1,1)
 
 Chunk:
-0      (1,[map])
-1      (1,[pm])
-2      (0,[map])
-3      (2,[map])
-4      (0,[pm])
+0 "ap"   (1,[map])
+1 "m"    (1,[pm])
+2 "map"  (0,[map])
+3 "p"    (2,[map])
+4 "pm"   (0,[pm])
 
 There will be one trie entry per unique substring.
-There will be one chunk entry per prefix.
+There will be one chunk entry per suffix.
 Both are sorted by the string they represent.
 
 [item] is the id of the item.
-
-Given: x (from,to) (start,id)
-
-All items in the list ['from'..'to'] have the string 'x'
-starting at position 'start' in the name given by 'id'.
 -}
 
 ---------------------------------------------------------------------
@@ -83,12 +91,12 @@ createNameSearch xs = NameSearch
         pre = sortBy (compare `on` fst)
                   [(p,(i,e)) | (s,e) <- ys, (i,p) <- zip [0..] $ prefixes s]
 
-        f :: [String] -> [(Int,(String,a))] -> [(String,(Int,Int))]
+        f :: [String] -> [(Int,(String,a))] -> [(String,NameItem)]
         f [] _ = []
-        f (x:xs) ys = (x,(s,s+n-1)) : f xs ys2
+        f (x:xs) ys = (x,NameItem s neq (neq+npr)) : f xs ys2
             where
                 s = fst $ head ys
-                n = length eq + length pr
+                (neq,npr) = (length eq, length pr)
                 (eq,ys2) = span ((==) x . fst . snd) ys
                 pr = takeWhile (isPrefixOf x . fst . snd) ys2
 
@@ -120,8 +128,8 @@ searchNameSearch :: NameSearch -> Index Entry -> String -> [(Entry,EntryView,Tex
 searchNameSearch (NameSearch trie chunk) ents str =
     case lookupTrie (map toLower str) trie of
         Nothing -> []
-        Just (i,j) -> [(ent, FocusOn (rangeStartCount p nstr), score p ent)
-                      |(p,e) <- lookupChunk (rangeStartEnd i j) chunk
+        Just i -> [(ent, FocusOn (rangeStartCount p nstr), score p ent)
+                      |(p,e) <- lookupChunk (rangeStartCount (nameStart i) (nameCountAny i)) chunk
                       ,let ent = lookupIndex e ents]
     where
         nstr = length str
