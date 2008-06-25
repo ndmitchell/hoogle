@@ -116,7 +116,7 @@ searchNameSearch :: NameSearch -> Index Entry -> String -> [(Entry,EntryView,Tex
 searchNameSearch (NameSearch trie chunk) ents str =
     case lookupTrie (map toLower str) trie of
         Nothing -> []
-        Just i -> order exact0E ++ order (exact0S ++ start) ++ order none
+        Just i -> nubIntOn (entryId . fst3) $ order exact0E ++ order (exact0S ++ start) ++ order none
             where
                 (exact0,exactN) = partition ((==) 0 . fst) exact
                 (partial0,partialN) = partition ((==) 0 . fst) partial
