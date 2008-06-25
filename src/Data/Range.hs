@@ -52,7 +52,7 @@ listRange r = take (rangeCount r) . drop (rangeStart r)
 -- make sure in the resultant range
 -- end r_{n} < (start r_{n+1} - 1)
 mergeRanges :: [Range] -> [Range]
-mergeRanges = foldr f [] . sortBy (compare `on` rangeStart)
+mergeRanges = foldr f [] . sortOn rangeStart
     where
         f (Range s1 c1) (Range s2 c2 : rs) | s2 <= s1+c1 = r12 : rs
             where r12 = Range s1 (max c1 (s2-s1 + c2))
