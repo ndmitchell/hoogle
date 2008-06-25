@@ -11,6 +11,7 @@ import Hoogle.Query.All
 import Hoogle.Search.All
 import Hoogle.DataBase.All
 import Hoogle.All
+import Safe
 import System.Directory
 import System.FilePath
 
@@ -32,12 +33,12 @@ actionSearch flags q = do
         then putStrLn "No results found"
         else putStr $ unlines $ map (f . renderResult) res
     where
-        search | isNothing start && isNothing count = searchAll
-               | otherwise = let s = fromMaybe 0 start
-                                 n = fromMaybe maxBound count
+        search | null start && null count = searchAll
+               | otherwise = let s = headDef 0 start
+                                 n = headDef maxBound count
                              in searchRange (rangeStartCount s n)
-            where start = listToMaybe [i-1 | Start i <- flags]
-                  count = listToMaybe [i | Count i <- flags]
+            where start = [i-1 | Start i <- flags]
+                  count = [i | Count i <- flags]
 
         verbose = Verbose `elem` flags
         showTag = if Color True `elem` flags then showTagConsole else show
