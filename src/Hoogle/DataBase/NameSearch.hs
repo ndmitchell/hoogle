@@ -1,15 +1,3 @@
-{- TODO:
-    Make the Trie (Int,Int,Int)
-    Have from,to-exact,to-prefix
-    Can then only check from..to-exact for exact matches
-    And use the Chunk (Int,_) to decide which start at 0
-    Therefore don't need to do much sorting
-
-    Also make EntryId be the search key of an element,
-    then can order elements from the same database
-    without looking at the Entry (other than checking
-    for exact-string property)
--}
 
 module Hoogle.DataBase.NameSearch
     (NameSearch, createNameSearch
