@@ -89,3 +89,12 @@ fileType x = do
     if b then return File else do
         b <- doesDirectoryExist x
         return $ if b then Directory else NotFound
+
+
+sortOn :: Ord k => (v -> k) -> [v] -> [v]
+sortOn f = sortBy (compare `on` f)
+
+
+sortFst :: Ord k => [(k,v)] -> [(k,v)]
+sortFst = sortOn fst
+
