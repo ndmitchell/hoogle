@@ -9,7 +9,6 @@ import Data.Binary.Defer.Trie
 import Data.Binary.Defer.Chunk
 import Data.Binary.Defer.Index
 import Data.Char
-import Data.Key
 import Data.List
 import Data.Range
 import General.Code
