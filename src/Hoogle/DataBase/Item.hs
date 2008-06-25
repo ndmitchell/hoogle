@@ -61,9 +61,13 @@ data EntryScore = EntryScore Int String String [String]
 
 
 entryScore :: Index Module -> Entry -> EntryScore
-entryScore mods e = EntryScore
+entryScore mods e = entryScoreModule (liftM (`lookupIndex` mods) (entryModule e)) e
+
+
+entryScoreModule :: Maybe Module -> Entry -> EntryScore
+entryScoreModule mod e = EntryScore
     (length m) (map toLower $ entryName e) (entryName e) m
-    where m = maybe [] (moduleName . flip lookupIndex mods) (entryModule e)
+    where m = maybe [] moduleName mod
 
 
 renderEntryText :: [EntryView] -> [EntryText] -> TagStr
