@@ -2,8 +2,10 @@
 module Hoogle.DataBase.Items where
 
 import Control.Monad.State
+import Data.List
 import Data.Maybe
 import Data.Binary.Defer.Index
+import General.Code
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Hoogle.DataBase.Item
@@ -11,6 +13,7 @@ import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
 import Safe
 
+-- Invariant: Index Entry is by order of EntryScore
 
 data Items = Items
     {packages :: Index Package
@@ -42,9 +45,15 @@ createItems xs = unS $ execState (mapM f xs) s0
         s0 = S (Package 0 "" "" "" "") 0 [] Nothing 0 []
 
         unS s = (Items (newIndex [pkg s])
-                       (newIndex $ reverse $ mods s)
-                       (newIndex $ reverse $ mapMaybe snd $ ents s)
-                ,ents s)
+                       ms
+                       (newIndex $ mapMaybe snd $ esJ2)
+                ,esN ++ esJ2)
+            where
+                ms = newIndex $ reverse $ mods s
+                (esJ,esN) = partition (isJust . snd) $ ents s
+                esJ2 = zipWith (\i (ti,Just e) -> (ti,Just e{entryId=i})) [0..] $
+                       map snd $ sortBy (compare `on` fst) $
+                       map (\e -> (entryScore ms $ fromJust $ snd e, e)) esJ
 
         f :: TextItem -> State S ()
         f i@ItemInstance{} = addTextItem i
