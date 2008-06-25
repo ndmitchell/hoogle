@@ -4,6 +4,7 @@ module Hoogle.DataBase.Item where
 import Control.Monad
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
+import Data.Char
 import Data.List
 import Data.Range
 import General.All
@@ -50,6 +51,17 @@ data EntryType = EntryModule
                | EntryKeyword
                | EntryOther
                  deriving (Eq,Enum,Show)
+
+-- the number of elements in the module name
+-- the name of the entry, in lower case
+data EntryScore = EntryScore Int String
+                  deriving (Eq,Ord)
+
+
+entryScore :: Index Module -> Entry -> EntryScore
+entryScore mods e = EntryScore
+    (maybe 0 (length . moduleName . flip lookupIndex mods) (entryModule e))
+    (map toLower $ entryName e)
 
 
 renderEntryText :: [EntryView] -> [EntryText] -> TagStr
