@@ -13,7 +13,7 @@ module Data.Range(
     Range,
     rangeStart, rangeCount, rangeEnd,
     rangeStartCount, rangeStartEnd,
-    listRange
+    listRange, mergeRanges
     ) where
 
 import Data.List
@@ -51,8 +51,8 @@ listRange r = take (rangeCount r) . drop (rangeStart r)
 
 -- make sure in the resultant range
 -- end r_{n} < (start r_{n+1} - 1)
-mergeRange :: [Range] -> [Range]
-mergeRange = foldr f [] . sortBy (compare `on` rangeStart)
+mergeRanges :: [Range] -> [Range]
+mergeRanges = foldr f [] . sortBy (compare `on` rangeStart)
     where
         f (Range s1 c1) (Range s2 c2 : rs) | s2 <= s1+c1 = r12 : rs
             where r12 = Range s1 (max c1 (s2-s1 + c2))
