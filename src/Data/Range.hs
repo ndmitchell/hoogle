@@ -16,6 +16,9 @@ module Data.Range(
     listRange
     ) where
 
+import Data.List
+import General.Code
+
 
 data Range = Range {rangeStart :: Int, rangeCount :: Int}
 
@@ -44,3 +47,13 @@ rangeStartEnd start end = Range start2 (nat $ end - start2 + 1)
 
 listRange :: Range -> [a] -> [a]
 listRange r = take (rangeCount r) . drop (rangeStart r)
+
+
+-- make sure in the resultant range
+-- end r_{n} < (start r_{n+1} - 1)
+mergeRange :: [Range] -> [Range]
+mergeRange = foldr f [] . sortBy (compare `on` rangeStart)
+    where
+        f (Range s1 c1) (Range s2 c2 : rs) | s2 <= s1+c1 = r12 : rs
+            where r12 = Range s1 (max c1 (s2-s1 + c2))
+        f x xs = x : xs
