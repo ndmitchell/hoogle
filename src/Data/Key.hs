@@ -1,7 +1,7 @@
 
 module Data.Key(
     Key, keyPair, toKey, fromKey,
-    sortKeys, sortWith, sortOn, sortFst
+    sortKeys, sortWith
     ) where
 
 import Data.List
@@ -38,11 +38,3 @@ sortKeys = map fromKey . sort
 --   but @f@ will only be applied to each element once
 sortWith :: Ord k => (v -> k) -> [v] -> [v]
 sortWith f = sortKeys . map (toKey f)
-
-
-sortOn :: Ord k => (v -> k) -> [v] -> [v]
-sortOn f = sortBy (compare `on` f)
-
-
-sortFst :: Ord k => [(k,v)] -> [(k,v)]
-sortFst = sortOn fst
