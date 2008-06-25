@@ -7,6 +7,7 @@ module Data.Binary.Defer.Chunk(
 import Control.Monad
 import Data.Binary.Defer
 import Data.Binary.Defer.Array
+import Data.Range
 
 
 chunkSize = 100 :: Int
@@ -23,11 +24,12 @@ newChunk = Chunk . array . f
             where (a,b) = splitAt chunkSize xs
 
 
-lookupChunk :: (Int,Int) -> Chunk a -> [a]
-lookupChunk (from,to) (Chunk xs) =
-        drop m $ f d (1 + m + to-from)
+lookupChunk :: Range -> Chunk a -> [a]
+lookupChunk r (Chunk xs) =
+        drop m $ f d (count + m)
     where
-        (d,m) = from `divMod` chunkSize
+        (start,count) = (rangeStart r, rangeCount r)
+        (d,m) = start `divMod` chunkSize
 
         f i n | n == 0 = []
               | n < chunkSize = take n $ unVector $ xs ! i

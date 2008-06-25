@@ -22,6 +22,7 @@ import Data.Binary.Defer.Chunk
 import Data.Binary.Defer.Index
 import Data.Char
 import Data.List
+import Data.Range
 import General.Code
 import Hoogle.DataBase.Item
 import Hoogle.TextBase.All
@@ -119,9 +120,9 @@ searchNameSearch :: NameSearch -> Index Entry -> String -> [(Entry,EntryView,Tex
 searchNameSearch (NameSearch trie chunk) ents str =
     case lookupTrie (map toLower str) trie of
         Nothing -> []
-        Just i -> [(ent, FocusOn (p,p+nstr-1), score p ent)
-                  |(p,e) <- lookupChunk i chunk
-                  ,let ent = lookupIndex e ents]
+        Just (i,j) -> [(ent, FocusOn (p,p+nstr-1), score p ent)
+                      |(p,e) <- lookupChunk (rangeStartEnd i j) chunk
+                      ,let ent = lookupIndex e ents]
     where
         nstr = length str
         score p ent | p == 0 = if entryName ent == str then TSExact else TSStart
