@@ -33,12 +33,10 @@ actionSearch flags q = do
         then putStrLn "No results found"
         else putStr $ unlines $ map (f . renderResult) res
     where
-        search | null start && null count = searchAll
-               | otherwise = let s = headDef 0 start
-                                 n = headDef maxBound count
-                             in searchRange (rangeStartCount s n)
-            where start = [i-1 | Start i <- flags]
-                  count = [i | Count i <- flags]
+        search | start == 0 && count == maxBound = searchAll
+               | otherwise = searchRange (rangeStartCount start count)
+            where start = headDef 0 [i-1 | Start i <- flags]
+                  count = headDef maxBound [i | Count i <- flags]
 
         verbose = Verbose `elem` flags
         showTag = if Color True `elem` flags then showTagConsole else show
