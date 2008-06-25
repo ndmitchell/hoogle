@@ -19,7 +19,15 @@ module Data.Range(
 
 data Range = Range {rangeStart :: Int, rangeCount :: Int}
 
+
+instance Show Range where
+    show r = "Range {rangeStart = " ++ show (rangeStart r) ++
+                  ", rangeCount = " ++ show (rangeCount r) ++
+                  ", rangeEnd = " ++ show (rangeEnd r) ++ "}"
+
+
 nat = max (0::Int)
+
 
 rangeEnd :: Range -> Int
 rangeEnd r = rangeStart r + rangeCount r - 1
