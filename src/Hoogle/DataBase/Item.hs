@@ -54,14 +54,16 @@ data EntryType = EntryModule
 
 -- the number of elements in the module name
 -- the name of the entry, in lower case
-data EntryScore = EntryScore Int String
+-- the name of the entry
+-- the module
+data EntryScore = EntryScore Int String String [String]
                   deriving (Eq,Ord)
 
 
 entryScore :: Index Module -> Entry -> EntryScore
 entryScore mods e = EntryScore
-    (maybe 0 (length . moduleName . flip lookupIndex mods) (entryModule e))
-    (map toLower $ entryName e)
+    (length m) (map toLower $ entryName e) (entryName e) m
+    where m = maybe [] (moduleName . flip lookupIndex mods) (entryModule e)
 
 
 renderEntryText :: [EntryView] -> [EntryText] -> TagStr
