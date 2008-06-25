@@ -108,3 +108,28 @@ nubIntOn f = g IntSet.empty
         g m (x:xs) | IntSet.member i m = g m xs
                    | otherwise = x : g (IntSet.insert i m) xs
             where i = f x
+
+
+fold :: a -> (a -> a -> a) -> [a] -> a
+fold x f [] = x
+fold x f xs = fold1 f xs
+
+
+fold1 :: (a -> a -> a) -> [a] -> a
+fold1 f [x] = x
+fold1 f xs = f (fold1 f a) (fold1 f b)
+    where (a,b) = halves xs
+
+
+halves :: [a] -> ([a],[a])
+halves [] = ([], [])
+halves (x:xs) = (x:b,a)
+    where (a,b) = halves xs
+
+
+merge :: Ord a => [a] -> [a] -> [a]
+merge xs [] = xs
+merge [] ys = ys
+merge (x:xs) (y:ys)
+    | x <= y = x : merge xs (y:ys)
+    | otherwise = y : merge (x:xs) ys
