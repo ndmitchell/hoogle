@@ -21,6 +21,7 @@ import Data.Binary.Defer.Trie
 import Data.Binary.Defer.Chunk
 import Data.Binary.Defer.Index
 import Data.Char
+import Data.Key
 import Data.List
 import Data.Range
 import General.Code
@@ -128,7 +129,7 @@ searchNameSearch :: NameSearch -> Index Entry -> String -> [(Entry,EntryView,Tex
 searchNameSearch (NameSearch trie chunk) ents str =
     case lookupTrie (map toLower str) trie of
         Nothing -> []
-        Just i -> order exact0E ++ order (exact0S ++ start) ++ order none
+        Just i -> sortKeys exact0E ++ sortKeys (exact0S ++ start) ++ sortKeys none
             where
                 (exact0,exactN) = partition ((==) 0 . fst) exact
                 (partial0,partialN) = partition ((==) 0 . fst) partial
@@ -136,14 +137,12 @@ searchNameSearch (NameSearch trie chunk) ents str =
                     lookupChunk (rangeStartCount (nameStart i) (nameCountAny i)) chunk
 
                 none = map (f $ const TSNone) $ exactN ++ partialN
-                (exact0E,exact0S) = partition ((==) TSExact . thd3 . snd) $ map (f test) exact0
+                (exact0E,exact0S) = partition ((==) TSExact . thd3 . fromKey) $ map (f test) exact0
                 start = map (f $ const TSStart) partial0
                 test e = if entryName e == str then TSExact else TSStart
     where
         nstr = length str
 
-        f :: (Entry -> TextScore) -> (Int, Lookup Entry) -> (Int, (Entry,EntryView,TextScore))
-        f score (p,e) = (entryId ent, (ent, FocusOn (rangeStartCount p nstr), score ent))
+        f :: (Entry -> TextScore) -> (Int, Lookup Entry) -> Key Int (Entry,EntryView,TextScore)
+        f score (p,e) = keyPair (entryId ent) (ent, FocusOn (rangeStartCount p nstr), score ent)
             where ent = lookupIndex e ents
-
-        order = map snd . sortBy (compare `on` fst)
