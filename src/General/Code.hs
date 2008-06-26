@@ -137,3 +137,11 @@ merge (x:xs) (y:ys)
 
 
 concatMapM f = liftM concat . mapM f
+
+
+unzipEithers :: [Either a b] -> ([a],[b])
+unzipEithers [] = ([],[])
+unzipEithers (Left x:xs) = (x:a,b)
+    where (a,b) = unzipEithers xs
+unzipEithers (Right x:xs) = (a,x:b)
+    where (a,b) = unzipEithers xs
