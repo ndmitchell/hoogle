@@ -6,7 +6,7 @@ import CmdLine.Query
 import CmdLine.Search
 import Control.Monad
 import Data.List
-import General.All
+import General.Code
 import Hoogle.All
 import Test.All
 import Text.ParserCombinators.Parsec

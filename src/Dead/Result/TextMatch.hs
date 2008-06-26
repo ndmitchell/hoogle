@@ -5,7 +5,7 @@ module Hoogle.Result.TextMatch(
     ) where
 
 import Hoogle.Item.All
-import General.All
+import General.Code
 import Data.Char
 import Data.List
 

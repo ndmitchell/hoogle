@@ -5,7 +5,7 @@ import Data.Maybe
 import Data.Char
 import Data.Generics.UniplateOn
 
-import General.All
+import General.Code
 import Hoogle.TypeSig.All
 
 

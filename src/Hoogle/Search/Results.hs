@@ -8,7 +8,7 @@ import Control.Monad
 import Data.List
 import Data.Key
 import qualified Data.IntMap as IntMap
-import General.All
+import General.Code
 
 import Hoogle.DataBase.All
 import Hoogle.Query.All

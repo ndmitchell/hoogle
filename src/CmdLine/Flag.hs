@@ -13,7 +13,7 @@ module CmdLine.Flag(
 import Control.Monad
 import Data.Char
 import Data.Maybe
-import General.All
+import General.Code
 import System.Exit
 
 

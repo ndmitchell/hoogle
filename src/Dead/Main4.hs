@@ -7,7 +7,7 @@
 module CmdLine.Main where
 
 import Hoogle.All
-import General.All
+import General.Code
 
 import System.Environment
 import Data.List

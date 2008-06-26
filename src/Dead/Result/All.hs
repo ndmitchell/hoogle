@@ -9,7 +9,7 @@ import Hoogle.Result.TextMatch
 import Hoogle.Result.TypeMatch
 
 import Hoogle.Item.All
-import General.All
+import General.Code
 import Data.List
 import Data.Maybe
 
