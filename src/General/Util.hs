@@ -145,3 +145,10 @@ unzipEithers (Left x:xs) = (x:a,b)
     where (a,b) = unzipEithers xs
 unzipEithers (Right x:xs) = (a,x:b)
     where (a,b) = unzipEithers xs
+
+
+dropEnd :: (a -> Bool) -> [a] -> [a]
+dropEnd f = reverse . dropWhile f . reverse
+
+dropEnds :: (a -> Bool) -> [a] -> [a]
+dropEnds f = dropWhile f . dropEnd f
