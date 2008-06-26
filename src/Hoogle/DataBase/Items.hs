@@ -41,7 +41,7 @@ data S = S {pkg :: Package
            }
 
 createItems :: [(TextItem,String)] -> (Items, [(TextItem, Maybe Entry)])
-createItems xs = unS $ execState (mapM (f . fst) xs) s0
+createItems xs = unS $ execState (mapM (uncurry f) xs) s0
     where
         s0 = S (Package 0 "" "" "" "") 0 [] Nothing 0 []
 
@@ -56,27 +56,27 @@ createItems xs = unS $ execState (mapM (f . fst) xs) s0
                        map snd $ sortBy (compare `on` fst) $
                        map (\e -> (entryScore ms $ fromJust $ snd e, e)) esJ
 
-        f :: TextItem -> State S ()
-        f i@ItemInstance{} = addTextItem i
+        f :: TextItem -> String -> State S ()
+        f i@ItemInstance{} _ = addTextItem i
 
-        f i@(ItemAttribute "keyword" name) = addEntry i False EntryKeyword
+        f i@(ItemAttribute "keyword" name) d = addEntry i False EntryKeyword d
                 [Keyword "keyword",Text " ",Focus name]
 
-        f i@(ItemAttribute name val) = do
+        f i@(ItemAttribute name val) _ = do
             addTextItem i
             when (name == "package") $ modify $ \s -> s{pkg = (pkg s){packageName = val}}
             when (name == "version") $ modify $ \s -> s{pkg = (pkg s){packageVersion = val}}
 
-        f i@(ItemModule xs) = do
+        f i@(ItemModule xs) d = do
             s <- get
             let modI = modId s
                 m = Module modI xs (newLookup 0)
             put s{modId = modI + 1, mods = m : mods s
                  ,modCur = Just $ newLookup modI}
-            addEntry i True EntryModule
+            addEntry i True EntryModule d
                 [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 
-        f i = addEntry i True EntryOther (render i)
+        f i d = addEntry i True EntryOther d (render i)
 
 
         render (ItemClass i) = [Keyword "class", Text " "] ++ typeHead i
@@ -90,11 +90,11 @@ createItems xs = unS $ execState (mapM (f . fst) xs) s0
 
         addTextItem i = modify $ \s -> s{ents = (i,Nothing) : ents s}
 
-        addEntry i modu typ txt = do
+        addEntry i modu typ doc txt = do
             s <- get
             let entI = entId s
                 e = Entry entI
                           (if modu then modCur s else Nothing)
                           (headDef "" [i | Focus i <- txt])
-                          txt typ (fromList "")
+                          txt typ (fromList doc)
             put $ s{entId = entI + 1, ents = (i, Just e) : ents s}
