@@ -21,7 +21,25 @@ newHaddock = Haddock . fromList
 
 
 renderHaddock :: Haddock -> TagStr
-renderHaddock (Haddock xs) = Str $ toList xs
+renderHaddock (Haddock xs) = Tags $ f False $ parseHaddock $ toList xs
+    where
+        nl = Char '\n'
+
+        -- boolean, are you in a pre block
+        f False (Char '\n':Char '\n':xs) = Str "\n\n" : f False (dropWhile (== nl) xs)
+        f False (Char '\n':xs) = Str " " : f False xs
+
+        f True (Char '\n':xs) = Str "\n" : Str "> " : f True xs
+
+        f pre (Tag "tt" x:xs) = f pre (x++xs)
+        f pre (Tag [t,'l'] x:xs) | t `elem` "ou" = tail $ f pre (filter (/= nl) x ++ xs)
+        f pre (Tag "pre" x:xs) = init (init $ tail $ f True x) ++ f pre xs
+        f pre (Tag "li" x:xs) = Str "\n" : Str "* " : f pre x ++ f pre xs
+        f pre (Tag "a" x:xs) = TagUnderline (Tags $ f pre x) : f pre xs
+
+        f pre (Tag n x:xs) = Str (show (Tag n x)) : f pre xs
+        f pre (Char x:xs) = Str [x] : f pre xs
+        f pre [] = []
 
 
 
@@ -30,7 +48,7 @@ renderHaddock (Haddock xs) = Str $ toList xs
 
 type Tags = [Tag]
 data Tag = Char Char | Tag String Tags
-           deriving Show
+           deriving (Eq,Show)
 
 parseHaddock :: String -> Tags
 parseHaddock = fst . readHaddock ">"
