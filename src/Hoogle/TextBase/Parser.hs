@@ -4,43 +4,56 @@ module Hoogle.TextBase.Parser(parseTextBase,parseTextBaseString) where
 import Hoogle.TextBase.Type
 import Hoogle.TypeSig.All
 import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Error
 import Data.Char
+import Data.List
 import Control.Monad
+import General.Code
 
 
 parseTextBase :: FilePath -> IO (Either ParseError TextBase)
-parseTextBase = parseFromFile parsecTextBase
+parseTextBase file = do
+    src <- readFile file
+    return $ parseTextItems file src
 
 
 parseTextBaseString :: String -> Either ParseError TextBase
-parseTextBaseString = parse parsecTextBase ""
+parseTextBaseString = parseTextItems ""
 
 
-parsecTextBase :: Parser TextBase
-parsecTextBase = do x <- anyLineSpace `sepBy` newline
-                    many newline
-                    eof
-                    return $ concat x
+parseTextItems :: FilePath -> String -> Either ParseError TextBase
+parseTextItems file = join . map (uncurry $ parseTextItem file) . zip [1..] . lines
     where
-        whiteChar = oneOf " \v\f\t\r"
-        whites1 = skipMany1 whiteChar
-        whites = skipMany whiteChar
-        
-        anyLineSpace = do whites ; x <- anyLine ; whites ; return x
-        anyLine = comment <|> attribute <|> liftM (:[]) item <|> blank
-    
-        comment = string "--" >> skipMany (noneOf "\n") >> return []
-        blank = return []
+        join xs | null err = Right $ concat items
+                | otherwise = Left $ head err
+            where (err,items) = unzipEithers xs
 
+
+parseTextItem :: FilePath -> Int -> String -> Either ParseError [TextItem]
+parseTextItem file line x
+    | isTextItem x = case parse parsecTextItem file x of
+                          Left y -> Left $ setErrorPos (setSourceLine (errorPos y) line) y
+                          Right y -> Right [y]
+    | otherwise = Right []
+
+
+isTextItem :: String -> Bool
+isTextItem x = not $ null x2 || "--" `isPrefixOf` x2
+    where x2 = dropWhile isSpace x
+
+
+parsecTextItem :: Parser TextItem
+parsecTextItem = attribute <|> item
+    where
         attribute = do x <- try (char '@' >> satisfy isAlpha)
                        xs <- many (satisfy isAlpha)
-                       whites
+                       spaces
                        ys <- many (noneOf "\n")
-                       return [ItemAttribute (x:xs) ys]
+                       return $ ItemAttribute (x:xs) ys
 
         item = modu <|> clas <|> inst <|> newtyp <|> typ <|> dat <|> func
         
-        begin x = try (string x >> whites1)
+        begin x = try (string x >> many1 space)
 
         modu = begin "module" >> liftM ItemModule (keyword `sepBy1` char '.')
         clas = begin "class" >> liftM ItemClass parsecTypeSig
@@ -59,9 +72,9 @@ parsecTextBase = do x <- anyLineSpace `sepBy` newline
 
         
         func = do name <- between (char '(') (char ')') keysymbol <|> keysymbol <|> keyword
-                  whites
+                  spaces
                   string "::"
-                  whites
+                  spaces
                   typ <- parsecTypeSig
                   return $ ItemFunc name typ
         
