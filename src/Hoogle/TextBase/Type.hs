@@ -4,7 +4,8 @@ module Hoogle.TextBase.Type where
 import Hoogle.TypeSig.All
 
 
-type TextBase = [TextItem]
+-- (the item, any haddock documentation)
+type TextBase = [(TextItem,String)]
 
 data TextItem = ItemModule [String]
               | ItemClass TypeSig

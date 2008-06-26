@@ -39,8 +39,8 @@ data S = S {pkg :: Package
            ,ents :: [(TextItem, Maybe Entry)]
            }
 
-createItems :: [TextItem] -> (Items, [(TextItem, Maybe Entry)])
-createItems xs = unS $ execState (mapM f xs) s0
+createItems :: [(TextItem,String)] -> (Items, [(TextItem, Maybe Entry)])
+createItems xs = unS $ execState (mapM (f . fst) xs) s0
     where
         s0 = S (Package 0 "" "" "" "") 0 [] Nothing 0 []
 

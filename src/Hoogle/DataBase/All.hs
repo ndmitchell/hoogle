@@ -15,7 +15,7 @@ import Hoogle.DataBase.Item
 import Hoogle.DataBase.Serialise
 
 
-createDataBase :: [TextItem] -> DataBase
+createDataBase :: TextBase -> DataBase
 createDataBase xs = DataBase items
         (createNameSearch ys) (createTypeSearch ys) (createSuggest ys)
     where (items,ys) = createItems xs

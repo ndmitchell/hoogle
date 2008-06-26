@@ -24,7 +24,7 @@ parseTextBaseString = parseTextItems ""
 parseTextItems :: FilePath -> String -> Either ParseError TextBase
 parseTextItems file = join . map (uncurry $ parseTextItem file) . zip [1..] . lines
     where
-        join xs | null err = Right $ concat items
+        join xs | null err = Right $ map (flip (,) "") $ concat items
                 | otherwise = Left $ head err
             where (err,items) = unzipEithers xs
 
