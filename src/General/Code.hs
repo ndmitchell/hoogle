@@ -1,6 +1,7 @@
 
 module General.Code where
 
+import Control.Monad
 import Data.List
 import System.Directory
 import qualified Data.IntSet as IntSet
@@ -133,3 +134,6 @@ merge [] ys = ys
 merge (x:xs) (y:ys)
     | x <= y = x : merge xs (y:ys)
     | otherwise = y : merge (x:xs) ys
+
+
+concatMapM f = liftM concat . mapM f
