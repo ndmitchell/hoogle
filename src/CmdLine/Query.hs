@@ -14,10 +14,7 @@
 
 module CmdLine.Query(cmdQuery, CmdQuery(..)) where
 
-import Control.Monad
-import Data.Char
-import Data.List
-import System.Environment
+import General.Code
 import Text.ParserCombinators.Parsec
 
 import CmdLine.Flag

@@ -1,7 +1,7 @@
 
 module Hoogle.Search.Result where
 
-import Control.Monad
+import General.Code
 import Data.TagStr
 import Hoogle.DataBase.All
 

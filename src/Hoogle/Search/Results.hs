@@ -3,12 +3,9 @@ module Hoogle.Search.Results(
     mergeDataBaseResults, mergeQueryResults
     ) where
 
-import Control.Arrow
-import Control.Monad
-import Data.List
+import General.Code
 import Data.Key
 import qualified Data.IntMap as IntMap
-import General.Code
 
 import Hoogle.DataBase.All
 import Hoogle.Query.All

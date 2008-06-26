@@ -2,9 +2,7 @@
 module Hoogle.Query.Suggest(suggestQuery) where
 
 import Data.TagStr
-import Data.List
-import Data.Char
-import Data.Maybe
+import General.Code
 import Hoogle.DataBase.All
 import Hoogle.Query.Type
 

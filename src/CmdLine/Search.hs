@@ -2,9 +2,6 @@
 module CmdLine.Search(actionSearch) where
 
 import CmdLine.Flag
-import Control.Monad
-import Data.Maybe
-import Data.List
 import Data.Range
 import Data.TagStr
 import General.Code
@@ -12,9 +9,6 @@ import Hoogle.Query.All
 import Hoogle.Search.All
 import Hoogle.DataBase.All
 import Hoogle.All
-import Safe
-import System.Directory
-import System.FilePath
 
 
 actionSearch :: [CmdFlag] -> Query -> IO ()

@@ -5,8 +5,7 @@ module Hoogle.DataBase.Serialise(
 
 import Data.Binary.Defer
 import Data.Binary.Raw
-import System.IO
-import Control.Monad
+import General.Code
 
 import Hoogle.DataBase.Type
 

@@ -2,8 +2,6 @@
 module Hoogle.DataBase.Items where
 
 import Control.Monad.State
-import Data.List
-import Data.Maybe
 import Data.Binary.Defer.Index
 import General.Code
 import Hoogle.TextBase.All
@@ -12,7 +10,6 @@ import Hoogle.DataBase.Item
 import Hoogle.DataBase.Haddock
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
-import Safe
 
 -- Invariant: Index Entry is by order of EntryScore
 

@@ -1,14 +1,11 @@
 
 module Hoogle.TextBase.Parser(parseTextBase,parseTextBaseString) where
 
+import General.Code
 import Hoogle.TextBase.Type
 import Hoogle.TypeSig.All
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Error
-import Data.Char
-import Data.List
-import Control.Monad
-import General.Code
 
 
 parseTextBase :: FilePath -> IO (Either ParseError TextBase)

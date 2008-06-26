@@ -1,12 +1,9 @@
 
 module Hoogle.DataBase.Suggest where
 
-import Control.Monad
+import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Trie
-import Data.Char
-import Data.List
-import Data.Maybe
 import qualified Data.Map as Map
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All

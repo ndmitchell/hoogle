@@ -4,15 +4,10 @@ module CmdLine.Action(actionCmdLine) where
 import CmdLine.Flag
 import CmdLine.Query
 import CmdLine.Search
-import Control.Monad
-import Data.List
 import General.Code
 import Hoogle.All
 import Test.All
 import Text.ParserCombinators.Parsec
-import Safe
-import System.Directory
-import System.FilePath
 
 
 actionCmdLine :: CmdQuery -> IO ()

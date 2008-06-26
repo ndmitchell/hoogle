@@ -10,11 +10,7 @@ module CmdLine.Flag(
     flagsWebArgs, flagsWebQuery, flagsCmdLine
     ) where
 
-import Control.Monad
-import Data.Char
-import Data.Maybe
 import General.Code
-import System.Exit
 
 
 -- useful command line auxiliary

@@ -1,10 +1,7 @@
 
 module Hoogle.Query.Render(renderQuery) where
 
-import Data.Maybe
-import Data.List
-import Data.Char
-
+import General.Code
 import Data.TagStr
 import Hoogle.Query.Type
 import Hoogle.TypeSig.All

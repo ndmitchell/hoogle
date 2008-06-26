@@ -4,12 +4,10 @@ module Hoogle.DataBase.Item(
     module Hoogle.DataBase.Haddock
     ) where
 
-import Control.Monad
+import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.DataBase.Haddock
-import Data.Char
-import Data.List
 import Data.Range
 import Data.TagStr
 

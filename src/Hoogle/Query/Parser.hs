@@ -1,13 +1,10 @@
 
 module Hoogle.Query.Parser(parseQuery, parseCmdLineQuery, parsecQuery) where
 
+import General.Code hiding (merge)
 import Hoogle.Query.Type
 import Hoogle.TypeSig.All
 import Text.ParserCombinators.Parsec
-import Data.Char
-import Control.Monad
-import Data.List
-import Data.Maybe
 
 
 ascSymbols = "!#$%&*+./<=>?@\\^|-~"
