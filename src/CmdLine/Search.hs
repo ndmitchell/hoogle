@@ -29,9 +29,14 @@ actionSearch flags q = do
 
     when verbose $ putStrLn "= ANSWERS ="
     let res = search dbs q
-    if null res
-        then putStrLn "No results found"
-        else putStr $ unlines $ map (f . renderResult) res
+    if null res then
+        putStrLn "No results found"
+     else if Info `elemEnum` flags then do
+        putStrLn $ f $ renderResult $ head res
+        putStrLn ""
+        putStrLn $ showTag $ renderHaddock $ entryDocs $ resultEntry $ head res
+     else
+        putStr $ unlines $ map (f . renderResult) res
     where
         search | start == 0 && count == maxBound = searchAll
                | otherwise = searchRange (rangeStartCount start count)
