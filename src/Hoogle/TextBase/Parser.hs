@@ -22,19 +22,22 @@ parseTextBaseString = parseTextItems ""
 
 
 parseTextItems :: FilePath -> String -> Either ParseError TextBase
-parseTextItems file = join . map (uncurry $ parseTextItem file) . zip [1..] . lines
+parseTextItems file = join . f [] . zip [1..] . lines
     where
-        join xs | null err = Right $ map (flip (,) "") $ concat items
+        f com [] = []
+        f com ((i,s):is)
+            | "-- | " `isPrefixOf` s = f [drop 5 s] is
+            | "--   " `isPrefixOf` s && com /= [] = f (s:com) is
+            | "-- " `isPrefixOf` s = f [] is
+            | all isSpace s = f [] is
+            | otherwise = (case parse parsecTextItem file s of
+                               Left y -> Left $ setErrorPos (setSourceLine (errorPos y) i) y
+                               Right y -> Right [(y, unlines $ reverse com)])
+                          : f [] is
+
+        join xs | null err = Right $ concat items
                 | otherwise = Left $ head err
             where (err,items) = unzipEithers xs
-
-
-parseTextItem :: FilePath -> Int -> String -> Either ParseError [TextItem]
-parseTextItem file line x
-    | isTextItem x = case parse parsecTextItem file x of
-                          Left y -> Left $ setErrorPos (setSourceLine (errorPos y) line) y
-                          Right y -> Right [y]
-    | otherwise = Right []
 
 
 isTextItem :: String -> Bool
