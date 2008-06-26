@@ -4,6 +4,7 @@ module Hoogle.DataBase.Item where
 import Control.Monad
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
+import Data.Binary.Defer.Vector
 import Data.Char
 import Data.List
 import Data.Range
@@ -33,6 +34,7 @@ data Entry = Entry
     ,entryName :: String
     ,entryText :: [EntryText]
     ,entryType :: EntryType
+    ,entryDocs :: Vector Char
     }
 
 
@@ -103,7 +105,7 @@ instance Show Module where
         "{" ++ show c ++ "}"]
 
 instance Show Entry where
-    show (Entry a b c d e) = unwords ["#" ++ show a, concatMap f d, m]
+    show (Entry a b c d _ _) = unwords ["#" ++ show a, concatMap f d, m]
         where
             m = case b of
                     Nothing -> ""
@@ -125,8 +127,8 @@ instance BinaryDefer Module where
     get = get3 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e) = put a >> put b >> put c >> put d >> put e
-    get = get5 Entry
+    put (Entry a b c d e f) = put a >> put b >> put c >> put d >> put e >> put f
+    get = get6 Entry
 
 instance BinaryDefer EntryText where
     put (Keyword a)  = putByte 0 >> put a

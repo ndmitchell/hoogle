@@ -5,6 +5,7 @@ import Control.Monad.State
 import Data.List
 import Data.Maybe
 import Data.Binary.Defer.Index
+import Data.Binary.Defer.Vector
 import General.Code
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
@@ -95,5 +96,5 @@ createItems xs = unS $ execState (mapM (f . fst) xs) s0
                 e = Entry entI
                           (if modu then modCur s else Nothing)
                           (headDef "" [i | Focus i <- txt])
-                          txt typ
+                          txt typ (fromList "")
             put $ s{entId = entI + 1, ents = (i, Just e) : ents s}
