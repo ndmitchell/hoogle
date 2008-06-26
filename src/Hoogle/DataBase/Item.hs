@@ -1,5 +1,8 @@
 
-module Hoogle.DataBase.Item where
+module Hoogle.DataBase.Item(
+    module Hoogle.DataBase.Item,
+    module Hoogle.DataBase.Haddock
+    ) where
 
 import Control.Monad
 import Data.Binary.Defer
