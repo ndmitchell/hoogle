@@ -3,7 +3,7 @@ module Hoogle.DataBase.Haddock(
     Haddock, newHaddock, renderHaddock
     ) where
 
-import General.All
+import Data.TagStr
 import Data.Binary.Defer
 import Data.Binary.Defer.Vector
 

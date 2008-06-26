@@ -11,7 +11,7 @@ import Hoogle.DataBase.Haddock
 import Data.Char
 import Data.List
 import Data.Range
-import General.All
+import Data.TagStr
 
 
 data Package = Package

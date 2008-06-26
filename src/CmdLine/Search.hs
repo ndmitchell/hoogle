@@ -6,7 +6,8 @@ import Control.Monad
 import Data.Maybe
 import Data.List
 import Data.Range
-import General.All
+import Data.TagStr
+import General.Code
 import Hoogle.Query.All
 import Hoogle.Search.All
 import Hoogle.DataBase.All

@@ -1,11 +1,10 @@
 
-module General.Type where
+module Data.TagStr where
 
 import Data.Char
 import Data.List
 
 
--- TODO: Move this to Data.TagStr
 data TagStr = Str String
             | Tags [TagStr]
             | TagBold TagStr

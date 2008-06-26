@@ -1,7 +1,7 @@
 
 module Hoogle.Query.Suggest(suggestQuery) where
 
-import General.All
+import Data.TagStr
 import Data.List
 import Data.Char
 import Data.Maybe

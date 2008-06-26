@@ -5,7 +5,7 @@ import Data.Maybe
 import Data.List
 import Data.Char
 
-import General.All
+import Data.TagStr
 import Hoogle.Query.Type
 import Hoogle.TypeSig.All
 
