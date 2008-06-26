@@ -1,8 +1,9 @@
 
 module Hoogle.DataBase.Haddock(
-    Haddock, newHaddock
+    Haddock, newHaddock, renderHaddock
     ) where
 
+import General.All
 import Data.Binary.Defer
 import Data.Binary.Defer.Vector
 
@@ -16,3 +17,7 @@ instance BinaryDefer Haddock where
 
 
 newHaddock = Haddock . fromList
+
+
+renderHaddock :: Haddock -> TagStr
+renderHaddock (Haddock xs) = Str $ toList xs
