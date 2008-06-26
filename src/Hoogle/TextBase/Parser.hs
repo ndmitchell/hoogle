@@ -27,7 +27,7 @@ parseTextItems file = join . f [] . zip [1..] . lines
         f com [] = []
         f com ((i,s):is)
             | "-- | " `isPrefixOf` s = f [drop 5 s] is
-            | "--   " `isPrefixOf` s && com /= [] = f (s:com) is
+            | "--   " `isPrefixOf` s && com /= [] = f (drop 5 s:com) is
             | "-- " `isPrefixOf` s = f [] is
             | all isSpace s = f [] is
             | otherwise = (case parse parsecTextItem file s of
