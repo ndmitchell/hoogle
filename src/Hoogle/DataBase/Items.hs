@@ -5,11 +5,11 @@ import Control.Monad.State
 import Data.List
 import Data.Maybe
 import Data.Binary.Defer.Index
-import Data.Binary.Defer.Vector
 import General.Code
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Hoogle.DataBase.Item
+import Hoogle.DataBase.Haddock
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
 import Safe
@@ -96,5 +96,5 @@ createItems xs = unS $ execState (mapM (uncurry f) xs) s0
                 e = Entry entI
                           (if modu then modCur s else Nothing)
                           (headDef "" [i | Focus i <- txt])
-                          txt typ (fromList doc)
+                          txt typ (newHaddock doc)
             put $ s{entId = entI + 1, ents = (i, Just e) : ents s}

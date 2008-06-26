@@ -4,7 +4,7 @@ module Hoogle.DataBase.Item where
 import Control.Monad
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Data.Binary.Defer.Vector
+import Hoogle.DataBase.Haddock
 import Data.Char
 import Data.List
 import Data.Range
@@ -34,7 +34,7 @@ data Entry = Entry
     ,entryName :: String
     ,entryText :: [EntryText]
     ,entryType :: EntryType
-    ,entryDocs :: Vector Char
+    ,entryDocs :: Haddock
     }
 
 
