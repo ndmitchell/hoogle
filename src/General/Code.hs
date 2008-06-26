@@ -1,12 +1,13 @@
 
 module General.Code(
-    module General.Util,
+    module General.Util, module Safe,
     module Control.Arrow, module Control.Monad,
     module Data.Char, module Data.Maybe, module Data.List,
     module System.Cmd, module System.Directory, module System.Exit, module System.IO
     ) where
 
 import General.Util
+import Safe
 
 import Control.Arrow
 import Control.Monad
