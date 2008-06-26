@@ -55,22 +55,3 @@ instance Show TagStr where
     show (Str x) = x
     show (Tags x) = concatMap show x
     show x = show $ tagInner x
-
-
-
--- TODO: Delete?
-data Response = Warn String
-              | Error String
-
-
-instance Show Response where
-    showList = showString . unlines . map show
-    show (Warn x) =  "Warning: " ++ x
-    show (Error x) = "Error:   " ++ x
-
-
-isError (Error _) = True; isError _ = False
-
-
-anyError :: [Response] -> Bool
-anyError = any isError
