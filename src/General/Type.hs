@@ -5,6 +5,7 @@ import Data.Char
 import Data.List
 
 
+-- TODO: Move this to Data.TagStr
 data TagStr = Str String
             | Tags [TagStr]
             | TagBold TagStr
@@ -57,6 +58,7 @@ instance Show TagStr where
 
 
 
+-- TODO: Delete?
 data Response = Warn String
               | Error String
 
