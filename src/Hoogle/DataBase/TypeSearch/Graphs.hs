@@ -10,6 +10,7 @@ import Hoogle.DataBase.Item
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.TypeSig.All
+import General.Code
 
 
 data Graphs = Graphs
@@ -35,7 +36,7 @@ graphs is as xs = Graphs argGraph resGraph undefined
 
         (res,args) = unzip [((e, 0, TypeSig con res)
                             ,zipWith (\i t -> (e, i, TypeSig con t)) [0..] args)
-            | (e, TypeSig con t) <- xs, let ts = fromTFun t, let (args,res) = (init ts, last ts)]
+            | (e, TypeSig con t) <- xs, let (args,res) = initLast $ fromTFun t]
 
 
 
