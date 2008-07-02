@@ -152,3 +152,10 @@ dropEnd f = reverse . dropWhile f . reverse
 
 dropEnds :: (a -> Bool) -> [a] -> [a]
 dropEnds f = dropWhile f . dropEnd f
+
+
+initLast :: [a] -> ([a], a)
+initLast [] = error "initLast, empty list []"
+initLast [x] = ([], x)
+initLast (x:xs) = (x:a, b)
+    where (a,b) = initLast xs
