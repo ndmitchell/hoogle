@@ -15,8 +15,10 @@ import Hoogle.TypeSig.All
 import Hoogle.DataBase.Item
 
 
+newtype TypeSearch = TypeSearch Graphs
 
-newtype TypeSearch = TypeSearch Graphs deriving Show
+instance Show TypeSearch where
+    show (TypeSearch x) = show x
 
 instance BinaryDefer TypeSearch where
     put (TypeSearch x) = put x
@@ -37,4 +39,5 @@ createTypeSearch xs = TypeSearch $ graphs (instances tis) (aliases tis) types
 -- SEARCHING
 
 searchTypeSearch :: TypeSearch -> Index Entry -> TypeSig -> [(Entry,EntryView,TypeScore)]
-searchTypeSearch _ _ _ = []
+searchTypeSearch (TypeSearch g) i t =
+    [(lookupIndex a i, b, c) | (a,b,c) <- graphsSearch g t]
