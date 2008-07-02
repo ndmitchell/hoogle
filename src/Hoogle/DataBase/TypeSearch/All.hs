@@ -1,35 +1,40 @@
 
-module Hoogle.DataBase.TypeSearch.All where
+module Hoogle.DataBase.TypeSearch.All(
+    createTypeSearch, TypeSearch,
+    searchTypeSearch, TypeScore
+    ) where
 
+import Hoogle.DataBase.TypeSearch.Graphs
+import Hoogle.DataBase.TypeSearch.Score
+import Hoogle.DataBase.TypeSearch.Instances
+import Hoogle.DataBase.TypeSearch.Aliases
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Hoogle.DataBase.Item
+import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
+import Hoogle.DataBase.Item
 
 
-data TypeSearch = TypeSearch deriving Show
+
+newtype TypeSearch = TypeSearch Graphs deriving Show
 
 instance BinaryDefer TypeSearch where
-    put _ = return ()
-    get = return TypeSearch
+    put (TypeSearch x) = put x
+    get = get1 TypeSearch
 
 
 ---------------------------------------------------------------------
 -- CREATION
 
-createTypeSearch :: a -> TypeSearch
-createTypeSearch _ = TypeSearch
+createTypeSearch :: [(TextItem, Maybe Entry)] -> TypeSearch
+createTypeSearch xs = TypeSearch $ graphs (instances tis) (aliases tis) types
+    where
+        tis = map fst xs
+        types = [(newLookup (entryId e), sig) | (ItemFunc _ sig, Just e) <- xs]
 
 
 ---------------------------------------------------------------------
 -- SEARCHING
-
-data TypeScore = TypeScore
-                 deriving (Eq,Ord)
-
-instance Show TypeScore where
-    show TypeScore = "_"
-
 
 searchTypeSearch :: TypeSearch -> Index Entry -> TypeSig -> [(Entry,EntryView,TypeScore)]
 searchTypeSearch _ _ _ = []
