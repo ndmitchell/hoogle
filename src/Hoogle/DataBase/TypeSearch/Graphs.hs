@@ -27,12 +27,12 @@ instance Show Graphs where
     show = undefined
 
 
-graphs :: Instances -> Aliases -> [(Lookup Entry, TypeSig)] -> Graphs
-graphs is as xs = Graphs argGraph resGraph (newCosts $ indexFreeze cs3)
+newGraphs :: Instances -> Aliases -> [(Lookup Entry, TypeSig)] -> Graphs
+newGraphs is as xs = Graphs argGraph resGraph (newCosts $ indexFreeze cs3)
     where
         cs1 = newIndexMutable
-        (cs2,argGraph) = graph is as (concat args) cs1
-        (cs3,resGraph) = graph is as res cs2
+        (cs2,argGraph) = newGraph is as (concat args) cs1
+        (cs3,resGraph) = newGraph is as res cs2
 
         (res,args) = unzip [((e, 0, TypeSig con res)
                             ,zipWith (\i t -> (e, i, TypeSig con t)) [0..] args)

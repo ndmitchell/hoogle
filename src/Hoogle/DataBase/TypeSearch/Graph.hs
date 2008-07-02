@@ -32,8 +32,8 @@ data AnswerArg = AnswerArg (Lookup Entry) ArgPos [Binding] TypeScore
 ---------------------------------------------------------------------
 -- GRAPH CONSTRUCTION
 
-graph :: Instances -> Aliases -> [(Lookup Entry, ArgPos, TypeSig)] -> IndexMutable Cost -> (IndexMutable Cost, Graph)
-graph is as = undefined
+newGraph :: Instances -> Aliases -> [(Lookup Entry, ArgPos, TypeSig)] -> IndexMutable Cost -> (IndexMutable Cost, Graph)
+newGraph is as = undefined
 
 
 ---------------------------------------------------------------------

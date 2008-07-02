@@ -6,6 +6,6 @@ import Hoogle.TextBase.All
 data Instances = Instances
 
 
-instances :: [TextItem] -> Instances
-instances _ = Instances
+newInstances :: [TextItem] -> Instances
+newInstances _ = Instances
 
