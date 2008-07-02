@@ -33,7 +33,7 @@ instance BinaryDefer a => BinaryDefer (Index a) where
 instance BinaryDefer (Lookup a) where
     put (Lookup key) = put key
     get = get1 Lookup
-    size _ = size (undefined :: Int)
+    size _ = size (undefined :: Id)
     putFixed (Lookup key) = putFixed key
     getFixed = getFixed1 Lookup
 
