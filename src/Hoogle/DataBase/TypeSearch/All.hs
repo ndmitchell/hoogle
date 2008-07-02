@@ -1,5 +1,5 @@
 
-module Hoogle.DataBase.TypeSearch where
+module Hoogle.DataBase.TypeSearch.All where
 
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
