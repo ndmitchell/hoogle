@@ -16,22 +16,33 @@ import Hoogle.TypeSig.All
 import Data.Binary.Defer.Index
 
 
-data Graph = Graph
-
-data GraphSearch = GraphSearch
-
-data AnswerArg = AnswerArg (Lookup Entry) ArgPos [Binding] TypeScore
-
-
 type ArgPos = Int
 type Binding = [(String,String)]
 
 
-graph :: Instances -> Aliases -> [(Lookup Entry, ArgPos, TypeSig)] -> Graph
-graph = undefined
+data Graph = Graph (Index Node)
+
+-- AnswerArg.TypeScore is invalid within a node
+data Node = Node [AnswerArg] [(Lookup Node, Lookup Cost)]
+
+data AnswerArg = AnswerArg (Lookup Entry) ArgPos [Binding] TypeScore
 
 
-graphSearch :: Graph -> TypeSig -> (GraphSearch, [AnswerArg])
+
+---------------------------------------------------------------------
+-- GRAPH CONSTRUCTION
+
+graph :: Instances -> Aliases -> [(Lookup Entry, ArgPos, TypeSig)] -> IndexMutable Cost -> (IndexMutable Cost, Graph)
+graph is as = undefined
+
+
+---------------------------------------------------------------------
+-- GRAPH SEARCHING
+
+data GraphSearch = GraphSearch
+
+
+graphSearch :: Index Cost -> Graph -> TypeSig -> (GraphSearch, [AnswerArg])
 graphSearch = undefined
 
 
@@ -39,5 +50,5 @@ graphFollow :: Lookup Cost -> GraphSearch -> (GraphSearch, [AnswerArg])
 graphFollow = undefined
 
 
-graphNext :: GraphSearch -> Maybe (Lookup Cost)
+graphNext :: GraphSearch -> Maybe (Lookup Cost, CostScore)
 graphNext = undefined
