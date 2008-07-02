@@ -24,6 +24,8 @@ instance BinaryDefer Cost where
     get = undefined
 
 
+newCosts :: Index Cost -> Costs
+newCosts = Costs . fmap (costScore &&& id)
 
 
 

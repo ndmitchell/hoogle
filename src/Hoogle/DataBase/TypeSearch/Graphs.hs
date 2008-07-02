@@ -28,7 +28,7 @@ instance Show Graphs where
 
 
 graphs :: Instances -> Aliases -> [(Lookup Entry, TypeSig)] -> Graphs
-graphs is as xs = Graphs argGraph resGraph undefined
+graphs is as xs = Graphs argGraph resGraph (newCosts $ indexFreeze cs3)
     where
         cs1 = newIndexMutable
         (cs2,argGraph) = graph is as (concat args) cs1
