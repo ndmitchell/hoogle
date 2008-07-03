@@ -56,6 +56,11 @@ graphFollow :: Lookup Cost -> GraphSearch -> GraphSearch
 graphFollow = undefined
 
 
+-- what is the minimum cost any future graphFound result may have
+graphCost :: GraphSearch -> CostScore
+graphCost = undefined
+
+
 -- ask what possible node could be followed next
 graphNext :: GraphSearch -> Maybe (Lookup Cost, Cost)
 graphNext = undefined

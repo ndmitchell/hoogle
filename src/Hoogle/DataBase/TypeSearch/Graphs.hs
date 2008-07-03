@@ -79,8 +79,8 @@ these scores is the minimum used by Pile.
 data S = S
     {infos :: IntMap.IntMap (Maybe Info) -- Int = Lookup Entry
     ,pending :: IntMap.IntMap (Lookup Entry, EntryView, TypeScore) -- Int = CostScore
-    ,scoreMin :: CostScore
-    ,graphs :: [(CostScore,GraphSearch)] -- first graph is the result graph
+    ,costMin :: CostScore
+    ,graphs :: [GraphSearch] -- first graph is the result graph
     }
     
 
@@ -88,18 +88,47 @@ data S = S
 -- as a result
 data Info = Info
 
+type GraphsResult = [(Lookup Entry,EntryView,TypeScore)]
+
 
 -- sorted by TypeScore
-graphsSearch :: Graphs -> TypeSig -> [(Lookup Entry,EntryView,TypeScore)]
+graphsSearch :: Graphs -> TypeSig -> GraphsResult
 graphsSearch gs (TypeSig con ts) = evalState search s0
     where
-        s0 = S IntMap.empty IntMap.empty 0 (map ((,) 0) (resG:argsG))
+        s0 = S IntMap.empty IntMap.empty 0 (resG:argsG)
         argsG = map (graphSearch (costs gs) (argGraph gs) . TypeSig con) args
         resG = graphSearch (costs gs) (resGraph gs) (TypeSig con res)
 
         (args,res) = initLast $ fromTFun ts
 
 
-search :: State S [(Lookup Entry,EntryView,TypeScore)]
-search = undefined
+search :: State S GraphsResult
+search = do
+    x <- searchResults
+    nxt <- searchNext
+    xs <- if nxt then search else return []
+    return (x++xs)
 
+
+-- leak the results you find
+searchResults :: State S GraphsResult
+searchResults = undefined
+
+
+-- return False if you can't move anywhere
+searchNext :: State S Bool
+searchNext = do
+    gs <- gets graphs
+    case mapMaybe graphNext gs of
+        [] -> return False
+        xs -> do
+            let i = fst $ minimumBy (compare `on` snd) xs
+            gs <- return $ map (graphFollow i) gs
+            modify $ \s -> s
+                {graphs=gs
+                ,costMin=sum (map graphCost gs)}
+            return True
+
+
+addInfo :: AnswerArg -> Maybe (Maybe Info) -> (Maybe Info, GraphsResult)
+addInfo = undefined

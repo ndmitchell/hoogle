@@ -8,7 +8,7 @@ import General.Code
 type CostScore = Int
 
 data Cost = Cost CostScore CostDetail
-            deriving Show
+            deriving (Show,Ord,Eq)
 
 instance BinaryDefer Cost where
     put (Cost a b) = put a
