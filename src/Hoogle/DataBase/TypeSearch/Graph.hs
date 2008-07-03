@@ -42,13 +42,20 @@ newGraph is as = undefined
 data GraphSearch = GraphSearch
 
 
-graphSearch :: Index Cost -> Graph -> TypeSig -> (GraphSearch, [AnswerArg])
+graphSearch :: Index Cost -> Graph -> TypeSig -> GraphSearch
 graphSearch = undefined
 
 
-graphFollow :: Lookup Cost -> GraphSearch -> (GraphSearch, [AnswerArg])
+-- those entires which are at a newly discovered node
+graphFound :: GraphSearch -> [AnswerArg]
+graphFound = undefined
+
+
+-- follow a graph along a cost edge, that is now free
+graphFollow :: Lookup Cost -> GraphSearch -> GraphSearch
 graphFollow = undefined
 
 
+-- ask what possible node could be followed next
 graphNext :: GraphSearch -> Maybe (Lookup Cost, Cost)
 graphNext = undefined

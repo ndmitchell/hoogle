@@ -5,17 +5,9 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import General.Code
 
-
 type CostScore = Int
 
-newtype Costs = Costs (Index Cost)
-
-instance BinaryDefer Costs where
-    put (Costs xs) = put xs
-    get = get1 Costs
-
-
-data Cost = Cost Int CostDetail
+data Cost = Cost CostScore CostDetail
             deriving Show
 
 instance BinaryDefer Cost where
@@ -31,15 +23,12 @@ instance BinaryDefer Cost where
 data CostDetail
     = CostAlias String String -- ^ I followed an alias from a to b
     | CostDelArg -- ^ I deleted an argument from the result
+    | CostArgReorder -- ^ I reordered some arguments
       deriving (Eq,Ord,Show)
 
 instance BinaryDefer CostDetail where
     put = undefined
     get = undefined
-
-
-newCosts :: Index Cost -> Costs
-newCosts = Costs
 
 
 
