@@ -50,5 +50,5 @@ graphFollow :: Lookup Cost -> GraphSearch -> (GraphSearch, [AnswerArg])
 graphFollow = undefined
 
 
-graphNext :: GraphSearch -> Maybe (Lookup Cost, CostScore)
+graphNext :: GraphSearch -> Maybe (Lookup Cost, Cost)
 graphNext = undefined

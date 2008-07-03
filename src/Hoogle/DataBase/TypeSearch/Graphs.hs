@@ -43,4 +43,20 @@ newGraphs is as xs = Graphs argGraph resGraph (newCosts $ indexFreeze cs3)
 
 -- sorted by TypeScore
 graphsSearch :: Graphs -> TypeSig -> [(Lookup Entry,EntryView,TypeScore)]
-graphsSearch = undefined
+graphsSearch = undefined {-
+    where
+        (args,res) = initLast $ fromTFun t
+
+
+graphSearch :: Index Cost -> Graph -> TypeSig -> (GraphSearch, [AnswerArg])
+graphSearch = undefined
+
+
+graphFollow :: Lookup Cost -> GraphSearch -> (GraphSearch, [AnswerArg])
+graphFollow = undefined
+
+
+graphNext :: GraphSearch -> Maybe (Lookup Cost, CostScore)
+graphNext = undefined
+
+-}
