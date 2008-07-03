@@ -23,9 +23,9 @@ type Binding = [(String,String)]
 data Graph = Graph (Index Node)
 
 -- AnswerArg.TypeScore is invalid within a node
-data Node = Node [AnswerArg] [(Lookup Node, Lookup Cost)]
+data Node = Node [GraphResult] [(Lookup Node, Lookup Cost)]
 
-data AnswerArg = AnswerArg (Lookup Entry) ArgPos [Binding] TypeScore
+data GraphResult = GraphResult (Lookup Entry) ArgPos [Binding] TypeScore
 
 
 
@@ -47,7 +47,7 @@ graphSearch = undefined
 
 
 -- those entires which are at a newly discovered node
-graphFound :: GraphSearch -> [AnswerArg]
+graphFound :: GraphSearch -> [GraphResult]
 graphFound = undefined
 
 

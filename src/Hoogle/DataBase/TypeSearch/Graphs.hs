@@ -12,6 +12,7 @@ import Hoogle.TypeSig.All
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import qualified Data.IntMap as IntMap
+import qualified Data.IntHeap as IntHeap
 import General.Code
 import Control.Monad.State
 
@@ -78,9 +79,9 @@ these scores is the minimum used by Pile.
 
 data S = S
     {infos :: IntMap.IntMap (Maybe Info) -- Int = Lookup Entry
-    ,pending :: IntMap.IntMap (Lookup Entry, EntryView, TypeScore) -- Int = CostScore
-    ,costMin :: CostScore
+    ,pending :: IntHeap.IntHeap GraphsResult -- Int = CostScore
     ,graphs :: [GraphSearch] -- first graph is the result graph
+    ,costMin :: CostScore -- the lowest cost you may return next
     }
     
 
@@ -88,31 +89,43 @@ data S = S
 -- as a result
 data Info = Info
 
-type GraphsResult = [(Lookup Entry,EntryView,TypeScore)]
+type GraphsResult = (Lookup Entry,EntryView,TypeScore)
 
 
 -- sorted by TypeScore
-graphsSearch :: Graphs -> TypeSig -> GraphsResult
+graphsSearch :: Graphs -> TypeSig -> [GraphsResult]
 graphsSearch gs (TypeSig con ts) = evalState search s0
     where
-        s0 = S IntMap.empty IntMap.empty 0 (resG:argsG)
+        s0 = S IntMap.empty IntHeap.empty (resG:argsG) 0
         argsG = map (graphSearch (costs gs) (argGraph gs) . TypeSig con) args
         resG = graphSearch (costs gs) (resGraph gs) (TypeSig con res)
 
         (args,res) = initLast $ fromTFun ts
 
 
-search :: State S GraphsResult
+search :: State S [GraphsResult]
 search = do
-    x <- searchResults
+    searchFollow
+    xs <- searchFound
     nxt <- searchNext
-    xs <- if nxt then search else return []
-    return (x++xs)
+    ys <- searchFound
+    zs <- if nxt then search else return []
+    return $ xs++ys++zs
 
 
--- leak the results you find
-searchResults :: State S GraphsResult
-searchResults = undefined
+-- move results into the pile
+searchFollow :: State S ()
+searchFollow = undefined
+
+
+-- return the results from the pile
+searchFound :: State S [GraphsResult]
+searchFound = do
+    p <- gets pending
+    c <- gets costMin
+    (res,p) <- return $ IntHeap.popUntil c p
+    modify $ \s -> s{pending=p}
+    return res
 
 
 -- return False if you can't move anywhere
@@ -120,7 +133,9 @@ searchNext :: State S Bool
 searchNext = do
     gs <- gets graphs
     case mapMaybe graphNext gs of
-        [] -> return False
+        [] -> do
+            modify $ \s -> s{costMin=maxBound}
+            return False
         xs -> do
             let i = fst $ minimumBy (compare `on` snd) xs
             gs <- return $ map (graphFollow i) gs
@@ -130,5 +145,10 @@ searchNext = do
             return True
 
 
-addInfo :: AnswerArg -> Maybe (Maybe Info) -> (Maybe Info, GraphsResult)
+
+newInfo :: Info
+newInfo = undefined
+
+-- add information to an info node
+addInfo :: GraphResult -> Info -> (Info, [GraphsResult])
 addInfo = undefined
