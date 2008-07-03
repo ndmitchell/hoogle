@@ -7,7 +7,8 @@ import qualified Data.Map as Map
 -- stored in order
 newtype IntHeap v = IntHeap [(Int,v)]
 
--- should be inserting elements 
+empty :: IntHeap v
+empty = IntHeap []
 
 
 -- insert a value with a cost, does NOT overwrite values
@@ -16,6 +17,7 @@ push k v (IntHeap xs) = IntHeap $ f xs
     where
         f ((a,b):xs) | k > a = (a,b) : f xs
         f xs = (k,v):xs
+
 
 -- retrieve the lowest value
 pop :: IntHeap v -> Maybe ((Int,v), IntHeap v)
