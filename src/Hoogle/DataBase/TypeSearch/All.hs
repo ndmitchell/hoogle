@@ -1,4 +1,7 @@
 
+-- TODO: Aliases and Instances from imported packages should be
+-- used when searching.
+
 module Hoogle.DataBase.TypeSearch.All(
     createTypeSearch, TypeSearch,
     searchTypeSearch, TypeScore
