@@ -89,42 +89,42 @@ instance BinaryDefer () where
     getFixed = get
 
 instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (a,b) where
-    put (a,b) = put a >> put b
+    put (a,b) = put2 a b
     get = get2 (,)
     size x = let ~(a,b) = x in size a + size b
-    putFixed (a,b) = putFixed a >> putFixed b
+    putFixed (a,b) = putFixed2 a b
     getFixed = getFixed2 (,)
 
 instance (BinaryDefer a, BinaryDefer b, BinaryDefer c) =>
     BinaryDefer (a,b,c) where
-    put (a,b,c) = put a >> put b >> put c
+    put (a,b,c) = put3 a b c
     get = get3 (,,)
     size x = let ~(a,b,c) = x in size a + size b + size c
-    putFixed (a,b,c) = putFixed a >> putFixed b >> putFixed c
+    putFixed (a,b,c) = putFixed3 a b c
     getFixed = getFixed3 (,,)
 
 instance (BinaryDefer a, BinaryDefer b, BinaryDefer c, BinaryDefer d) =>
     BinaryDefer (a,b,c,d) where
-    put (a,b,c,d) = put a >> put b >> put c >> put d
+    put (a,b,c,d) = put4 a b c d
     get = get4 (,,,)
     size x = let ~(a,b,c,d) = x in size a + size b + size c + size d
-    putFixed (a,b,c,d) = putFixed a >> putFixed b >> putFixed c >> putFixed d
+    putFixed (a,b,c,d) = putFixed4 a b c d
     getFixed = getFixed4 (,,,)
 
 instance (BinaryDefer a, BinaryDefer b, BinaryDefer c, BinaryDefer d,
     BinaryDefer e) => BinaryDefer (a,b,c,d,e) where
-    put (a,b,c,d,e) = put a >> put b >> put c >> put d >> put e
+    put (a,b,c,d,e) = put5 a b c d e
     get = get5 (,,,,)
     size x = let ~(a,b,c,d,e) = x in size a + size b + size c + size d + size e
-    putFixed (a,b,c,d,e) = putFixed a >> putFixed b >> putFixed c >> putFixed d >> putFixed e
+    putFixed (a,b,c,d,e) = putFixed5 a b c d e
     getFixed = getFixed5 (,,,,)
 
 instance (BinaryDefer a, BinaryDefer b, BinaryDefer c, BinaryDefer d,
     BinaryDefer e, BinaryDefer f) => BinaryDefer (a,b,c,d,e,f) where
-    put (a,b,c,d,e,f) = put a >> put b >> put c >> put d >> put e >> put f
+    put (a,b,c,d,e,f) = put6 a b c d e f
     get = get6 (,,,,,)
     size x = let ~(a,b,c,d,e,f) = x in size a + size b + size c + size d + size e + size f
-    putFixed (a,b,c,d,e,f) = putFixed a >> putFixed b >> putFixed c >> putFixed d >> putFixed e >> putFixed f
+    putFixed (a,b,c,d,e,f) = putFixed6 a b c d e f
     getFixed = getFixed6 (,,,,,)
 
 instance BinaryDefer a => BinaryDefer (Maybe a) where

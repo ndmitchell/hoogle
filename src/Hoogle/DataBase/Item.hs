@@ -120,23 +120,23 @@ instance Show Entry where
 
 
 instance BinaryDefer Package where
-    put (Package a b c d e) = put a >> put b >> put c >> put d >> put e
+    put (Package a b c d e) = put5 a b c d e
     get = get5 Package
 
 instance BinaryDefer Module where
-    put (Module a b c) = put a >> put b >> put c
+    put (Module a b c) = put3 a b c
     get = get3 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e f) = put a >> put b >> put c >> put d >> put e >> put f
+    put (Entry a b c d e f) = put6 a b c d e f
     get = get6 Entry
 
 instance BinaryDefer EntryText where
-    put (Keyword a)  = putByte 0 >> put a
-    put (Text a)     = putByte 1 >> put a
-    put (Focus a)    = putByte 2 >> put a
-    put (ArgPos a b) = putByte 3 >> put a >> put b
-    put (ArgRes a)   = putByte 4 >> put a
+    put (Keyword a)  = putByte 0 >> put1 a
+    put (Text a)     = putByte 1 >> put1 a
+    put (Focus a)    = putByte 2 >> put1 a
+    put (ArgPos a b) = putByte 3 >> put2 a b
+    put (ArgRes a)   = putByte 4 >> put1 a
 
     get = do i <- getByte
              case i of

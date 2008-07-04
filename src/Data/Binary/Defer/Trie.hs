@@ -33,7 +33,7 @@ lookupTrie (x:xs) (Trie a b) = lookup x b >>= lookupTrie xs
 
 
 instance BinaryDefer a => BinaryDefer (Trie a) where
-    put (Trie a b) = putDefer $ put a >> put b
+    put (Trie a b) = putDefer $ put2 a b
     get = getDefer $ get2 Trie
 
 instance Show a => Show (Trie a) where

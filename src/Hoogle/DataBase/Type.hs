@@ -34,7 +34,7 @@ data DataBase = DataBase
 
 
 instance BinaryDefer DataBase where
-    put (DataBase a b c d e f) = put a >> put b >> put c >> put d >> put e >> put f
+    put (DataBase a b c d e f) = put6 a b c d e f
     get = get6 DataBase
 
 

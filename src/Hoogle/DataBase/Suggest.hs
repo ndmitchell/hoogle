@@ -38,7 +38,7 @@ instance BinaryDefer Suggest where
     get = get1 Suggest
 
 instance BinaryDefer SuggestItem where
-    put (SuggestItem a b c) = put a >> put b >> put c
+    put (SuggestItem a b c) = put3 a b c
     get = get3 SuggestItem
 
 

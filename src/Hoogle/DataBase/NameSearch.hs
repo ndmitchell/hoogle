@@ -32,11 +32,11 @@ instance Show NameItem where
 
 
 instance BinaryDefer NameSearch where
-    put (NameSearch a b) = put a >> put b
+    put (NameSearch a b) = put2 a b
     get = get2 NameSearch
 
 instance BinaryDefer NameItem where
-    put (NameItem a b c) = put a >> put b >> put c
+    put (NameItem a b c) = put3 a b c
     get = get3 NameItem
 
 {-
