@@ -42,6 +42,7 @@ instance Functor Index where
 -- LOOKUP
 
 newtype Lookup a = Lookup {lookupKey :: Id}
+                   deriving (Eq,Ord)
 
 newLookup :: Id -> Lookup a
 newLookup = Lookup
