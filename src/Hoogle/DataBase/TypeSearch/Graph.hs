@@ -25,8 +25,12 @@ data Graph = Graph (Index Node)
 -- AnswerArg.TypeScore is invalid within a node
 data Node = Node [GraphResult] [(Lookup Node, Lookup Cost)]
 
-data GraphResult = GraphResult (Lookup Entry) ArgPos [Binding] TypeScore
-
+data GraphResult = GraphResult
+    {graphResultEntry :: Lookup Entry
+    ,graphResultPos :: ArgPos
+    ,graphResultBinding :: [Binding]
+    ,graphResultScore :: TypeScore
+    }
 
 
 ---------------------------------------------------------------------

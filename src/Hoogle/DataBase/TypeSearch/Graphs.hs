@@ -113,22 +113,41 @@ search = do
     return $ xs++ys++zs
 
 
--- move results into the pile
+-- move results from graphFound into the pile
 searchFollow :: State S ()
-searchFollow = undefined
+searchFollow = do
+    gs <- gets graphs
+    mapM_ f [(i,g2) | (i,g) <- zip (Nothing : map Just [0..]) gs, g2 <- graphFound g]
+    where
+        f (arg,val) = do
+            let entryId = lookupKey $ graphResultEntry val
+            infs <- gets infos
+            case IntMap.findWithDefault (Just newInfo) entryId infs of
+                Nothing -> return ()
+                Just inf -> do
+                    (inf,res) <- return $ addInfo arg val inf
+                    res <- return $ map (typeScoreTotal . thd3 &&& id) res
+                    modify $ \s -> s
+                        {infos = IntMap.insert entryId (Just inf) (infos s)
+                        ,pending = IntHeap.pushList res (pending s)
+                        }
 
 
--- return the results from the pile
+-- return the results from the pile satisfying costMin
 searchFound :: State S [GraphsResult]
 searchFound = do
     p <- gets pending
     c <- gets costMin
     (res,p) <- return $ IntHeap.popUntil c p
-    modify $ \s -> s{pending=p}
+    modify $ \s -> s
+        {pending=p
+        ,infos=foldr (uncurry IntMap.insert) (infos s)
+                     [(lookupKey $ fst3 r, Nothing) | r <- res]
+        }
     return res
 
 
--- return False if you can't move anywhere
+-- return False if you can't move anywhere, update costMin
 searchNext :: State S Bool
 searchNext = do
     gs <- gets graphs
@@ -150,5 +169,5 @@ newInfo :: Info
 newInfo = undefined
 
 -- add information to an info node
-addInfo :: GraphResult -> Info -> (Info, [GraphsResult])
+addInfo :: Maybe ArgPos -> GraphResult -> Info -> (Info, [GraphsResult])
 addInfo = undefined
