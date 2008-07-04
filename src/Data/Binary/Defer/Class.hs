@@ -32,6 +32,15 @@ get5 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; x5 <- get; return (f x1 
 get6 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; x5 <- get; x6 <- get; return (f x1 x2 x3 x4 x5 x6)
 
 
+getFixed0 f = return f
+getFixed1 f = do x1 <- getFixed; return (f x1)
+getFixed2 f = do x1 <- getFixed; x2 <- getFixed; return (f x1 x2)
+getFixed3 f = do x1 <- getFixed; x2 <- getFixed; x3 <- getFixed; return (f x1 x2 x3)
+getFixed4 f = do x1 <- getFixed; x2 <- getFixed; x3 <- getFixed; x4 <- getFixed; return (f x1 x2 x3 x4)
+getFixed5 f = do x1 <- getFixed; x2 <- getFixed; x3 <- getFixed; x4 <- getFixed; x5 <- getFixed; return (f x1 x2 x3 x4 x5)
+getFixed6 f = do x1 <- getFixed; x2 <- getFixed; x3 <- getFixed; x4 <- getFixed; x5 <- getFixed; x6 <- getFixed; return (f x1 x2 x3 x4 x5 x6)
+
+
 put0 = return () :: DeferPut ()
 put1 x1 = put x1
 put2 x1 x2 = put x1 >> put x2
@@ -41,13 +50,13 @@ put5 x1 x2 x3 x4 x5 = put x1 >> put x2 >> put x3 >> put x4 >> put x5
 put6 x1 x2 x3 x4 x5 x6 = put x1 >> put x2 >> put x3 >> put x4 >> put x5 >> put x6
 
 
-getFixed0 f = return f
-getFixed1 f = do x1 <- getFixed; return (f x1)
-getFixed2 f = do x1 <- getFixed; x2 <- getFixed; return (f x1 x2)
-getFixed3 f = do x1 <- getFixed; x2 <- getFixed; x3 <- getFixed; return (f x1 x2 x3)
-getFixed4 f = do x1 <- getFixed; x2 <- getFixed; x3 <- getFixed; x4 <- getFixed; return (f x1 x2 x3 x4)
-getFixed5 f = do x1 <- getFixed; x2 <- getFixed; x3 <- getFixed; x4 <- getFixed; x5 <- getFixed; return (f x1 x2 x3 x4 x5)
-getFixed6 f = do x1 <- getFixed; x2 <- getFixed; x3 <- getFixed; x4 <- getFixed; x5 <- getFixed; x6 <- getFixed; return (f x1 x2 x3 x4 x5 x6)
+putFixed0 = return () :: DeferPut ()
+putFixed1 x1 = putFixed x1
+putFixed2 x1 x2 = putFixed x1 >> putFixed x2
+putFixed3 x1 x2 x3 = putFixed x1 >> putFixed x2 >> putFixed x3
+putFixed4 x1 x2 x3 x4 = putFixed x1 >> putFixed x2 >> putFixed x3 >> putFixed x4
+putFixed5 x1 x2 x3 x4 x5 = putFixed x1 >> putFixed x2 >> putFixed x3 >> putFixed x4 >> putFixed x5
+putFixed6 x1 x2 x3 x4 x5 x6 = putFixed x1 >> putFixed x2 >> putFixed x3 >> putFixed x4 >> putFixed x5 >> putFixed x6
 
 
 instance BinaryDefer Int where
