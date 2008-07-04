@@ -159,3 +159,8 @@ initLast [] = error "initLast, empty list []"
 initLast [x] = ([], x)
 initLast (x:xs) = (x:a, b)
     where (a,b) = initLast xs
+
+
+(!!+) :: [a] -> (Int,a) -> [a]
+(!!+) (x:xs) (0,a) = a:xs
+(!!+) (x:xs) (n,a) = x : (!!+) xs (n-1,a)
