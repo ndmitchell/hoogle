@@ -19,6 +19,10 @@ push k v (IntHeap xs) = IntHeap $ f xs
         f xs = (k,v):xs
 
 
+pushList :: [(Int,v)] -> IntHeap v -> IntHeap v
+pushList xs mp = foldr (uncurry push) mp xs
+
+
 -- retrieve the lowest value
 pop :: IntHeap v -> Maybe ((Int,v), IntHeap v)
 pop (IntHeap []) = Nothing
