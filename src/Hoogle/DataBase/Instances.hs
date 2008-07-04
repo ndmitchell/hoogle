@@ -1,16 +1,28 @@
 
-module Hoogle.DataBase.Instances where
+module Hoogle.DataBase.Instances(
+    Instances, createInstances, normContext, followInstances
+    ) where
 
 import Hoogle.TextBase.All
+import Hoogle.TypeSig.All
 import Data.Binary.Defer
 
 data Instances = Instances
                  deriving Show
 
 instance BinaryDefer Instances where
-    get = undefined
-    put = undefined
+    put _ = put0
+    get = get0 Instances
 
 
 createInstances :: [TextItem] -> Instances
 createInstances _ = Instances
+
+
+-- deal with MPTC in this step
+normContext :: Instances -> TypeSig -> TypeSig
+normContext _ (TypeSig a b) = TypeSig [] b
+
+
+followInstances :: Instances -> TypeSig -> [TypeSig]
+followInstances _ _ = []
