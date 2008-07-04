@@ -1,5 +1,5 @@
 
-module Hoogle.DataBase.TypeSearch.Instances where
+module Hoogle.DataBase.Instances where
 
 import Hoogle.TextBase.All
 

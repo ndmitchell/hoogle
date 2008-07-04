@@ -2,8 +2,8 @@
 module Hoogle.DataBase.TypeSearch.Graphs where
 
 import Hoogle.DataBase.TypeSearch.Graph
-import Hoogle.DataBase.TypeSearch.Instances
-import Hoogle.DataBase.TypeSearch.Aliases
+import Hoogle.DataBase.Instances
+import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.TypeSearch.Score
 import Hoogle.DataBase.TypeSearch.Cost
 import Hoogle.DataBase.Item

@@ -9,8 +9,8 @@ module Hoogle.DataBase.TypeSearch.Graph where
 
 import Hoogle.DataBase.TypeSearch.Cost
 import Hoogle.DataBase.TypeSearch.Score
-import Hoogle.DataBase.TypeSearch.Instances
-import Hoogle.DataBase.TypeSearch.Aliases
+import Hoogle.DataBase.Instances
+import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.Item
 import Hoogle.TypeSig.All
 import Data.Binary.Defer.Index
