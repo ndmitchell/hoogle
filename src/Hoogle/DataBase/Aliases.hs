@@ -1,14 +1,20 @@
 
 module Hoogle.DataBase.Aliases(
-    Aliases, newAliases, followAlias
+    Aliases, createAliases, followAlias
     ) where
 
 
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import qualified Data.Map as Map
+import Data.Binary.Defer
 
 newtype Aliases = Aliases (Map.Map String Alias)
+                  deriving Show
+
+instance BinaryDefer Aliases where
+    put = undefined
+    get = undefined
 
 
 data Alias = Alias
@@ -17,11 +23,11 @@ data Alias = Alias
     ,free :: [String] -- free variables on the RHS but not LHS
     ,rhs :: TypeSig -- the resulting type
     ,forward :: Bool -- is it type, or the reverse
-    }
+    } deriving Show
 
 
-newAliases :: [TextItem] -> Aliases
-newAliases _ = Aliases Map.empty
+createAliases :: [TextItem] -> Aliases
+createAliases _ = Aliases Map.empty
 
 
 

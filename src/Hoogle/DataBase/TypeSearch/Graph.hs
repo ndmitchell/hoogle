@@ -36,8 +36,8 @@ data GraphResult = GraphResult
 ---------------------------------------------------------------------
 -- GRAPH CONSTRUCTION
 
-newGraph :: Instances -> Aliases -> [(Lookup Entry, ArgPos, TypeSig)] -> IndexMutable Cost -> (IndexMutable Cost, Graph)
-newGraph is as = undefined
+newGraph :: Aliases -> Instances -> [(Lookup Entry, ArgPos, TypeSig)] -> IndexMutable Cost -> (IndexMutable Cost, Graph)
+newGraph as is = undefined
 
 
 ---------------------------------------------------------------------

@@ -31,11 +31,9 @@ instance BinaryDefer TypeSearch where
 ---------------------------------------------------------------------
 -- CREATION
 
-createTypeSearch :: [(TextItem, Maybe Entry)] -> TypeSearch
-createTypeSearch xs = TypeSearch $ newGraphs (newInstances tis) (newAliases tis) types
-    where
-        tis = map fst xs
-        types = [(newLookup (entryId e), sig) | (ItemFunc _ sig, Just e) <- xs]
+createTypeSearch :: Aliases -> Instances -> [(TextItem, Maybe Entry)] -> TypeSearch
+createTypeSearch aliases instances xs = TypeSearch $ newGraphs aliases instances types
+    where types = [(newLookup (entryId e), sig) | (ItemFunc _ sig, Just e) <- xs]
 
 
 ---------------------------------------------------------------------

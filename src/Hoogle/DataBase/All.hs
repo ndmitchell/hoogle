@@ -17,8 +17,13 @@ import Hoogle.DataBase.Serialise
 
 createDataBase :: TextBase -> DataBase
 createDataBase xs = DataBase items
-        (createNameSearch ys) (createTypeSearch ys) (createSuggest ys)
-    where (items,ys) = createItems xs
+        (createNameSearch ys) (createTypeSearch aliases instances ys)
+        (createSuggest ys) aliases instances
+    where
+        (items,ys) = createItems xs
+        zs = map fst ys
+        aliases = createAliases zs
+        instances = createInstances zs
 
 
 searchName :: DataBase -> String -> [(Entry,EntryView,TextScore)]

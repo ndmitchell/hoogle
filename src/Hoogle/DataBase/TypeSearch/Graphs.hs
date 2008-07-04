@@ -36,12 +36,12 @@ instance Show Graphs where
 ---------------------------------------------------------------------
 -- GRAPHS CONSTRUCTION
 
-newGraphs :: Instances -> Aliases -> [(Lookup Entry, TypeSig)] -> Graphs
-newGraphs is as xs = Graphs argGraph resGraph (indexFreeze cs3)
+newGraphs :: Aliases -> Instances -> [(Lookup Entry, TypeSig)] -> Graphs
+newGraphs as is xs = Graphs argGraph resGraph (indexFreeze cs3)
     where
         cs1 = newIndexMutable
-        (cs2,argGraph) = newGraph is as (concat args) cs1
-        (cs3,resGraph) = newGraph is as res cs2
+        (cs2,argGraph) = newGraph as is (concat args) cs1
+        (cs3,resGraph) = newGraph as is res cs2
 
         (args,res) = unzip
             [ initLast $ zipWith (\i t -> (e, i, TypeSig con t)) [0..] $ fromTFun t
