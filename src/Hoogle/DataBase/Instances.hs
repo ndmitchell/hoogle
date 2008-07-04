@@ -20,6 +20,7 @@ createInstances _ = Instances
 
 
 -- deal with MPTC in this step
+-- PostCondition: All classes must be "TApp (TLit x) [TVar y]"
 normContext :: Instances -> TypeSig -> TypeSig
 normContext _ (TypeSig a b) = TypeSig [] b
 
