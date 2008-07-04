@@ -17,6 +17,7 @@ import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.Item
 import Hoogle.TypeSig.All
+import Data.Generics.Uniplate
 import Data.Binary.Defer.Index
 import qualified Data.Map as Map
 import Control.Monad.State
@@ -26,8 +27,11 @@ import General.Code
 type ArgPos = Int
 type Binding = [(String,String)]
 
+-- first argument is a list of contexts, (Context,Variable)
+data TypePair = TypePair [(String,String)] Type
 
-data Graph = Graph (Map.Map TypeSig (Lookup Node)) (Index Node)
+
+data Graph = Graph (Map.Map TypePair (Lookup Node)) (Index Node)
 
 data Node = Node [GraphResult] [(Lookup Node, Lookup Cost)]
 
@@ -59,7 +63,7 @@ Those nodes in the graph which have not yet been explored
 
 data S = S
     {costs :: IndexMutable Cost
-    ,graph :: Map.Map TypeSig (Lookup Node, Node)
+    ,graph :: Map.Map TypePair (Lookup Node, Node)
     }
 
 
@@ -73,19 +77,46 @@ newGraph as is xs cost = (costs sN, f (graph sN))
             (newIndex $ map snd $ sortFst $ Map.elems mp)
 
 
--- add links between each step
-populateGraph :: State S ()
-populateGraph = undefined
-
-
 -- create the initial graph
 initialGraph :: [(Lookup Entry, ArgPos, TypeSig)] -> State S ()
 initialGraph = undefined
 
 
+-- add links between each step
+populateGraph :: State S ()
+populateGraph = undefined
+
+
 -- add reverse links where you can, i.e. aliases
 reverseLinks :: State S ()
 reverseLinks = undefined
+
+
+-- normalise the letters in a type, so that:
+-- each variable is distinct
+-- the context is in order
+-- all context relates to free variables
+-- binding is original |-> new
+alphaFlatten :: TypePair -> (Binding,TypePair)
+alphaFlatten (TypePair a b) = (bind, TypePair a2 b2)
+    where
+        a2 = nub $ sort $ concatMap g a
+        (b2,(bind,_)) = runState (transformM f b) ([], map (:[]) ['a'..])
+
+        f (TVar x) = do
+            (bind,v:vs) <- get
+            put ((x,v):bind,vs)
+            return $ TVar v
+        f x = return x
+
+        g (cls,v) = [(cls,b) | (a,b) <- bind, a == v]
+
+
+-- disguard any context which relates to variables not in the type
+-- convert using whatever scheme the Instances say
+contextNorm :: Instances -> TypeSig -> TypePair
+contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a] b
+    where (TypeSig a b) = normContext is t
 
 
 ---------------------------------------------------------------------
