@@ -82,12 +82,9 @@ data S = S
     ,pending :: IntHeap.IntHeap GraphsResult -- Int = CostScore
     ,graphs :: [GraphSearch] -- first graph is the result graph
     ,costMin :: CostScore -- the lowest cost you may return next
+    ,numArgs :: Int
     }
     
-
--- the pending information about an Entry, before it has been added
--- as a result
-data Info = Info
 
 type GraphsResult = (Lookup Entry,EntryView,TypeScore)
 
@@ -96,7 +93,7 @@ type GraphsResult = (Lookup Entry,EntryView,TypeScore)
 graphsSearch :: Graphs -> TypeSig -> [GraphsResult]
 graphsSearch gs (TypeSig con ts) = evalState search s0
     where
-        s0 = S IntMap.empty IntHeap.empty (resG:argsG) 0
+        s0 = S IntMap.empty IntHeap.empty (resG:argsG) 0 (length argsG)
         argsG = map (graphSearch (costs gs) (argGraph gs) . TypeSig con) args
         resG = graphSearch (costs gs) (resGraph gs) (TypeSig con res)
 
@@ -122,13 +119,14 @@ searchFollow = do
         f (arg,val) = do
             let entryId = lookupKey $ graphResultEntry val
             infs <- gets infos
-            case IntMap.findWithDefault (Just newInfo) entryId infs of
+            numArgs <- gets numArgs
+            case IntMap.findWithDefault (Just $ newInfo numArgs) entryId infs of
                 Nothing -> return ()
                 Just inf -> do
                     (inf,res) <- return $ addInfo arg val inf
                     res <- return $ map (typeScoreTotal . thd3 &&& id) res
                     modify $ \s -> s
-                        {infos = IntMap.insert entryId (Just inf) (infos s)
+                        {infos = IntMap.insert entryId inf (infos s)
                         ,pending = IntHeap.pushList res (pending s)
                         }
 
@@ -164,10 +162,32 @@ searchNext = do
             return True
 
 
+-- the pending information about an Entry, before it has been added
+-- as a result
+type Info = [[GraphResult]]
 
-newInfo :: Info
-newInfo = undefined
+
+newInfo :: Int -> Info
+newInfo arity = replicate (arity+1) []
 
 -- add information to an info node
-addInfo :: Maybe ArgPos -> GraphResult -> Info -> (Info, [GraphsResult])
-addInfo = undefined
+addInfo :: Maybe ArgPos -> GraphResult -> Info -> (Maybe Info, [GraphsResult])
+addInfo Nothing res ([]:is) | arityEntry < arityQuery || arityEntry > arityQuery + 2 = (Nothing,[])
+    where
+        arityQuery = length is
+        arityEntry = graphResultPos res
+
+addInfo pos res info = (Just info2, if any null info2 then [] else ans)
+    where
+        ind = maybe 0 (+1) pos
+        info2 = zipWith (\i x -> [res|i==ind] ++ x) [0..] info
+
+        ans = [ newGraphsResults rs r
+              | (r:rs) <- sequence $ info2 !!+ (ind,[res])
+              , disjoint $ map graphResultPos rs]
+
+
+-- given the results for each argument, and the result
+-- create a final result structure
+newGraphsResults :: [GraphResult] -> GraphResult -> GraphsResult
+newGraphsResults = undefined
