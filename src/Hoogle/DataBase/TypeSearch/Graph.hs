@@ -18,11 +18,12 @@ import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.Item
 import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
-import Data.Binary.Defer hiding (get,put)
+import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import Control.Monad.State
+import Control.Monad.State  hiding (get,put)
+import qualified Control.Monad.State as S
 import General.Code
 
 
@@ -179,8 +180,8 @@ alphaFlatten (TypePair a b) = (bind, TypePair a2 b2)
         (b2,(bind,_)) = runState (transformM f b) ([], map (:[]) ['a'..])
 
         f (TVar x) = do
-            (bind,v:vs) <- get
-            put ((x,v):bind,vs)
+            (bind,v:vs) <- S.get
+            S.put ((x,v):bind,vs)
             return $ TVar v
         f x = return x
 
