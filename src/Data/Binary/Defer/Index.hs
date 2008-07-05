@@ -68,6 +68,9 @@ instance Show (Lookup a) where
 
 newtype IndexMutable a = IndexMutable (Map.Map a Id)
 
+instance Show a => Show (IndexMutable a) where
+    show = show . indexFreeze
+
 
 newIndexMutable :: IndexMutable a
 newIndexMutable = IndexMutable Map.empty
