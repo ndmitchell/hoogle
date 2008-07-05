@@ -19,8 +19,11 @@ createInstances :: [TextItem] -> Instances
 createInstances _ = Instances
 
 
--- deal with MPTC in this step
 -- PostCondition: All classes must be "TApp (TLit x) [TVar y]"
+-- Convert:
+--    MPTC a b |-> MPTC1 a, MPTC2 b
+--    C (M a) |-> C a (if supported by an instance decl)
+-- Do not load Instances unless necessary (probably normally not)
 normContext :: Instances -> TypeSig -> TypeSig
 normContext _ (TypeSig a b) = TypeSig [] b
 
