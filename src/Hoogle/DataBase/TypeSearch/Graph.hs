@@ -33,10 +33,11 @@ type Binding = [(String,String)]
 -- first argument is a list of contexts, (Context,Variable)
 type TypeContext = [(String,String)]
 data TypePair = TypePair TypeContext Type
-                deriving (Eq,Ord)
+                deriving (Eq,Ord,Show)
 
 
 data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
+             deriving Show
 
 instance BinaryDefer Graph where
     put (Graph a b) = put2 a b
@@ -44,6 +45,7 @@ instance BinaryDefer Graph where
 
 
 data Node = Node [GraphResult] [(Lookup Node, Lookup Cost, Binding)]
+            deriving Show
 
 instance BinaryDefer Node where
     put (Node a b) = put2 a b
@@ -57,7 +59,7 @@ data GraphResult = GraphResult
     ,graphResultPos :: ArgPos
     ,graphResultBinding :: Binding
     ,graphResultScore :: TypeScore
-    }
+    } deriving Show
 
 instance BinaryDefer GraphResult where
     put (GraphResult a b c d) = put3 a b c

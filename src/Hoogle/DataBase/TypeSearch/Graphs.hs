@@ -23,14 +23,11 @@ data Graphs = Graphs
     {argGraph :: Graph -- the arguments
     ,resGraph :: Graph -- the results
     ,costs :: Index Cost -- how much each link costs
-    }
+    } deriving Show
 
 instance BinaryDefer Graphs where
     put (Graphs a b c) = put3 a b c
     get = get3 Graphs
-
-instance Show Graphs where
-    show = error "Show.Graphs.show"
 
 
 ---------------------------------------------------------------------
