@@ -169,8 +169,8 @@ fromDefer :: Defer a -> a
 fromDefer (Defer x) = x
 
 instance BinaryDefer a => BinaryDefer (Defer a) where
-    put = putDefer . put
-    get = getDefer $ get
+    put (Defer x) = putDefer $ put x
+    get = getDefer $ liftM Defer get
     putFixed = put
     getFixed = get
 
