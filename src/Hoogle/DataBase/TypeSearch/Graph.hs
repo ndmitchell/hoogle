@@ -20,6 +20,7 @@ import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer.Index
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Control.Monad.State
 import General.Code
 
@@ -35,7 +36,7 @@ data TypePair = TypePair TypeContext Type
 
 data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
 
-data Node = Node [GraphResult] [(Lookup Node, Lookup Cost)]
+data Node = Node [GraphResult] [(Lookup Node, Lookup Cost, Binding)]
 
 -- GraphResult.TypeScore is invalid within a node
 -- is not saved, is loaded as blank
@@ -64,7 +65,9 @@ Those nodes in the graph which have not yet been explored
 -}
 
 data S = S
-    {costs :: IndexMutable Cost
+    {aliases :: Aliases
+    ,instances :: Instances
+    ,costs :: IndexMutable Cost
     ,graph :: Map.Map TypePair (Lookup Node, Node)
     }
 
@@ -73,8 +76,8 @@ newGraph :: Aliases -> Instances -> [(Lookup Entry, ArgPos, TypeSig)] ->
             IndexMutable Cost -> (IndexMutable Cost, Graph)
 newGraph as is xs cost = (costs sN, f (graph sN))
     where
-        sN = execState (initialGraph is xs >> populateGraph >> reverseLinks) s0
-        s0 = S cost Map.empty
+        sN = execState (initialGraph xs >> populateGraph >> reverseLinks) s0
+        s0 = S as is cost Map.empty
 
         f mp = Graph
             (fromListMany [(t,(c,v)) | (TypePair c t,(v,_)) <- Map.toList mp])
@@ -86,8 +89,9 @@ fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortF
 
 
 -- create the initial graph
-initialGraph :: Instances -> [(Lookup Entry, ArgPos, TypeSig)] -> State S ()
-initialGraph is xs = do
+initialGraph :: [(Lookup Entry, ArgPos, TypeSig)] -> State S ()
+initialGraph xs = do
+    is <- gets instances
     let f i xs@((t,_):_) = (t, (newLookup i, Node (sortOn graphResultEntry $ map snd xs) []))
         r = Map.fromAscList $ zipWith f [0..] $ groupFst $ sortFst $ map (newGraphResult is) xs
     modify $ \s -> s{graph=r}
@@ -101,7 +105,46 @@ newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
 
 -- add links between each step
 populateGraph :: State S ()
-populateGraph = undefined
+populateGraph = do
+    todo <- liftM Map.keys $ gets graph
+    f Set.empty todo
+    where
+        f done [] = return ()
+        f done (t:odo) | Set.member t done = f done odo
+        f done (t:odo) = do
+            as <- gets aliases
+            is <- gets instances
+            let nxt = followNode as is t
+            r <- mapM g nxt
+            modify $ \s -> s{graph = Map.adjust (\(ni, Node a []) -> (ni, Node a r)) t $ graph s}
+            f (Set.insert t done) (map fst3 nxt ++ odo)
+
+        g (t,c,b) = do
+            (costs,ci) <- liftM (getIndex c) $ gets costs
+            modify $ \s -> s{costs=costs}
+
+            mp <- gets graph
+            ni <- case Map.lookup t mp of
+                Just (ni,_) -> return ni
+                Nothing -> do
+                    let ni = Map.size mp
+                    modify $ \s -> s{graph = Map.insert t (newLookup ni, Node [] []) mp}
+                    return $ newLookup ni
+
+            return (ni, ci, b)
+            
+
+-- follow a node to all possible next steps
+-- all next ones must have already been alpha flattened
+--
+-- follow:
+--  * Unboxing:     m a |-> a, M a |-> a
+--  * Restriction:  M |-> a
+--  * Alias:        a |-> alias(a)
+--  * Context:      C a => a |-> a
+--  * Membership:   C M => M |-> C a => a
+followNode :: Aliases -> Instances -> TypePair -> [(TypePair, Cost, Binding)]
+followNode _ _ _ = []
 
 
 -- add reverse links where you can, i.e. aliases
@@ -140,6 +183,8 @@ contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
 
 ---------------------------------------------------------------------
 -- GRAPH SEARCHING
+
+-- must search for each (node,bindings) pair
 
 data GraphSearch = GraphSearch
 
