@@ -28,10 +28,11 @@ type ArgPos = Int
 type Binding = [(String,String)]
 
 -- first argument is a list of contexts, (Context,Variable)
-data TypePair = TypePair [(String,String)] Type
+type TypeContext = [(String,String)]
+data TypePair = TypePair TypeContext Type
 
 
-data Graph = Graph (Map.Map TypePair (Lookup Node)) (Index Node)
+data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
 
 data Node = Node [GraphResult] [(Lookup Node, Lookup Cost)]
 
@@ -73,8 +74,13 @@ newGraph as is xs cost = (costs sN, f (graph sN))
         sN = execState (initialGraph xs >> populateGraph >> reverseLinks) s0
         s0 = S cost Map.empty
 
-        f mp = Graph (Map.map fst mp)
+        f mp = Graph
+            (fromListMany [(t,(c,v)) | (TypePair c t,(v,_)) <- Map.toList mp])
             (newIndex $ map snd $ sortFst $ Map.elems mp)
+
+
+fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
+fromListMany = Map.fromList . map (fst . head &&& map snd) . groupFst . sortFst
 
 
 -- create the initial graph
