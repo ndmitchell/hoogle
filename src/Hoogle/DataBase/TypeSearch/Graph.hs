@@ -144,12 +144,12 @@ populateGraph = do
 --  * Context:      C a => a |-> a
 --  * Membership:   C M => M |-> C a => a
 followNode :: Aliases -> Instances -> TypePair -> [(TypePair, Cost, Binding)]
-followNode _ _ _ = []
+followNode _ _ _ = [] -- TODO
 
 
 -- add reverse links where you can, i.e. aliases
 reverseLinks :: State S ()
-reverseLinks = undefined
+reverseLinks = return () -- TODO
 
 
 -- normalise the letters in a type, so that:
