@@ -10,7 +10,7 @@ import Data.Generics.UniplateOn
 -- DATA TYPES
 
 data TypeSig = TypeSig Constraint Type
-               deriving Eq
+               deriving (Eq,Ord)
 
 type Constraint = [Type]
 
@@ -19,7 +19,7 @@ data Type = TApp Type [Type] -- a list of types, first one being the constructor
           | TLit String -- bound variables, Maybe, ":", "(,)", "(,,)" (tuple)
           | TVar String -- unbound variables, "a"
           | TFun [Type]
-          deriving Eq
+          deriving (Eq,Ord)
 
 
 tApp :: Type -> [Type] -> Type
