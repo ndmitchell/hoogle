@@ -12,12 +12,10 @@ data Cost = Cost CostScore CostDetail
 
 instance BinaryDefer Cost where
     put (Cost a b) = put a
-    get = undefined
+    get = get1 newCost
     size _ = size (undefined :: CostDetail)
     putFixed (Cost a b) = putFixed b
-    getFixed = do
-        b <- getFixed
-        return $ Cost (costScore b) b
+    getFixed = getFixed1 newCost
 
 
 data CostDetail
@@ -27,14 +25,14 @@ data CostDetail
       deriving (Eq,Ord,Show)
 
 instance BinaryDefer CostDetail where
-    put = undefined
-    get = undefined
+    put = error "BinaryDefer.CostDetail.put"
+    get = error "BinaryDefer.CostDetail.get"
 
 
 
 
 -- transform the costCode to a costScore
-costScore :: CostDetail -> CostScore
-costScore _ = 1
+newCost :: CostDetail -> Cost
+newCost xs = Cost 1 xs
 
 
