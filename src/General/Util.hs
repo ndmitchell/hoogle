@@ -101,6 +101,9 @@ sortFst :: Ord k => [(k,v)] -> [(k,v)]
 sortFst = sortOn fst
 
 
+groupFst :: Eq k => [(k,v)] -> [[(k,v)]]
+groupFst = groupBy ((==) `on` fst)
+
 
 nubIntOn :: (v -> Int) -> [v] -> [v]
 nubIntOn f = g IntSet.empty
