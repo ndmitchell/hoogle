@@ -30,6 +30,7 @@ type Binding = [(String,String)]
 -- first argument is a list of contexts, (Context,Variable)
 type TypeContext = [(String,String)]
 data TypePair = TypePair TypeContext Type
+                deriving (Eq,Ord)
 
 
 data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
@@ -86,7 +87,10 @@ fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortF
 
 -- create the initial graph
 initialGraph :: Instances -> [(Lookup Entry, ArgPos, TypeSig)] -> State S ()
-initialGraph is xs = undefined
+initialGraph is xs = do
+    let f i xs@((t,_):_) = (t, (newLookup i, Node (sortOn graphResultEntry $ map snd xs) []))
+        r = Map.fromAscList $ zipWith f [0..] $ groupFst $ sortFst $ map (newGraphResult is) xs
+    modify $ \s -> s{graph=r}
 
 
 -- create a result, and figure out what the relative is
