@@ -26,11 +26,11 @@ data Graphs = Graphs
     }
 
 instance BinaryDefer Graphs where
-    put = undefined
-    get = undefined
+    put (Graphs a b c) = put3 a b c
+    get = get3 Graphs
 
 instance Show Graphs where
-    show = undefined
+    show = error "Show.Graphs.show"
 
 
 ---------------------------------------------------------------------

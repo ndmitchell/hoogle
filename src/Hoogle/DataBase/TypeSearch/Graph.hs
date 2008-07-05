@@ -18,6 +18,7 @@ import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.Item
 import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
+import Data.Binary.Defer hiding (get,put)
 import Data.Binary.Defer.Index
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -36,7 +37,17 @@ data TypePair = TypePair TypeContext Type
 
 data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
 
+instance BinaryDefer Graph where
+    put (Graph a b) = put2 a b
+    get = get2 Graph
+
+
 data Node = Node [GraphResult] [(Lookup Node, Lookup Cost, Binding)]
+
+instance BinaryDefer Node where
+    put (Node a b) = put2 a b
+    get = get2 Node
+
 
 -- GraphResult.TypeScore is invalid within a node
 -- is not saved, is loaded as blank
@@ -46,6 +57,10 @@ data GraphResult = GraphResult
     ,graphResultBinding :: Binding
     ,graphResultScore :: TypeScore
     }
+
+instance BinaryDefer GraphResult where
+    put (GraphResult a b c d) = put3 a b c
+    get = get3 (\a b c -> GraphResult a b c blankTypeScore)
 
 
 ---------------------------------------------------------------------
