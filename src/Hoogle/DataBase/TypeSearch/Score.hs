@@ -18,3 +18,5 @@ instance Ord TypeScore where
 instance Show TypeScore where
     show = show . typeScoreCosts
 
+
+blankTypeScore = TypeScore 0 []

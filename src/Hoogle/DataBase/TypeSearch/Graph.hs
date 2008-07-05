@@ -41,7 +41,7 @@ data Node = Node [GraphResult] [(Lookup Node, Lookup Cost)]
 data GraphResult = GraphResult
     {graphResultEntry :: Lookup Entry
     ,graphResultPos :: ArgPos
-    ,graphResultBinding :: [Binding]
+    ,graphResultBinding :: Binding
     ,graphResultScore :: TypeScore
     }
 
@@ -68,10 +68,11 @@ data S = S
     }
 
 
-newGraph :: Aliases -> Instances -> [(Lookup Entry, ArgPos, TypeSig)] -> IndexMutable Cost -> (IndexMutable Cost, Graph)
+newGraph :: Aliases -> Instances -> [(Lookup Entry, ArgPos, TypeSig)] ->
+            IndexMutable Cost -> (IndexMutable Cost, Graph)
 newGraph as is xs cost = (costs sN, f (graph sN))
     where
-        sN = execState (initialGraph xs >> populateGraph >> reverseLinks) s0
+        sN = execState (initialGraph is xs >> populateGraph >> reverseLinks) s0
         s0 = S cost Map.empty
 
         f mp = Graph
@@ -80,12 +81,18 @@ newGraph as is xs cost = (costs sN, f (graph sN))
 
 
 fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
-fromListMany = Map.fromList . map (fst . head &&& map snd) . groupFst . sortFst
+fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortFst
 
 
 -- create the initial graph
-initialGraph :: [(Lookup Entry, ArgPos, TypeSig)] -> State S ()
-initialGraph = undefined
+initialGraph :: Instances -> [(Lookup Entry, ArgPos, TypeSig)] -> State S ()
+initialGraph is xs = undefined
+
+
+-- create a result, and figure out what the relative is
+newGraphResult :: Instances -> (Lookup Entry, ArgPos, TypeSig) -> (TypePair, GraphResult)
+newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
+    where (bind,tp) = alphaFlatten $ contextNorm is t
 
 
 -- add links between each step
@@ -121,8 +128,10 @@ alphaFlatten (TypePair a b) = (bind, TypePair a2 b2)
 -- disguard any context which relates to variables not in the type
 -- convert using whatever scheme the Instances say
 contextNorm :: Instances -> TypeSig -> TypePair
-contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a] b
-    where (TypeSig a b) = normContext is t
+contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
+    where
+        (TypeSig a b) = normContext is t
+        vs = [v | TVar v <- universe b]
 
 
 ---------------------------------------------------------------------
