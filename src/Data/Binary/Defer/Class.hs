@@ -161,3 +161,17 @@ instance BinaryDefer a => BinaryDefer [a] where
             xs <- replicateM 100 get
             ys <- getDefer get
             return (xs++ys)
+
+
+newtype Defer a = Defer a
+
+fromDefer :: Defer a -> a
+fromDefer (Defer x) = x
+
+instance BinaryDefer a => BinaryDefer (Defer a) where
+    put = putDefer . put
+    get = getDefer $ get
+    putFixed = put
+    getFixed = get
+
+
