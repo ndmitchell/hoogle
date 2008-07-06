@@ -48,7 +48,8 @@ actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
         exitMessage ["Convert, input file not found: " ++ infile]
 
     putStrLn $ "Converting " ++ infile
-    convert infile outfile
+    convert (Debug `elem` queryFlags q) infile outfile
+    putStrLn $ "Written " ++ outfile
 
 
 actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
