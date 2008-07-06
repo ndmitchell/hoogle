@@ -2,6 +2,7 @@
 module General.Util where
 
 import Control.Monad
+import Data.Char
 import Data.List
 import System.Directory
 import System.Exit
@@ -177,3 +178,7 @@ disjoint xs = xs == nub xs
 -- useful command line auxiliary
 exitMessage :: [String] -> IO ()
 exitMessage msg = putStr (unlines msg) >> exitFailure
+
+
+lower = map toLower
+upper = map toUpper
