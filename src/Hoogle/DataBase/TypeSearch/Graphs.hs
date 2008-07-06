@@ -161,7 +161,7 @@ searchNext = do
             gs <- return $ map (graphFollow i) gs
             modify $ \s -> s
                 {graphs=gs
-                ,costMin=sum (map graphCost gs)}
+                ,costMin=minimum (map graphCost gs)}
             return True
 
 
