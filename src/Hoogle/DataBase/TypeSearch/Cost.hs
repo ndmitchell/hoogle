@@ -19,9 +19,16 @@ instance BinaryDefer Cost where
 
 
 data CostDetail
-    = CostAlias String String -- ^ I followed an alias from a to b
+    = CostReverse CostDetail -- ^ Reverse/Reverse is illegal
+    -- added outside the graph
     | CostDelArg -- ^ I deleted an argument from the result
     | CostArgReorder -- ^ I reordered some arguments
+    -- standard
+    | CostAlias String -- ^ a, where a |-> alias a
+    | CostUnbox String -- ^ M, where M a |-> a, _ for a variable
+    | CostRestrict String -- ^ M, where M |-> a
+    | CostContext String -- ^ C, where C a => a |-> a
+    | CostMembership String String -- ^ C M, where C M => M |-> C a => a
       deriving (Eq,Ord,Show)
 
 instance BinaryDefer CostDetail where
