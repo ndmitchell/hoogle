@@ -19,7 +19,8 @@ instance Show TypeScore where
     show = show . typeScoreCosts
 
 
+blankTypeScore :: TypeScore
 blankTypeScore = TypeScore 0 []
 
-
-sumTypeScore xs = TypeScore (sum $ map typeScoreTotal xs) (concatMap typeScoreCosts xs)
+newTypeScore :: [Cost] -> TypeScore
+newTypeScore cs = TypeScore (sum $ map costScore cs) cs

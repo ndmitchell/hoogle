@@ -196,5 +196,5 @@ newGraphsResults :: [GraphResult] -> GraphResult -> GraphsResult
 newGraphsResults args res =
     (graphResultEntry res
     ,zipWith ArgPosNum [0..] $ map graphResultPos args
-    ,sumTypeScore $ map graphResultScore $ args++[res]
+    ,newTypeScore $ nub (concatMap (typeScoreCosts . graphResultScore) $ args++[res])
     )
