@@ -59,6 +59,7 @@ instance Show CostDetail where
     show (CostAlias x) = "alias " ++ x
     show (CostUnbox x) = "unbox " ++ (if null x then "_" else x)
     show (CostRestrict x) = "restrict " ++ x
+    show (CostDelArg) = "delarg"
     show x = "CostDetail.show.todo"
 
 

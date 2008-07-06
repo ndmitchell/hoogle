@@ -185,16 +185,18 @@ addInfo pos res info = (Just info2, if any null info2 then [] else ans)
         ind = maybe 0 (+1) pos
         info2 = zipWith (\i x -> [res|i==ind] ++ x) [0..] info
 
-        ans = [ newGraphsResults rs r
+        arityEntry = graphResultPos $ head $ head info
+        badargs = replicate (1 + arityEntry - length info) $ newCost CostDelArg
+        ans = [ newGraphsResults badargs rs r
               | (r:rs) <- sequence $ info2 !!+ (ind,[res])
               , disjoint $ map graphResultPos rs]
 
 
 -- given the results for each argument, and the result
 -- create a final result structure
-newGraphsResults :: [GraphResult] -> GraphResult -> GraphsResult
-newGraphsResults args res =
+newGraphsResults :: [Cost] -> [GraphResult] -> GraphResult -> GraphsResult
+newGraphsResults costs args res =
     (graphResultEntry res
     ,zipWith ArgPosNum [0..] $ map graphResultPos args
-    ,newTypeScore $ nub (concatMap (typeScoreCosts . graphResultScore) $ args++[res])
+    ,newTypeScore $ costs ++ nub (concatMap (typeScoreCosts . graphResultScore) $ args++[res])
     )
