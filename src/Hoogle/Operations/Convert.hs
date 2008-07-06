@@ -17,7 +17,7 @@ convert debugCheck tb db = do
             saveDataBase db y
 
             when (debugCheck) $ do
-                putStr "Validating creation: "
+                putStr "Validating... "
                 hFlush stdout
                 z <- loadDataBase db
                 if show y == show z
