@@ -146,7 +146,9 @@ newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
 populateGraph :: State S ()
 populateGraph = do
     todo <- liftM Map.keys $ gets graph
-    f Set.empty todo
+    -- ensure "a" is in the graph, so you have a default
+    -- start point
+    f Set.empty (TypePair [] (TVar "a") : todo)
     where
         f done [] = return ()
         f done (t:odo) | Set.member t done = f done odo
@@ -254,8 +256,10 @@ data GraphSearch = GraphSearch
     }
 
 
-graphSearch :: Aliases -> Instances -> Index Cost -> Graph -> TypeSig -> Maybe GraphSearch
-graphSearch as is costs g@(Graph a b) t = do
+-- TODO: Should be more lennient in where you start
+-- ideally, strip context, follow aliases and unbox, and eventually just "a"
+graphSearch :: Aliases -> Instances -> Index Cost -> Graph -> TypeSig -> GraphSearch
+graphSearch as is costs g@(Graph a b) t = fromJust $ do
         i <- graphStart g t2
         return $ graphAdd i bind blankTypeScore s0
     where

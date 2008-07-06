@@ -94,9 +94,7 @@ type GraphsResult = (Lookup Entry,[EntryView],TypeScore)
 graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [GraphsResult]
 graphsSearch as is gs (TypeSig con ts) = evalState search s0
     where
-        -- if resG is Nothing, we cannot find an answer
-        -- if argsG is Nothing, we must skip that one
-        s0 = S IntMap.empty IntHeap.empty (map fromJust $ resG:argsG) 0 (length argsG)
+        s0 = S IntMap.empty IntHeap.empty (resG:argsG) 0 (length argsG)
         argsG = map (graphSearch as is (costs gs) (argGraph gs) . TypeSig con) args
         resG = graphSearch as is (costs gs) (resGraph gs) (TypeSig con res)
 
