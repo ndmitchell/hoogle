@@ -21,6 +21,7 @@ import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import qualified Data.IntMap as IntMap
+import qualified Data.IntHeap as IntHeap
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Control.Monad.State  hiding (get,put)
@@ -243,6 +244,11 @@ contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
 -- must search for each (node,bindings) pair
 
 data GraphSearch = GraphSearch
+    {cost :: CostScore
+    ,found :: [GraphResult]
+    ,reached :: Map.Map (Lookup Node, Binding) TypeScore
+    ,available :: IntHeap.IntHeap (Lookup Node, Binding, Cost)
+    }
 
 
 graphSearch :: Index Cost -> Graph -> TypeSig -> GraphSearch
@@ -251,17 +257,17 @@ graphSearch = undefined
 
 -- those entires which are at a newly discovered node
 graphFound :: GraphSearch -> [GraphResult]
-graphFound = undefined
+graphFound = found
+
+
+-- what is the minimum cost any future graphFound result may have
+graphCost :: GraphSearch -> CostScore
+graphCost = cost
 
 
 -- follow a graph along a cost edge, that is now free
 graphFollow :: Lookup Cost -> GraphSearch -> GraphSearch
 graphFollow = undefined
-
-
--- what is the minimum cost any future graphFound result may have
-graphCost :: GraphSearch -> CostScore
-graphCost = undefined
 
 
 -- ask what possible node could be followed next
