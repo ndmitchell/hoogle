@@ -173,10 +173,18 @@ populateGraph = do
 --  * Context:      C a => a |-> a
 --  * Membership:   C M => M |-> C a => a
 followNode :: Aliases -> Instances -> TypePair -> [(TypePair, Cost, Binding)]
-followNode as is (TypePair c t) = -- TODO: still need to alpha flatten
-    [(TypePair c (f b), newCost $ CostUnbox a, fullBinding) | (TApp (TLit a) [b], f) <- contexts t]
+followNode as is (TypePair c t) =
+        -- TODO: Should do something sensible with bindings
+        [(snd $ alphaFlatten a, newCost b, c) | (a,b,c) <- next]
     where
-        fullBinding = map (id &&& id) [v | TVar v <- universe t]
+        next = unbox
+
+        unbox = concatMap f $ contexts t
+            where
+                f (TApp (TLit a) [b], gen) = [(TypePair c (gen b), CostUnbox a, [])]
+                f (TApp (TVar a) [b], gen) = [(TypePair c (gen b), CostUnbox "", [])]
+                f _ = []
+
 
 
 -- add reverse links where you can, i.e. aliases
