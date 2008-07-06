@@ -20,9 +20,11 @@ instance BinaryDefer Cost where
 
 data CostDetail
     = CostReverse CostDetail -- ^ Reverse/Reverse is illegal
-    -- added outside the graph
+    -- argument manipulations
     | CostDelArg -- ^ I deleted an argument from the result
     | CostArgReorder -- ^ I reordered some arguments
+    -- free variables
+    | CostFreeVar -- TODO: Add here
     -- standard
     | CostAlias String -- ^ a, where a |-> alias a
     | CostUnbox String -- ^ M, where M a |-> a, _ for a variable
