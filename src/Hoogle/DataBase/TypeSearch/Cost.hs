@@ -18,7 +18,8 @@ instance BinaryDefer Cost where
     getFixed = getFixed1 newCost
 
 instance Show Cost where
-    show (Cost _ a) = show a
+    show (Cost a b) = show b
+    showList xs = showList [b | Cost a b <- xs]
 
 
 data CostDetail
@@ -61,6 +62,8 @@ instance Show CostDetail where
     show (CostRestrict x) = "restrict " ++ x
     show (CostDelArg) = "delarg"
     show x = "CostDetail.show.todo"
+
+    showList = showString . concat . intersperse ", " . map show
 
 
 -- transform the costCode to a costScore
