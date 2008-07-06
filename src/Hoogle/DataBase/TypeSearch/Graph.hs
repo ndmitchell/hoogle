@@ -20,6 +20,7 @@ import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
+import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Control.Monad.State  hiding (get,put)
@@ -43,12 +44,18 @@ data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
              deriving Show
 
 showGraph :: Index Cost -> Graph -> String
-showGraph cs (Graph mp ns) = unlines $ concat
-        [ f (TypePair b a) (lookupIndex c ns) | (a,bs) <- Map.toList mp, (b,c) <- bs]
+showGraph cs (Graph mp ns) = unlines $ concatMap (uncurry f) $ IntMap.elems mp2
     where
-        f t (Node res link) = show t : map ("    " ++) (unwords (map h res) : map g link)
-        g (ni,ci,b) = show (ni,ci,b)
-        h (GraphResult a b c _) = show a ++ "." ++ show b ++ (if null c then "" else show c)
+        mp2 :: IntMap.IntMap (TypePair,Node)
+        mp2 = IntMap.fromList [(lookupKey n, (TypePair c t, lookupIndex n ns)) | (t,as) <- Map.toList mp, (c,n) <- as]
+
+        f t (Node res link) = show t : map ("    " ++) (results : map g link)
+            where
+                results = if null rs then "No results" else unwords rs
+                rs = [show a ++ "." ++ show b ++ (if null c then "" else show c) | GraphResult a b c _ <- res]
+
+        g (ni,ci,b) = show (fst $ mp2 IntMap.! lookupKey ni) ++ " >>> " ++ show (lookupIndex ci cs) ++ " " ++ show b
+
 
 instance BinaryDefer Graph where
     put (Graph a b) = put2 a b
