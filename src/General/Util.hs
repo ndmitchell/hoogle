@@ -4,6 +4,7 @@ module General.Util where
 import Control.Monad
 import Data.List
 import System.Directory
+import System.Exit
 import qualified Data.IntSet as IntSet
 
 
@@ -171,3 +172,8 @@ initLast (x:xs) = (x:a, b)
 
 disjoint :: Eq a => [a] -> Bool
 disjoint xs = xs == nub xs
+
+
+-- useful command line auxiliary
+exitMessage :: [String] -> IO ()
+exitMessage msg = putStr (unlines msg) >> exitFailure
