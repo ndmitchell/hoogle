@@ -4,6 +4,7 @@ module CmdLine.Action(actionCmdLine) where
 import CmdLine.Flag
 import CmdLine.Query
 import CmdLine.Search
+import CmdLine.Files
 import General.Code
 import Hoogle.All
 import Test.All
@@ -53,8 +54,13 @@ actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
 
 
 actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
-    db <- loadDataBase $ head [x | Dump x <- queryFlags q]
-    print db
+    let part = head [x | Dump x <- queryFlags q]
+    mapM_ (f part) =<< getDataBaseFiles (queryFlags q) (fromRight $ query q)
+    where
+        f part file = do
+            d <- loadDataBase file
+            putStrLn $ "File: " ++ file
+            putStr $ showDataBase part d
 
 
 actionCmdLine q | not $ usefulQuery $ fromRight $ query q = do
