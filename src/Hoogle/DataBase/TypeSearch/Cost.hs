@@ -27,7 +27,7 @@ data CostDetail
     | CostFreeVar -- TODO: Add here
     -- standard
     | CostAlias String -- ^ a, where a |-> alias a
-    | CostUnbox String -- ^ M, where M a |-> a, _ for a variable
+    | CostUnbox String -- ^ M, where M a |-> a, "" for a variable
     | CostRestrict String -- ^ M, where M |-> a
     | CostContext String -- ^ C, where C a => a |-> a
     | CostMembership String String -- ^ C M, where C M => M |-> C a => a
