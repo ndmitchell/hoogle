@@ -23,7 +23,11 @@ data Graphs = Graphs
     {argGraph :: Graph -- the arguments
     ,resGraph :: Graph -- the results
     ,costs :: Index Cost -- how much each link costs
-    } deriving Show
+    }
+
+instance Show Graphs where
+    show (Graphs a b c) = "== Arguments ==\n\n" ++ showGraph c a ++
+                          "\n== Results ==\n\n" ++ showGraph c b
 
 instance BinaryDefer Graphs where
     put (Graphs a b c) = put3 a b c

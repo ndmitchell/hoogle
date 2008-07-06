@@ -6,7 +6,7 @@
 -}
 
 module Hoogle.DataBase.TypeSearch.Graph(
-    Graph, newGraph,
+    Graph, newGraph, showGraph,
     GraphResult(..), ArgPos, Binding,
     GraphSearch, graphSearch, graphFound, graphFollow, graphCost, graphNext
     ) where
@@ -33,11 +33,22 @@ type Binding = [(String,String)]
 -- first argument is a list of contexts, (Context,Variable)
 type TypeContext = [(String,String)]
 data TypePair = TypePair TypeContext Type
-                deriving (Eq,Ord,Show)
+                deriving (Eq,Ord)
+
+instance Show TypePair where
+    show (TypePair c t) = show $ TypeSig [TApp (TLit a) [TVar b] | (a,b) <- c] t
 
 
 data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
              deriving Show
+
+showGraph :: Index Cost -> Graph -> String
+showGraph cs (Graph mp ns) = unlines $ concat
+        [ f (TypePair b a) (lookupIndex c ns) | (a,bs) <- Map.toList mp, (b,c) <- bs]
+    where
+        f t (Node res link) = show t : map ("    " ++) (unwords (map h res) : map g link)
+        g (ni,ci,b) = show (ni,ci,b)
+        h (GraphResult a b c _) = show a ++ "." ++ show b ++ (if null c then "" else show c)
 
 instance BinaryDefer Graph where
     put (Graph a b) = put2 a b
