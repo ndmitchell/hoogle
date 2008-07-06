@@ -45,7 +45,7 @@ instance Show DataBase where
 
 showDataBaseParts :: DataBase -> [(String,String)]
 showDataBaseParts (DataBase a b c d e f) =
-    let name * val = (name, " = " ++ name ++ " =\n\n" ++ show val ++ "\n\n") in
+    let name * val = (name, "= " ++ name ++ " =\n\n" ++ show val ++ "\n\n") in
     ["Items" * a,"NameSearch" * b, "TypeSearch" * c
     ,"Suggest" * d, "Aliases" * e, "Instances" * f]
 
@@ -55,5 +55,5 @@ showDataBase "" d = show d
 showDataBase x d | null r = "Error: Unknown database part, " ++ x
                  | length r > 1 = "Error: Ambiguous database part, " ++ x
                  | otherwise = head r
-    where r = [b | (a,b) <- showDataBaseParts d, lower x `isPrefixOf` lower b]
+    where r = [b | (a,b) <- showDataBaseParts d, lower x `isPrefixOf` lower a]
 

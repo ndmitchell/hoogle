@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.All
-    (DataBase
+    (DataBase, showDataBase
     ,TextScore, TypeScore
     ,module Hoogle.DataBase.All
     ,module Hoogle.DataBase.Item
