@@ -39,18 +39,15 @@ createAliases ti = Aliases $ Map.fromList
     , let (TLit name, args) = fromTApp lhs]
 
 
+-- follow an alias at this point
 -- these are all the one step alias followings
--- [String] is free variables in and out
--- does a deep search for aliases
-followAliases :: Aliases -> TypeSig -> [TypeSig]
-followAliases (Aliases mp) (TypeSig a b) = map (TypeSig a) $ concatMap f $ contexts b
-    where
-        f (TApp (TLit x) xs, gen) = case Map.lookup x mp of
-            Just a@(Alias vs rhs) | length vs == length xs -> [gen $ followAlias xs a]
-            Nothing -> []
-        f (TLit x, gen) = f (TApp (TLit x) [], gen)
-        f _ = []
-        
+followAliases :: Aliases -> Type -> Maybe (String,Type)
+followAliases (Aliases mp) (TApp (TLit x) xs) = case Map.lookup x mp of
+    Just a@(Alias vs rhs) | length vs == length xs -> Just (x, followAlias xs a)
+    Nothing -> Nothing
+followAliases as (TLit x) = followAliases as (TApp (TLit x) [])
+followAliases as _ = Nothing
+
 
 followAlias :: [Type] -> Alias -> Type
 followAlias ts (Alias vs rhs) = transform f rhs
