@@ -5,17 +5,12 @@
 -}
 
 module CmdLine.Flag(
-    failMessage,
     CmdFlag(..), flagsHelp,
     flagsWebArgs, flagsWebQuery, flagsCmdLine
     ) where
 
 import General.Code
 
-
--- useful command line auxiliary
-failMessage :: [String] -> IO ()
-failMessage msg = putStr (unlines msg) >> exitFailure
 
 ---------------------------------------------------------------------
 -- The flags
