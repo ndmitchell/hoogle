@@ -30,8 +30,9 @@ searchName :: DataBase -> String -> [(Entry,EntryView,TextScore)]
 searchName db = searchNameSearch (nameSearch db) (entries $ items db)
 
 
-searchType :: DataBase -> TypeSig -> [(Entry,EntryView,TypeScore)]
-searchType db = searchTypeSearch (typeSearch db) (entries $ items db)
+searchType :: DataBase -> TypeSig -> [(Entry,[EntryView],TypeScore)]
+-- although aliases and instances are given, they are usually not used
+searchType db = searchTypeSearch (aliases db) (instances db) (typeSearch db) (entries $ items db)
 
 
 entryParents :: DataBase -> Entry -> Maybe (Module, Package)

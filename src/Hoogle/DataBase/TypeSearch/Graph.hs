@@ -27,6 +27,7 @@ import qualified Data.Set as Set
 import Control.Monad.State  hiding (get,put)
 import qualified Control.Monad.State as S
 import General.Code
+import Data.Key
 
 
 type ArgPos = Int
@@ -244,15 +245,47 @@ contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
 -- must search for each (node,bindings) pair
 
 data GraphSearch = GraphSearch
-    {cost :: CostScore
+    {graphGS :: Map.Map Type [(TypeContext, Lookup Node)]
+    ,nodesGS :: Index Node
+    ,costsGS :: Index Cost
     ,found :: [GraphResult]
     ,reached :: Map.Map (Lookup Node, Binding) TypeScore
     ,available :: IntHeap.IntHeap (Lookup Node, Binding, Cost)
     }
 
 
-graphSearch :: Index Cost -> Graph -> TypeSig -> GraphSearch
-graphSearch = undefined
+graphSearch :: Aliases -> Instances -> Index Cost -> Graph -> TypeSig -> Maybe GraphSearch
+graphSearch as is costs g@(Graph a b) t = do
+        i <- graphStart g t2
+        return $ graphAdd i bind blankTypeScore s0
+    where
+        s0 = GraphSearch a b costs [] Map.empty IntHeap.empty
+        (bind,t2) = alphaFlatten $ contextNorm is t
+
+
+graphStart :: Graph -> TypePair -> Maybe (Lookup Node)
+graphStart (Graph mp _) (TypePair c t) = do
+    r <- Map.lookup t mp
+    return $ snd $ head $ sortWith f r
+    where
+        -- ideally equal, otherwise one with fewer contexts
+        f (c2,_) | null more = Left (length less)
+                 | otherwise = Right (length more)
+            where more = c2 \\ c    
+                  less = c  \\ c2
+
+
+-- you have reached a node
+graphAdd :: Lookup Node -> Binding -> TypeScore -> GraphSearch -> GraphSearch
+graphAdd ni bind score gs | (ni,bind) `Map.member` reached gs = gs
+                          | otherwise =
+    gs{reached = Map.insert (ni,bind) score $ reached gs
+      ,found = res ++ found gs
+      ,available = IntHeap.pushList nxt $ available gs}
+    where
+        Node gr link = lookupIndex ni (nodesGS gs)
+        res = [x{graphResultScore = score} | x <- gr]
+        nxt = [(costScore c, (ni,[],c)) | (ni,ci,bind) <- link, let c = lookupIndex ci (costsGS gs)]
 
 
 -- those entires which are at a newly discovered node
@@ -262,7 +295,7 @@ graphFound = found
 
 -- what is the minimum cost any future graphFound result may have
 graphCost :: GraphSearch -> CostScore
-graphCost = cost
+graphCost = fromMaybe maxBound . IntHeap.min . available
 
 
 -- follow a graph along a cost edge, that is now free

@@ -67,3 +67,5 @@ newCost :: CostDetail -> Cost
 newCost xs = Cost 1 xs
 
 
+costScore :: Cost -> CostScore
+costScore (Cost a b) = a

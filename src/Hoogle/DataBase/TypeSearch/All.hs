@@ -39,6 +39,6 @@ createTypeSearch aliases instances xs = TypeSearch $ newGraphs aliases instances
 ---------------------------------------------------------------------
 -- SEARCHING
 
-searchTypeSearch :: TypeSearch -> Index Entry -> TypeSig -> [(Entry,EntryView,TypeScore)]
-searchTypeSearch (TypeSearch g) i t =
-    [(lookupIndex a i, b, c) | (a,b,c) <- graphsSearch g t]
+searchTypeSearch :: Aliases -> Instances -> TypeSearch -> Index Entry -> TypeSig -> [(Entry,[EntryView],TypeScore)]
+searchTypeSearch as is (TypeSearch g) i t =
+    [(lookupIndex a i, b, c) | (a,b,c) <- graphsSearch as is g t]

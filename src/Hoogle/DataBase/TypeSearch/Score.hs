@@ -20,3 +20,6 @@ instance Show TypeScore where
 
 
 blankTypeScore = TypeScore 0 []
+
+
+sumTypeScore xs = TypeScore (sum $ map typeScoreTotal xs) (concatMap typeScoreCosts xs)

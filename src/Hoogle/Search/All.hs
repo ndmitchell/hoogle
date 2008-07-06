@@ -37,5 +37,5 @@ nameSearch db query = [Result e (entryParents db e) [v] [TextScore s]
 
 
 typeSearch :: DataBase -> TypeSig -> [Result]
-typeSearch db query = [Result e (entryParents db e) [v] [TypeScore s]
+typeSearch db query = [Result e (entryParents db e) v [TypeScore s]
                       | (e,v,s) <- searchType db query]
