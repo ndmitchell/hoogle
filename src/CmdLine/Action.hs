@@ -13,13 +13,13 @@ import Text.ParserCombinators.Parsec
 actionCmdLine :: CmdQuery -> IO ()
 
 actionCmdLine CmdQuery{queryText = text, query = Left err} = do
-    failMessage ["Parse error:", "  " ++ text
+    exitMessage ["Parse error:", "  " ++ text
                 ,replicate (sourceColumn (errorPos err) + 1) ' ' ++ "^"
                 ,show err]
 
 
 actionCmdLine q | not $ null $ queryBadFlags q = do
-    failMessage ["Unrecognised or malformed flags:"
+    exitMessage ["Unrecognised or malformed flags:"
                 ,"  " ++ concat (intersperse ", " $ map show $ queryBadFlags q)
                 ,"For details on correct flags pass --help"]
 
@@ -44,7 +44,8 @@ actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
         outfile = headDef (replaceExtension infile "hoo") [x | Output x <- queryFlags q]
 
     exist <- doesFileExist infile
-    when (not exist) $ failMessage ["Convert, input file not found: " ++ infile]
+    when (not exist) $
+        exitMessage ["Convert, input file not found: " ++ infile]
 
     putStrLn $ "Converting " ++ infile
     convert infile outfile
@@ -56,7 +57,7 @@ actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
 
 
 actionCmdLine q | not $ usefulQuery $ fromRight $ query q = do
-    failMessage ["No query entered"
+    exitMessage ["No query entered"
                 ,"Try --help for command line options"]
 
 

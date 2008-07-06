@@ -74,7 +74,7 @@ dataFileDir flags = f [x | DataPath x <- flags]
                       else return (x,ft)
 
             when (ft == NotFound) $
-                failMessage ["File given with the --data flag does not exist"
+                exitMessage ["File given with the --data flag does not exist"
                             ,"    " ++ x]
             (fs,ds) <- f xs
             return $ if ft == File then (x:fs,ds) else (fs,x:ds)
@@ -84,7 +84,7 @@ dataFileDir flags = f [x | DataPath x <- flags]
 resolveName :: [FilePath] -> String -> IO FilePath
 resolveName dirs x = f (dirs ++ ["."])
     where
-        f [] = failMessage ["DataBase not found","    " ++ x] >> return ""
+        f [] = exitMessage ["DataBase not found","    " ++ x] >> return ""
         f (d:ds) = do
             let s = d </> x <.> "hoo"
             b <- doesFileExist s
