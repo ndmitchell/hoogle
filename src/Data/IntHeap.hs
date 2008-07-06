@@ -1,7 +1,10 @@
 
 module Data.IntHeap where
 
+import Prelude hiding (min)
 import qualified Data.Map as Map
+import Data.Maybe
+
 
 -- NOTE: Horribly inefficient
 -- stored in order
@@ -35,3 +38,7 @@ pop (IntHeap (x:xs)) = Just (x, IntHeap xs)
 popUntil :: Int -> IntHeap v -> ([v], IntHeap v)
 popUntil i (IntHeap xs) = (map snd a, IntHeap b)
     where (a,b) = span ((< i) . fst) xs
+
+
+min :: IntHeap v -> Maybe Int
+min (IntHeap xs) = listToMaybe $ map fst xs
