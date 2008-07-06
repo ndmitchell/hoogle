@@ -187,7 +187,7 @@ reverseLinks = return () -- TODO
 -- all context relates to free variables
 -- binding is original |-> new
 alphaFlatten :: TypePair -> (Binding,TypePair)
-alphaFlatten (TypePair a b) = (bind, TypePair a2 b2)
+alphaFlatten (TypePair a b) = (sort bind, TypePair a2 b2)
     where
         a2 = nub $ sort $ concatMap g a
         (b2,(bind,_)) = runState (transformM f b) ([], map (:[]) ['a'..])
