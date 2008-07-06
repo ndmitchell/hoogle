@@ -8,7 +8,7 @@ import General.Code
 type CostScore = Int
 
 data Cost = Cost CostScore CostDetail
-            deriving (Show,Ord,Eq)
+            deriving (Ord,Eq)
 
 instance BinaryDefer Cost where
     put (Cost a b) = put a
@@ -16,6 +16,9 @@ instance BinaryDefer Cost where
     size _ = size (undefined :: CostDetail)
     putFixed (Cost a b) = putFixed b
     getFixed = getFixed1 newCost
+
+instance Show Cost where
+    show (Cost _ a) = "(" ++ show a ++ ")"
 
 
 data CostDetail
@@ -28,10 +31,10 @@ data CostDetail
     -- standard
     | CostAlias String -- ^ a, where a |-> alias a
     | CostUnbox String -- ^ M, where M a |-> a, "" for a variable
-    | CostRestrict String -- ^ M, where M |-> a
+    | CostRestrict String -- ^ M, where M |-> a -- can only restrict M :: *
     | CostContext String -- ^ C, where C a => a |-> a
     | CostMembership String String -- ^ C M, where C M => M |-> C a => a
-      deriving (Eq,Ord,Show)
+      deriving (Eq,Ord)
 
 instance BinaryDefer CostDetail where
     put (CostReverse a)      = putByte 0 >> put1 a
@@ -50,6 +53,13 @@ instance BinaryDefer CostDetail where
             3 -> get1 CostRestrict
             4 -> get1 CostContext
             5 -> get2 CostMembership
+
+
+instance Show CostDetail where
+    show (CostAlias x) = "alias " ++ x
+    show (CostUnbox x) = "unbox " ++ (if null x then "_" else x)
+    show (CostRestrict x) = "restrict " ++ x
+    show x = "CostDetail.show.todo"
 
 
 -- transform the costCode to a costScore
