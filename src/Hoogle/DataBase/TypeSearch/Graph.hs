@@ -184,7 +184,7 @@ followNode as is (TypePair con t) =
         -- TODO: Should do something sensible with bindings
         [(snd $ alphaFlatten a, newCost b, c) | (a,b,c) <- next]
     where
-        next = cont unbox ++ cont restrict ++ cont alias
+        next = cont unbox ++ restrict ++ cont alias -- TODO: Context and Membership
         free = map (:[]) ['a'..] \\ [v | TVar v <- universe t]
         cont f = concatMap f $ contexts t
 
@@ -192,8 +192,12 @@ followNode as is (TypePair con t) =
         unbox (TApp (TVar a) [b], gen) = [(TypePair con (gen b), CostUnbox "", [])]
         unbox _ = []
 
-        restrict (TLit a, gen) = [(TypePair con (gen $ TVar $ head free), CostRestrict a, [])]
-        restrict _ = []
+        -- Only restrict things of kind *
+        restrict = [(TypePair con a, CostRestrict b, []) | (a,b) <- f t]
+            where fs xs = [(b c, d) | (a,b) <- xs, (c,d) <- f a]
+                  f (TLit a) = [(TVar $ head free, a)]
+                  f x@TApp{} = fs $ tail $ holes x
+                  f x = fs $ holes x
 
         alias (a,gen) = [(TypePair con (gen b), CostAlias name, []) | Just (name,b) <- [followAliases as a]]
 
