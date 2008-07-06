@@ -12,17 +12,20 @@ import Data.Maybe
 
 
 newtype Aliases = Aliases (Map.Map String Alias)
-                  deriving Show
 
 instance BinaryDefer Aliases where
     put (Aliases a) = put a
     get = get1 Aliases
 
+instance Show Aliases where
+    show (Aliases mp) = unlines [ unwords $ "type" : s : vs ++ ["=", show t]
+                                | (s,Alias vs t) <- Map.toList mp]
+
 
 data Alias = Alias
     {args :: [String] -- the free variables
     ,rhs :: Type -- the resulting type
-    } deriving Show
+    }
 
 instance BinaryDefer Alias where
     put (Alias a b) = put2 a b
