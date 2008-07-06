@@ -18,6 +18,7 @@ import Hoogle.DataBase.Instances
 import Hoogle.DataBase.TypeSearch.All
 import Hoogle.DataBase.NameSearch
 import Data.Binary.Defer
+import General.Code
 
 
 data DataBase = DataBase
@@ -39,8 +40,20 @@ instance BinaryDefer DataBase where
 
 
 instance Show DataBase where
-    show (DataBase a b c d e f) =
-        z "Items" a ++ z "NameSearch" b ++ z "TypeSearch" c ++
-        z "Suggest" d ++ z "Aliases" e ++ z "Instances" f
-        where
-            z header x = "= " ++ header ++ " =\n\n" ++ show x ++ "\n\n"
+    show = concatMap snd . showDataBaseParts
+
+
+showDataBaseParts :: DataBase -> [(String,String)]
+showDataBaseParts (DataBase a b c d e f) =
+    let name * val = (name, " = " ++ name ++ " =\n\n" ++ show val ++ "\n\n") in
+    ["Items" * a,"NameSearch" * b, "TypeSearch" * c
+    ,"Suggest" * d, "Aliases" * e, "Instances" * f]
+
+
+showDataBase :: String -> DataBase -> String
+showDataBase "" d = show d
+showDataBase x d | null r = "Error: Unknown database part, " ++ x
+                 | length r > 1 = "Error: Ambiguous database part, " ++ x
+                 | otherwise = head r
+    where r = [b | (a,b) <- showDataBaseParts d, lower x `isPrefixOf` lower b]
+
