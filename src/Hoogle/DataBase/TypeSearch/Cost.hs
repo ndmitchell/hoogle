@@ -18,7 +18,7 @@ instance BinaryDefer Cost where
     getFixed = getFixed1 newCost
 
 instance Show Cost where
-    show (Cost _ a) = "(" ++ show a ++ ")"
+    show (Cost _ a) = show a
 
 
 data CostDetail

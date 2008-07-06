@@ -54,7 +54,8 @@ showGraph cs (Graph mp ns) = unlines $ concatMap (uncurry f) $ IntMap.elems mp2
                 results = if null rs then "No results" else unwords rs
                 rs = [show a ++ "." ++ show b ++ (if null c then "" else show c) | GraphResult a b c _ <- res]
 
-        g (ni,ci,b) = show (fst $ mp2 IntMap.! lookupKey ni) ++ " >>> " ++ show (lookupIndex ci cs) ++ " " ++ show b
+        g (ni,ci,b) = show (lookupIndex ci cs) ++ " ==> " ++
+                      show (fst $ mp2 IntMap.! lookupKey ni) ++ " " ++ show b
 
 
 instance BinaryDefer Graph where
