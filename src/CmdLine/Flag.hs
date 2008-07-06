@@ -29,10 +29,11 @@ data CmdFlag = Version           -- ^ Version information
              | Count Int         -- ^ Number of results to show
              | Convert FilePath  -- ^ Convert a database
              | Output FilePath   -- ^ Output file
-             | Dump FilePath     -- ^ Dump a database to a file
+             | Dump String       -- ^ Dump a database to a file (optional section)
              | DataPath FilePath -- ^ Database location
              | Verbose           -- ^ Display verbose information
              | Info              -- ^ Display as much information as you can
+             | Debug             -- ^ Do debugging activities
                deriving (Eq {-! Enum !-} )
 
 
@@ -46,6 +47,7 @@ data Argument = ArgNone CmdFlag
               | ArgNat  (Int      -> CmdFlag)
               | ArgPos  (Int      -> CmdFlag)
               | ArgFile (FilePath -> CmdFlag)
+              | ArgStr  (String   -> CmdFlag)
 
 data FlagInfo = FlagInfo {
     argument :: Argument,
@@ -64,10 +66,11 @@ flagInfo =
     ,f (ArgNone Test) ["test"] [PCmdLine] "Run the regression tests"
     ,f (ArgFile Convert) ["convert"] [PCmdLine] "Convert a database"
     ,f (ArgFile Output) ["output"] [PCmdLine] "Output file for convert"
-    ,f (ArgFile Dump) ["dump"] [PCmdLine] "Dump a database for debugging"
+    ,f (ArgStr  Dump) ["dump"] [PCmdLine] "Dump a database for debugging"
     ,f (ArgFile DataPath) ["d","data"] [PCmdLine] "Database location"
     ,f (ArgNone Verbose) ["verbose"] [PCmdLine] "Display verbose information"
     ,f (ArgNone Info) ["i","info"] [PCmdLine] "Display full information on an entry"
+    ,f (ArgNone Debug) ["debug"] [PCmdLine] "Debugging only"
     ]
     where f = FlagInfo
 
@@ -114,6 +117,7 @@ flagsHelp = unlines $ map f res
         typ (ArgPos  _) = "=POS"
         typ (ArgBool _) = "=BOOL"
         typ (ArgFile _) = "=FILE"
+        typ (ArgStr  _) = "=STR"
 
 
 ---------------------------------------------------------------------
@@ -146,6 +150,7 @@ parseArg (ArgFile v) xs = liftM v $ parseFile xs
 parseArg (ArgNat  v) xs = liftM v $ parseNat  xs
 parseArg (ArgInt  v) xs = liftM v $ parseInt  xs
 parseArg (ArgPos  v) xs = liftM v $ parsePos  xs
+parseArg (ArgStr  v) xs = liftM v $ Just      xs
 
 
 parseNat :: String -> Maybe Int
@@ -181,7 +186,7 @@ parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = Just True
 --------------------------------------------------------
 -- DERIVES GENERATED CODE
 -- DO NOT MODIFY BELOW THIS LINE
--- CHECKSUM: 726063815
+-- CHECKSUM: 57623825
 
 instance Enum CmdFlag
     where toEnum 0 = Version{}
@@ -197,6 +202,7 @@ instance Enum CmdFlag
           toEnum 10 = DataPath{}
           toEnum 11 = Verbose{}
           toEnum 12 = Info{}
+          toEnum 13 = Debug{}
           toEnum n = error ((++) "toEnum " ((++) (show n) ", not defined for CmdFlag"))
           fromEnum (Version {}) = 0
           fromEnum (Web {}) = 1
@@ -211,3 +217,4 @@ instance Enum CmdFlag
           fromEnum (DataPath {}) = 10
           fromEnum (Verbose {}) = 11
           fromEnum (Info {}) = 12
+          fromEnum (Debug {}) = 13
