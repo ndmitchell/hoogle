@@ -22,6 +22,7 @@ import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
+import qualified Data.IntSet as IntSet
 import qualified Data.IntMap as IntMap
 import qualified Data.IntHeap as IntHeap
 import qualified Data.Map as Map
@@ -253,8 +254,9 @@ data GraphSearch = GraphSearch
     ,nodesGS :: Index Node
     ,costsGS :: Index Cost
     ,found :: [GraphResult]
+    ,paid :: IntSet.IntSet -- Lookup Cost
     ,reached :: Map.Map (Lookup Node, Binding) TypeScore
-    ,available :: IntHeap.IntHeap (Lookup Node, Binding, Cost)
+    ,available :: IntHeap.IntHeap (Lookup Node, Binding, Lookup Cost, Cost)
     }
 
 
@@ -265,7 +267,7 @@ graphSearch as is costs g@(Graph a b) t = fromJust $ do
         i <- graphStart g t2
         return $ graphAdd i bind blankTypeScore s0
     where
-        s0 = GraphSearch a b costs [] Map.empty IntHeap.empty
+        s0 = GraphSearch a b costs [] IntSet.empty Map.empty IntHeap.empty
         (bind,t2) = alphaFlatten $ contextNorm is t
 
 
@@ -291,7 +293,7 @@ graphAdd ni bind score gs | (ni,bind) `Map.member` reached gs = gs
     where
         Node gr link = lookupIndex ni (nodesGS gs)
         res = [x{graphResultScore = score} | x <- gr]
-        nxt = [(costScore c, (ni,[],c)) | (ni,ci,bind) <- link, let c = lookupIndex ci (costsGS gs)]
+        nxt = [(costScore c, (ni,[],ci,c)) | (ni,ci,bind) <- link, let c = lookupIndex ci (costsGS gs)]
 
 
 -- those entires which are at a newly discovered node
