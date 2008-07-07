@@ -77,13 +77,16 @@ createItems xs = unS $ execState (mapM (uncurry f) xs) s0
 
 
         render (ItemClass i) = [Keyword "class", Text " "] ++ typeHead i
-        render (ItemFunc name typ) = [Focus name, Text " :: ", Text (show typ)]
+        render (ItemFunc name typ) = [Focus name, Text " :: "] ++ typeFun typ
         render (ItemAlias a b) = [Keyword "type", Text " "] ++ typeHead a ++ [Text $ " = " ++ show b]
         render (ItemData d t) = [Keyword (show d), Text " "] ++ typeHead t
 
         typeHead (TypeSig con sig) = [Text $ showConstraint con, Focus a, Text b]
             where (a,b) = break (== ' ') $ show sig
 
+        typeFun (TypeSig con sig) = Text (showConstraint con) :
+                intersperse (Text " -> ") (zipWith ArgPos [0..] a ++ [ArgRes b])
+            where (a,b) = initLast $ map show $ fromTFun sig
 
         addTextItem i = modify $ \s -> s{ents = (i,Nothing) : ents s}
 
