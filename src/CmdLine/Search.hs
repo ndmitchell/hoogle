@@ -22,8 +22,13 @@ actionSearch flags q = do
     let sug = suggestQuery dbs q
     when (isJust sug) $
         putStrLn $ showTag $ fromJust sug
-
     when verbose $ putStrLn "= ANSWERS ="
+
+    when (isJust (typeSig q) && color) $ do
+        let view = [ArgPosNum i i | i <- [0..10]]
+            tags = renderEntryText view $ renderTypeSig $ fromJust $ typeSig q
+        putStrLn $ "Searching for: " ++ showTag tags
+
     let res = search dbs q
     if null res then
         putStrLn "No results found"
@@ -40,7 +45,8 @@ actionSearch flags q = do
                   count = headDef maxBound [i | Count i <- flags]
 
         verbose = Verbose `elem` flags
-        showTag = if Color True `elem` flags then showTagConsole else show
+        color = Color True `elem` flags
+        showTag = if color then showTagConsole else show
 
         f (m,r,v) = maybe "" (\m -> showModule m ++ " ") m ++
                     showTag r ++ (if verbose then " " ++ v else "")
