@@ -1,4 +1,6 @@
 
+-- TODO: Move Item and Haddock to Hoogle.Entry.*
+
 module Hoogle.DataBase.Item(
     module Hoogle.DataBase.Item,
     module Hoogle.DataBase.Haddock
