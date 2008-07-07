@@ -10,6 +10,8 @@ import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.DataBase.Haddock
+import Hoogle.TextBase.All
+import Hoogle.TypeSig.All
 import Data.Range
 import Data.TagStr
 
@@ -96,6 +98,21 @@ renderFocus rs = Tags . f (mergeRanges rs) 0
             where
                 (s1,s2) = splitAt (rangeStart r - i) s
                 (s3,s4) = splitAt (rangeCount r) s2
+
+
+renderTextItem :: TextItem -> [EntryText]
+renderTextItem x = case x of
+    ItemClass i -> [Keyword "class", Text " "] ++ typeHead i
+    ItemFunc name typ -> [Focus name, Text " :: "] ++ typeFun typ
+    ItemAlias a b -> [Keyword "type", Text " "] ++ typeHead a ++ [Text $ " = " ++ show b]
+    ItemData d t -> [Keyword (show d), Text " "] ++ typeHead t
+    where
+        typeHead (TypeSig con sig) = [Text $ showConstraint con, Focus a, Text b]
+            where (a,b) = break (== ' ') $ show sig
+
+        typeFun (TypeSig con sig) = Text (showConstraint con) :
+                intersperse (Text " -> ") (zipWith ArgPos [0..] a ++ [ArgRes b])
+            where (a,b) = initLast $ map show $ fromTFun sig
 
 
 showModule = concat . intersperse "."
