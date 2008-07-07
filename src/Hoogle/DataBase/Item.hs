@@ -104,16 +104,18 @@ renderFocus rs = Tags . f (mergeRanges rs) 0
 renderTextItem :: TextItem -> [EntryText]
 renderTextItem x = case x of
     ItemClass i -> [Keyword "class", Text " "] ++ typeHead i
-    ItemFunc name typ -> [Focus name, Text " :: "] ++ typeFun typ
+    ItemFunc name typ -> [Focus name, Text " :: "] ++ renderTypeSig typ
     ItemAlias a b -> [Keyword "type", Text " "] ++ typeHead a ++ [Text $ " = " ++ show b]
     ItemData d t -> [Keyword (show d), Text " "] ++ typeHead t
     where
         typeHead (TypeSig con sig) = [Text $ showConstraint con, Focus a, Text b]
             where (a,b) = break (== ' ') $ show sig
 
-        typeFun (TypeSig con sig) = Text (showConstraint con) :
-                intersperse (Text " -> ") (zipWith ArgPos [0..] a ++ [ArgRes b])
-            where (a,b) = initLast $ map show $ fromTFun sig
+
+renderTypeSig :: TypeSig -> [EntryText]
+renderTypeSig (TypeSig con sig) = Text (showConstraint con) :
+    intersperse (Text " -> ") (zipWith ArgPos [0..] a ++ [ArgRes b])
+    where (a,b) = initLast $ map show $ fromTFun sig
 
 
 showModule = concat . intersperse "."
