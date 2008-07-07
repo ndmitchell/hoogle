@@ -82,8 +82,9 @@ renderEntryText view = Tags . map f
     where
         f (Keyword x) = TagUnderline $ Str x
         f (Text x) = Str x
-        f (ArgPos i s) = Str s
-        f (ArgRes s) = Str s
+        f (ArgPos i s) = (if null res then id else TagColor (head res)) $ Str s
+            where res = [k+1 | ArgPosNum k j <- view, j == i]
+        f (ArgRes s) = TagColor 0 $ Str s
         f (Focus x) = renderFocus [i | FocusOn i <- view] x
 
 
