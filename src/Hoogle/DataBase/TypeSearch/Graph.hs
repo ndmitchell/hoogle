@@ -8,7 +8,7 @@
 -- TODO: Base this module on a suitable graphstate abstraction
 
 module Hoogle.DataBase.TypeSearch.Graph(
-    Graph, newGraph, showGraph,
+    Graph, newGraph,
     GraphResult(..), ArgPos, Binding,
     GraphSearch, graphSearch, graphFound, graphFollow, graphCost, graphNext
     ) where
@@ -46,11 +46,11 @@ instance Show TypePair where
 
 
 data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
-             deriving Show
 
-showGraph :: Index Cost -> Graph -> String
-showGraph cs (Graph mp ns) = unlines $ concatMap (uncurry f) $ IntMap.elems mp2
-    where
+
+instance Show Graph where
+    show (Graph mp ns) = unlines $ concatMap (uncurry f) $ IntMap.elems mp2
+      where
         mp2 :: IntMap.IntMap (TypePair,Node)
         mp2 = IntMap.fromList [(lookupKey n, (TypePair c t, lookupIndex n ns)) | (t,as) <- Map.toList mp, (c,n) <- as]
 

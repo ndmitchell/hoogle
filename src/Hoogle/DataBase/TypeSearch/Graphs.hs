@@ -26,8 +26,8 @@ data Graphs = Graphs
     }
 
 instance Show Graphs where
-    show (Graphs a b c) = "== Arguments ==\n\n" ++ showGraph a b ++
-                          "\n== Results ==\n\n" ++ showGraph a c
+    show (Graphs a b c) = "== Arguments ==\n\n" ++ show b ++
+                          "\n== Results ==\n\n" ++ show c
 
 instance BinaryDefer Graphs where
     put (Graphs a b c) = put3 a b c
