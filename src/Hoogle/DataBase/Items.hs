@@ -58,7 +58,7 @@ createItems xs = res
                 (esJ,esN) = partition (isJust . snd) $ ents s
                 esJ2 = zipWith (\i (ti,Just e) -> (ti,Just e{entryId=i})) [0..] $
                        map snd $ sortBy (compare `on` fst) $
-                       map (\e -> (entryScore ms $ fromJust $ snd e, e)) esJ
+                       map (entryScore ms . fromJust . snd &&& id) esJ
 
         f :: TextItem -> String -> State S ()
         f i@ItemInstance{} _ = addTextItem i
