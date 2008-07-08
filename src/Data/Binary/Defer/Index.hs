@@ -39,7 +39,8 @@ instance BinaryDefer a => BinaryDefer (Index a) where
     get = get1 Index
 
 instance Show a => Show (Index a) where
-    show (Index xs) = unlines $ map show $ elems xs
+    show (Index xs) = unlines $ zipWith f [0..] (elems xs)
+        where f i x = "#" ++ show i ++ " " ++ show x
 
 instance Functor Index where
     fmap f (Index x) = Index $ fmap f x
