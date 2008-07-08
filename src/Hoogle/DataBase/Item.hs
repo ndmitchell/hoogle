@@ -30,8 +30,7 @@ instance Typeable Package where typeOf _ = mkTyConApp typename_Package []
 
 
 data Module = Module
-    {moduleId :: Id
-    ,moduleName :: [String]
+    {moduleName :: [String]
     ,modulePackage :: Link Package
     }
 
@@ -134,8 +133,7 @@ instance Show Package where
     show (Package a b c d e) = unwords ["#" ++ show a,b,c,d,e]
 
 instance Show Module where
-    show (Module a b c) = unwords ["#" ++ show a, showModule b,
-        "{" ++ show c ++ "}"]
+    show (Module a b) = unwords [showModule a, "{" ++ show b ++ "}"]
 
 instance Show Entry where
     show (Entry a b c d _ _) = unwords ["#" ++ show a, concatMap f d, m]
@@ -156,8 +154,8 @@ instance BinaryDefer Package where
     get = get5 Package
 
 instance BinaryDefer Module where
-    put (Module a b c) = put3 a b c
-    get = get3 Module
+    put (Module a b) = put2 a b
+    get = get2 Module
 
 instance BinaryDefer Entry where
     put (Entry a b c d e f) = put6 a b c d e f

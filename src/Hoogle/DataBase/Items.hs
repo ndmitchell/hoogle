@@ -74,7 +74,7 @@ createItems xs = res
         f i@(ItemModule xs) d = do
             s <- get
             let modI = modId s
-                m = Module modI xs (newLink 0 $ lookupIndex (newLookup 0) (packages $ fst res))
+                m = Module xs (newLink 0 $ lookupIndex (newLookup 0) (packages $ fst res))
             put s{modId = modI + 1, mods = m : mods s
                  ,modCur = Just $ newLink modI m}
             addEntry i True EntryModule d
