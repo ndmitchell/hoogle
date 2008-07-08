@@ -78,9 +78,7 @@ getDeferGet :: Typeable a => DeferGet a
 getDeferGet = do
     ref <- asks snd
     mp <- lift $ readIORef ref
-    case TypeMap.lookup mp of
-        Nothing -> error "getDeferGet, type not found!"
-        Just y -> return y
+    return $ TypeMap.find mp
 
 getDeferPut :: Typeable a => a -> DeferGet ()
 getDeferPut x = do
