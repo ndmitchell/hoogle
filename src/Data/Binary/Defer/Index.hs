@@ -70,6 +70,38 @@ instance Show (Lookup a) where
 
 
 ---------------------------------------------------------------------
+-- LINK
+
+data Link a = Link Id a
+
+fromLink :: Link a -> a
+fromLink (Link k v) = v
+
+linkKey :: Link a -> Id
+linkKey (Link k v) = k
+
+instance Eq (Link a) where
+    a == b = linkKey a == linkKey b
+
+instance Ord a => Ord (Link a) where
+    compare a b = compare (fromLink a) (fromLink b)
+
+instance Show a => Show (Link a) where
+    show = show . fromLink
+
+instance Typeable a => BinaryDefer (Link a) where
+    put = put . linkKey
+    get = do
+        i <- get
+        Index xs <- getDeferGet
+        return $ Link i $ xs ! i
+
+    size _ = size (0 :: Id)
+    putFixed = put
+    getFixed = get
+
+
+---------------------------------------------------------------------
 -- INDEXMUTABLE
 
 newtype IndexMutable a = IndexMutable (Map.Map a Id)
