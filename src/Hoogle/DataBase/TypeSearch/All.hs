@@ -31,14 +31,14 @@ instance BinaryDefer TypeSearch where
 ---------------------------------------------------------------------
 -- CREATION
 
-createTypeSearch :: Aliases -> Instances -> [(TextItem, Maybe Entry)] -> TypeSearch
+createTypeSearch :: Aliases -> Instances -> [(TextItem, Maybe (Link Entry))] -> TypeSearch
 createTypeSearch aliases instances xs = TypeSearch $ newGraphs aliases instances types
-    where types = [(newLookup (entryId e), sig) | (ItemFunc _ sig, Just e) <- xs]
+    where types = [(e, sig) | (ItemFunc _ sig, Just e) <- xs]
 
 
 ---------------------------------------------------------------------
 -- SEARCHING
 
-searchTypeSearch :: Aliases -> Instances -> TypeSearch -> Index Entry -> TypeSig -> [(Entry,[EntryView],TypeScore)]
-searchTypeSearch as is (TypeSearch g) i t =
-    [(lookupIndex a i, b, c) | (a,b,c) <- graphsSearch as is g t]
+searchTypeSearch :: Aliases -> Instances -> TypeSearch -> TypeSig -> [(Link Entry,[EntryView],TypeScore)]
+searchTypeSearch as is (TypeSearch g) t =
+    [(a, b, c) | (a,b,c) <- graphsSearch as is g t]

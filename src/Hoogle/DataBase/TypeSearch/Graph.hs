@@ -79,7 +79,7 @@ instance BinaryDefer Node where
 -- GraphResult.TypeScore is invalid within a node
 -- is not saved, is loaded as blank
 data GraphResult = GraphResult
-    {graphResultEntry :: Lookup Entry
+    {graphResultEntry :: Link Entry
     ,graphResultPos :: ArgPos
     ,graphResultBinding :: Binding
     ,graphResultScore :: TypeScore
@@ -114,7 +114,7 @@ data S = S
     }
 
 
-newGraph :: Aliases -> Instances -> [(Lookup Entry, ArgPos, TypeSig)] ->
+newGraph :: Aliases -> Instances -> [(Link Entry, ArgPos, TypeSig)] ->
             IndexMutable Cost -> (IndexMutable Cost, Graph)
 newGraph as is xs cost = (costs sN, f (graph sN))
     where
@@ -131,16 +131,16 @@ fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortF
 
 
 -- create the initial graph
-initialGraph :: [(Lookup Entry, ArgPos, TypeSig)] -> State S ()
+initialGraph :: [(Link Entry, ArgPos, TypeSig)] -> State S ()
 initialGraph xs = do
     is <- gets instances
-    let f i xs@((t,_):_) = (t, (newLookup i, Node (sortOn graphResultEntry $ map snd xs) []))
+    let f i xs@((t,_):_) = (t, (newLookup i, Node (sortOn (linkKey . graphResultEntry) $ map snd xs) []))
         r = Map.fromAscList $ zipWith f [0..] $ groupFst $ sortFst $ map (newGraphResult is) xs
     modify $ \s -> s{graph=r}
 
 
 -- create a result, and figure out what the relative is
-newGraphResult :: Instances -> (Lookup Entry, ArgPos, TypeSig) -> (TypePair, GraphResult)
+newGraphResult :: Instances -> (Link Entry, ArgPos, TypeSig) -> (TypePair, GraphResult)
 newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
     where (bind,tp) = alphaFlatten $ contextNorm is t
 

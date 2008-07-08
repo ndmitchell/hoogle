@@ -37,7 +37,7 @@ instance BinaryDefer Graphs where
 ---------------------------------------------------------------------
 -- GRAPHS CONSTRUCTION
 
-newGraphs :: Aliases -> Instances -> [(Lookup Entry, TypeSig)] -> Graphs
+newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
 newGraphs as is xs = Graphs argGraph resGraph (indexFreeze cs3)
     where
         cs1 = newIndexMutable
@@ -87,7 +87,7 @@ data S = S
     }
     
 
-type GraphsResult = (Lookup Entry,[EntryView],TypeScore)
+type GraphsResult = (Link Entry,[EntryView],TypeScore)
 
 
 -- sorted by TypeScore
@@ -118,7 +118,7 @@ searchFollow = do
     mapM_ f [(i,g2) | (i,g) <- zip (Nothing : map Just [0..]) gs, g2 <- graphFound g]
     where
         f (arg,val) = do
-            let entryId = lookupKey $ graphResultEntry val
+            let entryId = linkKey $ graphResultEntry val
             infs <- gets infos
             numArgs <- gets numArgs
             case IntMap.findWithDefault (Just $ newInfo numArgs) entryId infs of
@@ -141,7 +141,7 @@ searchFound = do
     modify $ \s -> s
         {pending=p
         ,infos=foldr (uncurry IntMap.insert) (infos s)
-                     [(lookupKey $ fst3 r, Nothing) | r <- res]
+                     [(linkKey $ fst3 r, Nothing) | r <- res]
         }
     return res
 

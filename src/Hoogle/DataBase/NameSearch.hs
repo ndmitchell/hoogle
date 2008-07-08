@@ -19,7 +19,7 @@ import Hoogle.TextBase.All
 ---------------------------------------------------------------------
 -- DATA TYPES
 
-data NameSearch = NameSearch (Trie NameItem) (Chunk (Int,Lookup Entry))
+data NameSearch = NameSearch (Trie NameItem) (Chunk (Int,Link Entry))
                   deriving Show
 
 data NameItem = NameItem {nameStart :: Int
@@ -69,7 +69,7 @@ Both are sorted by the string they represent.
 ---------------------------------------------------------------------
 -- CREATION
 
-createNameSearch :: [(TextItem, Maybe Entry)] -> NameSearch
+createNameSearch :: [(a, Maybe (Link Entry))] -> NameSearch
 createNameSearch xs = NameSearch
         (newTrie $ f sub (zip [0..] pre))
         (newChunk $ map snd pre)
@@ -89,9 +89,8 @@ createNameSearch xs = NameSearch
                 pr = takeWhile (isPrefixOf x . fst . snd) ys2
 
 
-extractText :: [(TextItem, Maybe Entry)] -> [(String, Lookup Entry)]
-extractText xs = [(map toLower s, newLookup $ entryId e)
-                 |(_, Just e) <- xs, Focus s <- entryText e]
+extractText :: [(a, Maybe (Link Entry))] -> [(String, Link Entry)]
+extractText xs = [(map toLower s, e) |(_, Just e) <- xs, Focus s <- entryText $ fromLink e]
 
 
 substrs, prefixes :: [a] -> [[a]]
@@ -112,11 +111,11 @@ instance Show TextScore where
     show TSNone = "_"
 
 
-searchNameSearch :: NameSearch -> Index Entry -> String -> [(Entry,EntryView,TextScore)]
-searchNameSearch (NameSearch trie chunk) ents str =
+searchNameSearch :: NameSearch -> String -> [(Link Entry,EntryView,TextScore)]
+searchNameSearch (NameSearch trie chunk) str =
     case lookupTrie (map toLower str) trie of
         Nothing -> []
-        Just i -> nubIntOn (entryId . fst3) $ order exact0E ++ order (exact0S ++ start) ++ order none
+        Just i -> nubIntOn (linkKey . fst3) $ order exact0E ++ order (exact0S ++ start) ++ order none
             where
                 (exact0,exactN) = partition ((==) 0 . fst) exact
                 (partial0,partialN) = partition ((==) 0 . fst) partial
@@ -129,9 +128,8 @@ searchNameSearch (NameSearch trie chunk) ents str =
                 test e = if entryName e == str then TSExact else TSStart
     where
         nstr = length str
-        order = sortOn (entryId . fst3)
+        order = sortOn (linkKey . fst3)
 
-        f :: (Entry -> TextScore) -> (Int, Lookup Entry) -> (Entry,EntryView,TextScore)
-        f score (p,e) = (ent, FocusOn (rangeStartCount p nstr), score ent)
-            where ent = lookupIndex e ents
+        f :: (Entry -> TextScore) -> (Int, Link Entry) -> (Link Entry,EntryView,TextScore)
+        f score (p,e) = (e, FocusOn (rangeStartCount p nstr), score $ fromLink e)
 

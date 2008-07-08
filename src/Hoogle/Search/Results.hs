@@ -6,6 +6,7 @@ module Hoogle.Search.Results(
 import General.Code
 import Data.Key
 import qualified Data.IntMap as IntMap
+import Data.Binary.Defer.Index
 
 import Hoogle.DataBase.All
 import Hoogle.Query.All
@@ -17,7 +18,13 @@ import Hoogle.Search.Result
 
 mergeDataBaseResults :: [[Result]] -> [Result]
 mergeDataBaseResults = map fromKey . fold [] merge . map (map $ toKey f)
-    where f r = (resultScore r, entryScoreModule (liftM fst $ resultModPkg r) $ resultEntry r)
+    where f r = (resultScore r, entryScore $ fromLink $ resultEntry r)
+
+
+entryScoreModule :: Maybe Module -> Entry -> EntryScore
+entryScoreModule mod e = EntryScore
+    (length m) (map toLower $ entryName e) (entryName e) m
+    where m = maybe [] moduleName mod
 
 
 ---------------------------------------------------------------------
@@ -36,12 +43,12 @@ joinResults xs = sortWith scr $ IntMap.elems $
                  fold1 (IntMap.intersectionWith join) $
                  map asSet xs
     where
-        asSet = IntMap.fromList . map (entryId . resultEntry &&& id)
+        asSet = IntMap.fromList . map (linkKey . resultEntry &&& id)
 
         join r1 r2 = r1{resultScore = sort $ resultScore r1 ++ resultScore r2
                        ,resultView = resultView r1 ++ resultView r2}
 
-        scr = resultScore &&& entryId . resultEntry
+        scr = resultScore &&& linkKey . resultEntry
 
 
 ---------------------------------------------------------------------
@@ -52,20 +59,20 @@ filterResults :: Query -> [Result] -> [Result]
 filterResults q = f mods correctModule . f pkgs correctPackage
     where
         f [] act = id
-        f xs act = filter (maybe True (act xs) . resultModPkg)
+        f xs act = filter (maybe True (act xs . fromLink) . entryModule . fromLink . resultEntry)
 
         mods = filter (\x -> isPlusModule x || isMinusModule x) $ scope q
         pkgs = [x | MinusPackage x <- scope q]
 
 
 -- pkgs is a non-empty list of MinusPackage values
-correctPackage :: [String] -> (Module,Package) -> Bool
-correctPackage pkgs = (`notElem` pkgs) . packageName . snd
+correctPackage :: [String] -> Module -> Bool
+correctPackage pkgs = (`notElem` pkgs) . packageName . fromLink . modulePackage
 
 
 -- mods is a non-empty list of PlusModule/MinusModule
-correctModule :: [Scope] -> (Module,Package) -> Bool
-correctModule mods = f base mods . moduleName . fst
+correctModule :: [Scope] -> Module -> Bool
+correctModule mods = f base mods . moduleName
     where
         base = isMinusModule $ head mods
 

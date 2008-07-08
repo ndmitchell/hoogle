@@ -4,11 +4,11 @@ module Hoogle.Search.Result where
 import General.Code
 import Data.TagStr
 import Hoogle.DataBase.All
+import Data.Binary.Defer.Index
 
 
 data Result = Result
-    {resultEntry :: Entry
-    ,resultModPkg :: Maybe (Module,Package)
+    {resultEntry :: Link Entry
     ,resultView :: [EntryView]
     ,resultScore :: [Score]
     }
@@ -28,7 +28,8 @@ instance Show Score where
 
 -- return (module it is in, the text to go beside it, verbose scoring info)
 renderResult :: Result -> (Maybe [String], TagStr, String)
-renderResult r = (if entryType (resultEntry r) == EntryModule then Nothing
-                  else liftM (moduleName . fst) $ resultModPkg r
-                 ,renderEntryText (resultView r) (entryText $ resultEntry r)
+renderResult r = (if entryType e == EntryModule then Nothing
+                  else liftM (moduleName . fromLink) $ entryModule e
+                 ,renderEntryText (resultView r) $ entryText e
                  ,show $ resultScore r)
+    where e = fromLink $ resultEntry r

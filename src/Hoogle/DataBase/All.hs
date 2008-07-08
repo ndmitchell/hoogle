@@ -26,21 +26,13 @@ createDataBase xs = DataBase items
         instances = createInstances zs
 
 
-searchName :: DataBase -> String -> [(Entry,EntryView,TextScore)]
-searchName db = searchNameSearch (nameSearch db) (entries $ items db)
+searchName :: DataBase -> String -> [(Link Entry,EntryView,TextScore)]
+searchName db = searchNameSearch (nameSearch db)
 
 
-searchType :: DataBase -> TypeSig -> [(Entry,[EntryView],TypeScore)]
+searchType :: DataBase -> TypeSig -> [(Link Entry,[EntryView],TypeScore)]
 -- although aliases and instances are given, they are usually not used
-searchType db = searchTypeSearch (aliases db) (instances db) (typeSearch db) (entries $ items db)
-
-
-entryParents :: DataBase -> Entry -> Maybe (Module, Package)
-entryParents db e = case entryModule e of
-    Nothing -> Nothing
-    Just i -> let m = fromLink i
-                  p = fromLink $ modulePackage m
-              in Just (m,p)
+searchType db = searchTypeSearch (aliases db) (instances db) (typeSearch db)
 
 
 suggestion :: [DataBase] -> TypeSig -> Maybe (Either String TypeSig)

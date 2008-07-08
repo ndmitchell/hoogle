@@ -75,14 +75,10 @@ data EntryScore = EntryScore Int String String [String]
                   deriving (Eq,Ord)
 
 
-entryScore :: Index Module -> Entry -> EntryScore
-entryScore mods e = entryScoreModule (liftM fromLink (entryModule e)) e
-
-
-entryScoreModule :: Maybe Module -> Entry -> EntryScore
-entryScoreModule mod e = EntryScore
+entryScore :: Entry -> EntryScore
+entryScore e = EntryScore
     (length m) (map toLower $ entryName e) (entryName e) m
-    where m = maybe [] moduleName mod
+    where m = maybe [] (moduleName . fromLink) $ entryModule e
 
 
 renderEntryText :: [EntryView] -> [EntryText] -> TagStr

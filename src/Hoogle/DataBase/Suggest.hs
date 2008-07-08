@@ -6,6 +6,7 @@ module Hoogle.DataBase.Suggest where
 import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Trie
+import Data.Binary.Defer.Index
 import qualified Data.Map as Map
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
@@ -44,7 +45,7 @@ instance BinaryDefer SuggestItem where
 
 -- note: do not look inside class's for data type information
 --       as they may have higher-kinds and get it wrong
-createSuggest :: [(TextItem, Maybe Entry)] -> Suggest
+createSuggest :: [(TextItem, a)] -> Suggest
 createSuggest xs = Suggest $ newTrie $ Map.toList res
     where
         res = foldl f Map.empty $ concatMap (getTextItem . fst) xs

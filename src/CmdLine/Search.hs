@@ -10,6 +10,7 @@ import Hoogle.Query.All
 import Hoogle.Search.All
 import Hoogle.DataBase.All
 import Hoogle.All
+import Data.Binary.Defer.Index
 
 
 actionSearch :: [CmdFlag] -> Query -> IO ()
@@ -35,7 +36,7 @@ actionSearch flags q = do
      else if Info `elemEnum` flags then do
         putStrLn $ f $ renderResult $ head res
         putStrLn ""
-        putStrLn $ showTag $ renderHaddock $ entryDocs $ resultEntry $ head res
+        putStrLn $ showTag $ renderHaddock $ entryDocs $ fromLink $ resultEntry $ head res
      else
         putStr $ unlines $ map (f . renderResult) res
     where

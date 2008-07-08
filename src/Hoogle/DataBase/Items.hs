@@ -43,7 +43,7 @@ data S = S {pkg :: Package
            ,ents :: [(TextItem, Maybe Entry)]
            }
 
-createItems :: [(TextItem,String)] -> (Items, [(TextItem, Maybe Entry)])
+createItems :: [(TextItem,String)] -> (Items, [(TextItem, Maybe (Link Entry))])
 createItems xs = res
     where
         res = unS $ execState (mapM (uncurry f) xs) s0
@@ -51,14 +51,13 @@ createItems xs = res
 
         unS s = (Items (newIndex [pkg s])
                        ms
-                       (newIndex $ mapMaybe snd $ esJ2)
-                ,esN ++ esJ2)
+                       (newIndex $ mapMaybe (liftM fromLink . snd) esJ2)
+                ,map (id *** const Nothing) esN ++ esJ2)
             where
                 ms = newIndex $ reverse $ mods s
                 (esJ,esN) = partition (isJust . snd) $ ents s
-                esJ2 = zipWith (\i (ti,Just e) -> (ti,Just e{entryId=i})) [0..] $
-                       map snd $ sortBy (compare `on` fst) $
-                       map (entryScore ms . fromJust . snd &&& id) esJ
+                esJ2 = zipWith (\i (ti,Just e) -> (ti,Just $ newLink i e)) [0..] $
+                       sortOn (entryScore . fromJust . snd) esJ
 
         f :: TextItem -> String -> State S ()
         f i@ItemInstance{} _ = addTextItem i
