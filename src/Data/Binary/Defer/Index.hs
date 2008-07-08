@@ -3,6 +3,7 @@ module Data.Binary.Defer.Index(
     Id,
     Index, newIndex,
     Lookup, newLookup, lookupKey, lookupIndex,
+    Link, newLink, fromLink, linkKey,
     IndexMutable, newIndexMutable, getIndex, indexFreeze
     ) where
 
@@ -73,6 +74,9 @@ instance Show (Lookup a) where
 -- LINK
 
 data Link a = Link Id a
+
+newLink :: Id -> a -> Link a
+newLink = Link
 
 fromLink :: Link a -> a
 fromLink (Link k v) = v

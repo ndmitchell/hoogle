@@ -8,7 +8,6 @@ module Hoogle.DataBase.All
     ) where
 
 import Data.Binary.Defer.Index
-import Data.Binary.Defer.Link
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Hoogle.DataBase.Type

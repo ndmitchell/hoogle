@@ -9,7 +9,6 @@ module Hoogle.DataBase.Item(
 import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Data.Binary.Defer.Link
 import Hoogle.DataBase.Haddock
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All

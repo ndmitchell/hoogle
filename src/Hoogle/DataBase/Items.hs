@@ -3,7 +3,6 @@ module Hoogle.DataBase.Items where
 
 import Control.Monad.State
 import Data.Binary.Defer.Index
-import Data.Binary.Defer.Link
 import General.Code
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
@@ -76,7 +75,7 @@ createItems xs = unS $ execState (mapM (uncurry f) xs) s0
             let modI = modId s
                 m = Module modI xs (newLookup 0)
             put s{modId = modI + 1, mods = m : mods s
-                 ,modCur = Just $ newLink m}
+                 ,modCur = Just $ newLink modI m}
             addEntry i True EntryModule d
                 [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 
