@@ -20,6 +20,19 @@ data Node n e = Node {nodeResults :: [n], nodeEdges :: [(e, GraphNode n e)]}
 type GraphNode n e = Int
 
 
+showGraphWith :: (Show n, Show e) => (GraphNode n e -> String) -> Graph n e -> String
+showGraphWith showNode (Graph xs) = unlines $ concat $ zipWith f [0..] $ elems xs
+    where
+        f i (Node res es) = showNode i : map ("    "++) (r : map g es)
+            where r = if null res then "No results" else unwords (map show res)
+
+        g (e,n) = showNode n ++ " ==> " ++ show e
+
+
+instance (Show n, Show e) => Show (Graph n e) where
+    show = showGraphWith (\x -> '#':show x)
+
+
 instance (BinaryDefer n, BinaryDefer e) => BinaryDefer (Graph n e) where
     put (Graph a) = put1 a
     get = get1 Graph
