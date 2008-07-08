@@ -40,7 +40,7 @@ instance BinaryDefer Graphs where
 newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
 newGraphs as is xs = Graphs argGraph resGraph (indexFreeze cs3)
     where
-        cs1 = newIndexMutable
+        cs1 = newIndex_
         (cs2,argGraph) = newGraph as is (concat args) cs1
         (cs3,resGraph) = newGraph as is res cs2
 

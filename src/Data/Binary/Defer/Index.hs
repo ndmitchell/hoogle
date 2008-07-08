@@ -4,7 +4,7 @@ module Data.Binary.Defer.Index(
     Index, newIndex,
     Lookup, newLookup, lookupKey, lookupIndex,
     Link, newLink, fromLink, linkKey,
-    IndexMutable, newIndexMutable, getIndex, indexFreeze
+    Index_, newIndex_, getIndex, indexFreeze
     ) where
 
 import General.Util
@@ -112,21 +112,21 @@ instance Typeable a => BinaryDefer (Link a) where
 ---------------------------------------------------------------------
 -- INDEXMUTABLE
 
-newtype IndexMutable a = IndexMutable (Map.Map a Id)
+newtype Index_ a = Index_ (Map.Map a Id)
 
-instance Show a => Show (IndexMutable a) where
+instance Show a => Show (Index_ a) where
     show = show . indexFreeze
 
 
-newIndexMutable :: IndexMutable a
-newIndexMutable = IndexMutable Map.empty
+newIndex_ :: Index_ a
+newIndex_ = Index_ Map.empty
 
 
-getIndex :: Ord a => a -> IndexMutable a -> (IndexMutable a, Lookup a)
-getIndex x (IndexMutable mp) = (IndexMutable mp2, Lookup $ fromMaybe n res)
+getIndex :: Ord a => a -> Index_ a -> (Index_ a, Lookup a)
+getIndex x (Index_ mp) = (Index_ mp2, Lookup $ fromMaybe n res)
     where (res,mp2) = Map.insertLookupWithKey (\_ _ a -> a) x n mp
           n = Map.size mp
 
 
-indexFreeze :: IndexMutable a -> Index a
-indexFreeze (IndexMutable mp) = newIndex $ map fst $ sortBy (compare `on` snd) $ Map.toList mp
+indexFreeze :: Index_ a -> Index a
+indexFreeze (Index_ mp) = newIndex $ map fst $ sortBy (compare `on` snd) $ Map.toList mp

@@ -109,13 +109,13 @@ Those nodes in the graph which have not yet been explored
 data S = S
     {aliases :: Aliases
     ,instances :: Instances
-    ,costs :: IndexMutable Cost
+    ,costs :: Index_ Cost
     ,graph :: Map.Map TypePair (Lookup Node, Node)
     }
 
 
 newGraph :: Aliases -> Instances -> [(Link Entry, ArgPos, TypeSig)] ->
-            IndexMutable Cost -> (IndexMutable Cost, Graph)
+            Index_ Cost -> (Index_ Cost, Graph)
 newGraph as is xs cost = (costs sN, f (graph sN))
     where
         sN = execState (initialGraph xs >> populateGraph >> reverseLinks) s0
