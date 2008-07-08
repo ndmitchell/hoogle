@@ -4,7 +4,7 @@ module Data.Binary.Defer.Index(
     Index, newIndex,
     Lookup, newLookup, lookupKey, lookupIndex,
     Link, newLink, fromLink, linkKey,
-    Index_, newIndex_, getLookup, indexFreeze
+    Index_, newIndex_, getLink, getLookup, indexFreeze
     ) where
 
 import General.Util
@@ -123,7 +123,11 @@ newIndex_ = Index_ Map.empty
 
 
 getLookup :: Ord a => a -> Index_ a -> (Index_ a, Lookup a)
-getLookup x (Index_ mp) = (Index_ mp2, Lookup $ fromMaybe n res)
+getLookup x y = (a, Lookup $ linkKey b)
+    where (a,b) = getLink x y
+
+getLink :: Ord a => a -> Index_ a -> (Index_ a, Link a)
+getLink x (Index_ mp) = (Index_ mp2, newLink (fromMaybe n res) x)
     where (res,mp2) = Map.insertLookupWithKey (\_ _ a -> a) x n mp
           n = Map.size mp
 
