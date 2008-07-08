@@ -142,7 +142,7 @@ instance Show Entry where
         where
             m = case b of
                     Nothing -> ""
-                    Just y -> "{" ++ show (linkKey y) ++ "}"
+                    Just y -> "{#" ++ show (linkKey y) ++ "}"
 
             f (Keyword x) = x
             f (Text x) = x
