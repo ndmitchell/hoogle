@@ -45,7 +45,7 @@ instance Show DataBase where
 
 showDataBaseParts :: DataBase -> [(String,String)]
 showDataBaseParts (DataBase a b c d e f) =
-    let name * val = (name, "= " ++ name ++ " =\n\n" ++ show val ++ "\n\n") in
+    let name * val = (name, "= " ++ name ++ " =\n\n" ++ show val ++ "\n") in
     ["Items" * a,"NameSearch" * b, "TypeSearch" * c
     ,"Suggest" * d, "Aliases" * e, "Instances" * f]
 
