@@ -3,6 +3,7 @@ module Hoogle.DataBase.Items where
 
 import Control.Monad.State
 import Data.Binary.Defer.Index
+import Data.Binary.Defer.Link
 import General.Code
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
@@ -32,7 +33,7 @@ instance Show Items where
 data S = S {pkg :: Package
            ,modId :: Int
            ,mods :: [Module]
-           ,modCur :: Maybe (Lookup Module)
+           ,modCur :: Maybe (Link Module)
            ,entId :: Int
            ,ents :: [(TextItem, Maybe Entry)]
            }
@@ -69,7 +70,7 @@ createItems xs = unS $ execState (mapM (uncurry f) xs) s0
             let modI = modId s
                 m = Module modI xs (newLookup 0)
             put s{modId = modI + 1, mods = m : mods s
-                 ,modCur = Just $ newLookup modI}
+                 ,modCur = Just $ newLink m}
             addEntry i True EntryModule d
                 [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 

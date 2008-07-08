@@ -9,11 +9,13 @@ module Hoogle.DataBase.Item(
 import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
+import Data.Binary.Defer.Link
 import Hoogle.DataBase.Haddock
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Data.Range
 import Data.TagStr
+import Data.Typeable
 
 
 data Package = Package
@@ -29,13 +31,16 @@ data Module = Module
     {moduleId :: Id
     ,moduleName :: [String]
     ,modulePackage :: Lookup Package
-    }
+    } deriving (Eq,Ord)
+
+typename_Module = mkTyCon "Hoogle.DataBase.Item.Module"
+instance Typeable Module where typeOf _ = mkTyConApp typename_Module []
 
 
 -- invariant: entryName == head [i | Focus i <- entryText]
 data Entry = Entry
     {entryId :: Id
-    ,entryModule :: Maybe (Lookup Module)
+    ,entryModule :: Maybe (Link Module)
     ,entryName :: String
     ,entryText :: [EntryText]
     ,entryType :: EntryType
@@ -68,7 +73,7 @@ data EntryScore = EntryScore Int String String [String]
 
 
 entryScore :: Index Module -> Entry -> EntryScore
-entryScore mods e = entryScoreModule (liftM (`lookupIndex` mods) (entryModule e)) e
+entryScore mods e = entryScoreModule (liftM fromLink (entryModule e)) e
 
 
 entryScoreModule :: Maybe Module -> Entry -> EntryScore
@@ -132,7 +137,7 @@ instance Show Entry where
         where
             m = case b of
                     Nothing -> ""
-                    Just y -> "{" ++ show y ++ "}"
+                    Just y -> "{" ++ show (linkKey y) ++ "}"
 
             f (Keyword x) = x
             f (Text x) = x

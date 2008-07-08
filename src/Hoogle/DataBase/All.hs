@@ -8,6 +8,7 @@ module Hoogle.DataBase.All
     ) where
 
 import Data.Binary.Defer.Index
+import Data.Binary.Defer.Link
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Hoogle.DataBase.Type
@@ -38,7 +39,7 @@ searchType db = searchTypeSearch (aliases db) (instances db) (typeSearch db) (en
 entryParents :: DataBase -> Entry -> Maybe (Module, Package)
 entryParents db e = case entryModule e of
     Nothing -> Nothing
-    Just i -> let m = lookupIndex i (modules $ items db)
+    Just i -> let m = fromLink i
                   p = lookupIndex (modulePackage m) (packages $ items db)
               in Just (m,p)
 

@@ -4,6 +4,7 @@ module Hoogle.DataBase.Serialise(
     ) where
 
 import Data.Binary.Defer
+import Data.Binary.Defer.Link
 import Data.Binary.Raw
 import General.Code
 
@@ -19,7 +20,9 @@ saveDataBase file db = do
     h <- openBinaryFile file WriteMode
     mapM_ (hPutChar h) hooString
     hPutInt h hooVersion
-    runDeferPut h (put db)
+    runDeferPut h $ do
+        putLinks (undefined :: Module)
+        put db
     hClose h
 
 
@@ -40,4 +43,6 @@ loadDataBase file = do
         error $ "Wrong hoogle database version: " ++ show ver ++
                 " found, expected " ++ show hooVersion
 
-    runDeferGet h get
+    runDeferGet h $ do
+        getLinks (undefined :: Module)
+        get
