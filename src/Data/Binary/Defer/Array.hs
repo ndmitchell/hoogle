@@ -1,6 +1,6 @@
 
 module Data.Binary.Defer.Array(
-    (!), Array, array, elems
+    (!), Array, array, elems, arraySize
     ) where
 
 import Data.Array hiding ((!), Array, array, elems)
@@ -22,6 +22,9 @@ array xs = Array $ listArray (0, length xs - 1) xs
 elems :: Array a -> [a]
 elems (Array a) = A.elems a
 
+
+arraySize (Array a) = 1 + y - x
+    where (x,y) = bounds a
 
 instance Functor Array where
     fmap f (Array x) = Array (fmap f x)
