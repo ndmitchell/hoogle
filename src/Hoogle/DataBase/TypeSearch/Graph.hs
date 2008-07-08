@@ -190,7 +190,7 @@ populateGraph = do
 followNode :: Aliases -> Instances -> TypePair -> [(TypePair, Cost, Binding)]
 followNode as is (TypePair con t) =
         -- TODO: Should do something sensible with bindings
-        [(snd $ alphaFlatten a, newCost b, c) | (a,b,c) <- next]
+        nub [(snd $ alphaFlatten a, newCost b, c) | (a,b,c) <- next]
     where
         next = cont unbox ++ restrict ++ cont alias -- TODO: Context and Membership
         free = map (:[]) ['a'..] \\ [v | TVar v <- universe t]
