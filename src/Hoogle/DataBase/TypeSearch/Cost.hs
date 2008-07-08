@@ -3,12 +3,16 @@ module Hoogle.DataBase.TypeSearch.Cost where
 
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
+import Data.Typeable
 import General.Code
 
 type CostScore = Int
 
 data Cost = Cost CostScore CostDetail
             deriving (Ord,Eq)
+
+typename_Cost = mkTyCon "Hoogle.DataBase.TypeSearch.Cost.Cost"
+instance Typeable Cost where typeOf _ = mkTyConApp typename_Cost []
 
 instance BinaryDefer Cost where
     put (Cost a b) = put a
