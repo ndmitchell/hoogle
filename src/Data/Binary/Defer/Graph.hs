@@ -4,6 +4,7 @@ module Data.Binary.Defer.Graph(
 
 import Data.Binary.Defer.Array
 import Data.List
+import qualified Data.Heap as Heap
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -25,7 +26,16 @@ type GraphNode n e = Int
 searchDijkstraState :: (Ord c, Ord s) =>
     (c,s) -> (e -> (c,s) -> (c,s)) ->
     GraphNode n e -> Graph n e -> [(c,s,n)]
-searchDijkstraState = undefined
+searchDijkstraState (c,s) gen n (Graph xs) = f (Set.singleton (s,n)) (Heap.singleton c (s,n))
+    where
+        f seen next = case Heap.pop next of
+            Nothing -> []
+            Just ((c,(s,n)),next)
+                | not $ (s,n) `Set.member` seen -> f seen next
+                | otherwise -> [(c,s,n) | n <- ns] ++ f seen2 next2
+                    where Node ns es = xs ! n
+                          seen2 = Set.insert (s,n) seen
+                          next2 = Heap.pushList [(c,(s,n)) | (e,n) <- es, let (c2,s2) = gen e (c,s)] next
 
 
 ---------------------------------------------------------------------
