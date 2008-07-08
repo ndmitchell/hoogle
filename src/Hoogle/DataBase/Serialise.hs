@@ -4,7 +4,6 @@ module Hoogle.DataBase.Serialise(
     ) where
 
 import Data.Binary.Defer
-import Data.Binary.Defer.Link
 import Data.Binary.Raw
 import General.Code
 
