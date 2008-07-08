@@ -42,10 +42,11 @@ instance BinaryDefer a => BinaryDefer (Array a) where
             ans = do
                 n <- getInt
                 h <- asks fst
+                s <- ask
                 i <- lift $ hGetPos h
                 let f j = unsafePerformIO $ do
                              hSetPos h (i + sz*j)
-                             runDeferGet h getFixed
+                             runReaderT getFixed s
                 return $ Array $ listArray (0,n) $ map f [0..n]
 
             unwrap = undefined :: DeferGet (Array a) -> a
