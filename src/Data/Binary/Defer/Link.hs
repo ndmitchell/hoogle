@@ -44,6 +44,12 @@ linksMutate (LinksFrozen xs) = LinksMutable (IntMap.fromAscList kxs) (Map.fromLi
 -- (Int <-> a) are a bijection
 data Link a = Link Int a
 
+instance Eq (Link a) where
+    a == b = linkKey a == linkKey b
+
+instance Ord a => Ord (Link a) where
+    compare a b = compare (fromLink a) (fromLink b)
+
 
 {-# NOINLINE links #-}
 links :: IORef [(TypeRep,Links a)]
