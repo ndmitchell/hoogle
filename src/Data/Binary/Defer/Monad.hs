@@ -7,6 +7,9 @@ import Data.Binary.Raw
 import Control.Monad.Reader
 import Data.IORef
 
+import Data.Typeable
+import qualified Data.TypeMap as TypeMap
+
 
 ---------------------------------------------------------------------
 -- Defer Put
@@ -47,22 +50,39 @@ runDeferPending h (DeferPending pos act) = do
 ---------------------------------------------------------------------
 -- Defer Get
 
-type DeferGet a = ReaderT Handle IO a
+type DeferGet a = ReaderT (Handle, IORef TypeMap.TypeMap) IO a
 
 getInt, getByte :: DeferGet Int
-getInt  = do h <- ask; lift $ hGetInt  h
-getByte = do h <- ask; lift $ hGetByte h
+getInt  = do h <- asks fst; lift $ hGetInt  h
+getByte = do h <- asks fst; lift $ hGetByte h
 
 getChr :: DeferGet Char
-getChr  = do h <- ask; lift $ hGetChar h
+getChr  = do h <- asks fst; lift $ hGetChar h
 
 getDefer :: DeferGet a -> DeferGet a
 getDefer x = do
-    h <- ask
+    h <- asks fst
     i <- lift $ hGetInt h
+    s <- ask
     lift $ unsafeInterleaveIO $ do
         hSetPos h i
-        runDeferGet h x
+        runReaderT x s
 
 runDeferGet :: Handle -> DeferGet a -> IO a
-runDeferGet = flip runReaderT
+runDeferGet h m = do
+    ref <- newIORef TypeMap.empty
+    runReaderT m (h,ref)
+
+
+getDeferGet :: Typeable a => DeferGet a
+getDeferGet = do
+    ref <- asks snd
+    mp <- lift $ readIORef ref
+    case TypeMap.lookup mp of
+        Nothing -> error "getDeferGet, type not found!"
+        Just y -> return y
+
+getDeferPut :: Typeable a => a -> DeferGet ()
+getDeferPut x = do
+    ref <- asks snd
+    lift $ modifyIORef ref $ TypeMap.insert x
