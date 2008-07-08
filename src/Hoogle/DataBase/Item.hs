@@ -33,7 +33,7 @@ data Module = Module
     {moduleId :: Id
     ,moduleName :: [String]
     ,modulePackage :: Lookup Package
-    } deriving (Eq,Ord)
+    }
 
 typename_Module = mkTyCon "Hoogle.DataBase.Item.Module"
 instance Typeable Module where typeOf _ = mkTyConApp typename_Module []
