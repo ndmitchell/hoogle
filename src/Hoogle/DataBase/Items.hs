@@ -21,8 +21,14 @@ data Items = Items
     }
 
 instance BinaryDefer Items where
-    put (Items a b c) = D.put a >> D.put b >> D.put c
-    get = get3 Items
+    put (Items a b c) = put3 a b c
+    get = do
+        res@(Items a b c) <- get3 Items
+        getDeferPut a
+        getDeferPut b
+        getDeferPut c
+        return res
+
 
 instance Show Items where
     show (Items a b c) = f "Packages" a ++ f "Modules" b ++ f "Entries" c
