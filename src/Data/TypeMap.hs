@@ -1,7 +1,7 @@
 
 module Data.TypeMap(
     TypeMap, empty,
-    lookup, insert
+    lookup, insert, find
     ) where
 
 import Prelude hiding (lookup)
@@ -20,6 +20,12 @@ empty = TypeMap Map.empty
 lookup :: Typeable a => TypeMap -> Maybe a
 lookup (TypeMap mp) = res
     where res = liftM (fromJust . fromDynamic) $ Map.lookup (typeOf $ fromJust res) mp
+
+
+find :: Typeable a => TypeMap -> a
+find mp = res
+    where res = fromMaybe (error msg) $ lookup mp
+          msg = "Data.TypeMap.find, couldn't find " ++ show (typeOf res)
 
 
 insert :: Typeable a => a -> TypeMap -> TypeMap
