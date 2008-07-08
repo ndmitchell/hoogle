@@ -164,7 +164,7 @@ populateGraph = do
             f (Set.insert t done) (map fst3 nxt ++ odo)
 
         g (t,c,b) = do
-            (costs,ci) <- liftM (getIndex c) $ gets costs
+            (costs,ci) <- liftM (getLookup c) $ gets costs
             modify $ \s -> s{costs=costs}
 
             mp <- gets graph
