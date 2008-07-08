@@ -59,7 +59,7 @@ showGraph cs (Graph mp ns) = unlines $ concatMap (uncurry f) $ IntMap.elems mp2
                 results = if null rs then "No results" else unwords rs
                 rs = [show a ++ "." ++ show b ++ (if null c then "" else show c) | GraphResult a b c _ <- res]
 
-        g (ni,ci,b) = show (lookupIndex ci cs) ++ " ==> " ++
+        g (ni,ci,b) = show (fromLink ci) ++ " ==> " ++
                       show (fst $ mp2 IntMap.! lookupKey ni) ++ " " ++ show b
 
 
@@ -68,7 +68,7 @@ instance BinaryDefer Graph where
     get = get2 Graph
 
 
-data Node = Node [GraphResult] [(Lookup Node, Lookup Cost, Binding)]
+data Node = Node [GraphResult] [(Lookup Node, Link Cost, Binding)]
             deriving Show
 
 instance BinaryDefer Node where
@@ -164,7 +164,7 @@ populateGraph = do
             f (Set.insert t done) (map fst3 nxt ++ odo)
 
         g (t,c,b) = do
-            (costs,ci) <- liftM (getLookup c) $ gets costs
+            (costs,ci) <- liftM (getLink c) $ gets costs
             modify $ \s -> s{costs=costs}
 
             mp <- gets graph
@@ -256,7 +256,7 @@ data GraphSearch = GraphSearch
     ,found :: [GraphResult]
     ,paid :: IntSet.IntSet -- Lookup Cost
     ,reached :: Map.Map (Lookup Node, Binding) TypeScore
-    ,available :: Heap.Heap Int (Lookup Node, Binding, Lookup Cost, Cost)
+    ,available :: Heap.Heap Int (Lookup Node, Binding, Link Cost, Cost)
     }
 
 
@@ -293,7 +293,7 @@ graphAdd ni bind score gs | (ni,bind) `Map.member` reached gs = gs
     where
         Node gr link = lookupIndex ni (nodesGS gs)
         res = [x{graphResultScore = score} | x <- gr]
-        nxt = [(costScore c, (ni,[],ci,c)) | (ni,ci,bind) <- link, let c = lookupIndex ci (costsGS gs)]
+        nxt = [(costScore c, (ni,[],ci,c)) | (ni,ci,bind) <- link, let c = fromLink ci]
 
 
 -- those entires which are at a newly discovered node

@@ -31,7 +31,10 @@ instance Show Graphs where
 
 instance BinaryDefer Graphs where
     put (Graphs a b c) = put3 a b c
-    get = get3 Graphs
+    get = do
+        res@(Graphs a b c) <- get3 Graphs
+        getDeferPut a
+        return res
 
 
 ---------------------------------------------------------------------
