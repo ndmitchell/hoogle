@@ -26,6 +26,9 @@ data Package = Package
     ,hscolourURL :: String
     }
 
+typename_Package = mkTyCon "Hoogle.DataBase.Item.Package"
+instance Typeable Package where typeOf _ = mkTyConApp typename_Package []
+
 
 data Module = Module
     {moduleId :: Id
@@ -46,6 +49,9 @@ data Entry = Entry
     ,entryType :: EntryType
     ,entryDocs :: Haddock
     }
+
+typename_Entry = mkTyCon "Hoogle.DataBase.Item.Entry"
+instance Typeable Entry where typeOf _ = mkTyConApp typename_Entry []
 
 
 data EntryText = Keyword String
