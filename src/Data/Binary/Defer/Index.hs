@@ -60,7 +60,7 @@ lookupIndex (Lookup i) (Index xs) = xs ! i
 instance BinaryDefer (Lookup a) where
     put (Lookup key) = put key
     get = get1 Lookup
-    size _ = size (undefined :: Id)
+    size _ = size (0 :: Id)
     putFixed (Lookup key) = putFixed key
     getFixed = getFixed1 Lookup
 
