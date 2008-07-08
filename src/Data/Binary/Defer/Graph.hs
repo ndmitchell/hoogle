@@ -2,6 +2,7 @@
 module Data.Binary.Defer.Graph(
     ) where
 
+import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import Data.List
 import qualified Data.Heap as Heap
@@ -17,6 +18,15 @@ data Graph n e = Graph (Array (Node n e))
 data Node n e = Node {nodeResults :: [n], nodeEdges :: [(e, GraphNode n e)]}
 
 type GraphNode n e = Int
+
+
+instance (BinaryDefer n, BinaryDefer e) => BinaryDefer (Graph n e) where
+    put (Graph a) = put1 a
+    get = get1 Graph
+
+instance (BinaryDefer n, BinaryDefer e) => BinaryDefer (Node n e) where
+    put (Node a b) = put2 a b
+    get = get2 Node
 
 
 -- Given an initial (cost,state), and how to transform a (cost,state) along an edge
