@@ -23,6 +23,10 @@ toList :: Heap k v -> [(k,v)]
 toList (Heap xs) = xs
 
 
+singleton :: k -> v -> Heap k v
+singleton k v = Heap [(k,v)]
+
+
 -- insert a value with a cost, does NOT overwrite values
 push :: Ord k => k -> v -> Heap k v -> Heap k v
 push k v (Heap xs) = Heap $ f xs
