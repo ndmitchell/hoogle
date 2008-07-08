@@ -20,9 +20,7 @@ saveDataBase file db = do
     h <- openBinaryFile file WriteMode
     mapM_ (hPutChar h) hooString
     hPutInt h hooVersion
-    runDeferPut h $ do
-        putLinks (undefined :: Module)
-        put db
+    runDeferPut h $ put db
     hClose h
 
 
@@ -43,6 +41,4 @@ loadDataBase file = do
         error $ "Wrong hoogle database version: " ++ show ver ++
                 " found, expected " ++ show hooVersion
 
-    runDeferGet h $ do
-        getLinks (undefined :: Module)
-        get
+    runDeferGet h get
