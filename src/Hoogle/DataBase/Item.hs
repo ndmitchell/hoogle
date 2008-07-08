@@ -18,8 +18,7 @@ import Data.Typeable
 
 
 data Package = Package
-    {packageId :: Id
-    ,packageName :: String
+    {packageName :: String
     ,packageVersion :: String
     ,haddockURL :: String
     ,hscolourURL :: String
@@ -130,7 +129,7 @@ renderTypeSig (TypeSig con sig) = Text (showConstraint con) :
 showModule = concat . intersperse "."
 
 instance Show Package where
-    show (Package a b c d e) = unwords ["#" ++ show a,b,c,d,e]
+    show (Package a b c d) = unwords [a,b,c,d]
 
 instance Show Module where
     show (Module a b) = unwords [showModule a, "{" ++ show b ++ "}"]
@@ -150,8 +149,8 @@ instance Show Entry where
 
 
 instance BinaryDefer Package where
-    put (Package a b c d e) = put5 a b c d e
-    get = get5 Package
+    put (Package a b c d) = put4 a b c d
+    get = get4 Package
 
 instance BinaryDefer Module where
     put (Module a b) = put2 a b

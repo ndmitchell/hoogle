@@ -47,7 +47,7 @@ createItems :: [(TextItem,String)] -> (Items, [(TextItem, Maybe Entry)])
 createItems xs = res
     where
         res = unS $ execState (mapM (uncurry f) xs) s0
-        s0 = S (Package 0 "" "" "" "") 0 [] Nothing 0 []
+        s0 = S (Package "" "" "" "") 0 [] Nothing 0 []
 
         unS s = (Items (newIndex [pkg s])
                        ms
