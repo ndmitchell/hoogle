@@ -306,14 +306,17 @@ graphCost :: GraphSearch -> CostScore
 graphCost = fromMaybe maxBound . IntHeap.min . available
 
 
--- follow a graph along a cost edge, that is now free
-graphFollow :: Lookup Cost -> GraphSearch -> GraphSearch
-graphFollow ci gs = error $ "Follow " ++ show (lookupIndex ci (costsGS gs))
-    -- gs{found=[]}
-
-
 -- ask what possible node could be followed next
 graphNext :: GraphSearch -> Maybe (Lookup Cost, Cost)
-graphNext gs = do
+graphNext gs = Nothing {- do
     ((_,(_,_,ci,c)), _) <- IntHeap.pop $ available gs
-    return (ci,c)
+    return (ci,c) -}
+
+
+-- follow a graph along a cost edge
+graphFollow :: Lookup Cost -> GraphSearch -> GraphSearch
+graphFollow ci gs = undefined {- flip evalState gs $ do
+    modify $ \s -> s{paid = IntSet.insert (lookupKey ci) paid}
+    error $ "Follow " ++ show (lookupIndex ci (costsGS gs))
+    -- gs{found=[]} -}
+
