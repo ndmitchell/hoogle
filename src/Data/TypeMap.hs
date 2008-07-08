@@ -1,6 +1,10 @@
 
-module Data.TypeMap where
+module Data.TypeMap(
+    TypeMap, empty,
+    lookup, insert
+    ) where
 
+import Prelude hiding (lookup)
 import Control.Monad
 import Data.Dynamic
 import Data.Maybe
