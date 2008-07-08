@@ -12,7 +12,7 @@ import Hoogle.TypeSig.All
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import qualified Data.IntMap as IntMap
-import qualified Data.IntHeap as IntHeap
+import qualified Data.Heap as Heap
 import General.Code
 import Control.Monad.State
 
@@ -80,7 +80,7 @@ these scores is the minimum used by Pile.
 
 data S = S
     {infos :: IntMap.IntMap (Maybe Info) -- Int = Lookup Entry
-    ,pending :: IntHeap.IntHeap GraphsResult -- Int = CostScore
+    ,pending :: Heap.Heap CostScore GraphsResult
     ,graphs :: [GraphSearch] -- first graph is the result graph
     ,costMin :: CostScore -- the lowest cost you may return next
     ,numArgs :: Int
@@ -94,7 +94,7 @@ type GraphsResult = (Link Entry,[EntryView],TypeScore)
 graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [GraphsResult]
 graphsSearch as is gs (TypeSig con ts) = evalState search s0
     where
-        s0 = S IntMap.empty IntHeap.empty (resG:argsG) 0 (length argsG)
+        s0 = S IntMap.empty Heap.empty (resG:argsG) 0 (length argsG)
         argsG = map (graphSearch as is (costs gs) (argGraph gs) . TypeSig con) args
         resG = graphSearch as is (costs gs) (resGraph gs) (TypeSig con res)
 
@@ -128,7 +128,7 @@ searchFollow = do
                     res <- return $ map (typeScoreTotal . thd3 &&& id) res
                     modify $ \s -> s
                         {infos = IntMap.insert entryId inf (infos s)
-                        ,pending = IntHeap.pushList res (pending s)
+                        ,pending = Heap.pushList res (pending s)
                         }
 
 
@@ -137,7 +137,7 @@ searchFound :: State S [GraphsResult]
 searchFound = do
     p <- gets pending
     c <- gets costMin
-    (res,p) <- return $ IntHeap.popUntil c p
+    (res,p) <- return $ Heap.popUntil c p
     modify $ \s -> s
         {pending=p
         ,infos=foldr (uncurry IntMap.insert) (infos s)

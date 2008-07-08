@@ -24,7 +24,7 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import qualified Data.IntSet as IntSet
 import qualified Data.IntMap as IntMap
-import qualified Data.IntHeap as IntHeap
+import qualified Data.Heap as Heap
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Control.Monad.State  hiding (get,put)
@@ -256,7 +256,7 @@ data GraphSearch = GraphSearch
     ,found :: [GraphResult]
     ,paid :: IntSet.IntSet -- Lookup Cost
     ,reached :: Map.Map (Lookup Node, Binding) TypeScore
-    ,available :: IntHeap.IntHeap (Lookup Node, Binding, Lookup Cost, Cost)
+    ,available :: Heap.Heap Int (Lookup Node, Binding, Lookup Cost, Cost)
     }
 
 
@@ -267,7 +267,7 @@ graphSearch as is costs g@(Graph a b) t = fromJust $ do
         i <- graphStart g t2
         return $ graphAdd i bind blankTypeScore s0
     where
-        s0 = GraphSearch a b costs [] IntSet.empty Map.empty IntHeap.empty
+        s0 = GraphSearch a b costs [] IntSet.empty Map.empty Heap.empty
         (bind,t2) = alphaFlatten $ contextNorm is t
 
 
@@ -289,7 +289,7 @@ graphAdd ni bind score gs | (ni,bind) `Map.member` reached gs = gs
                           | otherwise =
     gs{reached = Map.insert (ni,bind) score $ reached gs
       ,found = res ++ found gs
-      ,available = IntHeap.pushList nxt $ available gs}
+      ,available = Heap.pushList nxt $ available gs}
     where
         Node gr link = lookupIndex ni (nodesGS gs)
         res = [x{graphResultScore = score} | x <- gr]
@@ -303,13 +303,13 @@ graphFound = found
 
 -- what is the minimum cost any future graphFound result may have
 graphCost :: GraphSearch -> CostScore
-graphCost = fromMaybe maxBound . IntHeap.min . available
+graphCost = fromMaybe maxBound . Heap.min . available
 
 
 -- ask what possible node could be followed next
 graphNext :: GraphSearch -> Maybe (Lookup Cost, Cost)
 graphNext gs = Nothing {- do
-    ((_,(_,_,ci,c)), _) <- IntHeap.pop $ available gs
+    ((_,(_,_,ci,c)), _) <- Heap.pop $ available gs
     return (ci,c) -}
 
 
