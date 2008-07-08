@@ -20,14 +20,14 @@ import Control.Monad.State
 -- for resGraph, the associated ArgPos is the arity of the function
 
 data Graphs = Graphs
-    {argGraph :: Graph -- the arguments
+    {costs :: Index Cost -- how much each link costs
+    ,argGraph :: Graph -- the arguments
     ,resGraph :: Graph -- the results
-    ,costs :: Index Cost -- how much each link costs
     }
 
 instance Show Graphs where
-    show (Graphs a b c) = "== Arguments ==\n\n" ++ showGraph c a ++
-                          "\n== Results ==\n\n" ++ showGraph c b
+    show (Graphs a b c) = "== Arguments ==\n\n" ++ showGraph a b ++
+                          "\n== Results ==\n\n" ++ showGraph a c
 
 instance BinaryDefer Graphs where
     put (Graphs a b c) = put3 a b c
@@ -38,7 +38,7 @@ instance BinaryDefer Graphs where
 -- GRAPHS CONSTRUCTION
 
 newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
-newGraphs as is xs = Graphs argGraph resGraph (indexFreeze cs3)
+newGraphs as is xs = Graphs (indexFreeze cs3) argGraph resGraph
     where
         cs1 = newIndex_
         (cs2,argGraph) = newGraph as is (concat args) cs1
