@@ -86,8 +86,7 @@ createItems xs = res
         addEntry i modu typ doc txt = do
             s <- get
             let entI = entId s
-                e = Entry entI
-                          (if modu then modCur s else Nothing)
+                e = Entry (if modu then modCur s else Nothing)
                           (headDef "" [i | Focus i <- txt])
                           txt typ (newHaddock doc)
             put $ s{entId = entI + 1, ents = (i, Just e) : ents s}

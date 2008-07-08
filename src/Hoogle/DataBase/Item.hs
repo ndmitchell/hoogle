@@ -39,8 +39,7 @@ instance Typeable Module where typeOf _ = mkTyConApp typename_Module []
 
 -- invariant: entryName == head [i | Focus i <- entryText]
 data Entry = Entry
-    {entryId :: Id
-    ,entryModule :: Maybe (Link Module)
+    {entryModule :: Maybe (Link Module)
     ,entryName :: String
     ,entryText :: [EntryText]
     ,entryType :: EntryType
@@ -131,9 +130,9 @@ instance Show Module where
     show (Module a b) = unwords [showModule a, "{" ++ show b ++ "}"]
 
 instance Show Entry where
-    show (Entry a b c d _ _) = unwords ["#" ++ show a, concatMap f d, m]
+    show (Entry a _ b _ _) = unwords [concatMap f b, m]
         where
-            m = case b of
+            m = case a of
                     Nothing -> ""
                     Just y -> "{#" ++ show (linkKey y) ++ "}"
 
@@ -153,8 +152,8 @@ instance BinaryDefer Module where
     get = get2 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e f) = put6 a b c d e f
-    get = get6 Entry
+    put (Entry a b c d e) = put5 a b c d e
+    get = get5 Entry
 
 instance BinaryDefer EntryText where
     put (Keyword a)  = putByte 0 >> put1 a
