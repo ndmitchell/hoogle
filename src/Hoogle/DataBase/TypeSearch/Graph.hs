@@ -57,7 +57,7 @@ showGraph cs (Graph mp ns) = unlines $ concatMap (uncurry f) $ IntMap.elems mp2
         f t (Node res link) = show t : map ("    " ++) (results : map g link)
             where
                 results = if null rs then "No results" else unwords rs
-                rs = [show a ++ "." ++ show b ++ (if null c then "" else show c) | GraphResult a b c _ <- res]
+                rs = ['#':show (linkKey a) ++ '.':show b ++ (if null c then "" else show c) | GraphResult a b c _ <- res]
 
         g (ni,ci,b) = show (fromLink ci) ++ " ==> " ++
                       show (fst $ mp2 IntMap.! lookupKey ni) ++ " " ++ show b
