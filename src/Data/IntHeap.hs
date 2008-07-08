@@ -1,9 +1,10 @@
 
 module Data.IntHeap where
 
-import Prelude hiding (min)
+import Prelude
 import qualified Data.Map as Map
 import Data.Maybe
+import Data.List as List
 
 
 -- NOTE: Horribly inefficient
@@ -12,6 +13,14 @@ newtype IntHeap v = IntHeap [(Int,v)]
 
 empty :: IntHeap v
 empty = IntHeap []
+
+
+fromList :: [(Int,v)] -> IntHeap v
+fromList xs = pushList xs empty
+
+
+toList :: IntHeap v -> [(Int,v)]
+toList (IntHeap xs) = xs
 
 
 -- insert a value with a cost, does NOT overwrite values
@@ -42,3 +51,8 @@ popUntil i (IntHeap xs) = (map snd a, IntHeap b)
 
 min :: IntHeap v -> Maybe Int
 min (IntHeap xs) = listToMaybe $ map fst xs
+
+
+partition :: (v -> Bool) -> IntHeap v -> (IntHeap v, IntHeap v)
+partition f (IntHeap xs) = (IntHeap a, IntHeap b)
+    where (a,b) = List.partition (f . snd) xs
