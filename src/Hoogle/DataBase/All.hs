@@ -39,7 +39,7 @@ entryParents :: DataBase -> Entry -> Maybe (Module, Package)
 entryParents db e = case entryModule e of
     Nothing -> Nothing
     Just i -> let m = fromLink i
-                  p = lookupIndex (modulePackage m) (packages $ items db)
+                  p = fromLink $ modulePackage m
               in Just (m,p)
 
 

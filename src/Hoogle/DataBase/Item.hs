@@ -32,7 +32,7 @@ instance Typeable Package where typeOf _ = mkTyConApp typename_Package []
 data Module = Module
     {moduleId :: Id
     ,moduleName :: [String]
-    ,modulePackage :: Lookup Package
+    ,modulePackage :: Link Package
     }
 
 typename_Module = mkTyCon "Hoogle.DataBase.Item.Module"

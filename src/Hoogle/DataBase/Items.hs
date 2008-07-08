@@ -44,8 +44,9 @@ data S = S {pkg :: Package
            }
 
 createItems :: [(TextItem,String)] -> (Items, [(TextItem, Maybe Entry)])
-createItems xs = unS $ execState (mapM (uncurry f) xs) s0
+createItems xs = res
     where
+        res = unS $ execState (mapM (uncurry f) xs) s0
         s0 = S (Package 0 "" "" "" "") 0 [] Nothing 0 []
 
         unS s = (Items (newIndex [pkg s])
@@ -73,7 +74,7 @@ createItems xs = unS $ execState (mapM (uncurry f) xs) s0
         f i@(ItemModule xs) d = do
             s <- get
             let modI = modId s
-                m = Module modI xs (newLookup 0)
+                m = Module modI xs (newLink 0 $ lookupIndex (newLookup 0) (packages $ fst res))
             put s{modId = modI + 1, mods = m : mods s
                  ,modCur = Just $ newLink modI m}
             addEntry i True EntryModule d
