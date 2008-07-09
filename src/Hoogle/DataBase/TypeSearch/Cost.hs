@@ -77,3 +77,14 @@ newCost xs = Cost 1 xs
 
 costScore :: Cost -> CostScore
 costScore (Cost a b) = a
+
+
+reverseCost :: Cost -> Maybe Cost
+reverseCost (Cost _ x) | f x = Just $ newCost $ CostReverse x
+                       | otherwise = Nothing
+    where
+        -- reverse anything aparm from a restriction
+        f (CostAlias{}) = True
+        f (CostUnbox{}) = True
+        f (CostContext{}) = True
+        f (CostMember{}) = True
