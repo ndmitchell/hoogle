@@ -8,6 +8,7 @@ import System.Directory
 import System.Exit
 import qualified Data.IntSet as IntSet
 
+infixl 0 `on`
 
 fst3 (a,b,c) = a
 snd3 (a,b,c) = b
