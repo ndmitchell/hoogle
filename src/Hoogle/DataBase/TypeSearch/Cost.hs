@@ -91,3 +91,4 @@ reverseCost (Cost _ x) | f x = Just $ newCost $ CostReverse x
         f (CostUnbox{}) = True
         f (CostContext{}) = True
         f (CostMember{}) = True
+        f _ = False
