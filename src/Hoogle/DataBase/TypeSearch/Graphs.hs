@@ -57,113 +57,75 @@ newGraphs as is xs = Graphs (indexFreeze cs3) argGraph resGraph
 ---------------------------------------------------------------------
 -- GRAPHS SEARCHING
 
-{-
-Data Structures:
-
-1) Map EntryId (Maybe Info)
-
-Nothing means either the EntryId has been given back, or the
-arity of the EntryId is too high to work. Accumulate results
-and arguments in the Info structure. Once you have a complete
-set of information on an entry, including any Alpha/ArgPos negative
-scores, move it to a second pile.
-
-2) Pending
-
-Pending has the minimum score any item could have, and a list of items
-which have been completed and are awaiting outputting. Once an item
-gets below the minimum score it is outputted.
-
-3) [(Graph,Score)]
-
-A list of graphs, each with their minimum possible score. The sum of
-these scores is the minimum used by Pile.
--}
-
-
-data S = S
-    {infos :: IntMap.IntMap (Maybe Info) -- Int = Lookup Entry
-    ,pending :: Heap.Heap CostScore GraphsResult
-    ,graphs :: [GraphSearch] -- first graph is the result graph
-    ,costMin :: CostScore -- the lowest cost you may return next
-    ,numArgs :: Int
-    }
-    
 
 type GraphsResult = (Link Entry,[EntryView],TypeScore)
 
 
 -- sorted by TypeScore
 graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [GraphsResult]
-graphsSearch as is gs (TypeSig con ts) = evalState search s0
+graphsSearch as is gs (TypeSig con ts) = resultsCombine (length args) ans
     where
-        s0 = S IntMap.empty Heap.empty (resG:argsG) 0 (length argsG)
-        argsG = map (graphSearch as is (costs gs) (argGraph gs) . TypeSig con) args
-        resG = graphSearch as is (costs gs) (resGraph gs) (TypeSig con res)
+        ans = mergesBy (compare `on` graphResultScore . snd) $ 
+              f Nothing (resGraph gs) res :
+              zipWith (\i -> f (Just i) (argGraph gs)) [0..] args
 
+        f a g = map ((,) a) . graphSearch as is g . TypeSig con
         (args,res) = initLast $ fromTFun ts
 
 
-search :: State S [GraphsResult]
-search = do
-    searchFollow
-    xs <- searchFound
-    nxt <- searchNext
-    ys <- searchFound
-    zs <- if nxt then search else return []
-    return $ xs++ys++zs
+data S = S
+    {infos :: IntMap.IntMap (Maybe Info) -- Int = Lookup Entry
+    ,pending :: Heap.Heap TypeScore GraphsResult
+    ,todo :: [(Maybe ArgPos, GraphResult)]
+    ,arity :: Int
+    }
 
 
--- move results from graphFound into the pile
-searchFollow :: State S ()
-searchFollow = do
-    gs <- gets graphs
-    mapM_ f [(i,g2) | (i,g) <- zip (Nothing : map Just [0..]) gs, g2 <- graphFound g]
+resultsCombine :: Int -> [(Maybe ArgPos, GraphResult)] -> [GraphsResult]
+resultsCombine arity xs = evalState delResult s0
+    where s0 = S IntMap.empty Heap.empty xs arity
+
+
+-- Heap -> answer
+delResult :: State S [GraphsResult]
+delResult = do
+    pending <- gets pending
+    todo <- gets todo
+    case todo of
+        [] -> concatMapM (f . snd) $ Heap.toList pending
+        t:odo -> do
+            modify $ \s -> s{todo = odo}
+            let (res,hp) = Heap.popUntil (graphResultScore $ snd t) pending
+            ans1 <- concatMapM f res
+            uncurry addResult t
+            ans2 <- delResult
+            return $ ans1 ++ ans2
     where
-        f (arg,val) = do
-            let entryId = linkKey $ graphResultEntry val
-            infs <- gets infos
-            numArgs <- gets numArgs
-            case IntMap.findWithDefault (Just $ newInfo numArgs) entryId infs of
-                Nothing -> return ()
-                Just inf -> do
-                    (inf,res) <- return $ addInfo arg val inf
-                    res <- return $ map (typeScoreTotal . thd3 &&& id) res
-                    modify $ \s -> s
-                        {infos = IntMap.insert entryId inf (infos s)
-                        ,pending = Heap.pushList res (pending s)
-                        }
+        f r = do
+            infos <- gets infos
+            (Just res,infos) <- return $ IntMap.updateLookupWithKey
+                (\_ _ -> Just Nothing) (linkKey $ fst3 r) infos
+            if isNothing res then return [] else do
+                modify $ \s -> s{infos=infos}
+                return [r]
 
 
--- return the results from the pile satisfying costMin
-searchFound :: State S [GraphsResult]
-searchFound = do
-    p <- gets pending
-    c <- gets costMin
-    (res,p) <- return $ Heap.popUntil c p
-    modify $ \s -> s
-        {pending=p
-        ,infos=foldr (uncurry IntMap.insert) (infos s)
-                     [(linkKey $ fst3 r, Nothing) | r <- res]
-        }
-    return res
-
-
--- return False if you can't move anywhere, update costMin
-searchNext :: State S Bool
-searchNext = do
-    gs <- gets graphs
-    case mapMaybe graphNext gs of
-        [] -> do
-            modify $ \s -> s{costMin=maxBound}
-            return False
-        xs -> do
-            let i = fst $ minimumBy (compare `on` snd) xs
-            gs <- return $ map (graphFollow i) gs
+-- todo -> heap/info
+addResult :: Maybe ArgPos -> GraphResult -> State S ()
+addResult arg val = do
+    let entryId = linkKey $ graphResultEntry val
+    infs <- gets infos
+    arity <- gets arity
+    case IntMap.findWithDefault (Just $ newInfo arity) entryId infs of
+        Nothing -> return ()
+        Just inf -> do
+            (inf,res) <- return $ addInfo arg val inf
+            res <- return $ map (thd3 &&& id) res
             modify $ \s -> s
-                {graphs=gs
-                ,costMin=minimum (map graphCost gs)}
-            return True
+                {infos = IntMap.insert entryId inf (infos s)
+                ,pending = Heap.pushList res (pending s)
+                }
+
 
 
 -- the pending information about an Entry, before it has been added
@@ -199,5 +161,5 @@ newGraphsResults :: [Cost] -> [GraphResult] -> GraphResult -> GraphsResult
 newGraphsResults costs args res =
     (graphResultEntry res
     ,zipWith ArgPosNum [0..] $ map graphResultPos args
-    ,newTypeScore $ costs ++ nub (concatMap (typeScoreCosts . graphResultScore) $ args++[res])
+    ,addTypeScoreDirect costs $ mergeTypeScores $ map graphResultScore $ args++[res]
     )
