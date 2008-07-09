@@ -115,7 +115,7 @@ fixup name = do
     let f x = not $ any (\y -> map toLower y `isSubstrOf` map toLower x) badCabal
     x <- return $ unlines $ filter f $ lines x
 
-    writeFile file x
+    writeBinaryFile file x
 
     -- INCLUDE FILES
     let incdir = "include"
