@@ -142,6 +142,15 @@ merge (x:xs) (y:ys)
     | otherwise = y : merge (x:xs) ys
 
 
+mergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
+mergeBy f xs [] = xs
+mergeBy f [] ys = ys
+mergeBy f (x:xs) (y:ys)
+    | f x y /= GT = x : mergeBy f xs (y:ys)
+    | otherwise = y : mergeBy f (x:xs) ys
+
+
+
 concatMapM f = liftM concat . mapM f
 
 
