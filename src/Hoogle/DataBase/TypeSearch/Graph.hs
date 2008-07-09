@@ -22,17 +22,14 @@ import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import qualified Data.IntSet as IntSet
 import qualified Data.IntMap as IntMap
-import qualified Data.Heap as Heap
 import qualified Data.Map as Map
-import qualified Data.Set as Set
-import Control.Monad.State  hiding (get,put)
-import qualified Control.Monad.State as S
 import General.Code
 import Data.Key
 import qualified Data.Binary.Defer.Graph as G
 import Data.Binary.Defer.Graph hiding (Graph, Graph_)
+import Control.Monad.State hiding (put,get)
+import qualified Control.Monad.State as S
 
 
 
@@ -87,27 +84,29 @@ type Graph_ = G.Graph_ TypePair GraphResult (Cost, Binding)
 
 newGraph :: Aliases -> Instances -> [(Link Entry, ArgPos, TypeSig)] ->
             Index_ Cost -> (Index_ Cost, Graph)
-newGraph as is xs cost = undefined {- (costs sN, f (graph sN))
+newGraph as is xs cost = (cost2, Graph mp2 g)
     where
-        sN = execState (initialGraph xs >> populateGraph >> reverseLinks) s0
-        s0 = S as is cost Map.empty
-
-        f mp = Graph
-            (fromListMany [(t,(c,v)) | (TypePair c t,(v,_)) <- Map.toList mp])
-            (newIndex $ map snd $ sortFst $ Map.elems mp) -}
-
+        g_ = reverseLinks $ populateGraph as is $ initialGraph is xs
+        (cost2,g_2) = linkCosts g_ cost
+        (g,mp) = graphFreeze g_2
+        mp2 = fromListMany [(t,(c,v)) | (TypePair c t,v) <- Map.toList mp]
 
 fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
 fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortFst
 
 
+linkCosts :: Graph_ -> Index_ Cost -> (Index_ Cost, G.Graph_ TypePair GraphResult (Link Cost, Binding))
+linkCosts (G.Graph_ res edges) costs = (costs2, G.Graph_ res edges2)
+    where
+        (costs2,edges2) = mapAccumR f costs edges
+
+        f costs (k1,k2,(c,b)) = (costs2, (k1,k2,(c2,b)))
+            where (costs2,c2) = getLink c costs
+
+
 -- create the initial graph
-initialGraph :: [(Link Entry, ArgPos, TypeSig)] -> Graph_ 
-initialGraph xs = undefined {- do
-    is <- gets instances
-    let f i xs@((t,_):_) = (t, (newLookup i, Node (sortOn (linkKey . graphResultEntry) $ map snd xs) []))
-        r = Map.fromAscList $ zipWith f [0..] $ groupFst $ sortFst $ map (newGraphResult is) xs
-    modify $ \s -> s{graph=r} -}
+initialGraph :: Instances -> [(Link Entry, ArgPos, TypeSig)] -> Graph_ 
+initialGraph is xs = newGraph_{graphResults = map (newGraphResult is) xs}
 
 
 -- create a result, and figure out what the relative is
@@ -117,37 +116,9 @@ newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
 
 
 -- add links between each step
-populateGraph :: Graph_ -> Graph_
-populateGraph = undefined {- do
-    todo <- liftM Map.keys $ gets graph
-    -- ensure "a" is in the graph, so you have a default
-    -- start point
-    f Set.empty (TypePair [] (TVar "a") : todo)
-    where
-        f done [] = return ()
-        f done (t:odo) | Set.member t done = f done odo
-        f done (t:odo) = do
-            as <- gets aliases
-            is <- gets instances
-            let nxt = followNode as is t
-            r <- mapM g nxt
-            modify $ \s -> s{graph = Map.adjust (\(ni, Node a []) -> (ni, Node a r)) t $ graph s}
-            f (Set.insert t done) (map fst3 nxt ++ odo)
+populateGraph :: Aliases -> Instances -> Graph_ -> Graph_
+populateGraph as is = graphFollow (followNode as is)
 
-        g (t,c,b) = do
-            (costs,ci) <- liftM (getLink c) $ gets costs
-            modify $ \s -> s{costs=costs}
-
-            mp <- gets graph
-            ni <- case Map.lookup t mp of
-                Just (ni,_) -> return ni
-                Nothing -> do
-                    let ni = Map.size mp
-                    modify $ \s -> s{graph = Map.insert t (newLookup ni, Node [] []) mp}
-                    return $ newLookup ni
-
-            return (ni, ci, b) -}
-            
 
 -- follow a node to all possible next steps
 -- all next ones must have already been alpha flattened
@@ -158,10 +129,10 @@ populateGraph = undefined {- do
 --  * Alias:        a |-> alias(a)
 --  * Context:      C a => a |-> a
 --  * Membership:   C M => M |-> C a => a
-followNode :: Aliases -> Instances -> TypePair -> [(TypePair, Cost, Binding)]
+followNode :: Aliases -> Instances -> TypePair -> [(TypePair, (Cost, Binding))]
 followNode as is (TypePair con t) =
         -- TODO: Should do something sensible with bindings
-        nub [(snd $ alphaFlatten a, newCost b, c) | (a,b,c) <- next]
+        nub [(snd $ alphaFlatten a, (newCost b, c)) | (a,b,c) <- next]
     where
         next = cont unbox ++ restrict ++ cont alias -- TODO: Context and Membership
         free = map (:[]) ['a'..] \\ [v | TVar v <- universe t]
@@ -218,38 +189,27 @@ contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
 ---------------------------------------------------------------------
 -- GRAPH SEARCHING
 
--- must search for each (node,bindings) pair
+-- must search for each (node,bindings) pair, rather than just nodes
 
-
-graphSearch :: a
-graphSearch = undefined
-
-{-
-
-data GraphSearch = GraphSearch
-    {graphGS :: Map.Map Type [(TypeContext, Lookup Node)]
-    ,nodesGS :: Index Node
-    ,costsGS :: Index Cost
-    ,found :: [GraphResult]
-    ,paid :: IntSet.IntSet -- Lookup Cost
-    ,reached :: Map.Map (Lookup Node, Binding) TypeScore
-    ,available :: Heap.Heap Int (Lookup Node, Binding, Link Cost, Cost)
-    }
-
-
--- TODO: Should be more lennient in where you start
--- ideally, strip context, follow aliases and unbox, and eventually just "a"
-graphSearch :: Aliases -> Instances -> Index Cost -> Graph -> TypeSig -> GraphSearch
-graphSearch as is costs g@(Graph a b) t = fromJust $ do
-        i <- graphStart g t2
-        return $ graphAdd i bind blankTypeScore s0
+graphSearch :: Aliases -> Instances -> Graph -> TypeSig -> [GraphResult]
+graphSearch as is g@(Graph _ gg) t
+        | isNothing node = []
+        | otherwise = [r{graphResultScore=s}
+            | (s,b,r) <- searchDijkstraState (blankTypeScore, []) step (fromJust node) gg]
     where
-        s0 = GraphSearch a b costs [] IntSet.empty Map.empty Heap.empty
         (bind,t2) = alphaFlatten $ contextNorm is t
+        node = graphStart as is g t2
+
+        step :: (Link Cost, Binding) -> (TypeScore, Binding) -> (TypeScore, Binding)
+        step (cost,_) (score,_) = (addTypeScore cost score, [])
 
 
-graphStart :: Graph -> TypePair -> Maybe (Lookup Node)
-graphStart (Graph mp _) (TypePair c t) = do
+graphStart :: Aliases -> Instances -> Graph -> TypePair -> Maybe GraphNode
+graphStart as is g t = msum $ map (graphFind g) [t]
+
+
+graphFind :: Graph -> TypePair -> Maybe GraphNode
+graphFind (Graph mp _) (TypePair c t) = do
     r <- Map.lookup t mp
     return $ snd $ head $ sortWith f r
     where
@@ -258,43 +218,3 @@ graphStart (Graph mp _) (TypePair c t) = do
                  | otherwise = Right (length more)
             where more = c2 \\ c    
                   less = c  \\ c2
-
-
--- you have reached a node
-graphAdd :: Lookup Node -> Binding -> TypeScore -> GraphSearch -> GraphSearch
-graphAdd ni bind score gs | (ni,bind) `Map.member` reached gs = gs
-                          | otherwise =
-    gs{reached = Map.insert (ni,bind) score $ reached gs
-      ,found = res ++ found gs
-      ,available = Heap.pushList nxt $ available gs}
-    where
-        Node gr link = lookupIndex ni (nodesGS gs)
-        res = [x{graphResultScore = score} | x <- gr]
-        nxt = [(costScore c, (ni,[],ci,c)) | (ni,ci,bind) <- link, let c = fromLink ci]
-
-
--- those entires which are at a newly discovered node
-graphFound :: GraphSearch -> [GraphResult]
-graphFound = found
-
-
--- what is the minimum cost any future graphFound result may have
-graphCost :: GraphSearch -> CostScore
-graphCost = fromMaybe maxBound . Heap.min . available
-
-
--- ask what possible node could be followed next
-graphNext :: GraphSearch -> Maybe (Lookup Cost, Cost)
-graphNext gs = Nothing {- do
-    ((_,(_,_,ci,c)), _) <- Heap.pop $ available gs
-    return (ci,c) -}
-
-
--- follow a graph along a cost edge
-graphFollow :: Lookup Cost -> GraphSearch -> GraphSearch
-graphFollow ci gs = undefined {- flip evalState gs $ do
-    modify $ \s -> s{paid = IntSet.insert (lookupKey ci) paid}
-    error $ "Follow " ++ show (lookupIndex ci (costsGS gs))
-    -- gs{found=[]} -}
-
--}
