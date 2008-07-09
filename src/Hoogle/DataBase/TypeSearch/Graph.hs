@@ -5,8 +5,6 @@
     nodes and edges have already been paid for.
 -}
 
--- TODO: Base this module on a suitable graphstate abstraction
-
 module Hoogle.DataBase.TypeSearch.Graph(
     Graph, newGraph,
     GraphResult(..), ArgPos, Binding,
