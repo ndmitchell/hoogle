@@ -19,12 +19,12 @@ import qualified Data.Set as Set
 
 data Graph n e = Graph (Array (Node n e))
 
-data Node n e = Node {nodeResults :: [n], nodeEdges :: [(e, GraphNode n e)]}
+data Node n e = Node {nodeResults :: [n], nodeEdges :: [(e, GraphNode)]}
 
-type GraphNode n e = Int
+type GraphNode = Int
 
 
-showGraphWith :: (Show n, Show e) => (GraphNode n e -> String) -> Graph n e -> String
+showGraphWith :: (Show n, Show e) => (GraphNode -> String) -> Graph n e -> String
 showGraphWith showNode (Graph xs) = unlines $ concat $ zipWith f [0..] $ elems xs
     where
         f i (Node res es) = showNode i : map ("    "++) (r : map g es)
@@ -52,7 +52,7 @@ instance (BinaryDefer n, BinaryDefer e) => BinaryDefer (Node n e) where
 --    No (_,s,n) pair is returned twice
 searchDijkstraState :: (Ord c, Ord s) =>
     (c,s) -> (e -> (c,s) -> (c,s)) ->
-    GraphNode n e -> Graph n e -> [(c,s,n)]
+    GraphNode -> Graph n e -> [(c,s,n)]
 searchDijkstraState (c,s) gen n (Graph xs) = f (Set.singleton (s,n)) (Heap.singleton c (s,n))
     where
         f seen next = case Heap.pop next of
@@ -91,7 +91,7 @@ graphFollow next g = g{graphEdges = graphEdges g ++ f Set.empty (graphKeys g)}
             where nxt = next t
 
 
-graphFreeze :: Ord k => Graph_ k n e -> (Graph n e, Map.Map k (GraphNode n e))
+graphFreeze :: Ord k => Graph_ k n e -> (Graph n e, Map.Map k GraphNode)
 graphFreeze g = (Graph $ array $ map f ks, mp)
     where
         mp = Map.fromList $ zip ks [0..]
