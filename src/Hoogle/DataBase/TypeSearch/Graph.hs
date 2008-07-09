@@ -152,7 +152,14 @@ followNode as is (TypePair con t) =
 
 -- add reverse links where you can, i.e. aliases
 reverseLinks :: Graph_ -> Graph_
-reverseLinks = id -- TODO
+reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
+    where
+        f (k1,k2,(c,b)) = do
+            c <- reverseCost c
+            return (k2,k1,(c,reverseBinding b))
+
+
+reverseBinding xs = [(b,a) | (a,b) <- xs]
 
 
 -- normalise the letters in a type, so that:
