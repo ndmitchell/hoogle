@@ -30,3 +30,14 @@ addTypeScore c t@(TypeScore total costs)
     | linkKey c `elem` map linkKey costs = t
     | otherwise = TypeScore (total + costScore (fromLink c))
                             (insertBy (compare `on` linkKey) c costs)
+
+
+-- add custom cost's which should not be nub'd
+addTypeScoreDirect :: [Cost] -> TypeScore -> TypeScore
+addTypeScoreDirect cs (TypeScore total costs) =
+    TypeScore (total + sum (map costScore cs)) (map (newLink 0) cs ++ costs)
+
+
+mergeTypeScores :: [TypeScore] -> TypeScore
+mergeTypeScores ts = TypeScore (sum $ map (costScore . fromLink) cs) cs
+    where cs = nubBy ((==) `on` linkKey) $ sortBy (compare `on` linkKey) $ concatMap typeScoreCosts ts
