@@ -1,7 +1,7 @@
 
 module Hoogle.Query.Parser(parseQuery, parseCmdLineQuery, parsecQuery) where
 
-import General.Code hiding (merge)
+import General.Code hiding (merge,merges)
 import Hoogle.Query.Type
 import Hoogle.TypeSig.All
 import Text.ParserCombinators.Parsec
