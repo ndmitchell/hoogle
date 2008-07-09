@@ -10,7 +10,7 @@
 module Hoogle.DataBase.TypeSearch.Graph(
     Graph, newGraph,
     GraphResult(..), ArgPos, Binding,
-    GraphSearch, graphSearch, graphFound, graphFollow, graphCost, graphNext
+    graphSearch
     ) where
 
 import Hoogle.DataBase.TypeSearch.Cost
@@ -31,6 +31,9 @@ import Control.Monad.State  hiding (get,put)
 import qualified Control.Monad.State as S
 import General.Code
 import Data.Key
+import qualified Data.Binary.Defer.Graph as G
+import Data.Binary.Defer.Graph hiding (Graph, Graph_)
+
 
 
 type ArgPos = Int
@@ -45,35 +48,18 @@ instance Show TypePair where
     show (TypePair c t) = show $ TypeSig [TApp (TLit a) [TVar b] | (a,b) <- c] t
 
 
-data Graph = Graph (Map.Map Type [(TypeContext, Lookup Node)]) (Index Node)
+data Graph = Graph (Map.Map Type [(TypeContext, GraphNode)])
+                   (G.Graph GraphResult (Link Cost, Binding))
 
 
 instance Show Graph where
-    show (Graph mp ns) = unlines $ concatMap (uncurry f) $ IntMap.elems mp2
-      where
-        mp2 :: IntMap.IntMap (TypePair,Node)
-        mp2 = IntMap.fromList [(lookupKey n, (TypePair c t, lookupIndex n ns)) | (t,as) <- Map.toList mp, (c,n) <- as]
-
-        f t (Node res link) = show t : map ("    " ++) (results : map g link)
-            where
-                results = if null rs then "No results" else unwords rs
-                rs = ['#':show (linkKey a) ++ '.':show b ++ (if null c then "" else show c) | GraphResult a b c _ <- res]
-
-        g (ni,ci,b) = show (fromLink ci) ++ " ==> " ++
-                      show (fst $ mp2 IntMap.! lookupKey ni) ++ " " ++ show b
+    show (Graph ns g) = showGraphWith (\i -> show $ mp IntMap.! i) g
+        where mp = IntMap.fromList [(n, TypePair c t) | (t,as) <- Map.toList ns, (c,n) <- as]
 
 
 instance BinaryDefer Graph where
     put (Graph a b) = put2 a b
     get = get2 Graph
-
-
-data Node = Node [GraphResult] [(Lookup Node, Link Cost, Binding)]
-            deriving Show
-
-instance BinaryDefer Node where
-    put (Node a b) = put2 a b
-    get = get2 Node
 
 
 -- GraphResult.TypeScore is invalid within a node
@@ -83,47 +69,32 @@ data GraphResult = GraphResult
     ,graphResultPos :: ArgPos
     ,graphResultBinding :: Binding
     ,graphResultScore :: TypeScore
-    } deriving Show
+    }
 
 instance BinaryDefer GraphResult where
     put (GraphResult a b c d) = put3 a b c
     get = get3 (\a b c -> GraphResult a b c blankTypeScore)
 
+instance Show GraphResult where
+    show (GraphResult a b c d) = '#':show (linkKey a) ++ '.':show b ++ c2
+        where c2 = if null c then "" else show c
 
 ---------------------------------------------------------------------
 -- GRAPH CONSTRUCTION
 
-{-
-Data:
-
-1) Map TypeSig (Lookup Node, Node)
-
-The graph as it currently stands, with each node indexed by
-a TypeSig
-
-2) Set TypeSig
-
-Those nodes in the graph which have not yet been explored
--}
-
-data S = S
-    {aliases :: Aliases
-    ,instances :: Instances
-    ,costs :: Index_ Cost
-    ,graph :: Map.Map TypePair (Lookup Node, Node)
-    }
+type Graph_ = G.Graph_ TypePair GraphResult (Cost, Binding)
 
 
 newGraph :: Aliases -> Instances -> [(Link Entry, ArgPos, TypeSig)] ->
             Index_ Cost -> (Index_ Cost, Graph)
-newGraph as is xs cost = (costs sN, f (graph sN))
+newGraph as is xs cost = undefined {- (costs sN, f (graph sN))
     where
         sN = execState (initialGraph xs >> populateGraph >> reverseLinks) s0
         s0 = S as is cost Map.empty
 
         f mp = Graph
             (fromListMany [(t,(c,v)) | (TypePair c t,(v,_)) <- Map.toList mp])
-            (newIndex $ map snd $ sortFst $ Map.elems mp)
+            (newIndex $ map snd $ sortFst $ Map.elems mp) -}
 
 
 fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
@@ -131,12 +102,12 @@ fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortF
 
 
 -- create the initial graph
-initialGraph :: [(Link Entry, ArgPos, TypeSig)] -> State S ()
-initialGraph xs = do
+initialGraph :: [(Link Entry, ArgPos, TypeSig)] -> Graph_ 
+initialGraph xs = undefined {- do
     is <- gets instances
     let f i xs@((t,_):_) = (t, (newLookup i, Node (sortOn (linkKey . graphResultEntry) $ map snd xs) []))
         r = Map.fromAscList $ zipWith f [0..] $ groupFst $ sortFst $ map (newGraphResult is) xs
-    modify $ \s -> s{graph=r}
+    modify $ \s -> s{graph=r} -}
 
 
 -- create a result, and figure out what the relative is
@@ -146,8 +117,8 @@ newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
 
 
 -- add links between each step
-populateGraph :: State S ()
-populateGraph = do
+populateGraph :: Graph_ -> Graph_
+populateGraph = undefined {- do
     todo <- liftM Map.keys $ gets graph
     -- ensure "a" is in the graph, so you have a default
     -- start point
@@ -175,7 +146,7 @@ populateGraph = do
                     modify $ \s -> s{graph = Map.insert t (newLookup ni, Node [] []) mp}
                     return $ newLookup ni
 
-            return (ni, ci, b)
+            return (ni, ci, b) -}
             
 
 -- follow a node to all possible next steps
@@ -211,8 +182,8 @@ followNode as is (TypePair con t) =
 
 
 -- add reverse links where you can, i.e. aliases
-reverseLinks :: State S ()
-reverseLinks = return () -- TODO
+reverseLinks :: Graph_ -> Graph_
+reverseLinks = id -- TODO
 
 
 -- normalise the letters in a type, so that:
@@ -248,6 +219,12 @@ contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
 -- GRAPH SEARCHING
 
 -- must search for each (node,bindings) pair
+
+
+graphSearch :: a
+graphSearch = undefined
+
+{-
 
 data GraphSearch = GraphSearch
     {graphGS :: Map.Map Type [(TypeContext, Lookup Node)]
@@ -320,3 +297,4 @@ graphFollow ci gs = undefined {- flip evalState gs $ do
     error $ "Follow " ++ show (lookupIndex ci (costsGS gs))
     -- gs{found=[]} -}
 
+-}
