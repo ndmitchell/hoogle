@@ -150,6 +150,12 @@ mergeBy f (x:xs) (y:ys)
     | otherwise = y : mergeBy f (x:xs) ys
 
 
+merges :: Ord a => [[a]] -> [a]
+merges = fold [] merge
+
+mergesBy :: (a -> a -> Ordering) -> [[a]] -> [a]
+mergesBy f = fold [] (mergeBy f)
+
 
 concatMapM f = liftM concat . mapM f
 
