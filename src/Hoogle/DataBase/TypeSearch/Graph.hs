@@ -209,6 +209,7 @@ graphSearch as is g@(Graph _ gg) t
         step (cost,_) (score,_) = (addTypeScore cost score, [])
 
 
+-- TODO: Find a better starting place
 graphStart :: Aliases -> Instances -> Graph -> TypePair -> Maybe GraphNode
 graphStart as is g t = msum $ map (graphFind g) [t]
 
