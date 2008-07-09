@@ -38,6 +38,7 @@ main = do
 
 
 bad = ["GM ::", "GT ::"]
+badCabal = ["build-depends","GHC.Prim"]
 
 divide file = do
     s <- readFile file
@@ -94,6 +95,8 @@ readFile' x = do
     hClose h
     return s
 
+isSubstrOf x y = any (x `isPrefixOf`) (tails y)
+
 writeBinaryFile file x = do
     withBinaryFile file WriteMode (\h -> hPutStr h x)
 
@@ -108,11 +111,8 @@ fixup name = do
     x <- readFile' file
 
     -- trim build-depends as they may not exist on GHC 
-    let f x = let (a,b) = span isSpace x 
-              in if "build-depends" `isPrefixOf` map toLower b
-                 then a ++ "build-depends:"
-                 else x
-    x <- return $ unlines $ map f $ lines x
+    let f x = not $ any (\y -> map toLower y `isSubstrOf` map toLower x) badCabal
+    x <- return $ unlines $ filter f $ lines x
 
     writeFile file x
 
