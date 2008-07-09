@@ -148,7 +148,7 @@ addInfo pos res info = (Just info2, if any null info2 then [] else ans)
         ind = maybe 0 (+1) pos
         info2 = zipWith (\i x -> [res|i==ind] ++ x) [0..] info
 
-        arityEntry = graphResultPos $ head $ head info
+        arityEntry = graphResultPos $ head $ head info2
         badargs = replicate (1 + arityEntry - length info) $ newCost CostDelArg
         ans = [ newGraphsResults badargs rs r
               | (r:rs) <- sequence $ info2 !!+ (ind,[res])
