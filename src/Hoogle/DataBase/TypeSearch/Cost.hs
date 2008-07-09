@@ -38,16 +38,16 @@ data CostDetail
     | CostUnbox String -- ^ M, where M a |-> a, "" for a variable
     | CostRestrict String -- ^ M, where M |-> a -- can only restrict M :: *
     | CostContext String -- ^ C, where C a => a |-> a
-    | CostMembership String String -- ^ C M, where C M => M |-> C a => a
+    | CostMember String String -- ^ C M, where C M => M |-> C a => a
       deriving (Eq,Ord)
 
 instance BinaryDefer CostDetail where
-    put (CostReverse a)      = putByte 0 >> put1 a
-    put (CostAlias a)        = putByte 1 >> put1 a
-    put (CostUnbox a)        = putByte 2 >> put1 a
-    put (CostRestrict a)     = putByte 3 >> put1 a
-    put (CostContext a)      = putByte 4 >> put1 a
-    put (CostMembership a b) = putByte 5 >> put2 a b
+    put (CostReverse a)  = putByte 0 >> put1 a
+    put (CostAlias a)    = putByte 1 >> put1 a
+    put (CostUnbox a)    = putByte 2 >> put1 a
+    put (CostRestrict a) = putByte 3 >> put1 a
+    put (CostContext a)  = putByte 4 >> put1 a
+    put (CostMember a b) = putByte 5 >> put2 a b
 
     get = do
         i <- getByte
@@ -57,7 +57,7 @@ instance BinaryDefer CostDetail where
             2 -> get1 CostUnbox
             3 -> get1 CostRestrict
             4 -> get1 CostContext
-            5 -> get2 CostMembership
+            5 -> get2 CostMember
 
 
 instance Show CostDetail where
