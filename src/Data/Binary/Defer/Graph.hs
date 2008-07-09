@@ -2,8 +2,8 @@
 module Data.Binary.Defer.Graph(
     Graph, GraphNode, showGraphWith,
     searchDijkstraState,
-    Graph_, newGraph_, graphFreeze,
-    graphFollow
+    Graph_(..), newGraph_,
+    graphFreeze, graphFollow
     ) where
 
 import Data.Binary.Defer
