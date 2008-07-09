@@ -15,7 +15,7 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
-import Hoogle.DataBase.Item
+import Hoogle.Item.All
 
 
 newtype TypeSearch = TypeSearch Graphs

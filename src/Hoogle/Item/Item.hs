@@ -1,15 +1,10 @@
 
--- TODO: Move Item and Haddock to Hoogle.Entry.*
-
-module Hoogle.DataBase.Item(
-    module Hoogle.DataBase.Item,
-    module Hoogle.DataBase.Haddock
-    ) where
+module Hoogle.Item.Item where
 
 import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Hoogle.DataBase.Haddock
+import Hoogle.Item.Haddock
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Data.Range

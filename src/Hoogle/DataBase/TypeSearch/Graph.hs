@@ -15,7 +15,7 @@ import Hoogle.DataBase.TypeSearch.Cost
 import Hoogle.DataBase.TypeSearch.Score
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
-import Hoogle.DataBase.Item
+import Hoogle.Item.All
 import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer
@@ -198,7 +198,7 @@ contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
 
 graphSearch :: Aliases -> Instances -> Graph -> TypeSig -> [GraphResult]
 graphSearch as is g@(Graph _ gg) t
-        | isNothing node = []
+        | isNothing node = error $ "Couldn't find a start spot for: " ++ show t -- []
         | otherwise = [r{graphResultScore=s}
             | (s,b,r) <- searchDijkstraState (blankTypeScore, []) step (fromJust node) gg]
     where

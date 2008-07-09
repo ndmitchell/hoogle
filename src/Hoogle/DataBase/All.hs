@@ -3,7 +3,6 @@ module Hoogle.DataBase.All
     (DataBase, showDataBase
     ,TextScore, TypeScore
     ,module Hoogle.DataBase.All
-    ,module Hoogle.DataBase.Item
     ,module Hoogle.DataBase.Serialise
     ) where
 
@@ -11,7 +10,7 @@ import Data.Binary.Defer.Index
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Hoogle.DataBase.Type
-import Hoogle.DataBase.Item
+import Hoogle.Item.All
 import Hoogle.DataBase.Serialise
 
 

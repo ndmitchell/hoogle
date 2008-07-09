@@ -1,5 +1,5 @@
 
-module Hoogle.DataBase.Haddock(
+module Hoogle.Item.Haddock(
     Haddock, newHaddock, renderHaddock
     ) where
 

@@ -8,6 +8,7 @@ import Data.Key
 import qualified Data.IntMap as IntMap
 import Data.Binary.Defer.Index
 
+import Hoogle.Item.All
 import Hoogle.DataBase.All
 import Hoogle.Query.All
 import Hoogle.Search.Result

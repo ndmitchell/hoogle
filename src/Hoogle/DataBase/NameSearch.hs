@@ -12,7 +12,7 @@ import Data.Char
 import Data.List
 import Data.Range
 import General.Code
-import Hoogle.DataBase.Item
+import Hoogle.Item.All
 import Hoogle.TextBase.All
 
 

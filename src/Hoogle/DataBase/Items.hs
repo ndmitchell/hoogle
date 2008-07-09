@@ -6,8 +6,7 @@ import Data.Binary.Defer.Index
 import General.Code
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
-import Hoogle.DataBase.Item
-import Hoogle.DataBase.Haddock
+import Hoogle.Item.All
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
 

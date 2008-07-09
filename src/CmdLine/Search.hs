@@ -9,6 +9,7 @@ import General.Code
 import Hoogle.Query.All
 import Hoogle.Search.All
 import Hoogle.DataBase.All
+import Hoogle.Item.All
 import Hoogle.All
 import Data.Binary.Defer.Index
 
