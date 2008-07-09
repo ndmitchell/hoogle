@@ -57,7 +57,8 @@ generate rebuild url = do
     when (rebuild || isNothing ans) $ do
         b <- doesDirectoryExist dir
         if b
-            then system_ $ "darcs pull --all --repodir=" ++ dir
+            then do system_ $ "darcs pull --all --repodir=" ++ dir
+                    system_ $ "darcs rev --all --repodir=" ++ dir
             else system_ $ "darcs get --partial " ++ prefix ++ url ++ "/ --repodir=" ++ dir
 
         setCurrentDirectory $ "grab" </> name
