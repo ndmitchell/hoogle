@@ -1,12 +1,14 @@
 
 module Hoogle.DataBase.TypeSearch.Score where
 
+import General.Code
+import Data.Binary.Defer.Index
 import Hoogle.DataBase.TypeSearch.Cost
 
 
 data TypeScore = TypeScore
     {typeScoreTotal :: Int
-    ,typeScoreCosts :: [Cost]
+    ,typeScoreCosts :: [Link Cost]
     }
 
 instance Eq TypeScore where
@@ -16,11 +18,15 @@ instance Ord TypeScore where
     compare a b = compare (typeScoreTotal a) (typeScoreTotal b)
 
 instance Show TypeScore where
-    show = show . typeScoreCosts
+    show = show . map fromLink . typeScoreCosts
 
 
 blankTypeScore :: TypeScore
 blankTypeScore = TypeScore 0 []
 
-newTypeScore :: [Cost] -> TypeScore
-newTypeScore cs = TypeScore (sum $ map costScore cs) cs
+
+addTypeScore :: Link Cost -> TypeScore -> TypeScore
+addTypeScore c t@(TypeScore total costs)
+    | linkKey c `elem` map linkKey costs = t
+    | otherwise = TypeScore (total + costScore (fromLink c))
+                            (insertBy (compare `on` linkKey) c costs)
