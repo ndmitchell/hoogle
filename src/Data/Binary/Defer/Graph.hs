@@ -9,6 +9,7 @@ module Data.Binary.Defer.Graph(
 import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import Data.List
+import General.Code
 import qualified Data.Heap as Heap
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -91,14 +92,25 @@ graphFollow next g = g{graphEdges = graphEdges g ++ f Set.empty (graphKeys g)}
             where nxt = next t
 
 
--- TODO: Profiling shows 28%-70% time on database creation spent here
---       70% on the containers benchmark (worst offender)
 graphFreeze :: Ord k => Graph_ k n e -> (Graph n e, Map.Map k GraphNode)
-graphFreeze g = (Graph $ array $ map f ks, mp)
+graphFreeze (Graph_ res es) = (g, r)
     where
-        mp = Map.fromAscList $ zip ks [0..]
-        ks = Set.toAscList $ Set.fromList $ graphKeys g
+        g = Graph $ array $ map snd $ sortFst $ Map.elems mp
+        r = Map.map fst mp
+        mp = foldl addEdge (foldl addNode Map.empty (reverse res)) (reverse es)
 
-        f k = Node [n | (k1,n) <- graphResults g, k1 == k]
-                   [(e, mp Map.! k2) | (k1,k2,e) <- graphEdges g, k1 == k]
+        addNode mp (k1,n) = Map.insertWith f k1 new mp
+            where
+                new = (Map.size mp, Node [n] [])
+                f new (i, Node ns es) = (i, Node (n:ns) es)
 
+        addEdge mp (k1,k2,e) = Map.insertWith f k1 new mp2
+            where
+                (mp2,ki2) = ensureKey k2 mp
+                new = (Map.size mp, Node [] [(e, ki2)])
+                f new (i, Node ns es) = (i, Node ns ((e,ki2):es))
+
+        ensureKey k mp = case Map.lookup k mp of
+            Just (y,_) -> (mp, y)
+            Nothing -> (Map.insert k (n, Node [] []) mp, n)
+                where n = Map.size mp
