@@ -20,9 +20,9 @@ actionCmdLine CmdQuery{queryText = text, query = Left err} = do
 
 
 actionCmdLine q | not $ null $ queryBadFlags q = do
-    exitMessage ["Unrecognised or malformed flags:"
-                ,"  " ++ concat (intersperse ", " $ map show $ queryBadFlags q)
-                ,"For details on correct flags pass --help"]
+    exitMessage $ "Unrecognised or malformed flags:":
+                  map ("  "++) (queryBadFlags q) ++
+                  ["For details on correct flags pass --help"]
 
 
 actionCmdLine q | Version `elem` queryFlags q = putStr $ unlines
