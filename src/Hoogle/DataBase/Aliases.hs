@@ -33,10 +33,28 @@ instance BinaryDefer Alias where
 
 
 createAliases :: [TextItem] -> Aliases
-createAliases ti = Aliases $ Map.fromList
+createAliases ti = Aliases $ filterRecursive $ Map.fromList
     [ (name, Alias [v | TVar v <- args] rhs)
     | ItemAlias (TypeSig _ lhs) (TypeSig _ rhs) <- ti
     , let (TLit name, args) = fromTApp lhs]
+
+
+-- filter out the aliases which expand back to themselves
+-- i.e. template-haskell has "type Doc = PprM Doc"
+-- probably the result of unqualifying names
+filterRecursive :: Map.Map String Alias -> Map.Map String Alias
+filterRecursive mp = Map.filterWithKey f mp
+    where
+        f name _ = g name [] [name]
+
+        g evil done [] = True
+        g evil done (t:odo)
+                | t `elem` done = g evil done odo
+                | evil `elem` next = False
+                | otherwise = g evil (t:done) (next++odo)
+            where
+                next = [x | Just a <- [Map.lookup t mp],  TLit x <- universe $ rhs a]
+
 
 
 -- follow an alias at this point
