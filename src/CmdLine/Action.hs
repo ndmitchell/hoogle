@@ -41,7 +41,7 @@ actionCmdLine q | Test `elem` queryFlags q = test
 
 
 actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
-    actionConvert q $ head [x | Convert x <- queryFlags q]
+    mapM_ (actionConvert q) [x | Convert x <- queryFlags q]
 
 
 actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
