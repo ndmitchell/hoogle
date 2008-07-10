@@ -44,7 +44,7 @@ createAliases ti = Aliases $ Map.fromList
 followAliases :: Aliases -> Type -> Maybe (String,Type)
 followAliases (Aliases mp) (TApp (TLit x) xs) = case Map.lookup x mp of
     Just a@(Alias vs rhs) | length vs == length xs -> Just (x, followAlias xs a)
-    Nothing -> Nothing
+    _ -> Nothing
 followAliases as (TLit x) = followAliases as (TApp (TLit x) [])
 followAliases as _ = Nothing
 
