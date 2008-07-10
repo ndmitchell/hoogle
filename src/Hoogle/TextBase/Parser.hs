@@ -71,13 +71,18 @@ parsecTextItem = attribute <|> item
         dataAny d = liftM (ItemData d) parsecTypeSig
 
         
-        func = do name <- between (char '(') (char ')') keysymbol <|> keysymbol <|> keyword <|> string "[]"
+        func = do name <- rounds <|> keysymbol <|> keyword <|> string "[]"
                   spaces
                   string "::"
                   spaces
                   typ <- parsecTypeSig
                   return $ ItemFunc name typ
-        
+
+        -- handle both () and (op)
+        rounds = char '(' >>
+            ((do x <- keysymbol ; char ')' ; return x) <|>
+             (do char ')'; return "()"))
+
         keysymbol = many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
         ascSymbol = "!#$%&*+./<=>?@\\^|-~:"
 
