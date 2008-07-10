@@ -12,13 +12,16 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Char
+import Safe
 
 
-packages = ["base","Cabal","HUnit","QuickCheck","array","arrows","bytestring"
+packages = ["base","Cabal","HUnit","QuickCheck","array","bytestring"
            ,"cgi","containers","directory","filepath","haskell-src","mtl"
-           , {- "network", -} "old-locale","old-time","packedstring","parallel"
+           ,"network","old-locale","old-time","packedstring","parallel"
            ,"parsec","pretty","process","random","stm","template-haskell"
            ,"time","xhtml"]
+           \\
+           ["network","cgi"]
 
 keywords = ["|","->","<-","@","!","::","~","_","as","case","class","data"
            ,"default","deriving","do","else","forall","hiding","if","import"
@@ -31,30 +34,22 @@ main = do
     args <- getArgs
     let rebuild = "skip" `notElem` args
     createDirectoryIfMissing True "grab"
-    xs <- mapM (generate rebuild) packages
-    (entires,docs) <- mapAndUnzipM divide xs
-    writeBinaryFile "hoogle.txt" (unlines $ concat entires)
-    writeBinaryFile "documentation.txt" (unlines $ concat docs)
+    createDirectoryIfMissing True "result"
+    mapM_ (generate rebuild) packages
 
 
-bad = ["GM ::", "GT ::"]
-badCabal = ["build-depends","GHC.Prim"]
-
-divide file = do
-    s <- readFile file
-    let entries = filter (\x -> not $ any (`isPrefixOf` x) bad) $ lines s
-        name = reverse $ drop 1 $ dropWhile (/= '-') $ reverse $ takeBaseName file
-        docs = [drop 7 i ++ "\t" ++ name | i <- entries, "module " `isPrefixOf` i]
-        expand x = if x == "module Prelude" then x:map ("keyword "++) keywords else [x]
-    return (concatMap expand entries, docs)
+---------------------------------------------------------------------
+-- GENERATE A HOOGLE DATABASE
 
 generate rebuild url = do
     let name = last $ words $ map (\x -> if x == '/' then ' ' else x) url
         dir = "grab" </> name
-        exe = "grab" </> name </> "Setup"
-    ans <- findDatabase name
+        exe = dir </> "Setup"
+        database = dir </> "dist" </> "doc" </> "html" </> name </> name <.> "txt"
+        cabal = dir </> name <.> "cabal.old"
+    db <- doesFileExist database
 
-    when (rebuild || isNothing ans) $ do
+    when (rebuild || not db) $ do
         b <- doesDirectoryExist dir
         if b
             then do system_ $ "darcs pull --all --repodir=" ++ dir
@@ -69,21 +64,75 @@ generate rebuild url = do
 
         setCurrentDirectory "../.."
 
-    liftM fromJust $ findDatabase name
+    (version,depends) <- cabalInfo cabal
+    src <- readFile database
+    writeFile ("result" </> name <.> "txt") $ unlines $ concatMap (f version depends) $ lines src
+    where
+        f version depends x
+            | x == "module Prelude" = x:map ("keyword "++) keywords
+            | "@package" `isPrefixOf` x = x : ["@version " ++ version | version /= ""] ++
+                                          ["@depends " ++ d | d <- depends]
+            | "@version" `isPrefixOf` x && version /= "" = []
+            | otherwise = [x]
 
 
-findDatabase name = do
-    let dir = "grab" </> name </> "dist" </> "doc" </> "html" </> name
-    b <- doesDirectoryExist dir
-    files <- if not b then return [] else getDirectoryContents dir
-    return $ listToMaybe $ map (dir </>) $ filter ((==) ".txt" . takeExtension) files
+cabalInfo file = do
+    src <- liftM lines $ readFile file
+    let version = headDef "" $ readFields "version" src
+        depends = nub $ words $ map (rep ',' ' ') $ unwords $ readFields "build-depends" src
+    return (version,depends)
 
+
+readFields :: String -> [String] -> [String]
+readFields name = concatMap f
+    where
+        f x | (name ++ ":") `isPrefixOf` map toLower x2 = [x4]
+            where
+                x4 = reverse $ dropWhile isSpace $ reverse $ dropWhile isSpace x3
+                x3 = drop (length name + 1) x2
+                x2 = dropWhile isSpace x
+        f x = []
+
+
+---------------------------------------------------------------------
+-- FIXUP A BUILD
+
+badCabal = ["GHC.Prim"]
+
+fixup name = do
+    -- FIX THE SETUP FILE
+    removeFile_ "Setup.hs"
+    removeFile_ "Setup.lhs"
+    writeFile "Setup.hs" "import Distribution.Simple; main = defaultMain"
+
+    -- FIX THE CABAL FILE
+    let file = name <.> "cabal"
+    copyFile file (file <.> "old")
+    x <- readFile' file
+
+    -- trim build-depends as they may not exist on GHC 
+    let f x = not $ any (\y -> map toLower y `isSubstrOf` map toLower x) badCabal
+    x <- return $ unlines $ filter f $ lines x
+
+    writeBinaryFile file x
+
+    -- INCLUDE FILES
+    let incdir = "include"
+        n:ame = if "old-" `isPrefixOf` name then drop 4 name else name
+        file = incdir </> ("Hs" ++ [toUpper n] ++ ame ++ "Config") <.> "h"
+    b <- doesDirectoryExist incdir
+    when b $ copyFile "../../Config.h" file
+
+
+---------------------------------------------------------------------
+-- UTILITY FUNCTIONS
 
 system_ x = do
     putStrLn $ "Running: " ++ x
     res <- system x
-    when (res /= ExitSuccess) $
-        error "Command failed"
+    when (res /= ExitSuccess) $ do
+        putStrLn "Command failed"
+        exitFailure
 
 removeFile_ x = do
     b <- doesFileExist x
@@ -101,25 +150,4 @@ isSubstrOf x y = any (x `isPrefixOf`) (tails y)
 writeBinaryFile file x = do
     withBinaryFile file WriteMode (\h -> hPutStr h x)
 
-fixup name = do
-    -- FIX THE SETUP FILE
-    removeFile_ "Setup.hs"
-    removeFile_ "Setup.lhs"
-    writeFile "Setup.hs" "import Distribution.Simple; main = defaultMain"
-
-    -- FIX THE CABAL FILE
-    let file = name <.> "cabal"
-    x <- readFile' file
-
-    -- trim build-depends as they may not exist on GHC 
-    let f x = not $ any (\y -> map toLower y `isSubstrOf` map toLower x) badCabal
-    x <- return $ unlines $ filter f $ lines x
-
-    writeBinaryFile file x
-
-    -- INCLUDE FILES
-    let incdir = "include"
-        n:ame = if "old-" `isPrefixOf` name then drop 4 name else name
-        file = incdir </> ("Hs" ++ [toUpper n] ++ ame ++ "Config") <.> "h"
-    b <- doesDirectoryExist incdir
-    when b $ copyFile "../../Config.h" file
+rep from to x = if x == from then to else x
