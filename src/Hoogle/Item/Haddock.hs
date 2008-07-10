@@ -1,4 +1,6 @@
 
+-- TODO: Haddock info for Data.Array.Base.accumArray is wrong - bug in haddock it seems...
+
 module Hoogle.Item.Haddock(
     Haddock, newHaddock, renderHaddock
     ) where
