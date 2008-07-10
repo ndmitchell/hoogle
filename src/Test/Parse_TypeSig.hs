@@ -29,6 +29,8 @@ parse_TypeSig = do
     "a -> (b -> c)" === TypeSig [] (TFun [TVar "a",TVar "b",TVar "c"])
     "(a -> b) -> c" === TypeSig [] (TFun [TFun [TVar "a",TVar "b"],TVar "c"])
     "M (a b) c" === TypeSig [] (TApp (TLit "M") [TApp (TVar "a") [TVar "b"],TVar "c"])
+    "(-#)" === TypeSig [] (TLit "->")
+    "a -# b" === TypeSig [] (TFun [TVar "a",TVar "b"])
 
     -- classes
     "Eq a => a" === TypeSig [TApp (TLit "Eq") [TVar "a"]] (TVar "a")
