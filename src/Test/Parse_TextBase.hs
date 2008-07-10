@@ -29,6 +29,10 @@ parse_TextBase = do
 
     "type Bar a = Foo [a]" === [ItemAlias (typ "Bar a") (typ "Foo [a]")]
 
+    "data [] a" === [ItemData DataKeyword $ typ "[a]"]
+    "[] :: [] a" === [ItemFunc "[]" $ typ "[a]"]
+    ": :: a -> [a] -> [] a" === [ItemFunc ":" $ typ "a -> [a] -> [a]"]
+
     "data Foo a" === [ItemData DataKeyword $ typ "Foo a"]
     "newtype Foo a" === [ItemData NewTypeKeyword $ typ "Foo a"]
 

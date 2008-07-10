@@ -71,7 +71,7 @@ parsecTextItem = attribute <|> item
         dataAny d = liftM (ItemData d) parsecTypeSig
 
         
-        func = do name <- between (char '(') (char ')') keysymbol <|> keysymbol <|> keyword
+        func = do name <- between (char '(') (char ')') keysymbol <|> keysymbol <|> keyword <|> string "[]"
                   spaces
                   string "::"
                   spaces
