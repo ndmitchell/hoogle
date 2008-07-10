@@ -94,8 +94,8 @@ graphFollow next g = g{graphEdges = graphEdges g ++ f Set.empty (graphKeys g)}
 graphFreeze :: Ord k => Graph_ k n e -> (Graph n e, Map.Map k GraphNode)
 graphFreeze g = (Graph $ array $ map f ks, mp)
     where
-        mp = Map.fromList $ zip ks [0..]
-        ks = nub $ sort $ graphKeys g
+        mp = Map.fromAscList $ zip ks [0..]
+        ks = Set.toAscList $ Set.fromList $ graphKeys g
 
         f k = Node [n | (k1,n) <- graphResults g, k1 == k]
                    [(e, mp Map.! k2) | (k1,k2,e) <- graphEdges g, k1 == k]
