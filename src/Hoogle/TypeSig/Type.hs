@@ -99,6 +99,7 @@ showConstraint [x] = show x ++ " => "
 showConstraint xs = "(" ++ concat (intersperse ", " $ map show xs) ++ ") => "
 
 
+-- TODO: show (TLit ":+:") should be "(:+:)"
 instance Show Type where
     showsPrec i x = showString $ f i x
         where
