@@ -78,11 +78,13 @@ entryScore e = EntryScore
 renderEntryText :: [EntryView] -> [EntryText] -> TagStr
 renderEntryText view = Tags . map f
     where
+        args = not $ null [() | ArgPosNum _ _ <- view]
+
         f (Keyword x) = TagUnderline $ Str x
         f (Text x) = Str x
         f (ArgPos i s) = (if null res then id else TagColor (head res)) $ Str s
             where res = [k+1 | ArgPosNum k j <- view, j == i]
-        f (ArgRes s) = TagColor 0 $ Str s
+        f (ArgRes s) = (if args then TagColor 0 else id) $ Str s
         f (Focus x) = renderFocus [i | FocusOn i <- view] x
 
 
