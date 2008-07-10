@@ -71,7 +71,7 @@ generate rebuild url = do
         -- '\r' because of haddock/cabal interactions going weird..
     where
         f version depends x
-            | x == "module Prelude" = x:map ("keyword "++) keywords
+            | x == "module Prelude" = x:map ("@keyword "++) keywords
             | "@package" `isPrefixOf` x = x : ["@version " ++ version | version /= ""] ++
                                           ["@depends " ++ d | d <- depends]
             | "@version" `isPrefixOf` x && version /= "" = []
