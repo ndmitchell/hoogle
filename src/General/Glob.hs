@@ -28,7 +28,7 @@ globFileTest file = do
         b <- doesFileExist file
         return [file | b]
      else do
-        s <- getDirectoryContents dir
+        s <- getDirectoryContents $ dropTrailingPathSeparator dir
         concatMapM (f dir fil) s
     where
         f dir fil x = do
@@ -55,6 +55,7 @@ globMatch glob s | null glob = False
 -- check for existence and crash if not
 globDir :: FilePath -> IO FilePath
 globDir x = do
+    x <- canonicalizePath x
     b <- doesDirectoryExist x
     if b then return x else
         exitMessage ["Could not find directory:"
