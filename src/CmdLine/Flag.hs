@@ -147,9 +147,9 @@ parseFlags :: Permission -> [(String,String)] -> IO ([CmdFlag],[String])
 parseFlags perm xs = do
     let args = concatMap (parseFlag perm) xs
         inc = [x | Right (_,_,_,Include x) <- args]
-    inc <- mapM globDir $ ["."|null inc] ++ inc
-    (a,b) <- mapAndUnzipM (f inc) args
-    return (concat a, concat b)
+    incs <- mapM globDir $ ["."|null inc] ++ inc
+    (a,b) <- mapAndUnzipM (f incs) args
+    return ([Include "."|null inc] ++ concat a, concat b)
     where
         f inc (Right (_,val,FlagInfo{argument=ArgFileIn gen exts},_)) = do
             let vals = parseFile val
