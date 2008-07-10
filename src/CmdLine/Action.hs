@@ -41,25 +41,12 @@ actionCmdLine q | Test `elem` queryFlags q = test
 
 
 actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
-    let infile = head [x | Convert x <- queryFlags q]
-        outfile = headDef (replaceExtension infile "hoo") [x | Output x <- queryFlags q]
-
-    exist <- doesFileExist infile
-    when (not exist) $
-        exitMessage ["Convert, input file not found: " ++ infile]
-
-    putStrLn $ "Converting " ++ infile
-    convert (Debug `elem` queryFlags q) infile outfile
-    putStrLn $ "Written " ++ outfile
-    
-    when (Dump{} `elemEnum` queryFlags q) $ do
-        putStrLn ""
-        dump q outfile
+    actionConvert q $ head [x | Convert x <- queryFlags q]
 
 
 actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
     dbs <- getDataBaseFiles (queryFlags q) (fromRight $ query q)
-    mapM_ (dump q) dbs
+    mapM_ (actionDump q) dbs
 
 
 actionCmdLine q | not $ usefulQuery $ fromRight $ query q = do
@@ -73,11 +60,21 @@ actionCmdLine q = actionSearch (queryFlags q) (fromRight $ query q)
 ---------------------------------------------------------------------
 -- SPECIFIC ACTIONS
 
-dump :: CmdQuery -> FilePath -> IO ()
-dump q file = do
+actionDump :: CmdQuery -> FilePath -> IO ()
+actionDump q file = do
     let part = head [x | Dump x <- queryFlags q]
     d <- loadDataBase file
     putStrLn $ "File: " ++ file
     putStr $ showDataBase part d
 
 
+actionConvert :: CmdQuery -> FilePath -> IO ()
+actionConvert q infile = do
+    let outfile = headDef (replaceExtension infile "hoo") [x | Output x <- queryFlags q]
+    putStrLn $ "Converting " ++ infile
+    convert (Debug `elem` queryFlags q) infile outfile
+    putStrLn $ "Written " ++ outfile
+    
+    when (Dump{} `elemEnum` queryFlags q) $ do
+        putStrLn ""
+        actionDump q outfile
