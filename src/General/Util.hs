@@ -4,6 +4,7 @@ module General.Util where
 import Control.Monad
 import Data.Char
 import Data.List
+import Debug.Trace
 import System.Directory
 import System.Exit
 import qualified Data.IntSet as IntSet
@@ -204,3 +205,7 @@ split :: Eq a => a -> [a] -> [[a]]
 split x [] = []
 split x xs = if null b then [a] else a : split x (tail b)
     where (a,b) = break (== x) xs
+
+
+traceM :: Monad m => String -> m ()
+traceM msg = trace msg $ return ()
