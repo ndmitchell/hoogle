@@ -66,7 +66,9 @@ generate rebuild url = do
 
     (version,depends) <- cabalInfo cabal
     src <- readFile database
-    writeFile ("result" </> name <.> "txt") $ unlines $ concatMap (f version depends) $ lines src
+    writeFile ("result" </> name <.> "txt") $ unlines $ concatMap (f version depends)
+        $ lines $ filter (/= '\r') src
+        -- '\r' because of haddock/cabal interactions going weird..
     where
         f version depends x
             | x == "module Prelude" = x:map ("keyword "++) keywords
