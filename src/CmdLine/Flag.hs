@@ -29,6 +29,7 @@ data CmdFlag = Version           -- ^ Version information
              | Verbose           -- ^ Display verbose information
              | Info              -- ^ Display as much information as you can
              | Debug             -- ^ Do debugging activities
+             | Include FilePath  -- ^ Include directory
                deriving (Eq {-! Enum !-} )
 
 
@@ -64,8 +65,9 @@ flagInfo =
     ,f (ArgStr  Dump) ["dump"] [PCmdLine] "Dump a database for debugging"
     ,f (ArgFile DataPath) ["d","data"] [PCmdLine] "Database location"
     ,f (ArgNone Verbose) ["verbose"] [PCmdLine] "Display verbose information"
-    ,f (ArgNone Info) ["i","info"] [PCmdLine] "Display full information on an entry"
+    ,f (ArgNone Info) ["info"] [PCmdLine] "Display full information on an entry"
     ,f (ArgNone Debug) ["debug"] [PCmdLine] "Debugging only"
+    ,f (ArgFile Include) ["i","include"] [PCmdLine] "Include directories"
     ]
     where f = FlagInfo
 
@@ -181,7 +183,7 @@ parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = Just True
 --------------------------------------------------------
 -- DERIVES GENERATED CODE
 -- DO NOT MODIFY BELOW THIS LINE
--- CHECKSUM: 57623825
+-- CHECKSUM: 22445161
 
 instance Enum CmdFlag
     where toEnum 0 = Version{}
@@ -198,6 +200,7 @@ instance Enum CmdFlag
           toEnum 11 = Verbose{}
           toEnum 12 = Info{}
           toEnum 13 = Debug{}
+          toEnum 14 = Include{}
           toEnum n = error ((++) "toEnum " ((++) (show n) ", not defined for CmdFlag"))
           fromEnum (Version {}) = 0
           fromEnum (Web {}) = 1
@@ -213,3 +216,4 @@ instance Enum CmdFlag
           fromEnum (Verbose {}) = 11
           fromEnum (Info {}) = 12
           fromEnum (Debug {}) = 13
+          fromEnum (Include {}) = 14
