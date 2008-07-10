@@ -91,8 +91,8 @@ graphFollow next g = g{graphEdges = graphEdges g ++ f Set.empty (graphKeys g)}
             where nxt = next t
 
 
--- TODO: Profiling shows 28% time and 58% space on database creation is
---       spent in this function
+-- TODO: Profiling shows 28%-70% time on database creation spent here
+--       70% on the containers benchmark (worst offender)
 graphFreeze :: Ord k => Graph_ k n e -> (Graph n e, Map.Map k GraphNode)
 graphFreeze g = (Graph $ array $ map f ks, mp)
     where
