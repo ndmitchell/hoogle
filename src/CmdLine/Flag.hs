@@ -142,7 +142,7 @@ flagsHelp = unlines $ map f res
 parseFlags :: Permission -> [(String,String)] -> IO ([CmdFlag],[String])
 parseFlags perm xs = do
     let args = concatMap (parseFlag perm) xs
-    inc <- mapM globDir [x | Right (_,_,_,Include x) <- args]
+    inc <- mapM globDir $ [x | Right (_,_,_,Include x) <- args] ++ ["."]
     (a,b) <- mapAndUnzipM (f inc) args
     return (concat a, concat b)
     where
