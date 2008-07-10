@@ -3,7 +3,7 @@ module Hoogle.TypeSig.Parser(parsecTypeSig, parseTypeSig) where
 
 import Hoogle.TypeSig.Type
 import Text.ParserCombinators.Parsec
-import Data.Char
+import General.Code
 
 
 parseTypeSig :: String -> Either ParseError TypeSig
@@ -42,25 +42,29 @@ parsecTypeSig = do whites
 
         -- match (a,b) and (,)
         -- also pick up ( -> )
-        tuple = do wchar '('
+        tuple = do char '('
+                   hash <- liftM (== '#') $ option '_' $ char '#'
+                   let close = white $ string $ ['#'|hash] ++ ")"
+                   whites 
                    (do wchar ','
                        xs <- many $ wchar ','
-                       wchar ')'
-                       return $ tLit (length xs + 1)
+                       close
+                       return $ tLit hash (length xs + 1)
                     ) <|>
                     (do sym <- white $ keysymbol
-                        wchar ')'
+                        close
                         return $ TLit sym
                     ) <|>
                     (do xs <- typ0 `sepBy` wchar ','
-                        wchar ')'
+                        close
                         return $ case xs of
                             [] -> TLit "()"
                             [x] -> x
-                            xs -> TApp (tLit $ length xs - 1) xs
+                            xs -> TApp (tLit hash $ length xs - 1) xs
                     )
             where
-                tLit n = TLit $ "(" ++ replicate n ',' ++ ")"
+                tLit hash n = TLit $ "(" ++ h ++ replicate n ',' ++ h ++ ")"
+                    where h = ['#'|hash]
             
             
         atom = do x <- satisfy isAlpha
@@ -90,6 +94,6 @@ parsecTypeSig = do whites
 
         keysymbol = try $ do
             x <- many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
-            if x `elem` ["::","=>",".","="] then fail "Bad symbol" else return x
+            if x `elem` ["::","=>",".","=","#"] then fail "Bad symbol" else return x
         ascSymbol = "!#$%&*+./<=>?@\\^|-~:"
 

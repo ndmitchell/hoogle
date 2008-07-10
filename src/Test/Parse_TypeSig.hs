@@ -47,6 +47,12 @@ parse_TypeSig = do
     "a :+: b" === TypeSig [] (TApp (TLit ":+:") [TVar "a", TVar "b"])
     "a +++ b" === TypeSig [] (TApp (TLit "+++") [TVar "a", TVar "b"])
 
+    -- unboxed values
+    "Int#" === TypeSig [] (TLit "Int#")
+    "State# RealWorld" === TypeSig [] (TApp (TLit "State#") [TLit "RealWorld"])
+    "(# a, b #)" === TypeSig [] (TApp (TLit "(#,#)") [TVar "a",TVar "b"])
+    "(#,#) a b" === TypeSig [] (TApp (TLit "(#,#)") [TVar "a",TVar "b"])
+
     -- real examples
     "(a -> b) -> [a] -> [b]" === TypeSig [] (TFun [TFun [TVar "a",TVar "b"],TApp (TLit "[]") [TVar "a"],TApp (TLit "[]") [TVar "b"]])
     "Monad a => (b -> a c) -> [b] -> a [c]" === TypeSig [TApp (TLit "Monad") [TVar "a"]] (TFun [TFun [TVar "b",TApp (TVar "a") [TVar "c"]],TApp (TLit "[]") [TVar "b"],TApp (TVar "a") [TApp (TLit "[]") [TVar "c"]]])
