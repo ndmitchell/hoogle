@@ -1,4 +1,8 @@
 
+-- Note: Some of these functions, when written in a point-free
+-- style have a significant impact on the runtime speed of
+-- unoptimised code, for example hGetPos contributes ~20% extra time
+
 module Data.Binary.Raw(
     hGetInt, hPutInt,
     hGetByte, hPutByte, maxByte,
@@ -12,10 +16,10 @@ import Data.Char
 
 
 hGetPos :: Handle -> IO Int
-hGetPos = liftM fromInteger . hTell
+hGetPos hndl = liftM fromInteger $ hTell hndl
 
 hSetPos :: Handle -> Int -> IO ()
-hSetPos hndl = hSeek hndl AbsoluteSeek . toInteger
+hSetPos hndl i = hSeek hndl AbsoluteSeek $ toInteger i
 
 
 maxByte :: Int
@@ -35,7 +39,7 @@ hPutInt hndl w32 = do
     hPutByte hndl w4
 
 hPutByte :: Handle -> Int -> IO ()
-hPutByte hndl = hPutChar hndl . chr
+hPutByte hndl i = hPutChar hndl $ chr i
 
 
 hGetInt :: Handle -> IO Int
@@ -51,5 +55,5 @@ hGetInt hndl = do
 
 
 hGetByte :: Handle -> IO Int
-hGetByte hndl = hGetChar hndl >>= return . ord
+hGetByte hndl = liftM ord $ hGetChar hndl
 
