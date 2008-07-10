@@ -14,7 +14,7 @@ data TypeSig = TypeSig Constraint Type
 
 type Constraint = [Type]
 
-
+-- TODO: Add TForAll and treat it properly throughout
 data Type = TApp Type [Type] -- a list of types, first one being the constructor
           | TLit String -- bound variables, Maybe, ":", "(,)", "(,,)" (tuple)
           | TVar String -- unbound variables, "a"
