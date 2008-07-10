@@ -54,11 +54,12 @@ actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
     
     when (Dump{} `elemEnum` queryFlags q) $ do
         putStrLn ""
-        dumpDataBases q [outfile]
+        dumpDataBase q outfile
 
 
 actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
-    dumpDataBases q =<< getDataBaseFiles (queryFlags q) (fromRight $ query q)
+    dbs <- getDataBaseFiles (queryFlags q) (fromRight $ query q)
+    mapM_ (dumpDataBase q) dbs
 
 
 actionCmdLine q | not $ usefulQuery $ fromRight $ query q = do
@@ -70,12 +71,9 @@ actionCmdLine q = actionSearch (queryFlags q) (fromRight $ query q)
 
 
 
-dumpDataBases :: CmdQuery -> [FilePath] -> IO ()
-dumpDataBases q = mapM_ f
-    where
-        part = head [x | Dump x <- queryFlags q]
-
-        f file = do
-            d <- loadDataBase file
-            putStrLn $ "File: " ++ file
-            putStr $ showDataBase part d
+dumpDataBase :: CmdQuery -> FilePath -> IO ()
+dumpDataBase q file = do
+    let part = head [x | Dump x <- queryFlags q]
+    d <- loadDataBase file
+    putStrLn $ "File: " ++ file
+    putStr $ showDataBase part d
