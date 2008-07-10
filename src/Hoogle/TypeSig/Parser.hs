@@ -43,7 +43,7 @@ parsecTypeSig = do whites
         -- match (a,b) and (,)
         -- also pick up ( -> )
         tuple = do char '('
-                   hash <- liftM (== '#') $ option '_' $ char '#'
+                   hash <- optionBool $ char '#'
                    let close = white $ string $ ['#'|hash] ++ ")"
                    whites 
                    (do wchar ','
@@ -73,11 +73,15 @@ parsecTypeSig = do whites
                   return $ (if isLower x then TVar else TLit) (x:xs)
 
         -- may be [a], or [] (then application takes the a after it)
-        list = do wchar '['
-                  (char ']' >> return (TLit "[]")) <|> (do
+        list = do char '['
+                  colon <- optionBool $ char ':'
+                  spaces
+                  let close = white $ string $ [':'|colon] ++ "]"
+                      lit = TLit $ if colon then "[::]" else "[]"
+                  (close >> return lit) <|> (do
                       x <- typ0
-                      wchar ']'
-                      return $ TApp (TLit "[]") [x])
+                      close
+                      return $ TApp lit [x])
 
         application = do (x:xs) <- many1 (white typ2)
                          return $ TApp x xs
@@ -94,6 +98,8 @@ parsecTypeSig = do whites
 
         keysymbol = try $ do
             x <- many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
-            if x `elem` ["::","=>",".","=","#"] then fail "Bad symbol" else return x
+            if x `elem` ["::","=>",".","=","#",":"] then fail "Bad symbol" else return x
         ascSymbol = "!#$%&*+./<=>?@\\^|-~:"
 
+
+optionBool p = (p >> return True) <|> return False
