@@ -29,9 +29,16 @@ parsecTypeSig = do whites
     
         typ0 = function
         typ1 = application
-        typ2 = tuple <|> list <|> atom <|> bang
+        typ2 = forAll <|> tuple <|> list <|> atom <|> bang
 
         bang = wchar '!' >> typ2
+        
+        forAll = do try (white $ string "forall")
+                    many atom
+                    wchar '.'
+                    TypeSig con typ <- parsecTypeSig
+                    return typ
+
 
         -- match (a,b) and (,)
         -- also pick up ( -> )
