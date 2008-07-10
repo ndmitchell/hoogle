@@ -34,6 +34,7 @@ parse_TextBase = do
     ": :: a -> [a] -> [] a" === [ItemFunc ":" $ typ "a -> [a] -> [a]"]
     "(:) :: a -> [a] -> [] a" === [ItemFunc ":" $ typ "a -> [a] -> [a]"]
     "() :: ()" === [ItemFunc "()" $ typ "()"]
+    "data (:+:) a b" === [ItemData DataKeyword $ typ "(:+:) a b"]
 
     "data Foo a" === [ItemData DataKeyword $ typ "Foo a"]
     "newtype Foo a" === [ItemData NewTypeKeyword $ typ "Foo a"]

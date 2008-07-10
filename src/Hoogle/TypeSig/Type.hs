@@ -133,8 +133,9 @@ showFun x = showsPrec 1 x ""
 normaliseTypeSig :: TypeSig -> TypeSig
 normaliseTypeSig = transformOn onTypeSig f
     where
-        f (TApp x []) = f x
-        f (TFun [x]) = f x
+        f (TApp x []) = x
+        f (TApp (TLit "->") xs) = f $ TFun xs
+        f (TFun [x]) = x
         f (TFun xs) = TFun $ g xs
         f x = x
 

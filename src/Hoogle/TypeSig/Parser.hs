@@ -48,9 +48,9 @@ parsecTypeSig = do whites
                        wchar ')'
                        return $ tLit (length xs + 1)
                     ) <|>
-                    (do white $ string "->"
+                    (do sym <- white $ keysymbol
                         wchar ')'
-                        return $ TLit "->"
+                        return $ TLit sym
                     ) <|>
                     (do xs <- typ0 `sepBy` wchar ','
                         wchar ')'
@@ -78,13 +78,18 @@ parsecTypeSig = do whites
         application = do (x:xs) <- many1 (white typ2)
                          return $ TApp x xs
 
-        function = do xs <- typ1 `sepBy1` (try $ char '-' >> oneOf ">#" >> whites)
-                      return $ case xs of
-                         [x] -> x
-                         xs -> TFun xs
+        function = do lhs <- typ1
+                      (do op <- white keysymbol; rhs <- function; return $ TApp (TLit op) [lhs,rhs])
+                          <|> return lhs
 
         wchar c = white $ char c
         white x = do y <- x ; whites ; return y
 
         whites = many whiteChar
         whiteChar = oneOf " \v\f\t\r"
+
+        keysymbol = try $ do
+            x <- many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
+            if x `elem` ["::","=>",".","="] then fail "Bad symbol" else return x
+        ascSymbol = "!#$%&*+./<=>?@\\^|-~:"
+

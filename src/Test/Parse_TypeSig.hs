@@ -20,6 +20,7 @@ parse_TypeSig = do
     "(a)" === TypeSig [] (TVar "a")
     "(a,b)" === TypeSig [] (TApp (TLit "(,)") [TVar "a",TVar "b"])
     "(,) a b" === TypeSig [] (TApp (TLit "(,)") [TVar "a",TVar "b"])
+    "Foo [a]" === TypeSig [] (TApp (TLit "Foo") [TApp (TLit "[]") [TVar "a"]])
 
     -- functions
     "(->)" === TypeSig [] (TLit "->")
@@ -39,6 +40,12 @@ parse_TypeSig = do
     "forall a b . a -> a" === TypeSig [] (TFun [TVar "a", TVar "a"])
     "(forall a . a -> a) -> b -> b" === TypeSig [] (TFun [TFun [TVar "a", TVar "a"], TVar "b", TVar "b"])
     "(forall a . Data a => a -> a) -> b -> b" === TypeSig [] (TFun [TFun [TVar "a", TVar "a"], TVar "b", TVar "b"])
+
+    -- type operators
+    "(:+:) a b" === TypeSig [] (TApp (TLit ":+:") [TVar "a", TVar "b"])
+    "(+++) a b" === TypeSig [] (TApp (TLit "+++") [TVar "a", TVar "b"])
+    "a :+: b" === TypeSig [] (TApp (TLit ":+:") [TVar "a", TVar "b"])
+    "a +++ b" === TypeSig [] (TApp (TLit "+++") [TVar "a", TVar "b"])
 
     -- real examples
     "(a -> b) -> [a] -> [b]" === TypeSig [] (TFun [TFun [TVar "a",TVar "b"],TApp (TLit "[]") [TVar "a"],TApp (TLit "[]") [TVar "b"]])
