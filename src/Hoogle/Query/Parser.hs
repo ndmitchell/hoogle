@@ -62,6 +62,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
 -- deal with the parsing of:
 --     --count=30
 --     /module
+--     /?  (special case)
 --     +Data.Map
 parseFlagScope :: Parser Query
 parseFlagScope = do x <- try scope <|> flag
@@ -71,7 +72,7 @@ parseFlagScope = do x <- try scope <|> flag
         -- --n=30, --count=30, /flag, --flag
         -- either a flag or an itemType
         flag = do string "--" <|> string "/"
-                  name <- many1 letter
+                  name <- many1 letter <|> string "?"
                   extra <- (do char '='; flagExtra) <|> (return "")
                   return blank{flags=[Flag (map toLower name) extra]}
             where

@@ -9,6 +9,7 @@ parse_Query = do
     let (===) = parseTest parseQuery
 
     "/info" === defaultQuery{flags = [Flag "info" ""]}
+    "/?" === defaultQuery{flags = [Flag "?" ""]}
     "/count=10" === defaultQuery{flags = [Flag "count" "10"]}
     "map" === defaultQuery{names = ["map"]}
     "concat map" === defaultQuery{names = ["concat","map"]}
