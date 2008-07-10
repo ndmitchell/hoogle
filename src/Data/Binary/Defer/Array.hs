@@ -48,7 +48,7 @@ instance BinaryDefer a => BinaryDefer (Array a) where
                 s <- ask
                 i <- lift $ hGetPos h
                 let f j = unsafePerformIO $ do
-                             hSetPos h (i + sz*j)
+                             hSetPos h (i + toInteger (sz*j))
                              runReaderT getFixed s
                 return $ Array $ listArray (0,n) $ map f [0..n]
 

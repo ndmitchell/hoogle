@@ -15,11 +15,11 @@ import Data.Bits
 import Data.Char
 
 
-hGetPos :: Handle -> IO Int
-hGetPos hndl = liftM fromInteger $ hTell hndl
+hGetPos :: Handle -> IO Integer
+hGetPos hndl = hTell hndl
 
-hSetPos :: Handle -> Int -> IO ()
-hSetPos hndl i = hSeek hndl AbsoluteSeek $ toInteger i
+hSetPos :: Handle -> Integer -> IO ()
+hSetPos hndl i = hSeek hndl AbsoluteSeek i
 
 
 maxByte :: Int

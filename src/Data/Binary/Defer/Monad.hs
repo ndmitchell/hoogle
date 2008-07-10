@@ -15,7 +15,7 @@ import qualified Data.TypeMap as TypeMap
 -- Defer Put
 
 type DeferPut a = ReaderT (Handle, IORef [DeferPending]) IO a
-data DeferPending = DeferPending Int (DeferPut ())
+data DeferPending = DeferPending Integer (DeferPut ())
 
 putInt, putByte :: Int -> DeferPut ()
 putInt  x = do h <- asks fst; lift $ hPutInt  h x
@@ -42,7 +42,7 @@ runDeferPending :: Handle -> DeferPending -> IO ()
 runDeferPending h (DeferPending pos act) = do
     i <- hGetPos h
     hSetPos h pos
-    hPutInt h i
+    hPutInt h (fromInteger i)
     hSetPos h i
     runDeferPut h act
 
@@ -65,7 +65,7 @@ getDefer x = do
     i <- lift $ hGetInt h
     s <- ask
     lift $ unsafeInterleaveIO $ do
-        hSetPos h i
+        hSetPos h (toInteger i)
         runReaderT x s
 
 runDeferGet :: Handle -> DeferGet a -> IO a
