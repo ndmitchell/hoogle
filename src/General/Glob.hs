@@ -53,11 +53,9 @@ globMatch glob s | null glob = False
 
 
 -- check for existence and crash if not
-globDir :: [FilePath] -> IO [FilePath]
-globDir = mapM f
-    where
-        f x = do
-            b <- doesDirectoryExist x
-            if b then return x else
-                exitMessage ["Could not find directory:"
-                            , "    " ++ x]
+globDir :: FilePath -> IO FilePath
+globDir x = do
+    b <- doesDirectoryExist x
+    if b then return x else
+        exitMessage ["Could not find directory:"
+                    , "    " ++ x]
