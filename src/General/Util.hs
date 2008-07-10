@@ -192,7 +192,7 @@ disjoint xs = xs == nub xs
 
 
 -- useful command line auxiliary
-exitMessage :: [String] -> IO ()
+exitMessage :: [String] -> IO a
 exitMessage msg = putStr (unlines msg) >> exitFailure
 
 
