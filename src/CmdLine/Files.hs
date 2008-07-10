@@ -19,7 +19,7 @@ getDataBaseFiles flags q = do
 
 -- return the (files,dirs), error message if one does not exist
 dataFileDir :: [CmdFlag] -> IO ([FilePath],[FilePath])
-dataFileDir flags = f [x | DataPath x <- flags]
+dataFileDir flags = f [x | DataFile x <- flags]
     where
         f [] = return ([],[])
         f (x:xs) = do

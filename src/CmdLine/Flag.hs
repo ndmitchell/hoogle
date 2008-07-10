@@ -1,7 +1,9 @@
 {-|
     Parse a list of flags supported in any of the front ends.
 
-    Returns the flags in a data structure, along with any invalid flags
+    Returns the flags in a data structure, along with any invalid flags.
+    
+    Deal with any files/include files in this stage.
 -}
 
 module CmdLine.Flag(
@@ -10,7 +12,7 @@ module CmdLine.Flag(
     ) where
 
 import General.Code
-
+import General.Glob
 
 ---------------------------------------------------------------------
 -- The flags
@@ -25,7 +27,7 @@ data CmdFlag = Version           -- ^ Version information
              | Convert FilePath  -- ^ Convert a database
              | Output FilePath   -- ^ Output file
              | Dump String       -- ^ Dump a database to a file (optional section)
-             | DataPath FilePath -- ^ Database location
+             | DataFile FilePath -- ^ Database location
              | Verbose           -- ^ Display verbose information
              | Info              -- ^ Display as much information as you can
              | Debug             -- ^ Do debugging activities
@@ -34,7 +36,7 @@ data CmdFlag = Version           -- ^ Version information
 
 
 -- | In which circumstances are you allowed to pass this command
-data Permission = PWebArgs | PWebQuery | PCmdLine
+data Permission = PWebArgs | PWebQuery | PCmdLine | PMultiple
                   deriving Eq
 
 data Argument = ArgNone CmdFlag
@@ -42,8 +44,18 @@ data Argument = ArgNone CmdFlag
               | ArgInt  (Int      -> CmdFlag)
               | ArgNat  (Int      -> CmdFlag)
               | ArgPos  (Int      -> CmdFlag)
-              | ArgFile (FilePath -> CmdFlag)
+              | ArgFile (FilePath -> CmdFlag) [String]
               | ArgStr  (String   -> CmdFlag)
+
+instance Show Argument where
+    show (ArgNone _) = ""
+    show (ArgInt  _) = "INT"
+    show (ArgNat  _) = "NAT"
+    show (ArgPos  _) = "POS"
+    show (ArgBool _) = "BOOL"
+    show (ArgFile _ _) = "FILE"
+    show (ArgStr  _) = "STR"
+
 
 data FlagInfo = FlagInfo {
     argument :: Argument,
@@ -60,16 +72,27 @@ flagInfo =
     ,f (ArgPos  Start) ["s","start"] [PCmdLine,PWebArgs] "First result to show (default=1)"
     ,f (ArgPos  Count) ["n","count","length","len"] [PCmdLine,PWebArgs] "Number of results to show (default=all)"
     ,f (ArgNone Test) ["test"] [PCmdLine] "Run the regression tests"
-    ,f (ArgFile Convert) ["convert"] [PCmdLine] "Convert a database"
-    ,f (ArgFile Output) ["output"] [PCmdLine] "Output file for convert"
+    ,f (ArgFile Convert ["txt"]) ["convert"] [PCmdLine,PMultiple] "Convert a database"
+    ,f (ArgFile Output ["hoo"]) ["output"] [PCmdLine] "Output file for convert"
     ,f (ArgStr  Dump) ["dump"] [PCmdLine] "Dump a database for debugging"
-    ,f (ArgFile DataPath) ["d","data"] [PCmdLine] "Database location"
+    ,f (ArgFile DataFile ["hoo"]) ["d","data"] [PCmdLine,PMultiple] "Database file"
     ,f (ArgNone Verbose) ["verbose"] [PCmdLine] "Display verbose information"
     ,f (ArgNone Info) ["info"] [PCmdLine] "Display full information on an entry"
     ,f (ArgNone Debug) ["debug"] [PCmdLine] "Debugging only"
-    ,f (ArgFile Include) ["i","include"] [PCmdLine] "Include directories"
+    ,f (ArgFile Include []) ["i","include"] [PCmdLine,PMultiple] "Include directories"
     ]
     where f = FlagInfo
+
+
+cmdFlagBadArg flag typ "" = "Missing argument to flag " ++ flag ++ ", expected argument of type " ++ typ
+cmdFlagBadArg flag "" x = "Unexpected argument to flag " ++ flag ++ ", got \"" ++ x ++ "\""
+cmdFlagBadArg flag typ x = "Bad argument to flag " ++ flag ++ ", expected argument of type " ++ typ ++ ", got \"" ++ x ++ "\""
+
+cmdFlagPermission flag = "Flag not allowed when running in this mode, flag " ++ flag
+
+cmdFlagUnknown flag = "Unknown flag " ++ flag
+
+cmdFlagDuplicate flag = "The flag " ++ flag ++ " may only occur once, but occured multiple times"
 
 
 ---------------------------------------------------------------------
@@ -77,17 +100,17 @@ flagInfo =
 
 -- | flags that are passed in through web arguments,
 --   i.e. ?foo=bar&...
-flagsWebArgs :: [(String,String)] -> ([CmdFlag],[String])
+flagsWebArgs :: [(String,String)] -> IO ([CmdFlag],[String])
 flagsWebArgs = parseFlags PWebArgs
 
 
 -- | flags that are given in the web query string
-flagsWebQuery :: [(String,String)] -> ([CmdFlag],[String])
+flagsWebQuery :: [(String,String)] -> IO ([CmdFlag],[String])
 flagsWebQuery = parseFlags PWebQuery
 
 
 -- | flags that are given in a query on the command line
-flagsCmdLine :: [(String,String)] -> ([CmdFlag],[String])
+flagsCmdLine :: [(String,String)] -> IO ([CmdFlag],[String])
 flagsCmdLine = parseFlags PCmdLine
 
 
@@ -108,82 +131,73 @@ flagsHelp = unlines $ map f res
         longOpt ([_]:x:_) = x
         longOpt (x:_) = x
 
-        typ (ArgNone _) = ""
-        typ (ArgInt  _) = "=INT"
-        typ (ArgNat  _) = "=NAT"
-        typ (ArgPos  _) = "=POS"
-        typ (ArgBool _) = "=BOOL"
-        typ (ArgFile _) = "=FILE"
-        typ (ArgStr  _) = "=STR"
+        typ x = ['='|s/=""] ++ s
+            where s = show x
 
 
 ---------------------------------------------------------------------
 -- Parsing Flags
 
--- check no flag is specified twice
-parseFlags :: Permission -> [(String,String)] -> ([CmdFlag],[String])
-parseFlags perm xs = f [] xs
+-- TODO: check no flag is specified twice
+parseFlags :: Permission -> [(String,String)] -> IO ([CmdFlag],[String])
+parseFlags perm xs = do
+    let args = concatMap (parseFlag perm) xs
+    inc <- mapM globDir [x | Right (_,_,_,Include x) <- args]
+    (a,b) <- mapAndUnzipM (f inc) args
+    return (concat a, concat b)
     where
-        f seen [] = ([], [])
-        f seen ((key,val):xs) = case parseFlag perm key val of
-                Just x | xe `notElem` seen -> (x:a,b)
-                    where xe = fromEnum x
-                          (a,b) = f (xe:seen) xs
-                Nothing -> (a,key:b)
-                    where (a,b) = f seen xs
+        f inc (Right (_,_,_,Include v)) = return ([Include v],[])
+        f inc (Right (_,val,FlagInfo{argument=ArgFile gen exts},_)) = do
+            let vals = parseFile val
+            files <- concatMapM (globFile inc exts) vals
+            return (map gen files, [])
+        f inc (Left v) = return ([],[v])
+        f inc (Right (_,_,_,v)) = return ([v],[])
 
 
-parseFlag :: Permission -> String -> String -> Maybe CmdFlag
-parseFlag perm key val = do
-    let key2 = map toLower key
-    i <- listToMaybe [i | i <- flagInfo, key2 `elem` names i, perm `elem` permissions i]
-    parseArg (argument i) val
+-- does all validity checks apart from checking for duplicate flags
+parseFlag :: Permission -> (String, String) -> [Either String (String,String,FlagInfo,CmdFlag)]
+parseFlag perm (key,val)
+        | isNothing m = [Left $ cmdFlagUnknown key]
+        | perm `notElem` permissions flg = [Left $ cmdFlagPermission key]
+        | null arg = [Left $ cmdFlagBadArg key (show $ argument flg) val]
+        | otherwise = [Right (key,val,flg,a) | a <- arg]
+    where
+        key2 = lower key
+        m@ ~(Just flg) = listToMaybe [i | i <- flagInfo, key2 `elem` names i]
+        arg = parseArg (argument flg) val
 
 
-parseArg :: Argument -> String -> Maybe CmdFlag
-parseArg (ArgNone v) xs = if null xs then Just v else Nothing
-parseArg (ArgBool v) xs = liftM v $ parseBool xs
-parseArg (ArgFile v) xs = liftM v $ parseFile xs
-parseArg (ArgNat  v) xs = liftM v $ parseNat  xs
-parseArg (ArgInt  v) xs = liftM v $ parseInt  xs
-parseArg (ArgPos  v) xs = liftM v $ parsePos  xs
-parseArg (ArgStr  v) xs = liftM v $ Just      xs
+parseArg :: Argument -> String -> [CmdFlag]
+parseArg (ArgNone v) xs = [v | null xs]
+parseArg (ArgStr  v) xs = [v xs]
+parseArg (ArgBool v) xs = map v $ parseBool xs
+parseArg (ArgNat  v) xs = map v $ parseNat  xs
+parseArg (ArgInt  v) xs = map v $ parseInt  xs
+parseArg (ArgPos  v) xs = map v $ parsePos  xs
+parseArg (ArgFile v _) xs = map v $ parseFile xs
 
 
-parseNat :: String -> Maybe Int
-parseNat x = case parseInt x of
-                  Just y | y >= 0 -> Just y
-                  _ -> Nothing
+parseNat, parsePos, parseInt :: String -> [Int]
+parseNat = filter (>= 0) . parseInt
+parsePos = filter (> 0) . parseInt
+parseInt x = [a | (a,"") <- reads x]
 
+parseFile :: String -> [String]
+parseFile = splitSearchPath
 
-parsePos :: String -> Maybe Int
-parsePos x = case parseInt x of
-                  Just y | y > 0 -> Just y
-                  _ -> Nothing
-
-
-parseInt :: String -> Maybe Int
-parseInt x = case reads x of
-                  [(a,"")] -> Just a
-                  _ -> Nothing
-
-
-parseFile :: String -> Maybe String
-parseFile x = if null x then Nothing else Just x
-
-
-parseBool :: String -> Maybe Bool
-parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = Just True
-            | v2 `elem` ["off","no","0","false","moop"] = Just False 
-            | otherwise = Nothing
-    where v2 = map toLower v
+parseBool :: String -> [Bool]
+parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = [True]
+            | v2 `elem` ["off","no","0","false","moop"] = [False]
+            | otherwise = []
+    where v2 = lower v
 
 
 
 --------------------------------------------------------
 -- DERIVES GENERATED CODE
 -- DO NOT MODIFY BELOW THIS LINE
--- CHECKSUM: 22445161
+-- CHECKSUM: 1714249161
 
 instance Enum CmdFlag
     where toEnum 0 = Version{}
@@ -196,7 +210,7 @@ instance Enum CmdFlag
           toEnum 7 = Convert{}
           toEnum 8 = Output{}
           toEnum 9 = Dump{}
-          toEnum 10 = DataPath{}
+          toEnum 10 = DataFile{}
           toEnum 11 = Verbose{}
           toEnum 12 = Info{}
           toEnum 13 = Debug{}
@@ -212,7 +226,7 @@ instance Enum CmdFlag
           fromEnum (Convert {}) = 7
           fromEnum (Output {}) = 8
           fromEnum (Dump {}) = 9
-          fromEnum (DataPath {}) = 10
+          fromEnum (DataFile {}) = 10
           fromEnum (Verbose {}) = 11
           fromEnum (Info {}) = 12
           fromEnum (Debug {}) = 13

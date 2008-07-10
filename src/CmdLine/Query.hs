@@ -37,27 +37,30 @@ cmdQuery :: IO CmdQuery
 cmdQuery = do
     r <- cgiArgs
     case r of
-        Just y -> return $ cmdQueryCGI y
-        Nothing -> liftM cmdQueryArgs getArgs
+        Just y -> cmdQueryCGI y
+        Nothing -> cmdQueryArgs =<< getArgs
 
 
-cmdQueryCGI :: [(String,String)] -> CmdQuery
+cmdQueryCGI :: [(String,String)] -> IO CmdQuery
 cmdQueryCGI [("",x)] = cmdQueryCGI [("q",x)]
-cmdQueryCGI xs = case parseQuery str of
-    Left err -> CmdQuery True str (Left err) flags1 bad1
-    Right res -> let (flags2,bad2) = flagsWebQuery $ queryArgs res
-                 in CmdQuery True str (Right res) (flags2++flags1) (bad2++bad1)
+cmdQueryCGI xs = do
+    (flags1,bad1) <- flagsWebArgs notq
+    case parseQuery str of
+        Left err -> return $ CmdQuery True str (Left err) flags1 bad1
+        Right res -> do
+            (flags2,bad2) <- flagsWebQuery $ queryArgs res
+            return $ CmdQuery True str (Right res) (flags2++flags1) (bad2++bad1)
     where
         (q,notq) = partition ((==) "q" . fst) xs
-        (flags1,bad1) = flagsWebArgs notq
         str = unwords $ map snd q
 
 
-cmdQueryArgs :: [String] -> CmdQuery
+cmdQueryArgs :: [String] -> IO CmdQuery
 cmdQueryArgs xs = case parseCmdLineQuery xs of
-    Left err -> CmdQuery False orig (Left err) [] []
-    Right res -> let (flags,bad) = flagsCmdLine $ queryArgs res
-                 in CmdQuery (Web `elem` flags) orig (Right res) flags bad
+    Left err -> return $ CmdQuery False orig (Left err) [] []
+    Right res -> do
+        (flags,bad) <- flagsCmdLine $ queryArgs res
+        return $ CmdQuery (Web `elem` flags) orig (Right res) flags bad
     where orig = unwords $ map quote xs
 
 
