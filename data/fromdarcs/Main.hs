@@ -79,7 +79,8 @@ generate rebuild url = do
 cabalInfo file = do
     src <- liftM lines $ readFile file
     let version = headDef "" $ readFields "version" src
-        depends = nub $ words $ map (rep ',' ' ') $ unwords $ readFields "build-depends" src
+        depends = nub $ filter f $ words $ map (rep ',' ' ') $ unwords $ readFields "build-depends" src
+        f x = x /= "" && isAlpha (head x)
     return (version,depends)
 
 
