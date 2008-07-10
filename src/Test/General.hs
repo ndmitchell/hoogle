@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-methods #-}
 
 module Test.General where
 
