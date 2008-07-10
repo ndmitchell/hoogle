@@ -44,7 +44,9 @@ data Argument = ArgNone CmdFlag
               | ArgInt  (Int      -> CmdFlag)
               | ArgNat  (Int      -> CmdFlag)
               | ArgPos  (Int      -> CmdFlag)
-              | ArgFile (FilePath -> CmdFlag) [String]
+              | ArgFileIn (FilePath -> CmdFlag) [String]
+              | ArgFileOut (FilePath -> CmdFlag)
+              | ArgDir (FilePath -> CmdFlag)
               | ArgStr  (String   -> CmdFlag)
 
 instance Show Argument where
@@ -53,7 +55,9 @@ instance Show Argument where
     show (ArgNat  _) = "NAT"
     show (ArgPos  _) = "POS"
     show (ArgBool _) = "BOOL"
-    show (ArgFile _ _) = "FILE"
+    show (ArgFileIn _ _) = "FILE"
+    show (ArgFileOut _) = "FILE"
+    show (ArgDir _) = "DIR"
     show (ArgStr  _) = "STR"
 
 
@@ -72,14 +76,14 @@ flagInfo =
     ,f (ArgPos  Start) ["s","start"] [PCmdLine,PWebArgs] "First result to show (default=1)"
     ,f (ArgPos  Count) ["n","count","length","len"] [PCmdLine,PWebArgs] "Number of results to show (default=all)"
     ,f (ArgNone Test) ["test"] [PCmdLine] "Run the regression tests"
-    ,f (ArgFile Convert ["txt"]) ["convert"] [PCmdLine,PMultiple] "Convert a database"
-    ,f (ArgFile Output ["hoo"]) ["output"] [PCmdLine] "Output file for convert"
+    ,f (ArgFileIn Convert ["txt"]) ["convert"] [PCmdLine,PMultiple] "Convert a database"
+    ,f (ArgFileOut Output) ["output"] [PCmdLine] "Output file for convert"
     ,f (ArgStr  Dump) ["dump"] [PCmdLine] "Dump a database for debugging"
-    ,f (ArgFile DataFile ["hoo"]) ["d","data"] [PCmdLine,PMultiple] "Database file"
+    ,f (ArgFileIn DataFile ["hoo"]) ["d","data"] [PCmdLine,PMultiple] "Database file"
     ,f (ArgNone Verbose) ["verbose"] [PCmdLine] "Display verbose information"
     ,f (ArgNone Info) ["info"] [PCmdLine] "Display full information on an entry"
     ,f (ArgNone Debug) ["debug"] [PCmdLine] "Debugging only"
-    ,f (ArgFile Include []) ["i","include"] [PCmdLine,PMultiple] "Include directories"
+    ,f (ArgDir Include) ["i","include"] [PCmdLine,PMultiple] "Include directories"
     ]
     where f = FlagInfo
 
@@ -146,8 +150,7 @@ parseFlags perm xs = do
     (a,b) <- mapAndUnzipM (f inc) args
     return (concat a, concat b)
     where
-        f inc (Right (_,_,_,Include v)) = return ([Include v],[])
-        f inc (Right (_,val,FlagInfo{argument=ArgFile gen exts},_)) = do
+        f inc (Right (_,val,FlagInfo{argument=ArgFileIn gen exts},_)) = do
             let vals = parseFile val
             files <- concatMapM (globFile inc exts) vals
             return (map gen files, [])
@@ -175,7 +178,9 @@ parseArg (ArgBool v) xs = map v $ parseBool xs
 parseArg (ArgNat  v) xs = map v $ parseNat  xs
 parseArg (ArgInt  v) xs = map v $ parseInt  xs
 parseArg (ArgPos  v) xs = map v $ parsePos  xs
-parseArg (ArgFile v _) xs = map v $ parseFile xs
+parseArg (ArgFileIn v _) xs = map v $ parseFile xs
+parseArg (ArgFileOut v) xs = map v $ parseFile xs
+parseArg (ArgDir v) xs = map v $ parseFile xs
 
 
 parseNat, parsePos, parseInt :: String -> [Int]
