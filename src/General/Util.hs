@@ -198,3 +198,9 @@ exitMessage msg = putStr (unlines msg) >> exitFailure
 
 lower = map toLower
 upper = map toUpper
+
+
+split :: Eq a => a -> [a] -> [[a]]
+split x [] = []
+split x xs = if null b then [a] else a : split x (tail b)
+    where (a,b) = break (== x) xs
