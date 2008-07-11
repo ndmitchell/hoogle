@@ -19,22 +19,25 @@ testFile srcfile dbfile = do
 
 
 -- LineNo Query Results
-data Test = Test Int String [String]
+data Test = Test Int String Query [String]
             deriving Show
 
 
 parseTest :: Int -> String -> Maybe Test
 parseTest line str | "@test " `isPrefixOf` str =
     case reads $ drop 5 str of
-        [(x,rest)] -> Just $ Test line x (words rest)
-        _ -> error $ "Couldn't parse @test on line " ++ show line
+        [(x,rest)] -> case parseQuery x of
+            Right q -> Just $ Test line x q (words rest)
+            _ -> err
+        _ -> err
+    where err = error $ "Couldn't parse @test on line " ++ show line
 parseTest line str = Nothing
 
 
 runTest :: DataBase -> Test -> Bool
-runTest db t = False
+runTest db (Test _ _ q ans) = False
 
 
 failedTest :: Test -> String
-failedTest (Test line str _) = "Line " ++ show line ++ ", " ++ str
+failedTest (Test line str _ _) = "Line " ++ show line ++ ", " ++ str
 
