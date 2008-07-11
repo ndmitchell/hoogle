@@ -102,7 +102,7 @@ initialGraph is xs = newGraph_{graphResults = map (newGraphResult is) xs}
 -- create a result, and figure out what the relative is
 newGraphResult :: Instances -> (Link Entry, ArgPos, TypeSig) -> (TypeSimp, GraphResult)
 newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
-    where (bind,tp) = alphaFlatten $ contextNorm is t
+    where (bind,tp) = alphaFlatten $ normContext is t
 
 
 -- add links between each step
@@ -174,15 +174,6 @@ alphaFlatten (TypeSimp a b) = (sort bind, TypeSimp a2 b2)
         g (cls,v) = [(cls,b) | (a,b) <- bind, a == v]
 
 
--- disguard any context which relates to variables not in the type
--- convert using whatever scheme the Instances say
-contextNorm :: Instances -> TypeSig -> TypeSimp
-contextNorm is t = TypeSimp [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
-    where
-        (TypeSig a b) = normContext is t
-        vs = [v | TVar v <- universe b]
-
-
 ---------------------------------------------------------------------
 -- GRAPH SEARCHING
 
@@ -194,7 +185,7 @@ graphSearch as is g@(Graph _ gg) t
         | otherwise = [r{graphResultScore=s}
             | (s,b,r) <- searchDijkstraState (blankTypeScore, []) step (fromJust node) gg]
     where
-        (bind,t2) = alphaFlatten $ contextNorm is t
+        (bind,t2) = alphaFlatten $ normContext is t
         node = graphStart as is g t2
 
         step :: (Link Cost, Binding) -> (TypeScore, Binding) -> (TypeScore, Binding)
