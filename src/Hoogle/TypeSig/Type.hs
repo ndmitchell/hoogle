@@ -83,6 +83,9 @@ instance Uniplate Type where
     uniplate (TFun xs) = (xs, \xs -> TFun xs)
     uniplate x = ([], \[] -> x)
 
+variables :: Type -> [String]
+variables x = [v | TVar v <- universe x]
+
 
 ---------------------------------------------------------------------
 -- BINARYDEFER INSTANCES
