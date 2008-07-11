@@ -7,12 +7,28 @@ import Data.Generics.UniplateOn
 
 
 ---------------------------------------------------------------------
--- DATA TYPES
+-- DATA TYPE WITH CONTEXT
 
+
+-- FULL TYPE
 data TypeSig = TypeSig Constraint Type
                deriving (Eq,Ord)
 
 type Constraint = [Type]
+
+
+-- CONSTRICTED TYPE
+-- first argument is a list of contexts, (Context,Variable)
+type TypeContext = [(String,String)]
+data TypePair = TypePair TypeContext Type
+                deriving (Eq,Ord)
+
+instance Show TypePair where
+    show (TypePair c t) = show $ TypeSig [TApp (TLit a) [TVar b] | (a,b) <- c] t
+
+
+---------------------------------------------------------------------
+-- DATA TYPES
 
 -- TODO: Add TForAll and treat it properly throughout
 --       Add TBang to handle bangs properly

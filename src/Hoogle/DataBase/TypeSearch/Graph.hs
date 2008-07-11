@@ -34,14 +34,6 @@ import qualified Control.Monad.State as S
 type ArgPos = Int
 type Binding = [(String,String)]
 
--- first argument is a list of contexts, (Context,Variable)
-type TypeContext = [(String,String)]
-data TypePair = TypePair TypeContext Type
-                deriving (Eq,Ord)
-
-instance Show TypePair where
-    show (TypePair c t) = show $ TypeSig [TApp (TLit a) [TVar b] | (a,b) <- c] t
-
 
 data Graph = Graph (Map.Map Type [(TypeContext, GraphNode)])
                    (G.Graph GraphResult (Link Cost, Binding))
