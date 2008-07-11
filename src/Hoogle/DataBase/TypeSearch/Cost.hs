@@ -73,6 +73,7 @@ instance Show CostDetail where
     showList = showString . concat . intersperse ", " . map show
 
 
+-- TODO: Better scoring system
 -- transform the costCode to a costScore
 newCost :: CostDetail -> Cost
 newCost xs = Cost 1 xs
