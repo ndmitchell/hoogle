@@ -5,6 +5,7 @@ import CmdLine.Flag
 import CmdLine.Query
 import CmdLine.Search
 import CmdLine.Files
+import CmdLine.Test
 import General.Code
 import Hoogle.All
 import Test.All
@@ -40,6 +41,10 @@ actionCmdLine q | Help `elem` queryFlags q =
 actionCmdLine q | Test `elem` queryFlags q = test
 
 
+actionCmdLine q | TestFile{} `elemEnum` queryFlags q =
+    mapM_ (actionTest q) [x | TestFile x <- queryFlags q]
+
+
 actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
     mapM_ (actionConvert q) [x | Convert x <- queryFlags q]
 
@@ -68,7 +73,7 @@ actionDump q file = do
     putStr $ showDataBase part d
 
 
-actionConvert :: CmdQuery -> FilePath -> IO ()
+actionConvert :: CmdQuery -> FilePath -> IO FilePath
 actionConvert q infile = do
     let outfile = headDef (replaceExtension infile "hoo") [x | Output x <- queryFlags q]
     putStrLn $ "Converting " ++ infile
@@ -78,3 +83,10 @@ actionConvert q infile = do
     when (Dump{} `elemEnum` queryFlags q) $ do
         putStrLn ""
         actionDump q outfile
+    return outfile
+
+
+actionTest :: CmdQuery -> FilePath -> IO ()
+actionTest q infile = do
+    outfile <- actionConvert q infile
+    testFile infile outfile
