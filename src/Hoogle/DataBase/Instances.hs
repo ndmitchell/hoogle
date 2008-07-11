@@ -3,6 +3,7 @@ module Hoogle.DataBase.Instances(
     Instances, createInstances, normContext, followInstances
     ) where
 
+import General.Code
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Data.Binary.Defer
@@ -40,4 +41,9 @@ normContext _ (TypeSig a b) = TypeSig con b
 
 
 followInstances :: Instances -> TypeSig -> [TypeSig]
-followInstances _ _ = []
+followInstances is t = []
+    where
+        fresh = [] -- head $ map (:[]) ['a'..] \\ [v | TVar v <- universe t]
+
+
+
