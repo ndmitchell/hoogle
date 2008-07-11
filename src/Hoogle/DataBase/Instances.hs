@@ -6,17 +6,27 @@ module Hoogle.DataBase.Instances(
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Data.Binary.Defer
+import qualified Data.Map as Map
+import Data.Generics.Uniplate
 
-data Instances = Instances
-                 deriving Show
+
+newtype Instances = Instances (Map.Map String [String])
+
+instance Show Instances where
+    show (Instances mp) = unlines $ map f $ Map.toList mp
+        where f (v,cs) = "instance " ++ v ++ " <= " ++ unwords cs
+
 
 instance BinaryDefer Instances where
-    put _ = put0
-    get = get0 Instances
+    put (Instances x) = put1 x
+    get = get1 Instances
 
 
 createInstances :: [TextItem] -> Instances
-createInstances _ = Instances
+createInstances xs = Instances $ foldl f Map.empty ys
+    where
+        ys = [(v, c) | ItemInstance (TypeSig [] (TApp (TLit c) vs)) <- xs, TLit v <- vs]
+        f mp (v,c) = Map.insertWith (++) v [c] mp
 
 
 -- PostCondition: All classes must be "TApp (TLit x) [TVar y]"
