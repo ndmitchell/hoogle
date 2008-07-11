@@ -2,7 +2,9 @@
 module CmdLine.Test(testFile) where
 
 import Hoogle.All
+import Hoogle.Item.All
 import General.Code
+import Data.Binary.Defer.Index
 
 
 testFile :: FilePath -> FilePath -> IO ()
@@ -35,7 +37,15 @@ parseTest line str = Nothing
 
 
 runTest :: DataBase -> Test -> Bool
-runTest db (Test _ _ q ans) = False
+runTest db (Test _ _ q ans) = f ans $ searchAll [db] q
+    where
+        f ["*"] _ = True
+        f ("*":x:xs) (m:ms) = f (if g x m then xs else "*":x:xs) ms
+        f (x:xs) (m:ms) = g x m && f xs ms
+        f [] [] = True
+        f _ _ = False
+
+        g name m = name == entryName (fromLink $ resultEntry m)
 
 
 failedTest :: Test -> String
