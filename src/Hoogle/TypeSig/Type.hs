@@ -20,11 +20,11 @@ type Constraint = [Type]
 -- CONSTRICTED TYPE
 -- first argument is a list of contexts, (Context,Variable)
 type TypeContext = [(String,String)]
-data TypePair = TypePair TypeContext Type
+data TypeSimp = TypeSimp TypeContext Type
                 deriving (Eq,Ord)
 
-instance Show TypePair where
-    show (TypePair c t) = show $ TypeSig [TApp (TLit a) [TVar b] | (a,b) <- c] t
+instance Show TypeSimp where
+    show (TypeSimp c t) = show $ TypeSig [TApp (TLit a) [TVar b] | (a,b) <- c] t
 
 
 ---------------------------------------------------------------------

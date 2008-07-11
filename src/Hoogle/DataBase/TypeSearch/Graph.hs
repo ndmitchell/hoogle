@@ -41,7 +41,7 @@ data Graph = Graph (Map.Map Type [(TypeContext, GraphNode)])
 
 instance Show Graph where
     show (Graph ns g) = showGraphWith (\i -> show $ mp IntMap.! i) g
-        where mp = IntMap.fromList [(n, TypePair c t) | (t,as) <- Map.toList ns, (c,n) <- as]
+        where mp = IntMap.fromList [(n, TypeSimp c t) | (t,as) <- Map.toList ns, (c,n) <- as]
 
 
 instance BinaryDefer Graph where
@@ -69,7 +69,7 @@ instance Show GraphResult where
 ---------------------------------------------------------------------
 -- GRAPH CONSTRUCTION
 
-type Graph_ = G.Graph_ TypePair GraphResult (Cost, Binding)
+type Graph_ = G.Graph_ TypeSimp GraphResult (Cost, Binding)
 
 
 newGraph :: Aliases -> Instances -> [(Link Entry, ArgPos, TypeSig)] ->
@@ -79,13 +79,13 @@ newGraph as is xs cost = (cost2, Graph mp2 g)
         g_ = reverseLinks $ populateGraph as is $ initialGraph is xs
         (cost2,g_2) = linkCosts g_ cost
         (g,mp) = graphFreeze g_2
-        mp2 = fromListMany [(t,(c,v)) | (TypePair c t,v) <- Map.toList mp]
+        mp2 = fromListMany [(t,(c,v)) | (TypeSimp c t,v) <- Map.toList mp]
 
 fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
 fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortFst
 
 
-linkCosts :: Graph_ -> Index_ Cost -> (Index_ Cost, G.Graph_ TypePair GraphResult (Link Cost, Binding))
+linkCosts :: Graph_ -> Index_ Cost -> (Index_ Cost, G.Graph_ TypeSimp GraphResult (Link Cost, Binding))
 linkCosts (G.Graph_ res edges) costs = (costs2, G.Graph_ res edges2)
     where
         (costs2,edges2) = mapAccumR f costs edges
@@ -100,7 +100,7 @@ initialGraph is xs = newGraph_{graphResults = map (newGraphResult is) xs}
 
 
 -- create a result, and figure out what the relative is
-newGraphResult :: Instances -> (Link Entry, ArgPos, TypeSig) -> (TypePair, GraphResult)
+newGraphResult :: Instances -> (Link Entry, ArgPos, TypeSig) -> (TypeSimp, GraphResult)
 newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
     where (bind,tp) = alphaFlatten $ contextNorm is t
 
@@ -119,8 +119,8 @@ populateGraph as is = graphFollow (followNode as is)
 --  * Alias:        a |-> alias(a)
 --  * Context:      C a => a |-> a
 --  * Membership:   C M => M |-> C a => a
-followNode :: Aliases -> Instances -> TypePair -> [(TypePair, (Cost, Binding))]
-followNode as is (TypePair con t) =
+followNode :: Aliases -> Instances -> TypeSimp -> [(TypeSimp, (Cost, Binding))]
+followNode as is (TypeSimp con t) =
         -- TODO: Should do something sensible with bindings
         nub [(snd $ alphaFlatten a, (newCost b, c)) | (a,b,c) <- next]
     where
@@ -128,18 +128,18 @@ followNode as is (TypePair con t) =
         free = map (:[]) ['a'..] \\ [v | TVar v <- universe t]
         cont f = concatMap f $ contexts t
 
-        unbox (TApp (TLit a) [b], gen) = [(TypePair con (gen b), CostUnbox a, [])]
-        unbox (TApp (TVar a) [b], gen) = [(TypePair con (gen b), CostUnbox "", [])]
+        unbox (TApp (TLit a) [b], gen) = [(TypeSimp con (gen b), CostUnbox a, [])]
+        unbox (TApp (TVar a) [b], gen) = [(TypeSimp con (gen b), CostUnbox "", [])]
         unbox _ = []
 
         -- Only restrict things of kind *
-        restrict = [(TypePair con a, CostRestrict b, []) | (a,b) <- f t]
+        restrict = [(TypeSimp con a, CostRestrict b, []) | (a,b) <- f t]
             where fs xs = [(b c, d) | (a,b) <- xs, (c,d) <- f a]
                   f (TLit a) = [(TVar $ head free, a)]
                   f x@TApp{} = fs $ tail $ holes x
                   f x = fs $ holes x
 
-        alias (a,gen) = [(TypePair con (gen b), CostAlias name, []) | Just (name,b) <- [followAliases as a]]
+        alias (a,gen) = [(TypeSimp con (gen b), CostAlias name, []) | Just (name,b) <- [followAliases as a]]
 
 
 -- add reverse links where you can, i.e. aliases
@@ -159,8 +159,8 @@ reverseBinding xs = [(b,a) | (a,b) <- xs]
 -- the context is in order
 -- all context relates to free variables
 -- binding is original |-> new
-alphaFlatten :: TypePair -> (Binding,TypePair)
-alphaFlatten (TypePair a b) = (sort bind, TypePair a2 b2)
+alphaFlatten :: TypeSimp -> (Binding,TypeSimp)
+alphaFlatten (TypeSimp a b) = (sort bind, TypeSimp a2 b2)
     where
         a2 = nub $ sort $ concatMap g a
         (b2,(bind,_)) = runState (transformM f b) ([], map (:[]) ['a'..])
@@ -176,8 +176,8 @@ alphaFlatten (TypePair a b) = (sort bind, TypePair a2 b2)
 
 -- disguard any context which relates to variables not in the type
 -- convert using whatever scheme the Instances say
-contextNorm :: Instances -> TypeSig -> TypePair
-contextNorm is t = TypePair [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
+contextNorm :: Instances -> TypeSig -> TypeSimp
+contextNorm is t = TypeSimp [(x,y) | TApp (TLit x) [TVar y] <- a, x `elem` vs] b
     where
         (TypeSig a b) = normContext is t
         vs = [v | TVar v <- universe b]
@@ -202,12 +202,12 @@ graphSearch as is g@(Graph _ gg) t
 
 
 -- TODO: Find a better starting place
-graphStart :: Aliases -> Instances -> Graph -> TypePair -> Maybe GraphNode
+graphStart :: Aliases -> Instances -> Graph -> TypeSimp -> Maybe GraphNode
 graphStart as is g t = msum $ map (graphFind g) [t]
 
 
-graphFind :: Graph -> TypePair -> Maybe GraphNode
-graphFind (Graph mp _) (TypePair c t) = do
+graphFind :: Graph -> TypeSimp -> Maybe GraphNode
+graphFind (Graph mp _) (TypeSimp c t) = do
     r <- Map.lookup t mp
     return $ snd $ head $ sortWith f r
     where
