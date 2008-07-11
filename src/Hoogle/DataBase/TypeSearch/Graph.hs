@@ -125,7 +125,7 @@ followNode as is (TypeSimp con t) =
         nub [(snd $ alphaFlatten a, (newCost b, c)) | (a,b,c) <- next]
     where
         next = cont unbox ++ restrict ++ cont alias -- TODO: Context and Membership
-        free = map (:[]) ['a'..] \\ [v | TVar v <- universe t]
+        free = map (:[]) ['a'..] \\ variables t
         cont f = concatMap f $ contexts t
 
         unbox (TApp (TLit a) [b], gen) = [(TypeSimp con (gen b), CostUnbox a, [])]
