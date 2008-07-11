@@ -1,0 +1,25 @@
+
+@package default
+
+module Foo
+
+type String = [Char]
+id :: a -> a
+unsafeCoerce :: a -> b
+map :: (a -> b) -> [a] -> [b]
+fmap :: Functor m => (a -> b) -> m a -> m b
+unfmap :: (a -> b) -> m a -> m b
+fst :: (a,b) -> a
+snd :: (a,b) -> b
+(==) :: Eq a => a -> a -> Bool
+instance Eq Bool
+not :: Bool -> Bool
+
+
+@test "id" id
+@test "map" map fmap unfmap
+@test "(a -> b) -> [a] -> [b]" map fmap unfmap
+@test "a -> b" unsafeCoerce *
+@test "(c,d) -> d" fst * snd
+@test "(c,d) -> c" snd * fst
+@test "Bool -> Bool -> Bool" == *
