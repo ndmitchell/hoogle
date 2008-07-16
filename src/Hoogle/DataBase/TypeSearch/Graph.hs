@@ -148,10 +148,7 @@ reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
     where
         f (k1,k2,(c,b)) = do
             c <- reverseCost c
-            return (k2,k1,(c,reverseBinding b))
-
-
-reverseBinding xs = [(b,a) | (a,b) <- xs]
+            return (k2,k1,(c,map swap b))
 
 
 -- normalise the letters in a type, so that:
