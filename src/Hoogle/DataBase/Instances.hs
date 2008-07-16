@@ -31,7 +31,7 @@ createInstances xs = Instances $ foldl f Map.empty ys
 
 
 -- Convert:
---    MPTC a b |-> MPTC1 a, MPTC2 b
+--    MPTC a b |-> MPTC a, MPTC b
 --    C (M a) |-> C a
 -- Do not load Instances ever
 normContext :: Instances -> TypeSig -> TypeSimp
