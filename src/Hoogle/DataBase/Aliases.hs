@@ -8,10 +8,10 @@ import Hoogle.TypeSig.All
 import qualified Data.Binary.Defer.Map as Map
 import Data.Binary.Defer
 import Data.Generics.Uniplate
-import Data.Maybe
+import General.Code
 
 
-newtype Aliases = Aliases (Map.Map String Alias)
+newtype Aliases = Aliases (Map.Map String [Alias])
 
 instance BinaryDefer Aliases where
     put (Aliases a) = put a
@@ -19,7 +19,7 @@ instance BinaryDefer Aliases where
 
 instance Show Aliases where
     show (Aliases mp) = unlines [ unwords $ "type" : s : vs ++ ["=", show t]
-                                | (s,Alias vs t) <- Map.toList mp]
+                                | (s,as) <- Map.toList mp, Alias vs t <- as]
 
 
 data Alias = Alias
@@ -33,7 +33,7 @@ instance BinaryDefer Alias where
 
 
 createAliases :: [TextItem] -> Aliases
-createAliases ti = Aliases $ filterRecursive $ Map.fromList
+createAliases ti = Aliases $ filterRecursive $ fromListMany
     [ (name, Alias [v | TVar v <- args] rhs)
     | ItemAlias (TypeSig _ lhs) (TypeSig _ rhs) <- ti
     , let (TLit name, args) = fromTApp lhs]
@@ -42,7 +42,7 @@ createAliases ti = Aliases $ filterRecursive $ Map.fromList
 -- filter out the aliases which expand back to themselves
 -- i.e. template-haskell has "type Doc = PprM Doc"
 -- probably the result of unqualifying names
-filterRecursive :: Map.Map String Alias -> Map.Map String Alias
+filterRecursive :: Map.Map String [Alias] -> Map.Map String [Alias]
 filterRecursive mp = Map.filterWithKey f mp
     where
         f name _ = g name [] [name]
@@ -53,7 +53,7 @@ filterRecursive mp = Map.filterWithKey f mp
                 | evil `elem` next = False
                 | otherwise = g evil (t:done) (next++odo)
             where
-                next = [x | Just a <- [Map.lookup t mp],  TLit x <- universe $ rhs a]
+                next = [x | a <- Map.findWithDefault [] t mp,  TLit x <- universe $ rhs a]
 
 
 
@@ -62,7 +62,7 @@ followAliases :: Aliases -> Type -> [(String,Type)]
 followAliases (Aliases mp) t =
     [ (x, gen $ followAlias xs a)
     | (TApp (TLit x) xs, gen) <- contexts $ insertTApp t
-    , Just a@(Alias vs rhs) <- [Map.lookup x mp]
+    , a@(Alias vs rhs) <- Map.findWithDefault [] x mp
     , length vs == length xs ]
 
 
