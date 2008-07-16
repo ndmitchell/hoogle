@@ -81,9 +81,6 @@ newGraph as is xs cost = (cost2, Graph mp2 g)
         (g,mp) = graphFreeze g_2
         mp2 = fromListMany [(t,(c,v)) | (TypeSimp c t,v) <- Map.toList mp]
 
-fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
-fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortFst
-
 
 linkCosts :: Graph_ -> Index_ Cost -> (Index_ Cost, G.Graph_ TypeSimp GraphResult (Link Cost, Binding))
 linkCosts (G.Graph_ res edges) costs = (costs2, G.Graph_ res edges2)
