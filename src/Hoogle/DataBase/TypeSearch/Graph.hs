@@ -124,10 +124,12 @@ followNode as is (TypeSimp con t) =
         nub [(d, (newCost b, c)) | (b,a) <- next, let (c,d) = alphaFlatten a]
     where
         onType c f = map (c *** TypeSimp con) $ f t
+        onTypeSimp c f = map (c *** id) $ f $ TypeSimp con t
 
         next = onType CostUnbox unbox ++
                onType CostRestrict restrict ++
-               onType CostAlias (followAliases as)
+               onType CostAlias (followAliases as) ++
+               onTypeSimp (uncurry CostMember) (followInstances is)
                -- TODO: Context and Membership
 
 

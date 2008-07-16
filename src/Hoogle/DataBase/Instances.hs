@@ -42,7 +42,7 @@ normContext _ (TypeSig a b) = TypeSimp con b
 
 
 -- M |-> C _a => _a, if there is a C M instance
-followInstances :: Instances -> TypeSimp -> [TypeSimp]
+followInstances :: Instances -> TypeSimp -> [((String,String),TypeSimp)]
 followInstances (Instances mp) (TypeSimp c t) =
-        [TypeSimp ((n,"_a"):c) (gen $ TVar fresh)
+        [((n,m),TypeSimp ((n,"_a"):c) (gen $ TVar "_a"))
         |(TLit m,gen) <- contexts t, n <- Map.findWithDefault [] m mp]
