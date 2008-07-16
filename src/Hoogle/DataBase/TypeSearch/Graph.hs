@@ -112,7 +112,7 @@ populateGraph as is = graphFollow (followNode as is)
 --
 -- follow:
 --  * Unboxing:     m a |-> a, M a |-> a
---  * Restriction:  M |-> _a
+--  * Restriction:  (M :: *) |-> _a
 --  * Alias:        a |-> alias(a)
 --  * Context:      C a => a |-> a
 --  * Membership:   C M => M |-> C _a => _a
