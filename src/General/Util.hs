@@ -17,6 +17,8 @@ thd3 (a,b,c) = c
 
 on f g x y = f (g x) (g y)
 
+swap (a,b) = (b,a)
+
 
 -- | If anyone of them returns Nothing, the whole thing does
 mapMaybeAll :: (a -> Maybe b) -> [a] -> Maybe [b]
