@@ -65,8 +65,10 @@ instance Show CostDetail where
     show (CostUnbox x) = "unbox " ++ (if null x then "_" else x)
     show (CostRestrict x) = "restrict " ++ x
     show (CostDelArg) = "delarg"
+    show (CostMember a b) = "member " ++ a ++ " " ++ b
+    show (CostContext x) = "context " ++ x
 
-    show (CostReverse (CostUnbox x)) = "rebox " ++ (if null x then "_" else x)
+    show (CostReverse x) = "~" ++ show x
     show x = "CostDetail.show.todo"
 
 
