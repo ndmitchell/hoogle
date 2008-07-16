@@ -58,13 +58,12 @@ filterRecursive mp = Map.filterWithKey f mp
 
 
 -- follow an alias at this point
--- these are all the one step alias followings
-followAliases :: Aliases -> Type -> Maybe (String,Type)
-followAliases (Aliases mp) (TApp (TLit x) xs) = case Map.lookup x mp of
-    Just a@(Alias vs rhs) | length vs == length xs -> Just (x, followAlias xs a)
-    _ -> Nothing
-followAliases as (TLit x) = followAliases as (TApp (TLit x) [])
-followAliases as _ = Nothing
+followAliases :: Aliases -> Type -> [(String,Type)]
+followAliases (Aliases mp) t =
+    [ (x, gen $ followAlias xs a)
+    | (TApp (TLit x) xs, gen) <- contexts $ insertTApp t
+    , Just a@(Alias vs rhs) <- [Map.lookup x mp]
+    , length vs == length xs ]
 
 
 followAlias :: [Type] -> Alias -> Type
