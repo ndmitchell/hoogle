@@ -41,10 +41,8 @@ normContext _ (TypeSig a b) = TypeSimp con b
         vs = variables b
 
 
--- M |-> C a => a, if there is a C M instance
+-- M |-> C _a => _a, if there is a C M instance
 followInstances :: Instances -> TypeSimp -> [TypeSimp]
 followInstances (Instances mp) (TypeSimp c t) =
-        [TypeSimp ((n,fresh):c) (gen $ TVar fresh)
+        [TypeSimp ((n,"_a"):c) (gen $ TVar fresh)
         |(TLit m,gen) <- contexts t, n <- Map.findWithDefault [] m mp]
-    where
-        fresh = head $ map (:[]) ['a'..] \\ (map snd c ++ variables t)
