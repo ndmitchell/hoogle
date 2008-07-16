@@ -7,12 +7,13 @@
 
 module Hoogle.DataBase.TypeSearch.Graph(
     Graph, newGraph,
-    GraphResult(..), ArgPos, Binding,
+    GraphResult(..), ArgPos,
     graphSearch
     ) where
 
 import Hoogle.DataBase.TypeSearch.Cost
 import Hoogle.DataBase.TypeSearch.Score
+import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
 import Hoogle.Item.All
@@ -26,13 +27,10 @@ import General.Code
 import Data.Key
 import qualified Data.Binary.Defer.Graph as G
 import Data.Binary.Defer.Graph hiding (Graph, Graph_)
-import Control.Monad.State hiding (put,get)
-import qualified Control.Monad.State as S
 
 
 
 type ArgPos = Int
-type Binding = [(String,String)]
 
 
 data Graph = Graph (Map.Map Type [(TypeContext, GraphNode)])
@@ -156,30 +154,6 @@ reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
         f (k1,k2,(c,b)) = do
             c <- reverseCost c
             return (k2,k1,(c,map swap b))
-
-
--- normalise the letters in a type, so that:
--- each variable is distinct
--- the context is in order
--- all context relates to free variables
--- binding is original |-> new
-alphaFlatten :: TypeSimp -> (Binding,TypeSimp)
-alphaFlatten (TypeSimp a b) = (sort bind, TypeSimp a2 $ normaliseType b2)
-    where
-        a2 = nub $ sort $ concatMap g a
-        (b2,(bind,_)) = runState (transformM f b) ([], map (:[]) ['a'..])
-
-        f (TVar x) = do
-            (bind,v:vs) <- S.get
-            S.put ((x,v):bind,vs)
-            return $ TVar v
-        f x = return x
-
-        g (cls,v) = [(cls,b) | (a,b) <- bind, a == v]
-
-
-bindCompose :: Binding -> Binding -> Binding
-bindCompose a b = a
 
 
 ---------------------------------------------------------------------
