@@ -178,6 +178,10 @@ alphaFlatten (TypeSimp a b) = (sort bind, TypeSimp a2 $ normaliseType b2)
         g (cls,v) = [(cls,b) | (a,b) <- bind, a == v]
 
 
+bindCompose :: Binding -> Binding -> Binding
+bindCompose a b = a
+
+
 ---------------------------------------------------------------------
 -- GRAPH SEARCHING
 
@@ -187,13 +191,13 @@ graphSearch :: Aliases -> Instances -> Graph -> TypeSig -> [GraphResult]
 graphSearch as is g@(Graph _ gg) t
         | isNothing node = error $ "Couldn't find a start spot for: " ++ show t -- []
         | otherwise = [r{graphResultScore=s}
-            | (s,b,r) <- searchDijkstraState (blankTypeScore, []) step (fromJust node) gg]
+            | (s,b,r) <- searchDijkstraState (blankTypeScore, bind) step (fromJust node) gg]
     where
         (bind,t2) = alphaFlatten $ normContext is t
         node = graphStart as is g t2
 
         step :: (Link Cost, Binding) -> (TypeScore, Binding) -> (TypeScore, Binding)
-        step (cost,_) (score,_) = (addTypeScore cost score, [])
+        step (cost,b1) (score,b2) = (addTypeScore cost score, b1 `bindCompose` b2)
 
 
 -- TODO: Find a better starting place
