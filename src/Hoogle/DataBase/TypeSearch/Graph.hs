@@ -115,10 +115,13 @@ populateGraph as is = graphFollow (followNode as is)
 --
 -- follow:
 --  * Unboxing:     m a |-> a, M a |-> a
---  * Restriction:  M |-> a
+--  * Restriction:  M |-> _a
 --  * Alias:        a |-> alias(a)
 --  * Context:      C a => a |-> a
---  * Membership:   C M => M |-> C a => a
+--  * Membership:   C M => M |-> C _a => _a
+--
+-- All created variables should be "_a", but alphaFlatten will
+-- remove these.
 followNode :: Aliases -> Instances -> TypeSimp -> [(TypeSimp, (Cost, Binding))]
 followNode as is (TypeSimp con t) =
         -- TODO: Should do something sensible with bindings
@@ -140,6 +143,7 @@ followNode as is (TypeSimp con t) =
                   f x = fs $ holes x
 
         alias (a,gen) = [(TypeSimp con (gen b), CostAlias name, []) | Just (name,b) <- [followAliases as a]]
+
 
 
 -- add reverse links where you can, i.e. aliases
