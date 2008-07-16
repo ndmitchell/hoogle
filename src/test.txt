@@ -13,6 +13,7 @@ fst :: (a,b) -> a
 snd :: (a,b) -> b
 (==) :: Eq a => a -> a -> Bool
 instance Eq Bool
+instance Functor []
 not :: Bool -> Bool
 
 
