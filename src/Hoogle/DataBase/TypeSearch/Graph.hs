@@ -122,24 +122,27 @@ populateGraph as is = graphFollow (followNode as is)
 followNode :: Aliases -> Instances -> TypeSimp -> [(TypeSimp, (Cost, Binding))]
 followNode as is (TypeSimp con t) =
         -- TODO: Should do something sensible with bindings
-        nub [(snd $ alphaFlatten a, (newCost b, c)) | (a,b,c) <- next]
+        nub [(d, (newCost b, c)) | (b,a) <- next, let (c,d) = alphaFlatten a]
     where
-        next = cont unbox ++ restrict ++ cont alias -- TODO: Context and Membership
-        free = map (:[]) ['a'..] \\ variables t
-        cont f = concatMap f $ contexts t
+        onType c f = map (c *** TypeSimp con) $ f t
 
-        unbox (TApp (TLit a) [b], gen) = [(TypeSimp con (gen b), CostUnbox a, [])]
-        unbox (TApp (TVar a) [b], gen) = [(TypeSimp con (gen b), CostUnbox "", [])]
-        unbox _ = []
+        next = onType CostUnbox unbox ++
+               onType CostRestrict restrict ++
+               onType CostAlias (followAliases as)
+               -- TODO: Context and Membership
 
-        -- Only restrict things of kind *
-        restrict = [(TypeSimp con a, CostRestrict b, []) | (a,b) <- f t]
-            where fs xs = [(b c, d) | (a,b) <- xs, (c,d) <- f a]
-                  f (TLit a) = [(TVar $ head free, a)]
-                  f x@TApp{} = fs $ tail $ holes x
-                  f x = fs $ holes x
 
-        alias (a,gen) = [(TypeSimp con (gen b), CostAlias name, []) | Just (name,b) <- [followAliases as a]]
+restrict :: Type -> [(String, Type)]
+restrict t = [(a, gen $ TVar "_a") |
+    (TApp (TLit a) [], gen) <- contexts $ insertTApp t]
+
+
+unbox :: Type -> [(String, Type)]
+unbox t = [(a, gen b) | (TApp x [b], gen) <- contexts t, a <- f x]
+    where f (TLit a) = [a]
+          f (TVar a) = [""]
+          f _ = []
+
 
 
 
