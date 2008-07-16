@@ -115,7 +115,7 @@ renderTextItem x = case x of
 renderTypeSig :: TypeSig -> [EntryText]
 renderTypeSig (TypeSig con sig) = Text (showConstraint con) :
     intersperse (Text " -> ") (zipWith ArgPos [0..] a ++ [ArgRes b])
-    where (a,b) = initLast $ map show $ fromTFun sig
+    where (a,b) = initLast $ map showFun $ fromTFun sig
 
 
 showModule = concat . intersperse "."
