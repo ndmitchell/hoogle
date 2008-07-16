@@ -160,7 +160,7 @@ reverseBinding xs = [(b,a) | (a,b) <- xs]
 -- all context relates to free variables
 -- binding is original |-> new
 alphaFlatten :: TypeSimp -> (Binding,TypeSimp)
-alphaFlatten (TypeSimp a b) = (sort bind, TypeSimp a2 b2)
+alphaFlatten (TypeSimp a b) = (sort bind, TypeSimp a2 $ normaliseType b2)
     where
         a2 = nub $ sort $ concatMap g a
         (b2,(bind,_)) = runState (transformM f b) ([], map (:[]) ['a'..])
