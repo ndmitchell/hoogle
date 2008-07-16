@@ -8,6 +8,8 @@ import Debug.Trace
 import System.Directory
 import System.Exit
 import qualified Data.IntSet as IntSet
+import qualified Data.Map as Map
+import Control.Arrow
 
 infixl 0 `on`
 
@@ -211,3 +213,7 @@ split x xs = if null b then [a] else a : split x (tail b)
 
 traceM :: Monad m => String -> m ()
 traceM msg = trace msg $ return ()
+
+
+fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
+fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortFst
