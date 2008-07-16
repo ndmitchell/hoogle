@@ -98,7 +98,8 @@ askSuggest sug q@(TypeSig con typ)
 
         -- figure out if you have a totally unknown thing --
         classes = [x | c <- con, (TLit x,_) <- [fromTApp c], bad True x]
-        datas = [x | TLit x <- concatMap universe $ typ : concatMap (snd . fromTApp) con, bad False x]
+        datas = [x | TLit x <- concatMap universe $ typ : concatMap (snd . fromTApp) con
+                   , not $ isTLitTuple x, bad False x]
         unknown typ (x:_) = Just $ Left $ "Warning: Unknown " ++ typ ++ " " ++ x
 
         bad cls name = case get name of
