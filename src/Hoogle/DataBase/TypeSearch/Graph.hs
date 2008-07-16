@@ -121,7 +121,6 @@ populateGraph as is = graphFollow (followNode as is)
 -- remove these.
 followNode :: Aliases -> Instances -> TypeSimp -> [(TypeSimp, (Cost, Binding))]
 followNode as is (TypeSimp con t) =
-        -- TODO: Should do something sensible with bindings
         nub [(d, (newCost b, c)) | (b,a) <- next, let (c,d) = alphaFlatten a]
     where
         onType c f = map (c *** TypeSimp con) $ f t
