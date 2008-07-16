@@ -128,10 +128,9 @@ followNode as is (TypeSimp con t) =
 
         next = onType CostUnbox unbox ++
                onType CostRestrict restrict ++
+               onTypeSimp CostContext context ++
                onType CostAlias (followAliases as) ++
                onTypeSimp (uncurry CostMember) (followInstances is)
-               -- TODO: Context and Membership
-
 
 restrict :: Type -> [(String, Type)]
 restrict t = [(a, gen $ TVar "_a") |
@@ -145,6 +144,9 @@ unbox t = [(a, gen b) | (TApp x [b], gen) <- contexts t, a <- f x]
           f _ = []
 
 
+context :: TypeSimp -> [(String, TypeSimp)]
+context (TypeSimp con t) = [(e, TypeSimp (pre++post) t)
+    | (pre,(e,_):post) <- zip (inits con) (tails con)]
 
 
 -- add reverse links where you can, i.e. aliases
