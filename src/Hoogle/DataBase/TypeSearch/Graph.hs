@@ -95,7 +95,7 @@ initialGraph is xs = newGraph_{graphResults = map (newGraphResult is) xs}
 
 -- create a result, and figure out what the relative is
 newGraphResult :: Instances -> (Link Entry, ArgPos, TypeSig) -> (TypeSimp, GraphResult)
-newGraphResult is (e,p,t) = (tp, GraphResult e p bind blankTypeScore)
+newGraphResult is (e,p,t) = (tp, GraphResult e p (reverseBinding bind) blankTypeScore)
     where (bind,tp) = alphaFlatten $ normContext is t
 
 
@@ -163,7 +163,7 @@ reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
 graphSearch :: Aliases -> Instances -> Graph -> TypeSig -> [GraphResult]
 graphSearch as is g@(Graph _ gg) t
         | isNothing node = error $ "Couldn't find a start spot for: " ++ show t -- []
-        | otherwise = [r{graphResultScore=s}
+        | otherwise = [r{graphResultScore=s, graphResultBinding=b `bindCompose` graphResultBinding r}
             | (s,b,r) <- searchDijkstraState (blankTypeScore, bind) step (fromJust node) gg]
     where
         (bind,t2) = alphaFlatten $ normContext is t

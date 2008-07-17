@@ -58,8 +58,7 @@ alphaFlatten (TypeSimp a b) = (Binding $ sort bind, TypeSimp a2 $ normaliseType 
 
 
 bindCompose :: Binding -> Binding -> Binding
-bindCompose a b = traceShow (a,b,res) res
-    where res = Binding [(a1,b2) | (a1,a2) <- fromBinding a, (b1,b2) <- fromBinding b, a2 == b1]
+bindCompose (Binding a) (Binding b) = Binding [(a1,b2) | (a1,a2) <- a, (b1,b2) <- b, a2 == b1]
 
 
 bindMerge :: [Binding] -> Binding
