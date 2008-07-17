@@ -21,6 +21,6 @@ not :: Bool -> Bool
 @test "map" map fmap unfmap
 @test "(a -> b) -> [a] -> [b]" map fmap unfmap
 @test "a -> b" unsafeCoerce *
-@test "(c,d) -> d" fst * snd
-@test "(c,d) -> c" snd * fst
+@test "(c,d) -> d" snd fst
+@test "(c,d) -> c" fst snd
 @test "Bool -> Bool -> Bool" == *
