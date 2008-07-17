@@ -215,5 +215,9 @@ traceM :: Monad m => String -> m ()
 traceM msg = trace msg $ return ()
 
 
+traceShow :: Show s => s -> a -> a
+traceShow x = trace (show x)
+
+
 fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
 fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortFst
