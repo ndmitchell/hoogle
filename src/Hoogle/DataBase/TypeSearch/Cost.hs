@@ -32,7 +32,7 @@ data CostDetail
     | CostDelArg -- ^ I deleted an argument from the result
     | CostArgReorder -- ^ I reordered some arguments
     -- free variables
-    | CostFreeVar -- TODO: Add here
+    | CostVar String [String] -- a is unified to all of bs
     -- standard
     | CostAlias String -- ^ a, where a |-> alias a
     | CostUnbox String -- ^ M, where M a |-> a, "" for a variable
@@ -67,12 +67,18 @@ instance Show CostDetail where
     show (CostDelArg) = "delarg"
     show (CostMember a b) = "member " ++ a ++ " " ++ b
     show (CostContext x) = "context " ++ x
+    show (CostVar a b) = a ++ "={" ++ showSet b ++ "}"
+    show (CostReverse (CostVar a b)) = "{" ++ showSet b ++ "}=" ++ a
 
     show (CostReverse x) = "~" ++ show x
     show x = "CostDetail.show.todo"
 
 
     showList = showString . concat . intersperse ", " . map show
+
+
+showSet :: [String] -> String
+showSet xs = "{" ++ concat (intersperse "," xs) ++ "}"
 
 
 -- TODO: Better scoring system

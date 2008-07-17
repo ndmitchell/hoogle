@@ -3,10 +3,11 @@
 -}
 
 module Hoogle.DataBase.TypeSearch.Binding(
-    Binding, alphaFlatten, bindCompose
+    Binding, alphaFlatten, bindCompose, bindMerge, bindCost
     ) where
 
 import Hoogle.TypeSig.All
+import Hoogle.DataBase.TypeSearch.Cost
 import Data.Generics.Uniplate
 import General.Code
 import Control.Monad.State hiding (put,get)
@@ -37,4 +38,14 @@ alphaFlatten (TypeSimp a b) = (sort bind, TypeSimp a2 $ normaliseType b2)
 
 
 bindCompose :: Binding -> Binding -> Binding
-bindCompose a b = a
+bindCompose a b = traceShow (a,b,res) res
+    where res = [(a1,b2) | (a1,a2) <- a, (b1,b2) <- b, a2 == b1]
+
+
+bindMerge :: [Binding] -> Binding
+bindMerge = concat
+
+
+bindCost :: Binding -> [Cost]
+bindCost bind = f id bind ++ f CostReverse (map swap bind)
+    where f op xs = [newCost $ op $ CostVar a nb | (a,b) <- groupFsts $ sortFst xs, let nb = nub b, length nb > 1]

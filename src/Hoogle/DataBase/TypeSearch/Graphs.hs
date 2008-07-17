@@ -2,6 +2,7 @@
 module Hoogle.DataBase.TypeSearch.Graphs where
 
 import Hoogle.DataBase.TypeSearch.Graph
+import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.TypeSearch.Score
@@ -161,5 +162,6 @@ newGraphsResults :: [Cost] -> [GraphResult] -> GraphResult -> GraphsResult
 newGraphsResults costs args res =
     (graphResultEntry res
     ,zipWith ArgPosNum [0..] $ map graphResultPos args
-    ,addTypeScoreDirect costs $ mergeTypeScores $ map graphResultScore $ args++[res]
+    ,addTypeScoreDirect (vars++costs) $ mergeTypeScores $ map graphResultScore $ args++[res]
     )
+    where vars = bindCost $ bindMerge $ map graphResultBinding (res:args)
