@@ -113,6 +113,10 @@ groupFst :: Eq k => [(k,v)] -> [[(k,v)]]
 groupFst = groupBy ((==) `on` fst)
 
 
+groupFsts :: Eq k => [(k,v)] -> [(k,[v])]
+groupFsts = map (fst . head &&& map snd) . groupFst
+
+
 nubIntOn :: (v -> Int) -> [v] -> [v]
 nubIntOn f = g IntSet.empty
     where
@@ -220,4 +224,4 @@ traceShow x = trace (show x)
 
 
 fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
-fromListMany = Map.fromAscList . map (fst . head &&& map snd) . groupFst . sortFst
+fromListMany = Map.fromAscList . groupFsts . sortFst
