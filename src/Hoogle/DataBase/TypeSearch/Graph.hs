@@ -61,8 +61,7 @@ instance BinaryDefer GraphResult where
     get = get3 (\a b c -> GraphResult a b c blankTypeScore)
 
 instance Show GraphResult where
-    show (GraphResult a b c d) = '#':show (linkKey a) ++ '.':show b ++ c2
-        where c2 = if null c then "" else show c
+    show (GraphResult a b c d) = '#':show (linkKey a) ++ '.':show b ++ show c
 
 ---------------------------------------------------------------------
 -- GRAPH CONSTRUCTION
@@ -153,7 +152,7 @@ reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
     where
         f (k1,k2,(c,b)) = do
             c <- reverseCost c
-            return (k2,k1,(c,map swap b))
+            return (k2,k1,(c,reverseBinding b))
 
 
 ---------------------------------------------------------------------
