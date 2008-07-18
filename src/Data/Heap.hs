@@ -23,6 +23,10 @@ toList :: Heap k v -> [(k,v)]
 toList (Heap xs) = xs
 
 
+elems :: Heap k v -> [v]
+elems = map snd . toList
+
+
 singleton :: k -> v -> Heap k v
 singleton k v = Heap [(k,v)]
 
