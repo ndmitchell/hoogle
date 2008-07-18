@@ -170,7 +170,7 @@ graphSearch as is g@(Graph _ gg) t
         node = graphStart as is g t2
 
         step :: (Link Cost, Binding) -> (TypeScore, Binding) -> (TypeScore, Binding)
-        step (cost,b1) (score,b2) = (addTypeScore cost score, b2 `bindCompose` b1)
+        step (cost,b1) (score,b2) = (addTypeScore (fromLink cost) score, b2 `bindCompose` b1)
 
 
 -- TODO: Find a better starting place

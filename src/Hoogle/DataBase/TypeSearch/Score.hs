@@ -8,7 +8,7 @@ import Hoogle.DataBase.TypeSearch.Cost
 
 data TypeScore = TypeScore
     {typeScoreTotal :: Int
-    ,typeScoreCosts :: [Link Cost]
+    ,typeScoreCosts :: [Cost]
     }
 
 instance Eq TypeScore where
@@ -18,26 +18,22 @@ instance Ord TypeScore where
     compare a b = compare (typeScoreTotal a) (typeScoreTotal b)
 
 instance Show TypeScore where
-    show = show . map fromLink . typeScoreCosts
+    show = show . typeScoreCosts
 
 
 emptyTypeScore :: TypeScore
 emptyTypeScore = TypeScore 0 []
 
 
-addTypeScore :: Link Cost -> TypeScore -> TypeScore
-addTypeScore c t@(TypeScore total costs)
-    | linkKey c `elem` map linkKey costs = t
-    | otherwise = TypeScore (total + costScore (fromLink c))
-                            (insertBy (compare `on` linkKey) c costs)
+addTypeScore :: Cost -> TypeScore -> TypeScore
+addTypeScore c (TypeScore tot cs) = TypeScore (tot + costScore c) (c:cs)
 
 
--- add custom cost's which should not be nub'd
-addTypeScoreDirect :: [Cost] -> TypeScore -> TypeScore
-addTypeScoreDirect cs (TypeScore total costs) =
-    TypeScore (total + sum (map costScore cs)) (map (newLink 0) cs ++ costs)
+addTypeScores :: [Cost] -> TypeScore -> TypeScore
+addTypeScores xs t = foldl (flip addTypeScore) t xs
+
 
 
 mergeTypeScores :: [TypeScore] -> TypeScore
-mergeTypeScores ts = TypeScore (sum $ map (costScore . fromLink) cs) cs
-    where cs = nubBy ((==) `on` linkKey) $ sortBy (compare `on` linkKey) $ concatMap typeScoreCosts ts
+mergeTypeScores ts = TypeScore (sum tot) (concat cs)
+    where (tot,cs) = unzip $ map (typeScoreTotal &&& typeScoreCosts) ts

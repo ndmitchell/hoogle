@@ -162,6 +162,6 @@ newGraphsResults :: [Cost] -> [GraphResult] -> GraphResult -> GraphsResult
 newGraphsResults costs args res =
     (graphResultEntry res
     ,zipWith ArgPosNum [0..] $ map graphResultPos args
-    ,addTypeScoreDirect (vars++costs) $ mergeTypeScores $ map graphResultScore $ args++[res]
+    ,addTypeScores (vars++costs) $ mergeTypeScores $ map graphResultScore $ args++[res]
     )
     where vars = bindCost $ bindMerge $ map graphResultBinding (res:args)
