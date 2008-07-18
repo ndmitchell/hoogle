@@ -92,11 +92,12 @@ delResult :: State S [GraphsResult]
 delResult = do
     pending <- gets pending
     todo <- gets todo
+    arity <- gets arity
     case todo of
         [] -> concatMapM (f . snd) $ Heap.toList pending
         t:odo -> do
             modify $ \s -> s{todo = odo}
-            let (res,hp) = Heap.popUntil (graphResultScore $ snd t) pending
+            let (res,hp) = Heap.popUntil (mulTypeScore (arity + 1) $ graphResultScore $ snd t) pending
             ans1 <- concatMapM f res
             uncurry addResult t
             ans2 <- delResult

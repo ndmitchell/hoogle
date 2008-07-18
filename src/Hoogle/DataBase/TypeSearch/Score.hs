@@ -33,6 +33,9 @@ addTypeScores :: [Cost] -> TypeScore -> TypeScore
 addTypeScores xs t = foldl (flip addTypeScore) t xs
 
 
+mulTypeScore :: Int -> TypeScore -> TypeScore
+mulTypeScore i t = TypeScore (i * typeScoreTotal t) []
+
 
 mergeTypeScores :: [TypeScore] -> TypeScore
 mergeTypeScores ts = TypeScore (sum tot) (concat cs)
