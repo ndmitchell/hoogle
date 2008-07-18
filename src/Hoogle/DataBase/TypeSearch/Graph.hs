@@ -58,7 +58,7 @@ data GraphResult = GraphResult
 
 instance BinaryDefer GraphResult where
     put (GraphResult a b c d) = put3 a b c
-    get = get3 (\a b c -> GraphResult a b c emptyTypeScore)
+    get = liftM ($ emptyTypeScore) $ get3 GraphResult
 
 instance Show GraphResult where
     show (GraphResult a b c d) = '#':show (linkKey a) ++ '.':show b ++ show c
