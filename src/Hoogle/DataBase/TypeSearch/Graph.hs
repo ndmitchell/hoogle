@@ -58,7 +58,7 @@ data GraphResult = GraphResult
 
 instance BinaryDefer GraphResult where
     put (GraphResult a b c d) = put3 a b c
-    get = get3 (\a b c -> GraphResult a b c blankTypeScore)
+    get = get3 (\a b c -> GraphResult a b c emptyTypeScore)
 
 instance Show GraphResult where
     show (GraphResult a b c d) = '#':show (linkKey a) ++ '.':show b ++ show c
@@ -95,7 +95,7 @@ initialGraph is xs = newGraph_{graphResults = map (newGraphResult is) xs}
 
 -- create a result, and figure out what the relative is
 newGraphResult :: Instances -> (Link Entry, ArgPos, TypeSig) -> (TypeSimp, GraphResult)
-newGraphResult is (e,p,t) = (tp, GraphResult e p (reverseBinding bind) blankTypeScore)
+newGraphResult is (e,p,t) = (tp, GraphResult e p (reverseBinding bind) emptyTypeScore)
     where (bind,tp) = alphaFlatten $ normContext is t
 
 
@@ -164,7 +164,7 @@ graphSearch :: Aliases -> Instances -> Graph -> TypeSig -> [GraphResult]
 graphSearch as is g@(Graph _ gg) t
         | isNothing node = error $ "Couldn't find a start spot for: " ++ show t -- []
         | otherwise = [r{graphResultScore=s, graphResultBinding=b `bindCompose` graphResultBinding r}
-            | (s,b,r) <- searchDijkstraState (blankTypeScore, bind) step (fromJust node) gg]
+            | (s,b,r) <- searchDijkstraState (emptyTypeScore, bind) step (fromJust node) gg]
     where
         (bind,t2) = alphaFlatten $ normContext is t
         node = graphStart as is g t2

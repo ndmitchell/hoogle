@@ -21,8 +21,8 @@ instance Show TypeScore where
     show = show . map fromLink . typeScoreCosts
 
 
-blankTypeScore :: TypeScore
-blankTypeScore = TypeScore 0 []
+emptyTypeScore :: TypeScore
+emptyTypeScore = TypeScore 0 []
 
 
 addTypeScore :: Link Cost -> TypeScore -> TypeScore
