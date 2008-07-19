@@ -34,7 +34,7 @@ type ArgPos = Int
 
 
 data Graph = Graph (Map.Map Type [(TypeContext, GraphNode)])
-                   (G.Graph GraphResult (Link Cost, Binding))
+                   (G.Graph GraphResult (Cost, Binding))
 
 
 instance Show Graph where
@@ -69,23 +69,11 @@ instance Show GraphResult where
 type Graph_ = G.Graph_ TypeSimp GraphResult (Cost, Binding)
 
 
-newGraph :: Aliases -> Instances -> [(Link Entry, ArgPos, TypeSig)] ->
-            Index_ Cost -> (Index_ Cost, Graph)
-newGraph as is xs cost = (cost2, Graph mp2 g)
+newGraph :: Aliases -> Instances -> [(Link Entry, ArgPos, TypeSig)] -> Graph
+newGraph as is xs = Graph mp2 g
     where
-        g_ = reverseLinks $ populateGraph as is $ initialGraph is xs
-        (cost2,g_2) = linkCosts g_ cost
-        (g,mp) = graphFreeze g_2
+        (g,mp) = graphFreeze $ reverseLinks $ populateGraph as is $ initialGraph is xs
         mp2 = fromListMany [(t,(c,v)) | (TypeSimp c t,v) <- Map.toList mp]
-
-
-linkCosts :: Graph_ -> Index_ Cost -> (Index_ Cost, G.Graph_ TypeSimp GraphResult (Link Cost, Binding))
-linkCosts (G.Graph_ res edges) costs = (costs2, G.Graph_ res edges2)
-    where
-        (costs2,edges2) = mapAccumR f costs edges
-
-        f costs (k1,k2,(c,b)) = (costs2, (k1,k2,(c2,b)))
-            where (costs2,c2) = getLink c costs
 
 
 -- create the initial graph
@@ -111,8 +99,10 @@ populateGraph as is = graphFollow (followNode as is)
 --  * Unboxing:     m a |-> a, M a |-> a
 --  * Restriction:  (M :: *) |-> _a
 --  * Alias:        a |-> alias(a)
---  * Context:      C a => a |-> a
 --  * Membership:   C M => M |-> C _a => _a
+--
+-- handled later:
+--  * Context:      C a => a |-> a
 --
 -- All created variables should be "_a", but alphaFlatten will
 -- remove these.
@@ -169,8 +159,8 @@ graphSearch as is g@(Graph _ gg) t
         (bind,t2) = alphaFlatten $ normContext is t
         node = graphStart as is g t2
 
-        step :: (Link Cost, Binding) -> (TypeScore, Binding) -> (TypeScore, Binding)
-        step (cost,b1) (score,b2) = (addTypeScore (fromLink cost) score, b2 `bindCompose` b1)
+        step :: (Cost, Binding) -> (TypeScore, Binding) -> (TypeScore, Binding)
+        step (cost,b1) (score,b2) = (addTypeScore cost score, b2 `bindCompose` b1)
 
 
 -- TODO: Find a better starting place
