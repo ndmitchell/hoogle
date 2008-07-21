@@ -3,7 +3,7 @@
 -}
 
 module Hoogle.DataBase.TypeSearch.Binding(
-    Binding, alphaFlatten, reverseBinding
+    Binding, fromBinding, alphaFlatten, reverseBinding
     ) where
 
 import Hoogle.TypeSig.All
