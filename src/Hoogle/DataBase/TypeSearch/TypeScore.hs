@@ -16,6 +16,11 @@ data FwdBwd a = Fwd a | Bwd a
 If a and b are restricted to M, it may be that a=b, therefore one restrict
 penalty is appropriate. Therefore restrictions are accumulated and only
 one case of each is added, until the final binding set is known.
+
+The TypeScore goes through 3 stages:
+ * start and following links
+ * result node added
+ * merged with other adjacent nodes
 -}
 
 
@@ -23,9 +28,14 @@ data TypeScore = TypeScore
     {score :: Int
     ,unbox :: [String], rebox :: [String]
     ,alias :: Set.Set (FwdBwd String)
-    ,restrict :: Set.Set (FwdBwd String)
+    
+    -- valid after results
     ,badInstanceQuery :: TypeContext, badInstanceResult :: TypeContext
+    -- valid after merge
     ,badBind :: [([String],[String])]
+    -- valid before merge
+    ,restrict :: Set.Set (FwdBwd String)
+    -- valid before merge
     ,bind :: [Bind]
     }
     deriving Show
@@ -80,8 +90,14 @@ addRestrict score x b t
 
 
 scoreBindingUnique :: Binding -> TypeScore -> TypeScore
-scoreBindingUnique = undefined
+scoreBindingUnique b t = t{bind = map f $ bind t}
+    where
+        f (VarVar x y) = VarVar x (g y)
+        f (LitVar x y) = LitVar x (g y)
+        f x = x
+        g x = fromMaybe x $ lookup x $ fromBinding b
 
 
 mergeTypeScores :: [TypeScore] -> TypeScore
 mergeTypeScores = undefined
+
