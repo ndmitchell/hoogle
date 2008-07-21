@@ -225,3 +225,7 @@ traceShow x = trace (show x)
 
 fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
 fromListMany = Map.fromAscList . groupFsts . sortFst
+
+
+nubCons :: Eq a => a -> [a] -> [a]
+nubCons x xs = [x | x `notElem` xs] ++ xs
