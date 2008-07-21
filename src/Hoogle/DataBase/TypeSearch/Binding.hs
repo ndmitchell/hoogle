@@ -3,7 +3,7 @@
 -}
 
 module Hoogle.DataBase.TypeSearch.Binding(
-    Binding, alphaFlatten, bindCompose, bindMerge, bindCost, reverseBinding
+    Binding, alphaFlatten, reverseBinding
     ) where
 
 import Hoogle.TypeSig.All
@@ -42,29 +42,13 @@ reverseBinding = Binding . map swap . fromBinding
 -- the context is in order
 -- all context relates to free variables
 -- binding is original |-> new
-alphaFlatten :: TypeSimp -> (Binding,TypeSimp)
-alphaFlatten (TypeSimp a b) = (Binding $ sort bind, TypeSimp a2 $ normaliseType b2)
+alphaFlatten :: Type -> (Binding,Type)
+alphaFlatten t = (Binding $ sort bind, normaliseType t2)
     where
-        a2 = nub $ sort $ concatMap g a
-        (b2,(bind,_)) = runState (transformM f b) ([], map (:[]) ['a'..])
+        (t2,(bind,_)) = runState (transformM f t) ([], map (:[]) ['a'..])
 
         f (TVar x) = do
             (bind,v:vs) <- S.get
             S.put ((x,v):bind,vs)
             return $ TVar v
         f x = return x
-
-        g (cls,v) = [(cls,b) | (a,b) <- bind, a == v]
-
-
-bindCompose :: Binding -> Binding -> Binding
-bindCompose (Binding a) (Binding b) = Binding [(a1,b2) | (a1,a2) <- a, (b1,b2) <- b, a2 == b1]
-
-
-bindMerge :: [Binding] -> Binding
-bindMerge = Binding . concatMap fromBinding
-
-
-bindCost :: Binding -> [Cost]
-bindCost (Binding bind) = f id bind ++ f CostReverse (map swap bind)
-    where f op xs = [newCost $ op $ CostVar a nb | (a,b) <- groupFsts $ sortFst xs, let nb = nub b, length nb > 1]
