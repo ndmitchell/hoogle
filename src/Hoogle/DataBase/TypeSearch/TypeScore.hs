@@ -72,7 +72,7 @@ addAlias score x t
     | otherwise = Just $ add score $ t{alias = Set.insert x (alias t)}
 
 addRestrict score x b t
-    | x `Set.member` restrict t = Just t{bind = b `nubCons` bind t}
+    | x `Set.member` restrict t = Just t{bind = b `consNub` bind t}
     | otherwise = Just $ add score $ t
         {bind = b : bind t
         ,restrict = Set.insert x (restrict t)}

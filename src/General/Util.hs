@@ -227,5 +227,5 @@ fromListMany :: Ord k => [(k,v)] -> Map.Map k [v]
 fromListMany = Map.fromAscList . groupFsts . sortFst
 
 
-nubCons :: Eq a => a -> [a] -> [a]
-nubCons x xs = [x | x `notElem` xs] ++ xs
+consNub :: Eq a => a -> [a] -> [a]
+consNub x xs = [x | x `notElem` xs] ++ xs
