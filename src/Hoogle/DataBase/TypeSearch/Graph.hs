@@ -20,6 +20,7 @@ import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
+import Data.Threshold
 import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 import General.Code
@@ -133,12 +134,10 @@ reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
 
 -- must search for each (node,bindings) pair, rather than just nodes
 
--- TODO: Should return ResultArg's in order, but doesn't
--- searchDijkstraCycle returns items in order, but scoreBinding changes this order
 graphSearch :: Aliases -> Graph -> Type -> [ResultArg]
 graphSearch as g@(Graph _ gg) t
         | isNothing node = error $ "Couldn't find a start spot for: " ++ show t -- []
-        | otherwise = [ResultArg e a s
+        | otherwise = threshold $ concat [[Threshold c, Result s (ResultArg e a s)]
             | (c,Node e a b) <- searchDijkstraCycle (emptyTypeScore bind) step (fromJust node) gg
             , Just s <- [scoreBinding b c]]
     where
