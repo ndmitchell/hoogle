@@ -68,7 +68,7 @@ searchDijkstraState (c,s) gen n (Graph xs) = f Set.empty (Heap.singleton c (s,n)
 
 -- Invariant: No node is reached going through that node
 searchDijkstraCycle :: Ord c =>
-    c -> (e -> c -> c) ->
+    c -> (e -> c -> Maybe c) ->
     GraphNode -> Graph n e -> [(c,n)]
 searchDijkstraCycle c gen n (Graph xs) = f (Heap.singleton c (Set.singleton n,n))
     where
@@ -76,7 +76,9 @@ searchDijkstraCycle c gen n (Graph xs) = f (Heap.singleton c (Set.singleton n,n)
             Nothing -> []
             Just ((c,(s,n)),next) -> [(c,n) | n <- ns] ++ f (Heap.pushList new next)
                 where Node ns es = xs ! n
-                      new = [(gen e c,(Set.insert n s,n)) | (e,n) <- es, not $ n `Set.member` s]
+                      new = [ (c2, (Set.insert n s,n))
+                            | (e,n) <- es, not $ n `Set.member` s
+                            , Just c2 <- [gen e c]]
 
 
 ---------------------------------------------------------------------
