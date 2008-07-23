@@ -3,7 +3,7 @@ module Hoogle.DataBase.TypeSearch.TypeScore(
     TypeScore,
     emptyTypeScore, mergeTypeScores,
     addCost,
-    scoreBinding, scoreBindingUnique 
+    scoreBinding, scoreUniqueBinding
     ) where
 
 import General.Code
@@ -81,12 +81,11 @@ addAlias score x t
     | otherwise = Just $ add score $ t{alias = Set.insert x (alias t)}
 
 
-scoreBindingUnique :: Binding -> TypeScore -> TypeScore
-scoreBindingUnique b t = t{bind = map f $ bind t}
+scoreUniqueBinding :: UniqueBinding -> TypeScore -> TypeScore
+scoreUniqueBinding b t = t{bind = map f $ bind t}
     where
-        f (x, Var y) = (x, Var (g y))
+        f (x, Var y) = (x, Var $ uniqueBinding b y)
         f x = x
-        g x = fromMaybe x $ lookup x $ fromBinding b
 
 
 scoreBinding :: Binding -> TypeScore -> Maybe TypeScore
