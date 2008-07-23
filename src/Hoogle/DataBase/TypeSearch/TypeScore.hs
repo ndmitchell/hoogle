@@ -1,26 +1,36 @@
 
-module Hoogle.DataBase.TypeSearch.TypeScore(TypeScore) where
+module Hoogle.DataBase.TypeSearch.TypeScore(
+    TypeScore,
+    emptyTypeScore, mergeTypeScores,
+    addCost,
+    scoreBinding, scoreBindingUnique 
+    ) where
 
 import General.Code
 import Hoogle.DataBase.TypeSearch.Cost
 import Hoogle.DataBase.TypeSearch.Score
 import Hoogle.DataBase.TypeSearch.Binding
+import Hoogle.DataBase.Instances
 import Hoogle.TypeSig.All
 import qualified Data.Set as Set
 
 
 data FwdBwd a = Fwd a | Bwd a
-     deriving (Eq,Ord,Show)
+                deriving (Eq,Ord,Show)
      
+data VarLit = Var String | Lit String
+              deriving (Eq,Show)
+
+isLit Lit{} = True; isLit _ = False
+isFwd Fwd{} = True; isFwd _ = False
+
+
 {-
 If a and b are restricted to M, it may be that a=b, therefore one restrict
 penalty is appropriate. Therefore restrictions are accumulated and only
 one case of each is added, until the final binding set is known.
 
-The TypeScore goes through 3 stages:
- * start and following links
- * result node added
- * merged with other adjacent nodes
+A (Lit _, Lit _) binding may never arise
 -}
 
 
@@ -29,14 +39,8 @@ data TypeScore = TypeScore
     ,unbox :: [String], rebox :: [String]
     ,alias :: Set.Set (FwdBwd String)
     
-    -- valid after results
-    ,badInstanceQuery :: TypeContext, badInstanceResult :: TypeContext
-    -- valid after merge
-    ,badBind :: [([String],[String])]
-    -- valid before merge
-    ,restrict :: Set.Set (FwdBwd String)
-    -- valid before merge
-    ,bind :: [Bind]
+    ,badInstance :: (TypeContext, TypeContext)
+    ,bind :: [(VarLit, VarLit)]
     }
     deriving Show
 
@@ -47,14 +51,9 @@ instance Ord TypeScore where
     compare = compare `on` score
 
 
-data Bind = VarVar String String
-          | VarLit String String
-          | LitVar String String
-          deriving (Eq,Show)
-
-
-emptyTypeScore :: TypeScore
-emptyTypeScore = TypeScore 0 [] [] Set.empty Set.empty [] [] [] []
+emptyTypeScore :: Binding -> TypeScore
+emptyTypeScore bind = TypeScore 0 [] [] Set.empty ([],[]) bs
+    where bs = [(Var a, Var b) | (a,b) <- fromBinding bind]
 
 
 add v t = t{score = score t + v}
@@ -69,35 +68,75 @@ addCost (CostUnbox a) t = Just $ add scoreUnbox $ t{unbox = a : unbox t}
 addCost (CostReverse (CostUnbox a)) t = Just $ add scoreRebox t{rebox = a : rebox t}
 
 -- A |--> b, always restricts to a fresh variable on RHS
-addCost (CostRestrict a b) t = addRestrict scoreRestrict (Fwd a) (LitVar a b) t
+addCost (CostRestrict l v) t = Just $ t{bind = (Lit l, Var v) : bind t}
 
 -- b |--> A
 addCost (CostReverse (CostRestrict a b)) t
-    | or [l /= a | VarLit v l <- bind t, v == b] = Nothing -- b |--> (A and C)
-    | otherwise = addRestrict scoreUnrestrict (Bwd a) (VarLit b a) t
+    | or [l /= a | (Var v, Lit l) <- bind t, v == b] = Nothing -- b |--> (A and C)
+    | otherwise = Just $ t{bind = (Var b, Lit a) : bind t}
 
 
 addAlias score x t
     | x `Set.member` alias t = Just t
     | otherwise = Just $ add score $ t{alias = Set.insert x (alias t)}
 
-addRestrict score x b t
-    | x `Set.member` restrict t = Just t{bind = b `consNub` bind t}
-    | otherwise = Just $ add score $ t
-        {bind = b : bind t
-        ,restrict = Set.insert x (restrict t)}
-
-
 
 scoreBindingUnique :: Binding -> TypeScore -> TypeScore
 scoreBindingUnique b t = t{bind = map f $ bind t}
     where
-        f (VarVar x y) = VarVar x (g y)
-        f (LitVar x y) = LitVar x (g y)
+        f (x, Var y) = (x, Var (g y))
         f x = x
         g x = fromMaybe x $ lookup x $ fromBinding b
 
 
-mergeTypeScores :: [TypeScore] -> TypeScore
-mergeTypeScores = undefined
+scoreBinding :: Binding -> TypeScore -> Maybe TypeScore
+scoreBinding bs t = if badBinding bind2 then Nothing else Just t{bind=bind2}
+    where
+        bind2 = nub $ filter (isLit . snd) (bind t) ++
+                      [(x, Var b) | (a,b) <- fromBinding bs, (x,Var v) <- bind t, v == a]
 
+
+-- report a bad binding if any variable is bound to two different lits
+-- assume the binding list has been nub'd
+badBinding :: [(VarLit,VarLit)] -> Bool
+badBinding bind = bad varLit || bad litVar
+    where
+        varLit = [(v,l) | (Var v, Lit l) <- bind]
+        litVar = [(v,l) | (Lit l, Var v) <- bind]
+
+        bad = any ((> 1) . length) . groupFst . sortFst
+
+
+
+mergeTypeScores :: Instances -> TypeContext -> TypeContext -> [TypeScore] -> Maybe TypeScore
+mergeTypeScores is cquery cresult xs 
+        | badBinding bs = Nothing
+        | otherwise = Just t{score=calcScore t}
+    where
+        t = TypeScore 0
+            (concatMap unbox xs) (concatMap rebox xs)
+            (Set.unions $ map alias xs)
+            (cquery \\ ctx, ctx \\ cquery)
+            bs
+        
+        ctx = nub $ concat [f c b | (c,v) <- cresult, (Var a, b) <- bs, a == v ]
+        f c (Var v) = [(c,v)]
+        f c (Lit l) = [(c,l) | not $ hasInstance is c l]
+
+        bs = nub $ concatMap bind xs
+
+
+calcScore :: TypeScore -> Int
+calcScore t =
+    scoreUnbox * length (unbox t) +
+    scoreRebox * length (rebox t) +
+    scoreAliasFwd * Set.size aliasFwd +
+    scoreAliasBwd * Set.size aliasBwd +
+    scoreInstanceAdd * length (fst $ badInstance t) +
+    scoreInstanceDel * length (snd $ badInstance t) +
+    scoreDupVarQuery * f (bind t) +
+    scoreDupVarResult * f (map swap $ bind t)
+    where
+        (aliasFwd,aliasBwd) = Set.partition isFwd $ alias t
+    
+        f xs = sum $ map (subtract 1 . length) $ groupFst $ sortFst [(a,b) | (Var a,b) <- xs]
