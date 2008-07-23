@@ -16,3 +16,4 @@ scoreDupVarResult = 1
 scoreDupVarQuery = 1
 scoreInstanceDel = 1
 scoreInstanceAdd = 1
+scoreDeadArg = 1
