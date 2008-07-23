@@ -52,3 +52,8 @@ alphaFlatten t = (Binding $ sort bind, normaliseType t2)
             S.put ((x,v):bind,vs)
             return $ TVar v
         f x = return x
+
+
+-- optimise a unique binding by deleting simple renames
+uniqueBinding :: Binding -> Binding
+uniqueBinding (Binding bs) = Binding [(a,b) | (a,b) <- bs, a /= b]
