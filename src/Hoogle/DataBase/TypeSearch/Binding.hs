@@ -3,17 +3,20 @@
 -}
 
 module Hoogle.DataBase.TypeSearch.Binding(
-    Binding, fromBinding, alphaFlatten, reverseBinding
+    Binding, UniqueBinding,
+    fromBinding, alphaFlatten, reverseBinding,
+    uniqueBinding, optimiseUniqueBinding
     ) where
 
 import Hoogle.TypeSig.All
-import Hoogle.DataBase.TypeSearch.Cost
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import General.Code
 import Control.Monad.State hiding (put,get)
 import qualified Control.Monad.State as S
 
+
+type UniqueBinding = Binding
 
 newtype Binding = Binding {fromBinding :: [(String,String)]}
                   deriving (Eq,Ord)
@@ -55,5 +58,9 @@ alphaFlatten t = (Binding $ sort bind, normaliseType t2)
 
 
 -- optimise a unique binding by deleting simple renames
-uniqueBinding :: Binding -> Binding
-uniqueBinding (Binding bs) = Binding [(a,b) | (a,b) <- bs, a /= b]
+optimiseUniqueBinding :: UniqueBinding -> UniqueBinding
+optimiseUniqueBinding (Binding bs) = Binding [(a,b) | (a,b) <- bs, a /= b]
+
+
+uniqueBinding :: UniqueBinding -> String -> String
+uniqueBinding (Binding bs) a = fromMaybe a $ lookup a bs
