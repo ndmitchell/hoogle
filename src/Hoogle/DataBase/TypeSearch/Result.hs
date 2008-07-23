@@ -4,6 +4,7 @@ module Hoogle.DataBase.TypeSearch.Result where
 import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.TypeSearch.Score
 import Hoogle.DataBase.Instances
+import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.TypeSig.All
 import Hoogle.Item.All
@@ -29,6 +30,10 @@ typename_EntryInfo = mkTyCon "Hoogle.DataBase.TypeSearch.Result.EntryInfo"
 instance Typeable EntryInfo
     where typeOf _ = mkTyConApp typename_EntryInfo []
 
+instance BinaryDefer EntryInfo where
+    put (EntryInfo a b c) = put3 a b c
+    get = get3 EntryInfo
+
 
 -- the result information from a whole type (many ResultArg)
 -- number of lacking args, entry data, info (result:args)
@@ -39,6 +44,7 @@ data ResultAll = ResultAll Int EntryInfo [[ResultArg]]
 -- this result points at entry.id, argument, with such a score
 data ResultArg = ResultArg (Link EntryInfo) ArgPos TypeScore
 
+resultArgEntry (ResultArg x _ _) = x
 resultArgPos (ResultArg _ x _) = x
 resultArgScore (ResultArg _ _ x) = x
 
