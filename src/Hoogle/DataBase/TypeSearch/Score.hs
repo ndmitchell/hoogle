@@ -12,3 +12,7 @@ scoreUnbox = 1
 scoreRebox = 1
 scoreRestrict = 1
 scoreUnrestrict = 1
+scoreDupVarResult = 1
+scoreDupVarQuery = 1
+scoreInstanceDel = 1
+scoreInstanceAdd = 1
