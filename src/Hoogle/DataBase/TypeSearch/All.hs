@@ -8,7 +8,7 @@ module Hoogle.DataBase.TypeSearch.All(
     ) where
 
 import Hoogle.DataBase.TypeSearch.Graphs
-import Hoogle.DataBase.TypeSearch.Score
+import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
 import Data.Binary.Defer
