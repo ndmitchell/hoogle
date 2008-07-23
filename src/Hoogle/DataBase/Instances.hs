@@ -43,6 +43,7 @@ normContext _ (TypeSig a b) = TypeSimp con b
         vs = variables b
 
 
+-- TODO: Delete this method
 -- M |-> C _a => _a, if there is a C M instance
 followInstances :: Instances -> TypeSimp -> [((String,String),TypeSimp)]
 followInstances (Instances mp) (TypeSimp c t) =
