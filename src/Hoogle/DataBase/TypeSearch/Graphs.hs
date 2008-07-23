@@ -3,10 +3,10 @@ module Hoogle.DataBase.TypeSearch.Graphs where
 
 import Hoogle.DataBase.TypeSearch.Graph
 import Hoogle.DataBase.TypeSearch.Binding
+import Hoogle.DataBase.TypeSearch.Result
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
-import Hoogle.DataBase.TypeSearch.Score
-import Hoogle.DataBase.TypeSearch.Cost
+import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.Item.All
 import Hoogle.TypeSig.All
 
@@ -21,78 +21,82 @@ import Control.Monad.State
 -- for resGraph, the associated ArgPos is the arity of the function
 
 data Graphs = Graphs
-    {argGraph :: Graph -- the arguments
+    {entryInfo :: Index EntryInfo
+    ,argGraph :: Graph -- the arguments
     ,resGraph :: Graph -- the results
     }
 
 instance Show Graphs where
-    show (Graphs a b) = "== Arguments ==\n\n" ++ show a ++
-                        "\n== Results ==\n\n" ++ show b
+    show (Graphs a b c) = "== Arguments ==\n\n" ++ show b ++
+                          "\n== Results ==\n\n" ++ show c
 
 instance BinaryDefer Graphs where
-    put (Graphs a b) = put2 a b
-    get = get2 Graphs
+    put (Graphs a b c) = put3 a b c
+    get = do
+        res@(Graphs a b c) <- get3 Graphs
+        getDeferPut a
+        return res
 
 
 ---------------------------------------------------------------------
 -- GRAPHS CONSTRUCTION
 
 newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
-newGraphs as is xs = Graphs argGraph resGraph
+newGraphs as is xs = Graphs (newIndex entries) argGraph resGraph
     where
-        argGraph = newGraph as is (concat args)
-        resGraph = newGraph as is res
+        entries = [EntryInfo e (length (fromTFun t2) - 1) c2
+                  |(e,t) <- xs, let TypeSimp c2 t2 = normContext is t]
+
+        argGraph = newGraph as (concat args)
+        resGraph = newGraph as res
 
         (args,res) = unzip
-            [ initLast $ zipWith (\i t -> (e, i, TypeSig con t)) [0..] $ fromTFun t
-            | (e, TypeSig con t) <- xs]
-
-
+            [ initLast $ zipWith (\i t -> (lnk, i, t)) [0..] $ fromTFun t
+            | (i, e, (_, TypeSig _ t)) <- zip3 [0..] entries xs, let lnk = newLink i e]
 
 
 ---------------------------------------------------------------------
 -- GRAPHS SEARCHING
 
 
-type GraphsResult = (Link Entry,[EntryView],TypeScore)
-
-
 -- sorted by TypeScore
-graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [GraphsResult]
-graphsSearch as is gs (TypeSig con ts) = resultsCombine (length args) ans
+graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [Result]
+graphsSearch as is gs t = resultsCombine is con (length args) ans
     where
-        ans = mergesBy (compare `on` graphResultScore . snd) $ 
+        ans = mergesBy (compare `on` resultArgScore . snd) $ 
               f Nothing (resGraph gs) res :
               zipWith (\i -> f (Just i) (argGraph gs)) [0..] args
 
-        f a g = map ((,) a) . graphSearch as is g . TypeSig con
+        f a g = map ((,) a) . graphSearch as g
         (args,res) = initLast $ fromTFun ts
+        TypeSimp con ts = normContext is t
 
 
 data S = S
-    {infos :: IntMap.IntMap (Maybe Info) -- Int = Lookup Entry
-    ,pending :: Heap.Heap TypeScore GraphsResult
-    ,todo :: [(Maybe ArgPos, GraphResult)]
+    {infos :: IntMap.IntMap (Maybe ResultAll) -- Int = Lookup EntryInfo
+    ,pending :: Heap.Heap TypeScore Result
+    ,todo :: [(Maybe ArgPos, ResultArg)]
     ,arity :: Int
+    ,instances :: Instances
+    ,qcontext :: TypeContext
     }
 
 
-resultsCombine :: Int -> [(Maybe ArgPos, GraphResult)] -> [GraphsResult]
-resultsCombine arity xs = evalState delResult s0
-    where s0 = S IntMap.empty Heap.empty xs arity
+resultsCombine :: Instances -> TypeContext -> Int -> [(Maybe ArgPos, ResultArg)] -> [Result]
+resultsCombine is context arity xs = evalState delResult s0
+    where s0 = S IntMap.empty Heap.empty xs arity is context
 
 
 -- Heap -> answer
-delResult :: State S [GraphsResult]
+delResult :: State S [Result]
 delResult = do
     pending <- gets pending
     todo <- gets todo
-    arity <- gets arity
     case todo of
         [] -> concatMapM (f . snd) $ Heap.toList pending
         t:odo -> do
             modify $ \s -> s{todo = odo}
-            let (res,hp) = Heap.popUntil (mulTypeScore (arity + 1) $ graphResultScore $ snd t) pending
+            let (res,hp) = Heap.popUntil (resultArgScore $ snd t) pending
             ans1 <- concatMapM f res
             uncurry addResult t
             ans2 <- delResult
@@ -108,56 +112,22 @@ delResult = do
 
 
 -- todo -> heap/info
-addResult :: Maybe ArgPos -> GraphResult -> State S ()
+addResult :: Maybe ArgPos -> ResultArg -> State S ()
 addResult arg val = do
-    let entryId = linkKey $ graphResultEntry val
+    let entryId = linkKey $ resultArgEntry val
     infs <- gets infos
     arity <- gets arity
-    case IntMap.findWithDefault (Just $ newInfo arity) entryId infs of
-        Nothing -> return ()
-        Just inf -> do
-            (inf,res) <- return $ addInfo arg val inf
+    is <- gets instances
+    qcontext <- gets qcontext
+    let def = newResultAll arity (fromLink $ resultArgEntry val)
+    case IntMap.lookup entryId infs of
+        Just Nothing -> return ()
+        Nothing | isNothing def -> modify $ \s -> s{infos = IntMap.insert entryId Nothing (infos s)}
+        x -> do
+            let inf = fromJust $ fromMaybe def x
+            (inf,res) <- return $ addResultAll is qcontext (arg,val) inf
             res <- return $ map (thd3 &&& id) res
             modify $ \s -> s
-                {infos = IntMap.insert entryId inf (infos s)
+                {infos = IntMap.insert entryId (Just inf) (infos s)
                 ,pending = Heap.pushList res (pending s)
                 }
-
-
-
--- the pending information about an Entry, before it has been added
--- as a result
-type Info = [[GraphResult]]
-
-
-newInfo :: Int -> Info
-newInfo arity = replicate (arity+1) []
-
--- add information to an info node
-addInfo :: Maybe ArgPos -> GraphResult -> Info -> (Maybe Info, [GraphsResult])
-addInfo Nothing res ([]:is) | arityEntry < arityQuery || arityEntry > arityQuery + 2 = (Nothing,[])
-    where
-        arityQuery = length is
-        arityEntry = graphResultPos res
-
-addInfo pos res info = (Just info2, if any null info2 then [] else ans)
-    where
-        ind = maybe 0 (+1) pos
-        info2 = zipWith (\i x -> [res|i==ind] ++ x) [0..] info
-
-        arityEntry = graphResultPos $ head $ head info2
-        badargs = replicate (1 + arityEntry - length info) $ newCost CostDelArg
-        ans = [ newGraphsResults badargs rs r
-              | (r:rs) <- sequence $ info2 !!+ (ind,[res])
-              , disjoint $ map graphResultPos rs]
-
-
--- given the results for each argument, and the result
--- create a final result structure
-newGraphsResults :: [Cost] -> [GraphResult] -> GraphResult -> GraphsResult
-newGraphsResults costs args res =
-    (graphResultEntry res
-    ,zipWith ArgPosNum [0..] $ map graphResultPos args
-    ,addTypeScores (vars++costs) $ mergeTypeScores $ map graphResultScore $ args++[res]
-    )
-    where vars = bindCost $ bindMerge $ map graphResultBinding (res:args)
