@@ -13,7 +13,7 @@ data Cost
     | CostAlias String -- ^ a, where a |-> alias a
     | CostUnbox String -- ^ M, where M a |-> a, "" for a variable
     | CostRestrict String String -- ^ M a, where M |-> a
-      deriving (Eq,Ord)
+      deriving (Eq,Ord,Show)
 
 
 instance BinaryDefer Cost where
