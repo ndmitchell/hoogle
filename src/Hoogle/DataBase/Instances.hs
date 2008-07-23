@@ -1,6 +1,8 @@
 
 module Hoogle.DataBase.Instances(
-    Instances, createInstances, normContext, followInstances
+    Instances, createInstances,
+    normContext,
+    followInstances, hasInstance
     ) where
 
 import General.Code
@@ -46,3 +48,8 @@ followInstances :: Instances -> TypeSimp -> [((String,String),TypeSimp)]
 followInstances (Instances mp) (TypeSimp c t) =
         [((n,m),TypeSimp ((n,"_a"):c) (gen $ TVar "_a"))
         |(TLit m,gen) <- contexts t, n <- Map.findWithDefault [] m mp]
+
+
+-- hasInstance _ C M, does C M exist
+hasInstance :: Instances -> String -> String -> Bool
+hasInstance (Instances mp) c m = m `elem` Map.findWithDefault [] c mp
