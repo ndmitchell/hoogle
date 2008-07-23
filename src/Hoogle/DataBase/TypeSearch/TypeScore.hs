@@ -2,7 +2,7 @@
 module Hoogle.DataBase.TypeSearch.TypeScore(
     TypeScore,
     emptyTypeScore, mergeTypeScores,
-    addCost,
+    addCost, addTypeScore,
     scoreBinding, scoreUniqueBinding
     ) where
 
@@ -139,3 +139,7 @@ calcScore t =
         (aliasFwd,aliasBwd) = Set.partition isFwd $ alias t
     
         f xs = sum $ map (subtract 1 . length) $ groupFst $ sortFst [(a,b) | (Var a,b) <- xs]
+
+
+addTypeScore :: Int -> TypeScore -> TypeScore
+addTypeScore i t = t{score = i + score t}
