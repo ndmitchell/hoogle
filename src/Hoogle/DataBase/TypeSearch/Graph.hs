@@ -133,6 +133,8 @@ reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
 
 -- must search for each (node,bindings) pair, rather than just nodes
 
+-- TODO: Should return ResultArg's in order, but doesn't
+-- searchDijkstraCycle returns items in order, but scoreBinding changes this order
 graphSearch :: Aliases -> Graph -> Type -> [ResultArg]
 graphSearch as g@(Graph _ gg) t
         | isNothing node = error $ "Couldn't find a start spot for: " ++ show t -- []
