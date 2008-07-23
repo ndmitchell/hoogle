@@ -1,7 +1,7 @@
 
 module Data.Binary.Defer.Graph(
     Graph, GraphNode, showGraphWith,
-    searchDijkstraState,
+    searchDijkstraState, searchDijkstraCycle,
     Graph_(..), newGraph_,
     graphFreeze, graphFollow
     ) where
