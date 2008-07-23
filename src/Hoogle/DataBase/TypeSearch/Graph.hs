@@ -7,14 +7,13 @@
 
 module Hoogle.DataBase.TypeSearch.Graph(
     Graph, newGraph,
-    GraphResult(..), ArgPos,
     graphSearch
     ) where
 
 import Hoogle.DataBase.TypeSearch.Cost
-import Hoogle.DataBase.TypeSearch.Score
+import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.TypeSearch.Binding
-import Hoogle.DataBase.Instances
+import Hoogle.DataBase.TypeSearch.Result
 import Hoogle.DataBase.Aliases
 import Hoogle.Item.All
 import Hoogle.TypeSig.All
@@ -30,66 +29,60 @@ import Data.Binary.Defer.Graph hiding (Graph, Graph_)
 
 
 
-type ArgPos = Int
+data Graph = Graph (Map.Map Type GraphNode)
+                   (G.Graph Node Edge)
 
+data Node = Node (Link EntryInfo) ArgPos Binding
+            deriving Show
 
-data Graph = Graph (Map.Map Type [(TypeContext, GraphNode)])
-                   (G.Graph GraphResult (Cost, Binding))
+data Edge = Edge Cost UniqueBinding
+            deriving Show
+
 
 
 instance Show Graph where
     show (Graph ns g) = showGraphWith (\i -> show $ mp IntMap.! i) g
-        where mp = IntMap.fromList [(n, TypeSimp c t) | (t,as) <- Map.toList ns, (c,n) <- as]
+        where mp = IntMap.fromList $ map swap $ Map.toList ns
 
 
 instance BinaryDefer Graph where
     put (Graph a b) = put2 a b
     get = get2 Graph
 
+instance BinaryDefer Node where
+    put (Node a b c) = put3 a b c
+    get = get3 Node
 
--- GraphResult.TypeScore is invalid within a node
--- is not saved, is loaded as blank
-data GraphResult = GraphResult
-    {graphResultEntry :: Link Entry
-    ,graphResultPos :: ArgPos
-    ,graphResultBinding :: Binding
-    ,graphResultScore :: TypeScore
-    }
+instance BinaryDefer Edge where
+    put (Edge a b) = put2 a b
+    get = get2 Edge
 
-instance BinaryDefer GraphResult where
-    put (GraphResult a b c d) = put3 a b c
-    get = liftM ($ emptyTypeScore) $ get3 GraphResult
-
-instance Show GraphResult where
-    show (GraphResult a b c d) = '#':show (linkKey a) ++ '.':show b ++ show c
 
 ---------------------------------------------------------------------
 -- GRAPH CONSTRUCTION
 
-type Graph_ = G.Graph_ TypeSimp GraphResult (Cost, Binding)
+type Graph_ = G.Graph_ Type Node Edge
 
 
-newGraph :: Aliases -> Instances -> [(Link Entry, ArgPos, TypeSig)] -> Graph
-newGraph as is xs = Graph mp2 g
-    where
-        (g,mp) = graphFreeze $ reverseLinks $ populateGraph as is $ initialGraph is xs
-        mp2 = fromListMany [(t,(c,v)) | (TypeSimp c t,v) <- Map.toList mp]
+newGraph :: Aliases -> [(Link EntryInfo, ArgPos, Type)] -> Graph
+newGraph as xs = Graph mp g
+    where (g,mp) = graphFreeze $ reverseLinks $ populateGraph as $ initialGraph xs
 
 
 -- create the initial graph
-initialGraph :: Instances -> [(Link Entry, ArgPos, TypeSig)] -> Graph_ 
-initialGraph is xs = newGraph_{graphResults = map (newGraphResult is) xs}
+initialGraph :: [(Link EntryInfo, ArgPos, Type)] -> Graph_ 
+initialGraph xs = newGraph_{graphResults = map newGraphResult xs}
 
 
 -- create a result, and figure out what the relative is
-newGraphResult :: Instances -> (Link Entry, ArgPos, TypeSig) -> (TypeSimp, GraphResult)
-newGraphResult is (e,p,t) = (tp, GraphResult e p (reverseBinding bind) emptyTypeScore)
-    where (bind,tp) = alphaFlatten $ normContext is t
+newGraphResult :: (Link EntryInfo, ArgPos, Type) -> (Type, Node)
+newGraphResult (e,p,t) = (t2, Node e p (reverseBinding bind))
+    where (bind,t2) = alphaFlatten t
 
 
 -- add links between each step
-populateGraph :: Aliases -> Instances -> Graph_ -> Graph_
-populateGraph as is = graphFollow (followNode as is)
+populateGraph :: Aliases -> Graph_ -> Graph_
+populateGraph as = graphFollow (followNode as)
 
 
 -- follow a node to all possible next steps
@@ -97,52 +90,42 @@ populateGraph as is = graphFollow (followNode as is)
 --
 -- follow:
 --  * Unboxing:     m a |-> a, M a |-> a
---  * Restriction:  (M :: *) |-> _a
+--  * Restriction:  M |-> _a
 --  * Alias:        a |-> alias(a)
---  * Membership:   C M => M |-> C _a => _a
 --
--- handled later:
---  * Context:      C a => a |-> a
---
--- All created variables should be "_a", but alphaFlatten will
+-- All created variables should be "_", but alphaFlatten will
 -- remove these.
-followNode :: Aliases -> Instances -> TypeSimp -> [(TypeSimp, (Cost, Binding))]
-followNode as is (TypeSimp con t) =
-        nub [(d, (newCost b, c)) | (b,a) <- next, let (c,d) = alphaFlatten a]
+followNode :: Aliases -> Type -> [(Type, Edge)]
+followNode as t =
+        [(t3, Edge cost $ optimiseUniqueBinding bind)
+        | (cost,t2) <- next, let (bind,t3) = alphaFlatten t2]
     where
-        onType c f = map (c *** TypeSimp con) $ f t
-        onTypeSimp c f = map (c *** id) $ f $ TypeSimp con t
-
-        next = onType CostUnbox unbox ++
-               onType CostRestrict restrict ++
-               onTypeSimp CostContext context ++
-               onType CostAlias (followAliases as) ++
-               onTypeSimp (uncurry CostMember) (followInstances is)
-
-restrict :: Type -> [(String, Type)]
-restrict t = [(a, gen $ TVar "_a") |
-    (TApp (TLit a) [], gen) <- contexts $ insertTApp t]
+        next = restrict t ++ unbox t ++ alias as t
 
 
-unbox :: Type -> [(String, Type)]
-unbox t = [(a, gen b) | (TApp x [b], gen) <- contexts t, a <- f x]
+restrict :: Type -> [(Cost, Type)]
+restrict t = [(CostRestrict a "_", gen $ TVar "_") | (TLit a, gen) <- contexts t]
+
+
+-- nub because consider: [[a]], two unboxes get you to the same place
+unbox :: Type -> [(Cost, Type)]
+unbox t = nub [(CostUnbox a, gen b) | (TApp x [b], gen) <- contexts t, a <- f x]
     where f (TLit a) = [a]
           f (TVar a) = [""]
           f _ = []
 
 
-context :: TypeSimp -> [(String, TypeSimp)]
-context (TypeSimp con t) = [(e, TypeSimp (pre++post) t)
-    | (pre,(e,_):post) <- zip (inits con) (tails con)]
+alias :: Aliases -> Type -> [(Cost, Type)]
+alias as t = map (CostAlias *** id) $ followAliases as t
 
 
 -- add reverse links where you can, i.e. aliases
 reverseLinks :: Graph_ -> Graph_
 reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
     where
-        f (k1,k2,(c,b)) = do
+        f (k1,k2,Edge c b) = do
             c <- reverseCost c
-            return (k2,k1,(c,reverseBinding b))
+            return (k2,k1,Edge c (reverseBinding b))
 
 
 ---------------------------------------------------------------------
@@ -150,31 +133,24 @@ reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
 
 -- must search for each (node,bindings) pair, rather than just nodes
 
-graphSearch :: Aliases -> Instances -> Graph -> TypeSig -> [GraphResult]
-graphSearch as is g@(Graph _ gg) t
+graphSearch :: Aliases -> Graph -> Type -> [ResultArg]
+graphSearch as g@(Graph _ gg) t
         | isNothing node = error $ "Couldn't find a start spot for: " ++ show t -- []
-        | otherwise = [r{graphResultScore=s, graphResultBinding=b `bindCompose` graphResultBinding r}
-            | (s,b,r) <- searchDijkstraState (emptyTypeScore, bind) step (fromJust node) gg]
+        | otherwise = [ResultArg e a s
+            | (c,Node e a b) <- searchDijkstraCycle (emptyTypeScore bind) step (fromJust node) gg
+            , Just s <- [scoreBinding b c]]
     where
-        (bind,t2) = alphaFlatten $ normContext is t
-        node = graphStart as is g t2
+        (bind,t2) = alphaFlatten t
+        node = graphStart as g t2
 
-        step :: (Cost, Binding) -> (TypeScore, Binding) -> (TypeScore, Binding)
-        step (cost,b1) (score,b2) = (addTypeScore cost score, b2 `bindCompose` b1)
+        step :: Edge -> TypeScore -> Maybe TypeScore
+        step (Edge c b) = liftM (scoreUniqueBinding b) . addCost c
 
 
 -- TODO: Find a better starting place
-graphStart :: Aliases -> Instances -> Graph -> TypeSimp -> Maybe GraphNode
-graphStart as is g t = msum $ map (graphFind g) [t]
+graphStart :: Aliases -> Graph -> Type -> Maybe GraphNode
+graphStart as g t = msum $ map (graphFind g) [t]
 
 
-graphFind :: Graph -> TypeSimp -> Maybe GraphNode
-graphFind (Graph mp _) (TypeSimp c t) = do
-    r <- Map.lookup t mp
-    return $ snd $ head $ sortWith f r
-    where
-        -- ideally equal, otherwise one with fewer contexts
-        f (c2,_) | null more = Left (length less)
-                 | otherwise = Right (length more)
-            where more = c2 \\ c    
-                  less = c  \\ c2
+graphFind :: Graph -> Type -> Maybe GraphNode
+graphFind (Graph mp _) t = Map.lookup t mp
