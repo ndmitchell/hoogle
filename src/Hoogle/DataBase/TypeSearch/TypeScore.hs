@@ -134,7 +134,9 @@ calcScore t =
     scoreInstanceAdd * length (fst $ badInstance t) +
     scoreInstanceDel * length (snd $ badInstance t) +
     scoreDupVarQuery * f (bind t) +
-    scoreDupVarResult * f (map swap $ bind t)
+    scoreDupVarResult * f (map swap $ bind t) +
+    scoreRestrict *   length [() | (_, Lit _) <- bind t] +
+    scoreUnrestrict * length [() | (Lit _, _) <- bind t]
     where
         (aliasFwd,aliasBwd) = Set.partition isFwd $ alias t
     
