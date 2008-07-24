@@ -23,6 +23,7 @@ type Result = (Link Entry,[EntryView],TypeScore)
 data EntryInfo = EntryInfo (Link Entry) Int TypeContext
                  deriving Show
 
+entryInfoEntry (EntryInfo x _ _) = x
 entryInfoArity (EntryInfo _ x _) = x
 
 

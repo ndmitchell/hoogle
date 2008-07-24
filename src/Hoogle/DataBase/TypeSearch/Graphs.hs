@@ -73,7 +73,7 @@ graphsSearch as is gs t = resultsCombine is con (length args) ans
 
 
 data S = S
-    {infos :: IntMap.IntMap (Maybe ResultAll) -- Int = Lookup EntryInfo
+    {infos :: IntMap.IntMap (Maybe ResultAll) -- Int = Link Entry
     ,pending :: Heap.Heap TypeScore Result
     ,todo :: [(Maybe ArgPos, ResultArg)]
     ,arity :: Int
@@ -114,7 +114,7 @@ delResult = do
 -- todo -> heap/info
 addResult :: Maybe ArgPos -> ResultArg -> State S ()
 addResult arg val = do
-    let entryId = linkKey $ resultArgEntry val
+    let entryId = linkKey $ entryInfoEntry $ fromLink $ resultArgEntry val
     infs <- gets infos
     arity <- gets arity
     is <- gets instances
