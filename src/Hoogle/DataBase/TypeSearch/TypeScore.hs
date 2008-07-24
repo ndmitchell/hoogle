@@ -45,7 +45,7 @@ data TypeScore = TypeScore
 
 
 instance Show TypeScore where
-    show t = concat $ intersperse ", " $
+    show t = concat $ intersperse "," $
              [show $ score t] ++
              map ("unbox "++) (unbox t) ++
              map ("rebox "++) (rebox t) ++

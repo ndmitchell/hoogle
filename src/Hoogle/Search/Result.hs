@@ -22,7 +22,7 @@ data Score = TypeScore TypeScore
              deriving (Eq,Ord)
 
 instance Show Score where
-    showList xs = showString $ "{" ++ unwords (map show xs) ++ "}"
+    showList xs = showString $ concat $ intersperse " & " $ map show xs
     show (TypeScore x) = show x
     show (TextScore x) = show x
 
