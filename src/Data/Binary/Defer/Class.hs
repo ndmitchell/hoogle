@@ -23,6 +23,10 @@ class BinaryDefer a where
     getFixed = getDefer get
 
 
+errorDeferGet :: String -> a
+errorDeferGet typ = error $ "BinaryDefer.get(" ++ typ ++ "), corrupt database"
+
+
 get0 f = return f
 get1 f = do x1 <- get; return (f x1)
 get2 f = do x1 <- get; x2 <- get; return (f x1 x2)
@@ -135,6 +139,7 @@ instance BinaryDefer a => BinaryDefer (Maybe a) where
              case i of
                 0 -> get0 Nothing
                 1 -> get1 Just
+                _ -> errorDeferGet "Maybe"
 
 instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (Either a b) where
     put (Left a) = putByte 0 >> put a
@@ -144,6 +149,7 @@ instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (Either a b) where
              case i of
                 0 -> get1 Left
                 1 -> get1 Right
+                _ -> errorDeferGet "Either"
 
 
 -- strategy: write out in 100 byte chunks, where each successive
