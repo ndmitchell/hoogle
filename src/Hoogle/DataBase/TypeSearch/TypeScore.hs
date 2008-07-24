@@ -42,7 +42,27 @@ data TypeScore = TypeScore
     ,badInstance :: (TypeContext, TypeContext)
     ,bind :: [(VarLit, VarLit)]
     }
-    deriving Show
+
+
+instance Show TypeScore where
+    show t = concat $ intersperse ", " $
+             [show $ score t] ++
+             map ("unbox "++) (unbox t) ++
+             map ("rebox "++) (rebox t) ++
+             map f (Set.toList $ alias t) ++
+             map (g "+") (fst $ badInstance t) ++
+             map (g "-") (snd $ badInstance t) ++
+             map h (bind t)
+        where
+            f (Fwd a) = "alias " ++ a
+            f (Bwd a) = "~alias " ++ a
+
+            g op (a,b) = op ++ a ++ " " ++ b
+
+            h (a,b) = i a ++ "=" ++ i b
+            i (Var a) = a
+            i (Lit a) = a
+
 
 instance Eq TypeScore where
     (==) = (==) `on` score
