@@ -121,9 +121,12 @@ graphFreeze (Graph_ res es) = (g, r)
                 new = (Map.size mp, Node [n] [])
                 f new (i, Node ns es) = (i, Node (n:ns) es)
 
-        addEdge mp (k1,k2,e) = Map.insertWith f k1 new mp2
+        addEdge mp (k1,k2,e) = Map.insertWith f k1 new mp3
             where
-                (mp2,ki2) = ensureKey k2 mp
+                -- ensureKey k1 is important, even though ki1 is not needed
+                -- otherwise k1 may not make it into the map
+                (mp2,ki1) = ensureKey k1 mp
+                (mp3,ki2) = ensureKey k2 mp2
                 new = (Map.size mp, Node [] [(e, ki2)])
                 f new (i, Node ns es) = (i, Node ns ((e,ki2):es))
 
