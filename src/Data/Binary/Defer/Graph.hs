@@ -85,6 +85,7 @@ searchDijkstraCycle c gen n (Graph xs) = f (Heap.singleton c (Set.singleton n,n)
 -- MUTABLE GRAPH
 
 data Graph_ k n e = Graph_ {graphResults :: [(k,n)], graphEdges :: [(k,k,e)]}
+                    deriving Show
 
 
 newGraph_ :: Graph_ k n e
