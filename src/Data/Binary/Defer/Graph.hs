@@ -113,7 +113,7 @@ graphFreeze (Graph_ res es) = (g, r)
     where
         g = Graph $ array $ map snd $ sortFst $ Map.elems mp
         r = Map.map fst mp
-        mp = foldl addEdge (foldl addNode Map.empty (reverse res)) (reverse es)
+        mp = foldl' addEdge (foldl' addNode Map.empty (reverse res)) (reverse es)
 
         -- mp :: Map (key, (GraphNode, Node n e))
         addNode mp (k1,n) = Map.insertWith f k1 new mp
