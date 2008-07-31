@@ -70,6 +70,6 @@ followAlias :: [Type] -> Alias -> Type
 followAlias ts (Alias vs rhs) = transform f rhs
     where
         rep = zip vs ts
-        f (TVar v) = fromJust $ lookup v rep
+        f (TVar v) = lookupJustDef (TVar v) v rep
         f x = x
 
