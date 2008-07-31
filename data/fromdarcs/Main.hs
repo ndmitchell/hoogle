@@ -59,7 +59,7 @@ generate rebuild url = do
         setCurrentDirectory $ "grab" </> name
         fixup name
         system_ $ "ghc -i --make Setup"
-        system_ $ "setup configure"
+        system_ $ "setup configure --haddock-option=-w"
         system_ $ "setup haddock --hoogle"
 
         setCurrentDirectory "../.."
