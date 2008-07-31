@@ -97,7 +97,8 @@ populateGraph as = graphFollow (followNode as)
 -- All created variables should be "_", but alphaFlatten will
 -- remove these.
 followNode :: Aliases -> Type -> [(Type, Edge)]
-followNode as t =
+followNode as t | length (universe t) > 5 = []
+                | otherwise =
         [(t3, Edge cost $ optimiseUniqueBinding bind)
         | (cost,t2) <- next, let (bind,t3) = alphaFlatten t2]
     where
