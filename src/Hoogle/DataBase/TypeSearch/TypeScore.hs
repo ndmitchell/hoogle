@@ -38,6 +38,7 @@ data TypeScore = TypeScore
     {score :: Int
     ,unbox :: [String], rebox :: [String]
     ,alias :: Set.Set (FwdBwd String)
+    ,restrict :: Set.Set (FwdBwd String) -- only necessary before mergeTypeScores
     
     ,badInstance :: (TypeContext, TypeContext)
     ,bind :: [(VarLit, VarLit)]
@@ -72,7 +73,7 @@ instance Ord TypeScore where
 
 
 emptyTypeScore :: Binding -> TypeScore
-emptyTypeScore bind = TypeScore 0 [] [] Set.empty ([],[]) bs
+emptyTypeScore bind = TypeScore 0 [] [] Set.empty Set.empty ([],[]) bs
     where bs = [(Var a, Var b) | (a,b) <- fromBinding bind]
 
 
@@ -88,17 +89,21 @@ addCost (CostUnbox a) t = Just $ add scoreUnbox $ t{unbox = a : unbox t}
 addCost (CostReverse (CostUnbox a)) t = Just $ add scoreRebox t{rebox = a : rebox t}
 
 -- A |--> b, always restricts to a fresh variable on RHS
-addCost (CostRestrict l v) t = Just $ t{bind = (Lit l, Var v) : bind t}
+addCost (CostRestrict l v) t = addRestrict scoreRestrict (Fwd l) $ t{bind = (Lit l, Var v) : bind t}
 
 -- b |--> A
 addCost (CostReverse (CostRestrict a b)) t
     | or [l /= a | (Var v, Lit l) <- bind t, v == b] = Nothing -- b |--> (A and C)
-    | otherwise = Just $ t{bind = (Var b, Lit a) : bind t}
+    | otherwise = addRestrict scoreUnrestrict (Bwd a) $ t{bind = (Var b, Lit a) : bind t}
 
 
 addAlias score x t
     | x `Set.member` alias t = Just t
-    | otherwise = Just $ add score $ t{alias = Set.insert x (alias t)}
+    | otherwise = Just $ add score $ t{alias = Set.insert x $ alias t}
+
+addRestrict score x t
+    | x `Set.member` restrict t = Just t
+    | otherwise = Just $ add score $ t{restrict = Set.insert x $ restrict t}
 
 
 scoreUniqueBinding :: UniqueBinding -> TypeScore -> TypeScore
@@ -135,6 +140,7 @@ mergeTypeScores is cquery cresult xs
         t = TypeScore 0
             (concatMap unbox xs) (concatMap rebox xs)
             (Set.unions $ map alias xs)
+            Set.empty
             (cquery \\ ctx, ctx \\ cquery)
             bs
         
