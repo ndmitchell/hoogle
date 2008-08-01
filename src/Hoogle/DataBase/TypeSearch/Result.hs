@@ -39,11 +39,14 @@ instance BinaryDefer EntryInfo where
 -- the result information from a whole type (many ResultArg)
 -- number of lacking args, entry data, info (result:args)
 data ResultAll = ResultAll Int EntryInfo [[ResultArg]]
+                 deriving Show
 
 
 -- the result information from one single type graph (argument/result)
 -- this result points at entry.id, argument, with such a score
 data ResultArg = ResultArg (Link EntryInfo) ArgPos TypeScore
+                 deriving Show
+
 
 resultArgEntry (ResultArg x _ _) = x
 resultArgPos (ResultArg _ x _) = x
