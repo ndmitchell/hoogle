@@ -4,6 +4,7 @@ module Data.Threshold where
 import qualified Data.Heap as Heap
 
 data Threshold k v = Result k v | Threshold k
+                     deriving Show
 
 
 threshold :: Ord k => [Threshold k v] -> [v]
