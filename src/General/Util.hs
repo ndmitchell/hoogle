@@ -229,3 +229,7 @@ fromListMany = Map.fromAscList . groupFsts . sortFst
 
 consNub :: Eq a => a -> [a] -> [a]
 consNub x xs = [x | x `notElem` xs] ++ xs
+
+
+showLines :: Show a => [a] -> String
+showLines = unlines . map show
