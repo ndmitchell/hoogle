@@ -44,8 +44,8 @@ instance BinaryDefer Graphs where
 newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
 newGraphs as is xs = Graphs (newIndex $ map snd entries) argGraph resGraph
     where
-        entries = [ (t2, EntryInfo (sortOn linkKey es) (length (fromTFun t2) - 1) c2)
-                  | (TypeSimp c2 t2,es) <- sortGroupFsts $ map (\(e,t) -> (normInstances is t, e)) xs]
+        entries = [ (t2, e2{entryInfoEntries = sortOn linkKey $ map snd ys})
+                  | ys@(((t2,e2),_):_) <- sortGroupFst $ map (\(e,t) -> (normType as is t, e)) xs]
 
         argGraph = newGraph as (concat args)
         resGraph = newGraph as res
@@ -54,6 +54,10 @@ newGraphs as is xs = Graphs (newIndex $ map snd entries) argGraph resGraph
             [ initLast $ zipWith (\i t -> (lnk, i, t)) [0..] $ fromTFun t
             | (i, (t, e)) <- zip [0..] entries, let lnk = newLink i e]
 
+
+normType :: Aliases -> Instances -> TypeSig -> (Type, EntryInfo)
+normType as is t = (t2, EntryInfo [] (length (fromTFun t2) - 1) c2)
+    where TypeSimp c2 t2 = normInstances is t
 
 ---------------------------------------------------------------------
 -- GRAPHS SEARCHING
