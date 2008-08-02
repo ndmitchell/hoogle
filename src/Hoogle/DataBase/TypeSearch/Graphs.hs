@@ -42,17 +42,17 @@ instance BinaryDefer Graphs where
 -- GRAPHS CONSTRUCTION
 
 newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
-newGraphs as is xs = Graphs (newIndex entries) argGraph resGraph
+newGraphs as is xs = Graphs (newIndex $ map snd entries) argGraph resGraph
     where
-        entries = [EntryInfo [e] (length (fromTFun t2) - 1) c2
-                  |(e,t) <- xs, let TypeSimp c2 t2 = normContext is t]
+        entries = [ (t2, EntryInfo (sortOn linkKey es) (length (fromTFun t2) - 1) c2)
+                  | (TypeSimp c2 t2,es) <- sortGroupFsts $ map (\(e,t) -> (normContext is t, e)) xs]
 
         argGraph = newGraph as (concat args)
         resGraph = newGraph as res
 
         (args,res) = unzip
             [ initLast $ zipWith (\i t -> (lnk, i, t)) [0..] $ fromTFun t
-            | (i, e, (_, TypeSig _ t)) <- zip3 [0..] entries xs, let lnk = newLink i e]
+            | (i, (t, e)) <- zip [0..] entries, let lnk = newLink i e]
 
 
 ---------------------------------------------------------------------
