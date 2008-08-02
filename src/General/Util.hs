@@ -115,6 +115,7 @@ groupFsts :: Eq k => [(k,v)] -> [(k,[v])]
 groupFsts = map (fst . head &&& map snd) . groupFst
 
 sortGroupFsts mr = groupFsts . sortFst $ mr
+sortGroupFst mr = groupFst . sortFst $ mr
 
 
 
