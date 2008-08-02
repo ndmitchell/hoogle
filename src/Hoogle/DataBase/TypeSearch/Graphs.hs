@@ -96,7 +96,7 @@ delResult = do
         [] -> concatMapM f $ Heap.elems pending
         t:odo -> do
             modify $ traceInline "." $ \s -> s{todo = odo}
-            let (res,hp) = Heap.popUntil (resultArgScore $ snd t) pending
+            let (res,hp) = Heap.popWhile (resultArgScore $ snd t) pending
             ans1 <- concatMapM f res
             uncurry addResult t
             ans2 <- delResult
