@@ -3,13 +3,13 @@ module Hoogle.DataBase.TypeSearch.Result where
 
 import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.TypeSearch.Score
+import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.TypeSig.All
 import Hoogle.Item.All
 import General.Code
-import Data.Typeable
 import qualified Data.IntSet as IntSet
 
 
@@ -24,26 +24,6 @@ type ResultReal = (Link Entry, [EntryView], TypeScore)
 
 flattenResults :: [Result] -> [(Link Entry, [EntryView], TypeScore)]
 flattenResults xs = [(a,b,c) | (as,b,c) <- xs, a <- entryInfoEntries $ fromLink as]
-
-
--- the information about an entry, including the arity
-
--- TODO: each EntryInfo should have multiple Link Entry, to account for
--- multiple Entry's with identical type signatures
-data EntryInfo = EntryInfo
-    {entryInfoEntries :: [Link Entry]
-    ,entryInfoArity :: Int
-    ,entryInfoContext :: TypeContext
-    } deriving Show
-
-
-typename_EntryInfo = mkTyCon "Hoogle.DataBase.TypeSearch.Result.EntryInfo"
-instance Typeable EntryInfo
-    where typeOf _ = mkTyConApp typename_EntryInfo []
-
-instance BinaryDefer EntryInfo where
-    put (EntryInfo a b c) = put3 a b c
-    get = get3 EntryInfo
 
 
 -- the result information from a whole type (many ResultArg)
