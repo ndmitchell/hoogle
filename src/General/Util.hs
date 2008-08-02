@@ -240,3 +240,8 @@ traceInline :: String -> a -> a
 traceInline msg x = unsafePerformIO $ do
     putStr msg
     return x
+
+
+errorLines :: [String] -> b
+errorLines [] = error "errorLines, finished"
+errorLines (x:xs) = trace x $ errorLines xs
