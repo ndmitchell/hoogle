@@ -1,16 +1,15 @@
 
 module Data.Heap(
     Heap, empty,
-    toList,
+    fromList, toList,
     singleton,
-    push, pushList,
+    insert, insertList,
     pop, popUntil
     ) where
 
 import Prelude
 import qualified Data.Map as Map
 import Data.Maybe
-import Data.List as List
 
 
 -- NOTE: Horribly inefficient
@@ -22,31 +21,27 @@ empty = Heap []
 
 
 fromList :: Ord k => [(k,v)] -> Heap k v
-fromList xs = pushList xs empty
+fromList xs = insertList xs empty
 
 
 toList :: Heap k v -> [(k,v)]
 toList (Heap xs) = xs
 
 
-elems :: Heap k v -> [v]
-elems = map snd . toList
-
-
-singleton :: k -> v -> Heap k v
-singleton k v = Heap [(k,v)]
+singleton :: Ord k => k -> v -> Heap k v
+singleton k v = insert k v empty
 
 
 -- insert a value with a cost, does NOT overwrite values
-push :: Ord k => k -> v -> Heap k v -> Heap k v
-push k v (Heap xs) = Heap $ f xs
+insert :: Ord k => k -> v -> Heap k v -> Heap k v
+insert k v (Heap xs) = Heap $ f xs
     where
         f ((a,b):xs) | k > a = (a,b) : f xs
         f xs = (k,v):xs
 
 
-pushList :: Ord k => [(k,v)] -> Heap k v -> Heap k v
-pushList xs mp = foldr (uncurry push) mp xs
+insertList :: Ord k => [(k,v)] -> Heap k v -> Heap k v
+insertList xs mp = foldr (uncurry insert) mp xs
 
 
 -- retrieve the lowest value

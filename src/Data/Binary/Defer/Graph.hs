@@ -63,7 +63,7 @@ searchDijkstraState (c,s) gen n (Graph xs) = f Set.empty (Heap.singleton c (s,n)
                 | otherwise -> [(c,s,n) | n <- ns] ++ f seen2 next2
                     where Node ns es = xs ! n
                           seen2 = Set.insert (s,n) seen
-                          next2 = Heap.pushList [(c2,(s2,n)) | (e,n) <- es, let (c2,s2) = gen e (c,s)] next
+                          next2 = Heap.insertList [(c2,(s2,n)) | (e,n) <- es, let (c2,s2) = gen e (c,s)] next
 
 
 -- Invariant: No node is reached going through that node
@@ -74,7 +74,7 @@ searchDijkstraCycle c gen n (Graph xs) = f (Heap.singleton c (Set.singleton n,n)
     where
         f next = case Heap.pop next of
             Nothing -> []
-            Just ((c,(s,n)),next) -> [(c,n) | n <- ns] ++ f (Heap.pushList new next)
+            Just ((c,(s,n)),next) -> [(c,n) | n <- ns] ++ f (Heap.insertList new next)
                 where Node ns es = xs ! n
                       new = [ (c2, (Set.insert n s,n))
                             | (e,n) <- es, not $ n `Set.member` s
