@@ -1,6 +1,4 @@
 
--- TODO: Use record selectors
-
 module Hoogle.DataBase.TypeSearch.Result where
 
 import Hoogle.DataBase.TypeSearch.TypeScore
@@ -26,11 +24,11 @@ type Result = (Link Entry,[EntryView],TypeScore)
 
 -- TODO: each EntryInfo should have multiple Link Entry, to account for
 -- multiple Entry's with identical type signatures
-data EntryInfo = EntryInfo (Link Entry) Int TypeContext
-                 deriving Show
-
-entryInfoEntry (EntryInfo x _ _) = x
-entryInfoArity (EntryInfo _ x _) = x
+data EntryInfo = EntryInfo
+    {entryInfoEntry :: Link Entry
+    ,entryInfoArity :: Int
+    ,entryInfoContext :: TypeContext
+    } deriving Show
 
 
 typename_EntryInfo = mkTyCon "Hoogle.DataBase.TypeSearch.Result.EntryInfo"
@@ -50,13 +48,11 @@ data ResultAll = ResultAll Int EntryInfo [[ResultArg]]
 
 -- the result information from one single type graph (argument/result)
 -- this result points at entry.id, argument, with such a score
-data ResultArg = ResultArg (Link EntryInfo) ArgPos TypeScore
-                 deriving Show
-
-
-resultArgEntry (ResultArg x _ _) = x
-resultArgPos (ResultArg _ x _) = x
-resultArgScore (ResultArg _ _ x) = x
+data ResultArg = ResultArg
+    {resultArgEntry :: Link EntryInfo
+    ,resultArgPos :: ArgPos
+    ,resultArgScore :: TypeScore
+    } deriving Show
 
 
 newResultAll :: Int -> EntryInfo -> Maybe ResultAll
