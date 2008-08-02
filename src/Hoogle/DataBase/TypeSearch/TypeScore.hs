@@ -7,7 +7,7 @@
 module Hoogle.DataBase.TypeSearch.TypeScore(
     TypeScore, typeScoreKey,
     emptyTypeScore, mergeTypeScores,
-    addCost, addTypeScore,
+    addCost,
     scoreBinding, scoreUniqueBinding
     ) where
 
@@ -148,7 +148,7 @@ badBinding bind = bad varLit || bad litVar
 mergeTypeScores :: Instances -> EntryInfo -> EntryInfo -> [TypeScore] -> Maybe TypeScore
 mergeTypeScores is result query xs 
         | badBinding bs = Nothing
-        | otherwise = Just t{score=calcScore t}
+        | otherwise = Just t{score = calcScore t + (badargs * scoreDeadArg)}
     where
         t = TypeScore 0
             (concatMap unbox xs) (concatMap rebox xs)
@@ -156,12 +156,13 @@ mergeTypeScores is result query xs
             Set.empty
             (entryInfoContext query \\ ctx, ctx \\ entryInfoContext query)
             bs
-        
+
         ctx = nub $ concat [f c b | (c,v) <- entryInfoContext result, (Var a, b) <- bs, a == v ]
         f c (Var v) = [(c,v)]
         f c (Lit l) = [(c,l) | not $ hasInstance is c l]
 
         bs = nub $ concatMap bind xs
+        badargs = entryInfoArity result - entryInfoArity query
 
 
 calcScore :: TypeScore -> Int
@@ -180,7 +181,3 @@ calcScore t =
         (aliasFwd,aliasBwd) = Set.partition isFwd $ alias t
     
         f xs = sum $ map (subtract 1 . length) $ groupFst $ sortFst [(a,b) | (Var a,b) <- xs]
-
-
-addTypeScore :: Int -> TypeScore -> TypeScore
-addTypeScore i t = t{score = i + score t}

@@ -85,10 +85,7 @@ newGraphsResults is query e args res
     | otherwise = Just
         (e
         ,zipWith ArgPosNum [0..] $ map resultArgPos args
-        ,addTypeScore (badargs * scoreDeadArg) $ fromJust s
+        ,fromJust s
         )
     where
         s = mergeTypeScores is query (fromLink e) $ map resultArgScore $ args++[res]
-
-        EntryInfo entry arityResult cresult = fromLink e
-        badargs = arityResult - entryInfoArity query
