@@ -1,8 +1,7 @@
 
 module Hoogle.DataBase.Instances(
     Instances, createInstances,
-    normContext,
-    followInstances, hasInstance
+    normContext, hasInstance
     ) where
 
 import General.Code
@@ -41,14 +40,6 @@ normContext _ (TypeSig a b) = TypeSimp con b
     where
         con = sort $ nub [(c,v) | TApp (TLit c) xs <- a, x <- xs, v <- variables x, v `elem` vs]
         vs = variables b
-
-
--- TODO: Delete this method
--- M |-> C _a => _a, if there is a C M instance
-followInstances :: Instances -> TypeSimp -> [((String,String),TypeSimp)]
-followInstances (Instances mp) (TypeSimp c t) =
-        [((n,m),TypeSimp ((n,"_a"):c) (gen $ TVar "_a"))
-        |(TLit m,gen) <- contexts t, n <- Map.findWithDefault [] m mp]
 
 
 -- hasInstance _ C M, does C M exist
