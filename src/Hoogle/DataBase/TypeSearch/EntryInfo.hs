@@ -13,7 +13,11 @@ data EntryInfo = EntryInfo
     {entryInfoEntries :: [Link Entry]
     ,entryInfoArity :: Int
     ,entryInfoContext :: TypeContext
-    } deriving Show
+    } deriving (Eq,Show)
+
+instance Ord EntryInfo where
+    compare (EntryInfo [] x1 x2) (EntryInfo [] y1 y2) = compare (x1,x2) (y1,y2)
+    compare _ _ = error "Ord EntryInfo, can't compare EntryInfo's with items in them"
 
 
 typename_EntryInfo = mkTyCon "Hoogle.DataBase.TypeSearch.Result.EntryInfo"
