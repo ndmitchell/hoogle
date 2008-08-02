@@ -1,3 +1,8 @@
+{-|
+    RULES:
+
+    May only unbox OR rebox once per argument.
+-}
 
 module Hoogle.DataBase.TypeSearch.TypeScore(
     TypeScore, typeScoreKey,
@@ -87,8 +92,8 @@ addCost :: Cost -> TypeScore -> Maybe TypeScore
 addCost (CostAlias a)               t = addAlias scoreAliasFwd (Fwd a) t
 addCost (CostReverse (CostAlias a)) t = addAlias scoreAliasBwd (Bwd a) t
 
-addCost (CostUnbox a) t = Just $ add scoreUnbox $ t{unbox = a : unbox t}
-addCost (CostReverse (CostUnbox a)) t = Just $ add scoreRebox t{rebox = a : rebox t}
+addCost (CostUnbox a) t = addUnbox t $ add scoreUnbox $ t{unbox = a : unbox t}
+addCost (CostReverse (CostUnbox a)) t = addUnbox t $ add scoreRebox t{rebox = a : rebox t}
 
 -- A |--> b, always restricts to a fresh variable on RHS
 addCost (CostRestrict l v) t = addRestrict scoreRestrict (Fwd l) $ t{bind = (Lit l, Var v) : bind t}
@@ -97,6 +102,11 @@ addCost (CostRestrict l v) t = addRestrict scoreRestrict (Fwd l) $ t{bind = (Lit
 addCost (CostReverse (CostRestrict a b)) t
     | or [l /= a | (Var v, Lit l) <- bind t, v == b] = Nothing -- b |--> (A and C)
     | otherwise = addRestrict scoreUnrestrict (Bwd a) $ t{bind = (Var b, Lit a) : bind t}
+
+
+addUnbox t r
+    | null (unbox t) && null (rebox t) = Just r
+    | otherwise = Nothing
 
 
 addAlias score x t
