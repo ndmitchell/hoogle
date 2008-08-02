@@ -45,7 +45,7 @@ newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
 newGraphs as is xs = Graphs (newIndex $ map snd entries) argGraph resGraph
     where
         entries = [ (t2, EntryInfo (sortOn linkKey es) (length (fromTFun t2) - 1) c2)
-                  | (TypeSimp c2 t2,es) <- sortGroupFsts $ map (\(e,t) -> (normContext is t, e)) xs]
+                  | (TypeSimp c2 t2,es) <- sortGroupFsts $ map (\(e,t) -> (normInstances is t, e)) xs]
 
         argGraph = newGraph as (concat args)
         resGraph = newGraph as res
@@ -69,7 +69,7 @@ graphsSearch as is gs t = resultsCombine is con (length args) ans
 
         f a g = map ((,) a) . graphSearch as g
         (args,res) = initLast $ fromTFun ts
-        TypeSimp con ts = normContext is t
+        TypeSimp con ts = normInstances is t
 
 
 data S = S

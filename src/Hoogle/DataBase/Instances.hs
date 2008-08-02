@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Instances(
     Instances, createInstances,
-    normContext, hasInstance
+    normInstances, hasInstance
     ) where
 
 import General.Code
@@ -35,8 +35,8 @@ createInstances xs = Instances $ foldl f Map.empty ys
 --    MPTC a b |-> MPTC a, MPTC b
 --    C (M a) |-> C a
 -- Do not load Instances ever
-normContext :: Instances -> TypeSig -> TypeSimp
-normContext _ (TypeSig a b) = TypeSimp con b
+normInstances :: Instances -> TypeSig -> TypeSimp
+normInstances _ (TypeSig a b) = TypeSimp con b
     where
         con = sort $ nub [(c,v) | TApp (TLit c) xs <- a, x <- xs, v <- variables x, v `elem` vs]
         vs = variables b
