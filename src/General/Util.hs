@@ -10,6 +10,7 @@ import System.Exit
 import qualified Data.IntSet as IntSet
 import qualified Data.Map as Map
 import Control.Arrow
+import System.IO.Unsafe
 
 infixl 0 `on`
 
@@ -233,3 +234,9 @@ consNub x xs = [x | x `notElem` xs] ++ xs
 
 showLines :: Show a => [a] -> String
 showLines = unlines . map show
+
+
+traceInline :: String -> a -> a
+traceInline msg x = unsafePerformIO $ do
+    putStr msg
+    return x
