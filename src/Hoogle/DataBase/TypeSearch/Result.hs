@@ -80,12 +80,7 @@ addResultAll is query (pos,res) (ResultAll i e info) =
 
 
 newGraphsResults :: Instances -> EntryInfo -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
-newGraphsResults is query e args res
-    | isNothing s = Nothing
-    | otherwise = Just
-        (e
-        ,zipWith ArgPosNum [0..] $ map resultArgPos args
-        ,fromJust s
-        )
-    where
-        s = mergeTypeScores is query (fromLink e) $ map resultArgScore $ args++[res]
+newGraphsResults is query e args res = do
+    s <- mergeTypeScores is query (fromLink e) $ map resultArgScore $ args++[res]
+    let view = zipWith ArgPosNum [0..] $ map resultArgPos args
+    return (e, view, s)
