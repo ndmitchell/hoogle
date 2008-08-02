@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.TypeSearch.TypeScore(
-    TypeScore,
+    TypeScore, typeScoreKey,
     emptyTypeScore, mergeTypeScores,
     addCost, addTypeScore,
     scoreBinding, scoreUniqueBinding
@@ -44,6 +44,8 @@ data TypeScore = TypeScore
     ,bind :: [(VarLit, VarLit)]
     }
 
+
+typeScoreKey = score
 
 instance Show TypeScore where
     show t = concat $ intersperse "," $
