@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.Aliases(
-    Aliases, createAliases
+    Aliases, createAliases, normAliases
     ) where
 
 import Hoogle.TextBase.All
@@ -53,17 +53,25 @@ transitiveClosure mp = Map.mapWithKey (\k x -> x{rhs = f [k] $ rhs x}) mp
 
 -- perform a 1-step alias following
 followAliases :: Aliases -> Type -> [(String,Type)]
-followAliases (Aliases mp) t =
-    [ (x, gen $ followAlias xs a)
-    | (TApp (TLit x) xs, gen) <- contexts $ insertTApp t
-    , Just a@(Alias vs rhs) <- [Map.lookup x mp]
-    , length vs == length xs ]
+followAliases as t =
+    [ (s, gen x2)
+    | (x, gen) <- contexts t
+    , Just (s,x2) <- [followAlias as x]]
 
 
-followAlias :: [Type] -> Alias -> Type
-followAlias ts (Alias vs rhs) = removeTApp $ transform f rhs
+followAlias :: Aliases -> Type -> Maybe (String, Type)
+followAlias (Aliases mp) (TApp (TLit x) xs)
+    | isJust m && length xs == length vs = Just (x, transform f rhs)
+    where m@ ~(Just (Alias vs rhs)) = Map.lookup x mp
+          rep = zip vs xs
+          f (TVar v) = lookupJustDef (TVar v) v rep
+          f x = x
+followAlias as (TLit x) = followAlias as (TApp (TLit x) [])
+followAlias _ _ = Nothing
+
+
+normAliases :: Aliases -> Type -> ([String], Type)
+normAliases as t = (sort . nub *** id) $ f t
     where
-        rep = zip vs ts
-        f (TVar v) = lookupJustDef (TVar v) v rep
-        f x = x
-
+        f t = (concat *** gen) $ unzip $ map f cs
+            where (cs, gen) = uniplate t
