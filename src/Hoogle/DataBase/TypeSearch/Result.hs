@@ -64,11 +64,11 @@ data ResultArg = ResultArg
 newResultAll :: EntryInfo -> Link EntryInfo -> Maybe ResultAll
 newResultAll query e
     | bad < 0 || bad > 2 = Nothing
-    | otherwise = Just $ ResultAll bad e $ replicate (arityInfo + 1) []
+    | otherwise = Just $ ResultAll bad e $ replicate (arityResult + 1) []
     where
         arityQuery = entryInfoArity query
-        arityInfo = entryInfoArity $ fromLink e
-        bad = arityInfo - arityQuery
+        arityResult = entryInfoArity $ fromLink e
+        bad = arityResult - arityQuery
 
 
 addResultAll :: Instances -> EntryInfo -> (Maybe ArgPos, ResultArg) -> ResultAll -> (ResultAll, [Result])
