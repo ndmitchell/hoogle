@@ -56,8 +56,9 @@ newGraphs as is xs = Graphs (newIndex $ map snd entries) argGraph resGraph
 
 
 normType :: Aliases -> Instances -> TypeSig -> (Type, EntryInfo)
-normType as is t = (t2, EntryInfo [] (length (fromTFun t2) - 1) c2)
+normType as is t = (t3, EntryInfo [] (length (fromTFun t3) - 1) c2 a)
     where TypeSimp c2 t2 = normInstances is t
+          (a,t3) = normAliases as t2
 
 ---------------------------------------------------------------------
 -- GRAPHS SEARCHING

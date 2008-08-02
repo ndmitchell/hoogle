@@ -48,6 +48,7 @@ data TypeScore = TypeScore
     ,restrict :: Set.Set (FwdBwd String) -- only necessary before mergeTypeScores
     
     ,badInstance :: (TypeContext, TypeContext)
+    ,badAlias :: ([String], [String])
     ,bind :: [(VarLit, VarLit)]
     }
 
@@ -63,6 +64,8 @@ instance Show TypeScore where
              map f (Set.toList $ alias t) ++
              map (g "+") (fst $ badInstance t) ++
              map (g "-") (snd $ badInstance t) ++
+             map ( "alias "++) (fst $ badAlias t) ++
+             map ("~alias "++) (snd $ badAlias t) ++
              map h (bind t)
         where
             f (Fwd a) = "alias " ++ a
@@ -83,7 +86,7 @@ instance Ord TypeScore where
 
 
 emptyTypeScore :: Binding -> TypeScore
-emptyTypeScore bind = TypeScore 0 0 [] [] Set.empty Set.empty ([],[]) bs
+emptyTypeScore bind = TypeScore 0 0 [] [] Set.empty Set.empty ([],[]) ([],[]) bs
     where bs = [(Var a, Var b) | (a,b) <- fromBinding bind]
 
 
@@ -157,9 +160,11 @@ mergeTypeScores is result query xs
             (concatMap unbox xs) (concatMap rebox xs)
             (Set.unions $ map alias xs)
             Set.empty
-            (entryInfoContext query \\ ctx, ctx \\ entryInfoContext query)
+            (entryInfoContext query `diff` ctx)
+            (entryInfoAlias query `diff` entryInfoAlias result)
             bs
 
+        diff a b = (a \\ b, b \\ a)
         ctx = nub $ concat [f c b | (c,v) <- entryInfoContext result, (Var a, b) <- bs, a == v ]
         f c (Var v) = [(c,v)]
         f c (Lit l) = [(c,l) | not $ hasInstance is c l]
@@ -174,6 +179,8 @@ calcScore t =
     scoreRebox * length (rebox t) +
     scoreAliasFwd * Set.size aliasFwd +
     scoreAliasBwd * Set.size aliasBwd +
+    scoreAliasFwd * length (fst $ badAlias t) +
+    scoreAliasBwd * length (snd $ badAlias t) +
     scoreInstanceAdd * length (fst $ badInstance t) +
     scoreInstanceDel * length (snd $ badInstance t) +
     scoreDupVarQuery * f (bind t) +
