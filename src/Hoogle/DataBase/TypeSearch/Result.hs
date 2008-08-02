@@ -61,19 +61,20 @@ data ResultArg = ResultArg
     } deriving Show
 
 
-newResultAll :: Int -> Link EntryInfo -> Maybe ResultAll
-newResultAll arityQuery e
+newResultAll :: EntryInfo -> Link EntryInfo -> Maybe ResultAll
+newResultAll query e
     | bad < 0 || bad > 2 = Nothing
     | otherwise = Just $ ResultAll bad e $ replicate (arityInfo + 1) []
     where
+        arityQuery = entryInfoArity query
         arityInfo = entryInfoArity $ fromLink e
         bad = arityInfo - arityQuery
 
 
-addResultAll :: Instances -> TypeContext -> (Maybe ArgPos, ResultArg) -> ResultAll -> (ResultAll, [Result])
-addResultAll is cquery (pos,res) (ResultAll i e info) =
+addResultAll :: Instances -> EntryInfo -> (Maybe ArgPos, ResultArg) -> ResultAll -> (ResultAll, [Result])
+addResultAll is query (pos,res) (ResultAll i e info) =
         (ResultAll i e info2
-        ,mapMaybe (\(r:rs) -> newGraphsResults is cquery i e rs r) path)
+        ,mapMaybe (\(r:rs) -> newGraphsResults is query i e rs r) path)
     where
         ind = maybe 0 (+1) pos
         info2 = zipWith (\i x -> [res|i==ind] ++ x) [0..] info
@@ -95,8 +96,8 @@ addResultAll is cquery (pos,res) (ResultAll i e info) =
                       , rs <- f bad (IntSet.insert rp set) xs]
 
 
-newGraphsResults :: Instances -> TypeContext -> Int -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
-newGraphsResults is cquery badargs e args res
+newGraphsResults :: Instances -> EntryInfo -> Int -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
+newGraphsResults is query badargs e args res
     | isNothing s = Nothing
     | otherwise = Just
         (e
@@ -105,4 +106,4 @@ newGraphsResults is cquery badargs e args res
         )
     where
         EntryInfo entry _ cresult = fromLink e
-        s = mergeTypeScores is cquery cresult $ map resultArgScore $ args++[res]
+        s = mergeTypeScores is (entryInfoContext query) cresult $ map resultArgScore $ args++[res]
