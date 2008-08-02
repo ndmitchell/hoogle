@@ -1,8 +1,8 @@
 
 module Data.Heap(
     Heap, empty,
-    fromList, toList,
-    elems, singleton,
+    toList,
+    singleton,
     push, pushList,
     pop, popUntil
     ) where
