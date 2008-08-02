@@ -95,9 +95,9 @@ delResult = do
     case todo of
         [] -> concatMapM f $ Heap.elems pending
         t:odo -> do
-            modify $ traceInline "." $ \s -> s{todo = odo}
             let (res,hp) = Heap.popWhile (resultArgScore $ snd t) pending
-            ans1 <- concatMapM f res
+            modify $ \s -> s{todo=odo, pending=hp}
+            ans1 <- concatMapM delResult_f res
             uncurry addResult t
             ans2 <- delResult
             return $ ans1 ++ ans2
@@ -127,7 +127,7 @@ addResult arg val = do
             let inf = fromJust $ fromMaybe def x
             (inf,res) <- return $ addResultAll is qcontext (arg,val) inf
             res <- return $ map (thd3 &&& id) res
-            modify $ traceInline (show $ map (typeScoreKey . fst) res) $ \s -> s
+            modify $ \s -> s
                 {infos = IntMap.insert entryId (Just inf) (infos s)
                 ,pending = Heap.insertList res (pending s)
                 }
