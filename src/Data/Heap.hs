@@ -55,12 +55,3 @@ pop (Heap (x:xs)) = Just (x, Heap xs)
 popUntil :: Ord k => k -> Heap k v -> ([v], Heap k v)
 popUntil i (Heap xs) = (map snd a, Heap b)
     where (a,b) = span ((< i) . fst) xs
-
-
-min :: Heap k v -> Maybe k
-min (Heap xs) = listToMaybe $ map fst xs
-
-
-partition :: (v -> Bool) -> Heap k v -> (Heap k v, Heap k v)
-partition f (Heap xs) = (Heap a, Heap b)
-    where (a,b) = List.partition (f . snd) xs
