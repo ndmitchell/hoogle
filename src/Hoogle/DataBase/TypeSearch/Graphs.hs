@@ -73,8 +73,7 @@ graphsSearch as is gs t = resultsCombine is query ans
 
         f a g = map ((,) a) . graphSearch as g
         (args,res) = initLast $ fromTFun ts
-        query = EntryInfo [] (length args) con 
-        TypeSimp con ts = normInstances is t
+        (ts,query) = normType as is t
 
 
 data S = S
