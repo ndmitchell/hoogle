@@ -21,7 +21,8 @@ chars :: [Char]
 
 @test "id" id
 @test "map" map fmap unfmap
-@test "(a -> b) -> [a] -> [b]" map fmap unfmap
+-- for the map test, unfmap or fmap are the same level
+@test "(a -> b) -> [a] -> [b]" map unfmap fmap
 @test "a -> b" unsafeCoerce *
 @test "(c,d) -> d" snd fst
 @test "(c,d) -> c" fst snd
