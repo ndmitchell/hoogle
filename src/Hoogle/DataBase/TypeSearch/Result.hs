@@ -1,5 +1,8 @@
 
-module Hoogle.DataBase.TypeSearch.Result where
+module Hoogle.DataBase.TypeSearch.Result(
+    module Hoogle.DataBase.TypeSearch.Result,
+    module Hoogle.DataBase.TypeSearch.EntryInfo
+    ) where
 
 import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.TypeSearch.Score
@@ -85,6 +88,7 @@ newGraphsResults is query e args res
         ,addTypeScore (badargs * scoreDeadArg) $ fromJust s
         )
     where
+        s = mergeTypeScores is query (fromLink e) $ map resultArgScore $ args++[res]
+
         EntryInfo entry arityResult cresult = fromLink e
-        s = mergeTypeScores is (entryInfoContext query) cresult $ map resultArgScore $ args++[res]
         badargs = arityResult - entryInfoArity query

@@ -15,6 +15,7 @@ import General.Code
 import Hoogle.DataBase.TypeSearch.Cost
 import Hoogle.DataBase.TypeSearch.Score
 import Hoogle.DataBase.TypeSearch.Binding
+import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
 import Hoogle.TypeSig.All
 import qualified Data.Set as Set
@@ -144,8 +145,8 @@ badBinding bind = bad varLit || bad litVar
 
 
 
-mergeTypeScores :: Instances -> TypeContext -> TypeContext -> [TypeScore] -> Maybe TypeScore
-mergeTypeScores is cquery cresult xs 
+mergeTypeScores :: Instances -> EntryInfo -> EntryInfo -> [TypeScore] -> Maybe TypeScore
+mergeTypeScores is result query xs 
         | badBinding bs = Nothing
         | otherwise = Just t{score=calcScore t}
     where
@@ -153,10 +154,10 @@ mergeTypeScores is cquery cresult xs
             (concatMap unbox xs) (concatMap rebox xs)
             (Set.unions $ map alias xs)
             Set.empty
-            (cquery \\ ctx, ctx \\ cquery)
+            (entryInfoContext query \\ ctx, ctx \\ entryInfoContext query)
             bs
         
-        ctx = nub $ concat [f c b | (c,v) <- cresult, (Var a, b) <- bs, a == v ]
+        ctx = nub $ concat [f c b | (c,v) <- entryInfoContext result, (Var a, b) <- bs, a == v ]
         f c (Var v) = [(c,v)]
         f c (Lit l) = [(c,l) | not $ hasInstance is c l]
 
