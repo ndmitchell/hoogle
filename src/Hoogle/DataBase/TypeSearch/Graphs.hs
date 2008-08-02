@@ -97,7 +97,7 @@ delResult = do
         t:odo -> do
             let (res,hp) = Heap.popWhile (resultArgScore $ snd t) pending
             modify $ \s -> s{todo=odo, pending=hp}
-            ans1 <- concatMapM delResult_f res
+            ans1 <- concatMapM f res
             uncurry addResult t
             ans2 <- delResult
             return $ ans1 ++ ans2
