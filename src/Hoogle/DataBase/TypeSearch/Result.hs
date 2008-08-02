@@ -74,7 +74,7 @@ newResultAll query e
 addResultAll :: Instances -> EntryInfo -> (Maybe ArgPos, ResultArg) -> ResultAll -> (ResultAll, [Result])
 addResultAll is query (pos,res) (ResultAll i e info) =
         (ResultAll i e info2
-        ,mapMaybe (\(r:rs) -> newGraphsResults is query i e rs r) path)
+        ,mapMaybe (\(r:rs) -> newGraphsResults is query e rs r) path)
     where
         ind = maybe 0 (+1) pos
         info2 = zipWith (\i x -> [res|i==ind] ++ x) [0..] info
@@ -96,8 +96,8 @@ addResultAll is query (pos,res) (ResultAll i e info) =
                       , rs <- f bad (IntSet.insert rp set) xs]
 
 
-newGraphsResults :: Instances -> EntryInfo -> Int -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
-newGraphsResults is query badargs e args res
+newGraphsResults :: Instances -> EntryInfo -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
+newGraphsResults is query e args res
     | isNothing s = Nothing
     | otherwise = Just
         (e
@@ -105,5 +105,6 @@ newGraphsResults is query badargs e args res
         ,addTypeScore (badargs * scoreDeadArg) $ fromJust s
         )
     where
-        EntryInfo entry _ cresult = fromLink e
+        EntryInfo entry arityResult cresult = fromLink e
         s = mergeTypeScores is (entryInfoContext query) cresult $ map resultArgScore $ args++[res]
+        badargs = arityResult - entryInfoArity query
