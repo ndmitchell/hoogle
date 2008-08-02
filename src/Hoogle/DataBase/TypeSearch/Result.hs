@@ -23,7 +23,7 @@ type ResultReal = (Link Entry, [EntryView], TypeScore)
 
 
 flattenResults :: [Result] -> [(Link Entry, [EntryView], TypeScore)]
-flattenResults xs = [(entryInfoEntry $ fromLink a,b,c) | (a,b,c) <- xs]
+flattenResults xs = [(a,b,c) | (as,b,c) <- xs, a <- entryInfoEntries $ fromLink as]
 
 
 -- the information about an entry, including the arity
@@ -31,7 +31,7 @@ flattenResults xs = [(entryInfoEntry $ fromLink a,b,c) | (a,b,c) <- xs]
 -- TODO: each EntryInfo should have multiple Link Entry, to account for
 -- multiple Entry's with identical type signatures
 data EntryInfo = EntryInfo
-    {entryInfoEntry :: Link Entry
+    {entryInfoEntries :: [Link Entry]
     ,entryInfoArity :: Int
     ,entryInfoContext :: TypeContext
     } deriving Show

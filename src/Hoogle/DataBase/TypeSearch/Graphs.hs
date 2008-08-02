@@ -44,7 +44,7 @@ instance BinaryDefer Graphs where
 newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
 newGraphs as is xs = Graphs (newIndex entries) argGraph resGraph
     where
-        entries = [EntryInfo e (length (fromTFun t2) - 1) c2
+        entries = [EntryInfo [e] (length (fromTFun t2) - 1) c2
                   |(e,t) <- xs, let TypeSimp c2 t2 = normContext is t]
 
         argGraph = newGraph as (concat args)
