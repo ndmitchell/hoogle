@@ -11,7 +11,7 @@ import Data.Generics.Uniplate
 import General.Code
 
 
-newtype Aliases = Aliases (Map.Map String [Alias])
+newtype Aliases = Aliases (Map.Map String Alias)
 
 instance BinaryDefer Aliases where
     put (Aliases a) = put a
@@ -19,7 +19,7 @@ instance BinaryDefer Aliases where
 
 instance Show Aliases where
     show (Aliases mp) = unlines [ unwords $ "type" : s : vs ++ ["=", show t]
-                                | (s,as) <- Map.toList mp, Alias vs t <- as]
+                                | (s,Alias vs t) <- Map.toList mp]
 
 
 data Alias = Alias
@@ -33,26 +33,21 @@ instance BinaryDefer Alias where
 
 
 createAliases :: [TextItem] -> Aliases
-createAliases ti = Aliases $ transitiveClosure $ fromListMany
+createAliases ti = Aliases $ transitiveClosure $ Map.fromList
     [ (name, Alias [v | TVar v <- args] rhs)
     | ItemAlias (TypeSig _ lhs) (TypeSig _ rhs) <- ti
     , let (TLit name, args) = fromTApp lhs]
 
 
-
--- TODO: Does not deal properly with Aliases pointing at many types
--- i.e. type Meep = Foo, type Foo = Bar | Baz
--- should give Meep = Bar | Baz, but will give Meep = Bar only
-
 -- Must be careful with aliases which expand back to themselves
 -- i.e. template-haskell has "type Doc = PprM Doc"
 -- probably the result of unqualifying names
-transitiveClosure :: Map.Map String [Alias] -> Map.Map String [Alias]
-transitiveClosure mp = Map.mapWithKey (\k xs -> [x{rhs=y} | x <- xs, y <- nub $ f [k] $ rhs x]) mp
+transitiveClosure :: Map.Map String Alias -> Map.Map String Alias
+transitiveClosure mp = Map.mapWithKey (\k x -> x{rhs = f [k] $ rhs x}) mp
     where
-        f :: [String] -> Type -> [Type]
+        f :: [String] -> Type -> Type
         f seen t = case [(name,x) | (name,x) <- followAliases (Aliases mp) t, name `notElem` seen] of
-                        [] -> [t]
+                        [] -> t
                         (name,x):_ -> f (name:seen) x
 
 
@@ -61,7 +56,7 @@ followAliases :: Aliases -> Type -> [(String,Type)]
 followAliases (Aliases mp) t =
     [ (x, gen $ followAlias xs a)
     | (TApp (TLit x) xs, gen) <- contexts $ insertTApp t
-    , a@(Alias vs rhs) <- Map.findWithDefault [] x mp
+    , Just a@(Alias vs rhs) <- [Map.lookup x mp]
     , length vs == length xs ]
 
 
