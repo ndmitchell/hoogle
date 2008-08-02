@@ -93,7 +93,7 @@ delResult = do
     pending <- gets pending
     todo <- gets todo
     case todo of
-        [] -> concatMapM (f . snd) $ Heap.toList pending
+        [] -> concatMapM f $ Heap.elems pending
         t:odo -> do
             modify $ traceInline "." $ \s -> s{todo = odo}
             let (res,hp) = Heap.popUntil (resultArgScore $ snd t) pending
