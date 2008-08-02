@@ -1,3 +1,4 @@
+-- Currently unused
 
 module Data.Threshold where
 
