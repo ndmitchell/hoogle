@@ -1,4 +1,6 @@
 
+-- TODO: Use record selectors
+
 module Hoogle.DataBase.TypeSearch.Result where
 
 import Hoogle.DataBase.TypeSearch.TypeScore
