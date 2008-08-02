@@ -3,6 +3,7 @@
 
 module Foo
 
+type FilePath = String
 type String = [Char]
 id :: a -> a
 unsafeCoerce :: a -> b
