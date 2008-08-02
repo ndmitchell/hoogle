@@ -42,6 +42,7 @@ A (Lit _, Lit _) binding may never arise
 
 data TypeScore = TypeScore
     {score :: Int
+    ,badargs :: Int
     ,unbox :: [String], rebox :: [String]
     ,alias :: Set.Set (FwdBwd String)
     ,restrict :: Set.Set (FwdBwd String) -- only necessary before mergeTypeScores
@@ -56,6 +57,7 @@ typeScoreKey = score
 instance Show TypeScore where
     show t = concat $ intersperse "," $
              [show $ score t] ++
+             replicate (badargs t) "badarg" ++
              map ("unbox "++) (unbox t) ++
              map ("rebox "++) (rebox t) ++
              map f (Set.toList $ alias t) ++
@@ -81,7 +83,7 @@ instance Ord TypeScore where
 
 
 emptyTypeScore :: Binding -> TypeScore
-emptyTypeScore bind = TypeScore 0 [] [] Set.empty Set.empty ([],[]) bs
+emptyTypeScore bind = TypeScore 0 0 [] [] Set.empty Set.empty ([],[]) bs
     where bs = [(Var a, Var b) | (a,b) <- fromBinding bind]
 
 
@@ -148,9 +150,10 @@ badBinding bind = bad varLit || bad litVar
 mergeTypeScores :: Instances -> EntryInfo -> EntryInfo -> [TypeScore] -> Maybe TypeScore
 mergeTypeScores is result query xs 
         | badBinding bs = Nothing
-        | otherwise = Just t{score = calcScore t + (badargs * scoreDeadArg)}
+        | otherwise = Just t{score = calcScore t}
     where
         t = TypeScore 0
+            (entryInfoArity result - entryInfoArity query)
             (concatMap unbox xs) (concatMap rebox xs)
             (Set.unions $ map alias xs)
             Set.empty
@@ -162,11 +165,11 @@ mergeTypeScores is result query xs
         f c (Lit l) = [(c,l) | not $ hasInstance is c l]
 
         bs = nub $ concatMap bind xs
-        badargs = entryInfoArity result - entryInfoArity query
 
 
 calcScore :: TypeScore -> Int
 calcScore t =
+    scoreDeadArg * badargs t +
     scoreUnbox * length (unbox t) +
     scoreRebox * length (rebox t) +
     scoreAliasFwd * Set.size aliasFwd +
