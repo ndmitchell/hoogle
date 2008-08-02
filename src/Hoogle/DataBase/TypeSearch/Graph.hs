@@ -22,6 +22,7 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
+import qualified Data.Heap as Heap
 import General.Code
 import Data.Key
 import qualified Data.Binary.Defer.Graph as G
@@ -159,25 +160,10 @@ graphFind (Graph mp _) t = Map.lookup t mp
 
 -- a list of minimum-score, value
 graphAnswers :: [(TypeScore, ResultArg)] -> [ResultArg]
-graphAnswers = f Map.empty maxBound
+graphAnswers = f Heap.empty
     where
-        f :: Map.Map Int [ResultArg] -> Int -> [(TypeScore, ResultArg)] -> [ResultArg]
-        f mp minMp ((c,r):xs)
-            -- deque the map
-            | minMp <= cInt = let (res,mp2,minMp2) = dequeue cInt mp in f mp2 minMp2 ((c,r):xs)
-
-            -- return immediately            
-            | cInt >= rInt = assert (cInt == rInt) $ r : f mp minMp xs
-
-            -- queue for later
-            | otherwise = f (Map.insertWith (++) rInt [r] mp) (min rInt minMp) xs
-                where
-                    cInt = typeScoreKey c
-                    rInt = typeScoreKey $ resultArgScore r
-
-        dequeue :: Int -> Map.Map Int [x] -> ([x], Map.Map Int [x], Int)
-        dequeue c mp | c2 > c = ([], mp, c2)
-                     | otherwise = (reverse r ++ res, mp3, cmin)
+        f hp [] = Heap.elems hp
+        f hp ((c,r):xs) = res ++ f hp3 xs
             where
-                ((c2,r),mp2) = Map.deleteFindMin mp
-                (res,mp3,cmin) = if Map.null mp2 then ([],mp2,maxBound) else dequeue c mp2
+                hp2 = Heap.insert (typeScoreKey $ resultArgScore r) r hp
+                (res,hp3) = Heap.popWhile (typeScoreKey c) hp2
