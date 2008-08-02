@@ -60,7 +60,7 @@ newGraphs as is xs = Graphs (newIndex entries) argGraph resGraph
 
 
 -- sorted by TypeScore
-graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [Result]
+graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [ResultReal]
 graphsSearch as is gs t = resultsCombine is con (length args) ans
     where
         ans = mergesBy (compare `on` resultArgScore . snd) $ 
@@ -73,7 +73,7 @@ graphsSearch as is gs t = resultsCombine is con (length args) ans
 
 
 data S = S
-    {infos :: IntMap.IntMap (Maybe ResultAll) -- Int = Link Entry
+    {infos :: IntMap.IntMap (Maybe ResultAll) -- Int = Link EntryInfo
     ,pending :: Heap.Heap TypeScore Result
     ,todo :: [(Maybe ArgPos, ResultArg)]
     ,arity :: Int
@@ -82,8 +82,8 @@ data S = S
     }
 
 
-resultsCombine :: Instances -> TypeContext -> Int -> [(Maybe ArgPos, ResultArg)] -> [Result]
-resultsCombine is context arity xs = evalState delResult s0
+resultsCombine :: Instances -> TypeContext -> Int -> [(Maybe ArgPos, ResultArg)] -> [ResultReal]
+resultsCombine is context arity xs = flattenResults $ evalState delResult s0
     where s0 = S IntMap.empty Heap.empty xs arity is context
 
 
@@ -114,20 +114,20 @@ delResult = do
 -- todo -> heap/info
 addResult :: Maybe ArgPos -> ResultArg -> State S ()
 addResult arg val = do
-    let entryId = linkKey $ entryInfoEntry $ fromLink $ resultArgEntry val
+    let entId = linkKey $ resultArgEntry val
     infs <- gets infos
     arity <- gets arity
     is <- gets instances
     qcontext <- gets qcontext
-    let def = newResultAll arity (fromLink $ resultArgEntry val)
-    case IntMap.lookup entryId infs of
+    let def = newResultAll arity (resultArgEntry val)
+    case IntMap.lookup entId infs of
         Just Nothing -> return ()
-        Nothing | isNothing def -> modify $ \s -> s{infos = IntMap.insert entryId Nothing (infos s)}
+        Nothing | isNothing def -> modify $ \s -> s{infos = IntMap.insert entId Nothing $ infos s}
         x -> do
             let inf = fromJust $ fromMaybe def x
             (inf,res) <- return $ addResultAll is qcontext (arg,val) inf
             res <- return $ map (thd3 &&& id) res
             modify $ \s -> s
-                {infos = IntMap.insert entryId (Just inf) (infos s)
+                {infos = IntMap.insert entId (Just inf) $ infos s
                 ,pending = Heap.insertList res (pending s)
                 }

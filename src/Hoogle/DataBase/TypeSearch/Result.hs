@@ -16,8 +16,14 @@ import qualified Data.IntSet as IntSet
 type ArgPos = Int
 
 
--- the return from searching a graph
-type Result = (Link Entry,[EntryView],TypeScore)
+-- the return from searching a graph, nearly
+type Result = (Link EntryInfo,[EntryView],TypeScore)
+
+type ResultReal = (Link Entry, [EntryView], TypeScore)
+
+
+flattenResults :: [Result] -> [(Link Entry, [EntryView], TypeScore)]
+flattenResults xs = [(entryInfoEntry $ fromLink a,b,c) | (a,b,c) <- xs]
 
 
 -- the information about an entry, including the arity
@@ -42,7 +48,7 @@ instance BinaryDefer EntryInfo where
 
 -- the result information from a whole type (many ResultArg)
 -- number of lacking args, entry data, info (result:args)
-data ResultAll = ResultAll Int EntryInfo [[ResultArg]]
+data ResultAll = ResultAll Int (Link EntryInfo) [[ResultArg]]
                  deriving Show
 
 
@@ -55,11 +61,13 @@ data ResultArg = ResultArg
     } deriving Show
 
 
-newResultAll :: Int -> EntryInfo -> Maybe ResultAll
+newResultAll :: Int -> Link EntryInfo -> Maybe ResultAll
 newResultAll arityQuery e
     | bad < 0 || bad > 2 = Nothing
-    | otherwise = Just $ ResultAll bad e $ replicate (entryInfoArity e + 1) []
-    where bad = entryInfoArity e - arityQuery
+    | otherwise = Just $ ResultAll bad e $ replicate (arityInfo + 1) []
+    where
+        arityInfo = entryInfoArity $ fromLink e
+        bad = arityInfo - arityQuery
 
 
 addResultAll :: Instances -> TypeContext -> (Maybe ArgPos, ResultArg) -> ResultAll -> (ResultAll, [Result])
@@ -87,13 +95,14 @@ addResultAll is cquery (pos,res) (ResultAll i e info) =
                       , rs <- f bad (IntSet.insert rp set) xs]
 
 
-newGraphsResults :: Instances -> TypeContext -> Int -> EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
-newGraphsResults is cquery badargs (EntryInfo entry _ cresult) args res
+newGraphsResults :: Instances -> TypeContext -> Int -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
+newGraphsResults is cquery badargs e args res
     | isNothing s = Nothing
     | otherwise = Just
-        (entry
+        (e
         ,zipWith ArgPosNum [0..] $ map resultArgPos args
         ,addTypeScore (badargs * scoreDeadArg) $ fromJust s
         )
     where
+        EntryInfo entry _ cresult = fromLink e
         s = mergeTypeScores is cquery cresult $ map resultArgScore $ args++[res]
