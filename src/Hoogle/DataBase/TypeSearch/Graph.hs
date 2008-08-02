@@ -118,7 +118,7 @@ unbox t = nub [(CostUnbox a, gen b) | (TApp x [b], gen) <- contexts t, a <- f x]
 
 
 alias :: Aliases -> Type -> [(Cost, Type)]
-alias as t = map (CostAlias *** id) $ followAliases as t
+alias as t = [] -- map (CostAlias *** id) $ followAliases as t
 
 
 -- add reverse links where you can, i.e. aliases
