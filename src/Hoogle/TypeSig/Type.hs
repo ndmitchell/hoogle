@@ -49,6 +49,11 @@ fromTFun (TFun x) = x
 fromTFun x = [x]
 
 
+isTLit, isTVar :: Type -> Bool
+isTLit TLit{} = True; isTLit _ = False
+isTVar TVar{} = True; isTVar _ = False
+
+
 fromTApp :: Type -> (Type, [Type])
 fromTApp (TApp x y) = (x,y)
 fromTApp x = (x,[])
