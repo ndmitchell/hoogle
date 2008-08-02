@@ -102,20 +102,20 @@ fileType x = do
         return $ if b then Directory else NotFound
 
 
-sortOn :: Ord k => (v -> k) -> [v] -> [v]
+
 sortOn f = sortBy (compare `on` f)
+groupOn f = groupBy ((==) `on` f)
 
 
-sortFst :: Ord k => [(k,v)] -> [(k,v)]
-sortFst = sortOn fst
-
-
-groupFst :: Eq k => [(k,v)] -> [[(k,v)]]
-groupFst = groupBy ((==) `on` fst)
+sortFst mr = sortOn fst mr
+groupFst mr = groupOn fst mr
 
 
 groupFsts :: Eq k => [(k,v)] -> [(k,[v])]
 groupFsts = map (fst . head &&& map snd) . groupFst
+
+sortGroupFsts mr = groupFsts . sortFst $ mr
+
 
 
 nubIntOn :: (v -> Int) -> [v] -> [v]
