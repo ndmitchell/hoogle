@@ -1,5 +1,11 @@
 
-module Data.Heap where
+module Data.Heap(
+    Heap, empty,
+    fromList, toList,
+    elems, singleton,
+    push, pushList,
+    pop, popUntil
+    ) where
 
 import Prelude
 import qualified Data.Map as Map
