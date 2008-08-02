@@ -39,7 +39,7 @@ createInstances xs = Instances $ foldl f Map.empty ys
 normContext :: Instances -> TypeSig -> TypeSimp
 normContext _ (TypeSig a b) = TypeSimp con b
     where
-        con = [(c,v) | TApp (TLit c) xs <- a, x <- xs, v <- variables x, v `elem` vs]
+        con = sort $ nub [(c,v) | TApp (TLit c) xs <- a, x <- xs, v <- variables x, v `elem` vs]
         vs = variables b
 
 
