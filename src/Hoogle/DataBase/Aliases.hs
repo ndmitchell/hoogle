@@ -33,31 +33,30 @@ instance BinaryDefer Alias where
 
 
 createAliases :: [TextItem] -> Aliases
-createAliases ti = Aliases $ filterRecursive $ fromListMany
+createAliases ti = Aliases $ transitiveClosure $ fromListMany
     [ (name, Alias [v | TVar v <- args] rhs)
     | ItemAlias (TypeSig _ lhs) (TypeSig _ rhs) <- ti
     , let (TLit name, args) = fromTApp lhs]
 
 
--- filter out the aliases which expand back to themselves
+
+-- TODO: Does not deal properly with Aliases pointing at many types
+-- i.e. type Meep = Foo, type Foo = Bar | Baz
+-- should give Meep = Bar | Baz, but will give Meep = Bar only
+
+-- Must be careful with aliases which expand back to themselves
 -- i.e. template-haskell has "type Doc = PprM Doc"
 -- probably the result of unqualifying names
-filterRecursive :: Map.Map String [Alias] -> Map.Map String [Alias]
-filterRecursive mp = Map.filterWithKey f mp
+transitiveClosure :: Map.Map String [Alias] -> Map.Map String [Alias]
+transitiveClosure mp = Map.mapWithKey (\k xs -> [x{rhs=y} | x <- xs, y <- nub $ f [k] $ rhs x]) mp
     where
-        f name _ = g name [] [name]
-
-        g evil done [] = True
-        g evil done (t:odo)
-                | t `elem` done = g evil done odo
-                | evil `elem` next = False
-                | otherwise = g evil (t:done) (next++odo)
-            where
-                next = [x | a <- Map.findWithDefault [] t mp,  TLit x <- universe $ rhs a]
+        f :: [String] -> Type -> [Type]
+        f seen t = case [(name,x) | (name,x) <- followAliases (Aliases mp) t, name `notElem` seen] of
+                        [] -> [t]
+                        (name,x):_ -> f (name:seen) x
 
 
-
--- follow an alias at this point
+-- perform a 1-step alias following
 followAliases :: Aliases -> Type -> [(String,Type)]
 followAliases (Aliases mp) t =
     [ (x, gen $ followAlias xs a)
@@ -67,7 +66,7 @@ followAliases (Aliases mp) t =
 
 
 followAlias :: [Type] -> Alias -> Type
-followAlias ts (Alias vs rhs) = transform f rhs
+followAlias ts (Alias vs rhs) = removeTApp $ transform f rhs
     where
         rep = zip vs ts
         f (TVar v) = lookupJustDef (TVar v) v rep
