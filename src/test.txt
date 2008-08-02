@@ -24,3 +24,4 @@ not :: Bool -> Bool
 @test "(c,d) -> d" snd fst
 @test "(c,d) -> c" fst snd
 @test "Bool -> Bool -> Bool" == *
+@test "Bool -> Bool" not * == *
