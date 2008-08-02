@@ -22,6 +22,9 @@ type Result = (Link Entry,[EntryView],TypeScore)
 
 
 -- the information about an entry, including the arity
+
+-- TODO: each EntryInfo should have multiple Link Entry, to account for
+-- multiple Entry's with identical type signatures
 data EntryInfo = EntryInfo (Link Entry) Int TypeContext
                  deriving Show
 
