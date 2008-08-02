@@ -20,7 +20,6 @@ import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Data.Threshold
 import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
 import General.Code
@@ -138,7 +137,7 @@ reverseLinks g = g{graphEdges = graphEdges g ++ mapMaybe f (graphEdges g)}
 graphSearch :: Aliases -> Graph -> Type -> [ResultArg]
 graphSearch as g@(Graph _ gg) t
         | isNothing node = error $ "Couldn't find a start spot for: " ++ show t -- []
-        | otherwise = threshold $ concat [[Threshold c, Result s (ResultArg e a s)]
+        | otherwise = graphAnswers [(c, ResultArg e a s)
             | (c,Node e a b) <- searchDijkstraCycle (emptyTypeScore bind) step (fromJust node) gg
             , Just s <- [scoreBinding b c]]
     where
@@ -156,3 +155,29 @@ graphStart as g t = msum $ map (graphFind g) [t]
 
 graphFind :: Graph -> Type -> Maybe GraphNode
 graphFind (Graph mp _) t = Map.lookup t mp
+
+
+-- a list of minimum-score, value
+graphAnswers :: [(TypeScore, ResultArg)] -> [ResultArg]
+graphAnswers = f Map.empty maxBound
+    where
+        f :: Map.Map Int [ResultArg] -> Int -> [(TypeScore, ResultArg)] -> [ResultArg]
+        f mp minMp ((c,r):xs)
+            -- deque the map
+            | minMp <= cInt = let (res,mp2,minMp2) = dequeue cInt mp in f mp2 minMp2 ((c,r):xs)
+
+            -- return immediately            
+            | cInt >= rInt = assert (cInt == rInt) $ r : f mp minMp xs
+
+            -- queue for later
+            | otherwise = f (Map.insertWith (++) rInt [r] mp) (min rInt minMp) xs
+                where
+                    cInt = typeScoreKey c
+                    rInt = typeScoreKey $ resultArgScore r
+
+        dequeue :: Int -> Map.Map Int [x] -> ([x], Map.Map Int [x], Int)
+        dequeue c mp | c2 > c = ([], mp, c2)
+                     | otherwise = (reverse r ++ res, mp3, cmin)
+            where
+                ((c2,r),mp2) = Map.deleteFindMin mp
+                (res,mp3,cmin) = if Map.null mp2 then ([],mp2,maxBound) else dequeue c mp2
