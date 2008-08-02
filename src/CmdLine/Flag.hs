@@ -70,7 +70,7 @@ data FlagInfo = FlagInfo {
     }
 
 flagInfo =
-    [f (ArgNone Version) ["v","version","ver"] [PCmdLine] "Print out version information"
+    [f (ArgNone Version) ["version","ver"] [PCmdLine] "Print out version information"
     ,f (ArgNone Help) ["?","help","h"] [PCmdLine] "Show help message"
     ,f (ArgNone Web) ["w","web"] [PCmdLine] "Run as though it was a CGI script"
     ,f (ArgBool Color) ["c","color","col","colour"] [PCmdLine] "Show color output (default=false)"
@@ -81,7 +81,7 @@ flagInfo =
     ,f (ArgFileOut Output) ["output"] [PCmdLine] "Output file for convert"
     ,f (ArgStr  Dump) ["dump"] [PCmdLine] "Dump a database for debugging"
     ,f (ArgFileIn DataFile ["hoo"]) ["d","data"] [PCmdLine,PMultiple] "Database file"
-    ,f (ArgNone Verbose) ["verbose"] [PCmdLine] "Display verbose information"
+    ,f (ArgNone Verbose) ["v","verbose"] [PCmdLine] "Display verbose information"
     ,f (ArgNone Info) ["info"] [PCmdLine] "Display full information on an entry"
     ,f (ArgNone Debug) ["debug"] [PCmdLine] "Debugging only"
     ,f (ArgDir Include) ["i","include"] [PCmdLine,PMultiple] "Include directories"
