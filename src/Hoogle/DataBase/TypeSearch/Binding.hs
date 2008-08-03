@@ -100,7 +100,7 @@ mergeBindings bs = do
         score var restrict = liftM sum . mapM g . Map.elems
             where
                 g (Just "", _) = Nothing
-                g (l, vs) = Just $ cost (isJust l) restrict + var * (Set.size vs - 1)
+                g (l, vs) = Just $ cost (isJust l) restrict + var * (max 0 $ Set.size vs - 1)
 
 
 bindings :: Binding -> [(Type, Type)]
