@@ -12,6 +12,7 @@ import qualified Data.Binary.Defer.Map as Map
 import Data.Generics.Uniplate
 
 
+-- Map type [classes]
 newtype Instances = Instances (Map.Map String [String])
 
 instance Show Instances where
@@ -44,4 +45,4 @@ normInstances _ (TypeSig a b) = TypeSimp con b
 
 -- hasInstance _ C M, does C M exist
 hasInstance :: Instances -> String -> String -> Bool
-hasInstance (Instances mp) c m = m `elem` Map.findWithDefault [] c mp
+hasInstance (Instances mp) c m = c `elem` Map.findWithDefault [] m mp
