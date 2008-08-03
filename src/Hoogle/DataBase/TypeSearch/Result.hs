@@ -5,6 +5,7 @@ module Hoogle.DataBase.TypeSearch.Result(
     ) where
 
 import Hoogle.DataBase.TypeSearch.TypeScore
+import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.Score
 import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
@@ -40,7 +41,7 @@ data ResultAll = ResultAll Int (Link EntryInfo) [[ResultArg]]
 data ResultArg = ResultArg
     {resultArgEntry :: Link EntryInfo
     ,resultArgPos :: ArgPos
-    ,resultArgScore :: TypeScore
+    ,resultArgBind :: Binding
     } deriving Show
 
 
@@ -81,6 +82,7 @@ addResultAll is query (pos,res) (ResultAll i e info) =
 
 newGraphsResults :: Instances -> EntryInfo -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
 newGraphsResults is query e args res = do
-    s <- mergeTypeScores is query (fromLink e) $ map resultArgScore $ args++[res]
-    let view = zipWith ArgPosNum [0..] $ map resultArgPos args
+    b <- mergeBindings $ map resultArgBind $ args ++ [res]
+    let s = newTypeScore is query (fromLink e) b
+        view = zipWith ArgPosNum [0..] $ map resultArgPos args
     return (e, view, s)

@@ -47,8 +47,8 @@ newGraphs as is xs = Graphs (newIndex $ map snd entries) argGraph resGraph
         entries = [ (t2, e2{entryInfoEntries = sortOn linkKey $ map snd ys})
                   | ys@(((t2,e2),_):_) <- sortGroupFst $ map (\(e,t) -> (normType as is t, e)) xs]
 
-        argGraph = newGraph as (concat args)
-        resGraph = newGraph as res
+        argGraph = newGraph (concat args)
+        resGraph = newGraph res
 
         (args,res) = unzip
             [ initLast $ zipWith (\i t -> (lnk, i, t)) [0..] $ fromTFun t
@@ -68,18 +68,18 @@ normType as is t = (t3, EntryInfo [] (length (fromTFun t3) - 1) c2 a)
 graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [ResultReal]
 graphsSearch as is gs t = resultsCombine is query ans
     where
-        ans = mergesBy (compare `on` resultArgScore . snd) $ 
+        ans = mergesBy (compare `on` resultArgBind . snd) $ 
               f Nothing (resGraph gs) res :
               zipWith (\i -> f (Just i) (argGraph gs)) [0..] args
 
-        f a g = map ((,) a) . graphSearch as g
+        f a g = map ((,) a) . graphSearch g
         (args,res) = initLast $ fromTFun ts
         (ts,query) = normType as is t
 
 
 data S = S
     {infos :: IntMap.IntMap (Maybe ResultAll) -- Int = Link EntryInfo
-    ,pending :: Heap.Heap TypeScore Result
+    ,pending :: Heap.Heap Int Result
     ,todo :: [(Maybe ArgPos, ResultArg)]
     ,instances :: Instances
     ,query :: EntryInfo
@@ -99,7 +99,7 @@ delResult = do
     case todo of
         [] -> concatMapM f $ Heap.elems pending
         t:odo -> do
-            let (res,hp) = Heap.popWhile (resultArgScore $ snd t) pending
+            let (res,hp) = Heap.popWhile (costBinding $ resultArgBind $ snd t) pending
             modify $ \s -> s{todo=odo, pending=hp}
             ans1 <- concatMapM f res
             uncurry addResult t
@@ -129,7 +129,7 @@ addResult arg val = do
         x -> do
             let inf = fromJust $ fromMaybe def x
             (inf,res) <- return $ addResultAll is query (arg,val) inf
-            res <- return $ map (thd3 &&& id) res
+            res <- return $ map (costTypeScore . thd3 &&& id) res
             modify $ \s -> s
                 {infos = IntMap.insert entId (Just inf) $ infos s
                 ,pending = Heap.insertList res (pending s)
