@@ -46,10 +46,10 @@ instance Ord TypeScore where
 
 
 newTypeScore :: Instances -> EntryInfo -> EntryInfo -> Binding -> TypeScore
-newTypeScore is result query bs = t{score = calcScore t}
+newTypeScore is query result bs = t{score = calcScore t}
     where
         t = TypeScore 0
-            (entryInfoArity query - entryInfoArity result)
+            (entryInfoArity result - entryInfoArity query)
             bs 
             (entryInfoContext query `diff` ctx)
             (entryInfoAlias query `diff` entryInfoAlias result)
