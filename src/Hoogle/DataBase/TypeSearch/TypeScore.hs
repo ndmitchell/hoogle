@@ -19,35 +19,24 @@ data TypeScore = TypeScore
     ,bind :: Binding
     ,badInstance :: (TypeContext, TypeContext)
     ,badAlias :: ([String], [String])
-    } deriving Show
+    }
 
 
 costTypeScore :: TypeScore -> Int
 costTypeScore = score
 
-{-
 instance Show TypeScore where
-    show t = concat $ intersperse "," $
-             [show $ score t] ++
+    show t = unwords $
+             ['#' : show (score t)] ++
              replicate (badargs t) "badarg" ++
-             map ("unbox "++) (unbox t) ++
-             map ("rebox "++) (rebox t) ++
-             map f (Set.toList $ alias t) ++
-             map (g "+") (fst $ badInstance t) ++
-             map (g "-") (snd $ badInstance t) ++
-             map ( "alias "++) (fst $ badAlias t) ++
-             map ("~alias "++) (snd $ badAlias t) ++
-             map h (bind t)
+             [show $ bind t] ++
+             both inst (badInstance t) ++
+             both alis (badAlias t)
         where
-            f (Fwd a) = "alias " ++ a
-            f (Bwd a) = "~alias " ++ a
+            both f (a,b) = map (f "+") a ++ map (f "-") b
+            inst op (c,v) = c ++ op ++ v
+            alis op c = op ++ c
 
-            g op (a,b) = op ++ a ++ " " ++ b
-
-            h (a,b) = i a ++ "=" ++ i b
-            i (Var a) = a
-            i (Lit a) = a
--}
 
 instance Eq TypeScore where
     (==) = (==) `on` score

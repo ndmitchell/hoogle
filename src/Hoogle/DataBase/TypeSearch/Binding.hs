@@ -22,10 +22,14 @@ type Lit = String
 type Bind = Map.Map Var (Maybe Lit, Set.Set Var)
 
 data Binding = Binding !Int [Box] Bind Bind
-               deriving Show
 
 data Box = Unbox | Rebox
-           deriving (Eq,Show)
+           deriving (Show,Eq)
+
+
+instance Show Binding where
+    show b@(Binding _ box _ _) = unwords $ map (map toLower . show) box ++ map f (bindings b)
+        where f (a,b) = show a ++ "=" ++ show b
 
 
 instance Eq Binding where
