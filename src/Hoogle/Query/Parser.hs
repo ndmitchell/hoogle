@@ -13,6 +13,8 @@ parseQuery :: String -> Either ParseError Query
 parseQuery input = parse parsecQuery "" input
 
 
+-- TODO: I don't think this handles spaces/quotes properly in the right
+--       places.
 parseCmdLineQuery :: [String] -> Either ParseError Query
 parseCmdLineQuery args = parseQuery $ concat $ intersperse " " $ map f args
     where
