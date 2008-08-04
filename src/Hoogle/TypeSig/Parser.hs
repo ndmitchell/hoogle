@@ -98,7 +98,7 @@ parsecTypeSig = do whites
 
         keysymbol = try $ do
             x <- many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
-            if x `elem` ["::","=>",".","=","#",":","-","+","/"] then fail "Bad symbol" else
+            if x `elem` ["::","=>",".","=","#",":","-","+","/","--"] then fail "Bad symbol" else
                 return $ if x == "-#" then "->" else x
         ascSymbol = "!#$%&*+./<=>?@\\^|-~:"
 
