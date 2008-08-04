@@ -9,6 +9,7 @@ parse_Query = do
     let (===) = parseTest parseQuery
 
     "/info" === defaultQuery{flags = [Flag "info" ""]}
+    "--info" === defaultQuery{flags = [Flag "info" ""]}
     "/?" === defaultQuery{flags = [Flag "?" ""]}
     "/count=10" === defaultQuery{flags = [Flag "count" "10"]}
     "map" === defaultQuery{names = ["map"]}
@@ -19,6 +20,7 @@ parse_Query = do
     "+Data.Map map" === defaultQuery{scope = [PlusModule ["Data","Map"]], names = ["map"]}
     "a -> b +foo" === defaultQuery{scope = [PlusPackage "foo"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "a -> b /foo" === defaultQuery{flags = [Flag "foo" ""], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
+    "a -> b --foo" === defaultQuery{flags = [Flag "foo" ""], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "Data.Map.map" === defaultQuery{scope = [PlusModule ["Data","Map"]], names = ["map"]}
     "[a]" === defaultQuery{typeSig = Just (TypeSig [] (TApp (TLit "[]") [TVar "a"]))}
     "++" === defaultQuery{names = ["++"]}
