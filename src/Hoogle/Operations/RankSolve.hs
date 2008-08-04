@@ -67,6 +67,7 @@ solve xs mp = foldl' f mp xs
 
         grab side xs mp = sum $ map (side . (mp IntMap.!) . fromEnum) xs
 
-        -- does not deal well with multiple elements on either side
+        -- TODO: does not deal well with multiple elements on either side
+        --       some constraints may not be satisfied
         upd op [x] mp = IntMap.update (Just . op) (fromEnum x) mp
         upd op _ mp = mp
