@@ -5,6 +5,7 @@ import CmdLine.Flag
 import General.Glob
 import General.Code
 import Hoogle.Query.All
+import Paths_hoogle(getDataDir)
 
 
 -- pick "default" if there are not ones specified
@@ -21,5 +22,6 @@ getDataBaseFiles flags q = do
     where
         inc = [x | Include x <- flags]
         resolve x = do
-            [x] <- globFile inc ["hoo"] x
+            dataDir <- getDataDir
+            [x] <- globFile (inc++[dataDir]) ["hoo"] x
             return x
