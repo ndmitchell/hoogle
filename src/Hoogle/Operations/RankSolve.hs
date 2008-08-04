@@ -56,4 +56,17 @@ simplify c@(xs :< ys)
 solve :: [Cmp] -> Bind -> Bind
 solve xs mp = foldl' f mp xs
     where
-        f mp (xs :< ys) = mp
+        -- all x in xs, x.max = ys.max - 1
+        -- all y in ys, y.min = xs.min + 1
+        f mp (xs :< ys) = upd (id *** min (maxRhs - 1)) xs $
+                          upd (max (minLhs + 1) *** id) ys mp
+            where
+                minLhs = grab fst xs mp
+                maxRhs = grab snd ys mp
+
+
+        grab side xs mp = sum $ map (side . (mp IntMap.!) . fromEnum) xs
+
+        -- does not deal well with multiple elements on either side
+        upd op [x] mp = IntMap.update (Just . op) (fromEnum x) mp
+        upd op _ mp = mp
