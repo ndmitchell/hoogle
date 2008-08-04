@@ -7,12 +7,13 @@ import Hoogle.Query.All
 import General.Code
 import System.IO.Unsafe(unsafeInterleaveIO)
 import Web.Page
+import Text.ParserCombinators.Parsec
 
 
 actionWeb :: CmdQuery -> IO ()
 actionWeb q = do
     (skipped,dbs) <- loadDataBases q
-    let res = runQuery q dbs
+    let res = unlines $ header (queryText q) ++ runQuery dbs q ++ footer
     when (Debug `elem` queryFlags q) $
         writeFile "temp.htm" res
     putStrLn res
@@ -37,5 +38,17 @@ loadDataBases _ = return ([], [])
 
 
 -- TODO: Should escape the query text
-runQuery :: CmdQuery -> [DataBase] -> String
-runQuery q _ = header (queryText q) ++ footer
+runQuery :: [DataBase] -> CmdQuery -> [String]
+runQuery dbs CmdQuery{queryText = text, query = Left err} =
+    ["Parse error:", "  " ++ text
+    ,replicate (sourceColumn (errorPos err) + 1) ' ' ++ "^"
+    ,show err]
+
+runQuery dbs q | not $ usefulQuery $ fromRight $ query q =
+    ["<h1>Welcome to Hoogle</h1>"
+    ,"<p id='content'>"
+    ,"  Hoogle is a Haskell API search engine, have fun!"
+    ,"</p>"
+    ]
+
+runQuery dbs q = ["Search here"]
