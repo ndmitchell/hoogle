@@ -2,12 +2,18 @@
 module Hoogle.Operations.Rank(rank) where
 
 import General.Code
+import Hoogle.Query.All
+import Hoogle.Search.All
 import Hoogle.TextBase.All
 import Hoogle.DataBase.All
 import Hoogle.TypeSig.All
+import Hoogle.Item.All
+import Data.Binary.Defer.Index
 
 -- Privilaged imports
 import Hoogle.DataBase.TypeSearch.Cost(Cost(..))
+import Hoogle.DataBase.TypeSearch.TypeScore(costsTypeScore)
+import Hoogle.Search.Result(Score(TypeScore))
 
 
 data Cmp = [Cost] :< [Cost]
@@ -46,4 +52,26 @@ readRankTests xs = (tb, join $ concatMap parse rest)
 
 
 runRankTest :: TextBase -> RankTest -> [Cmp]
-runRankTest tb (RankTest t xs) = []
+runRankTest tb (RankTest t xs) = order $ map grab xs2
+    where
+        xs2 = zip ["f" ++ show i | i <- [1..]] xs
+
+        res = searchAll [db] q
+        db = createDataBase $ tb ++ [(ItemFunc a b, "") | (a,b) <- xs2]
+        q = defaultQuery{typeSig=Just t}
+
+        grab :: (String,TypeSig) -> (TypeSig,[Cost])
+        grab (name,typ) = (,) typ $
+            headDef (err $ "Couldn't find result for " ++ show typ)
+            [sort $ costsTypeScore c | r <- res, entryName (fromLink $ resultEntry r) == name
+                                     , TypeScore c <- resultScore r]
+
+
+        order ((at,a):xs@((bt,b):_))
+            | isNothing match = (a :< b) : order xs
+            | otherwise = err $ "Two items have the same score, " ++ show at ++
+                                " AND " ++ show (fst $ fromJust match)
+                where match = find ((==) a . snd) xs
+        order _ = []
+
+        err msg = error $ "Hoogle.Operations.runRankTest\nTest: " ++ show t ++ "\n" ++ msg
