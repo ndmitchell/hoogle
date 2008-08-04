@@ -8,6 +8,7 @@ Stability:       Beta
 Build-Type:		 Simple
 Cabal-Version:   >= 1.1.4
 Build-Depends:   base, parsec, filepath, directory, process, safe, containers, uniplate, mtl, array
+Data-Files:      default.hoo
 
 Executable:      hoogle
 Main-Is:         Main.hs
