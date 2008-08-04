@@ -21,7 +21,7 @@ data Cost = CostAliasFwd
           | CostInstanceDel
           | CostInstanceAdd
           | CostDeadArg
-            deriving Show
+            deriving (Show,Eq,Ord)
 
 
 score :: [Cost] -> Int
