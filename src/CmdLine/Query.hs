@@ -57,11 +57,12 @@ cmdQueryCGI xs = do
 
 cmdQueryArgs :: [String] -> IO CmdQuery
 cmdQueryArgs xs = case parseCmdLineQuery xs of
-    Left err -> return $ CmdQuery False orig (Left err) [] []
+    Left err -> return $ CmdQuery (hasFlag ["w","web"]) orig (Left err) [Debug | hasFlag ["debug"]] []
     Right res -> do
         (flags,bad) <- flagsCmdLine $ queryArgs res
         return $ CmdQuery (Web `elem` flags) orig (Right res) flags bad
     where orig = unwords $ map quote xs
+          hasFlag names = or [(a++b) `elem` xs | a <- ["/","--"], b <- names]
 
 
 quote :: String -> String
