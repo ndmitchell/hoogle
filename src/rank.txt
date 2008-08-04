@@ -1,6 +1,9 @@
 -- a list of examples
 -- used to generate a scoring system
 
+type String = [Char]
+
+
 @ Ord a => [a] -> [a]
 Ord a => a -> [a] -> [a]
 [a] -> [a]

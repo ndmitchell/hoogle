@@ -18,21 +18,21 @@ data RankTest = RankTest TypeSig [TypeSig]
                 deriving Show
 
 
-readRankTests :: String -> [RankTest]
-readRankTests = join . concatMap parse . lines
+readRankTests :: String -> (TextBase,[RankTest])
+readRankTests xs = (tb, join $ concatMap parse rest)
     where
+        (pre,rest) = break ("@" `isPrefixOf`) $ lines xs
+        tb = right $ parseTextBaseString $ unlines pre
+
         parse :: String -> [(Bool, TypeSig)]
         parse xs | null xs || "--" `isPrefixOf` xs = []
         parse ('@':xs) = [(True,f xs)]
         parse xs = [(False,f xs)]
 
-        f xs = case parseTypeSig xs of
-                   Right x -> x
-                   Left x -> error $ "readRank failed to parse " ++ show xs ++ ", " ++ show x
+        f = right . parseTypeSig 
+        right (Right x) = x
+        right (Left x) = error $ "readRank failed to parse " ++ show x
 
-        join ((True,t):xs) = RankTest t (map snd a) : join b
+        join ((_,t):xs) = RankTest t (map snd a) : join b
             where (a,b) = break fst xs
         join [] = []
-        join ((False,t):_) = error $ "Unexpected rank info, " ++ show t
-
-
