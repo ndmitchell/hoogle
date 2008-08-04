@@ -44,8 +44,8 @@ padR n xs = xs ++ replicate (n - length xs) ' '
 
 simplify :: Cmp -> [Cmp]
 simplify c@(xs :< ys)
-        | null $ ys2 \\ xs2 = error $ "rankSolve, contradiction exists: " ++ show c
-        | null $ xs2 \\ ys2 = []
+        | null xs2 = []
+        | null ys2 = error $ "rankSolve, contradiction exists: " ++ show c
         | otherwise = [xs2 :< ys2]
     where
         common = intersect xs ys
