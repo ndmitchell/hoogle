@@ -29,4 +29,14 @@ score = sum . map cost
 
 
 cost :: Cost -> Int
-cost _ = 1
+cost CostAliasFwd     =    1  -- 1..1000
+cost CostAliasBwd     =    1  -- 1..997
+cost CostUnbox        =    5  -- 5..1000
+cost CostRebox        =    4  -- 4..999
+cost CostRestrict     =    5  -- 5..1000
+cost CostUnrestrict   =    4  -- 4..1000
+cost CostDupVarResult =    4  -- 4..999
+cost CostDupVarQuery  =    5  -- 5..1000
+cost CostInstanceDel  =    4  -- 4..999
+cost CostInstanceAdd  =    4  -- 4..999
+cost CostDeadArg      =    3  -- 3..998
