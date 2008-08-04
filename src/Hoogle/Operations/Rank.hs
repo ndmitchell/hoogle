@@ -6,16 +6,23 @@ import Hoogle.TextBase.All
 import Hoogle.DataBase.All
 import Hoogle.TypeSig.All
 
-
-rank :: FilePath -> IO ()
-rank file = do
-    tests <- liftM readRankTests $ readFile file
-    error $ show tests
+-- Privilaged imports
+import Hoogle.DataBase.TypeSearch.Cost(Cost(..))
 
 
+data Cmp = [Cost] :< [Cost]
+           deriving Show
 
 data RankTest = RankTest TypeSig [TypeSig]
                 deriving Show
+
+
+rank :: FilePath -> IO ()
+rank file = do
+    (tb,tests) <- liftM readRankTests $ readFile file
+    let rel = concatMap (runRankTest tb) tests
+    error $ show rel
+
 
 
 readRankTests :: String -> (TextBase,[RankTest])
@@ -36,3 +43,7 @@ readRankTests xs = (tb, join $ concatMap parse rest)
         join ((_,t):xs) = RankTest t (map snd a) : join b
             where (a,b) = break fst xs
         join [] = []
+
+
+runRankTest :: TextBase -> RankTest -> [Cmp]
+runRankTest tb (RankTest t xs) = []
