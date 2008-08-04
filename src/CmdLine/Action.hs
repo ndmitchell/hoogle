@@ -11,6 +11,9 @@ import Hoogle.All
 import Test.All
 import Text.ParserCombinators.Parsec
 
+import Paths_hoogle(version)
+import Data.Version(showVersion)
+
 
 actionCmdLine :: CmdQuery -> IO ()
 
@@ -28,7 +31,7 @@ actionCmdLine q | not $ null $ queryBadFlags q = do
 
 actionCmdLine q | Version `elem` queryFlags q = putStr $ unlines
     ["Hoogle - (C) Neil Mitchell 2004-2008, University of York, UK"
-    ,"Version 4.0 pre"]
+    ,"Version " ++ showVersion version]
 
 
 actionCmdLine q | Help `elem` queryFlags q =
