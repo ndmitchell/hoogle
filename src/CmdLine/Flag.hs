@@ -34,7 +34,7 @@ data CmdFlag = Version           -- ^ Version information
              | Include FilePath  -- ^ Include directory
              | TestFile FilePath -- ^ Run tests in a file
              | Rank FilePath     -- ^ Generate rankings
-               deriving (Eq {-! Enum !-} )
+               deriving (Show,Eq {-! Enum !-} )
 
 
 -- | In which circumstances are you allowed to pass this command

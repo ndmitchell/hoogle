@@ -28,7 +28,7 @@ data CmdQuery = CmdQuery {
     query :: Either ParseError Query, -- ^ The actual query
     queryFlags :: [CmdFlag], -- ^ The flags from the query
     queryBadFlags :: [String] -- ^ The bad flags
-    }
+    } deriving Show
 
 
 -- | Left (query text, error message), null query text = no query given
