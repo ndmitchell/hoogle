@@ -68,9 +68,10 @@ form a:hover {
 h1 {
 	font-size: 10pt;
 	padding: 5px;
-	background-color: #def;
 	margin-top: 0px;
-	border-top: 1px solid #36c;
+	/* nicer colors, but do not work for type search coloring */
+	background-color: #f4f4f4;
+	border-top: 1px solid #bbb; /* #36c; */
 }
 
 p {
@@ -137,12 +138,12 @@ p {
 
 .func {color: black;}
 
-.c1{background-color: #fcc;}
-.c2{background-color: #cfc;}
-.c3{background-color: #ccf;}
-.c4{background-color: #ffc;}
-.c5{background-color: #fcf;}
-.c6{background-color: #cff;}
+.c0{background-color: #fcc;}
+.c1{background-color: #cfc;}
+.c2{background-color: #ccf;}
+.c3{background-color: #ffc;}
+.c4{background-color: #fcf;}
+.c5{background-color: #cff;}
 
 
 #suggest, #lambdabot {

@@ -31,7 +31,7 @@ search query =
     ,"  <a id='logo' href='http://haskell.org/hoogle/'>" ++
          "<img src='res/hoogle.png' alt='Hoogle' />" ++
        "</a>"
-    ,"  <input name='q' id='text' type='text' value='" ++ query ++ "' />"
+    ,"  <input name='q' id='text' type='text' value=\"" ++ query ++ "\" />"
     ,"  <input id='submit' type='submit' value='Search' />"
     ,"</form>"
     ]
