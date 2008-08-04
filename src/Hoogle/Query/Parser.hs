@@ -16,7 +16,7 @@ parseQuery input = parse parsecQuery "" input
 parseCmdLineQuery :: [String] -> Either ParseError Query
 parseCmdLineQuery args = parseQuery $ concat $ intersperse " " $ map f args
     where
-        f x | any isSpace x = "\"" ++ x ++ "\""
+        f x | any isSpace x && ("--" `isPrefixOf` x || "/" `isPrefixOf` x) = "\"" ++ x ++ "\""
             | otherwise = x
 
 
