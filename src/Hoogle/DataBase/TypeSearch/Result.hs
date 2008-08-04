@@ -6,7 +6,6 @@ module Hoogle.DataBase.TypeSearch.Result(
 
 import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.TypeSearch.Binding
-import Hoogle.DataBase.TypeSearch.Score
 import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
 import Data.Binary.Defer

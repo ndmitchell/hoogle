@@ -5,7 +5,7 @@ module Hoogle.DataBase.TypeSearch.TypeScore(
     ) where
 
 import General.Code
-import Hoogle.DataBase.TypeSearch.Score
+import Hoogle.DataBase.TypeSearch.Cost
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
@@ -61,14 +61,14 @@ calcScore :: TypeScore -> Int
 calcScore t = costBinding (bind t) + score (costsTypeScoreLocal t)
 
 
-costsTypeScoreLocal :: TypeScore -> [Score]
+costsTypeScoreLocal :: TypeScore -> [Cost]
 costsTypeScoreLocal t =
-    ScoreDeadArg *+ badargs t ++
-    ScoreAliasFwd *+ length (fst $ badAlias t) ++
-    ScoreAliasBwd *+ length (snd $ badAlias t) ++
-    ScoreInstanceAdd *+ length (fst $ badInstance t) ++
-    ScoreInstanceDel *+ length (snd $ badInstance t)
+    CostDeadArg *+ badargs t ++
+    CostAliasFwd *+ length (fst $ badAlias t) ++
+    CostAliasBwd *+ length (snd $ badAlias t) ++
+    CostInstanceAdd *+ length (fst $ badInstance t) ++
+    CostInstanceDel *+ length (snd $ badInstance t)
 
 
-costsTypeScore :: TypeScore -> [Score]
+costsTypeScore :: TypeScore -> [Cost]
 costsTypeScore t = costsBinding (bind t) ++ costsTypeScoreLocal t
