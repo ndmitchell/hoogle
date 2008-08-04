@@ -9,15 +9,13 @@ import Hoogle.DataBase.All
 import Hoogle.TypeSig.All
 import Hoogle.Item.All
 import Data.Binary.Defer.Index
+import Hoogle.Operations.RankSolve
 
 -- Privilaged imports
 import Hoogle.DataBase.TypeSearch.Cost(Cost(..))
 import Hoogle.DataBase.TypeSearch.TypeScore(costsTypeScore)
 import Hoogle.Search.Result(Score(TypeScore))
 
-
-data Cmp = [Cost] :< [Cost]
-           deriving Show
 
 data RankTest = RankTest TypeSig [TypeSig]
                 deriving Show
@@ -27,7 +25,7 @@ rank :: FilePath -> IO ()
 rank file = do
     (tb,tests) <- liftM readRankTests $ readFile file
     let rel = concatMap (runRankTest tb) tests
-    error $ show rel
+    rankSolve rel
 
 
 
