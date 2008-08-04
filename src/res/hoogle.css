@@ -74,7 +74,7 @@ h1 {
 	border-top: 1px solid #bbb; /* #36c; */
 }
 
-p {
+p, table {
 	padding-left: 20px;
 	padding-right: 20px;
 }
@@ -87,6 +87,13 @@ p {
 #error {
 	border-bottom: 2px dotted red;
 }
+
+.mod {
+	vertical-align: bottom;
+	text-align: right;
+	font-size: 8pt;
+}
+
 
 
 

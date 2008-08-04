@@ -11,6 +11,8 @@ import System.IO.Unsafe(unsafeInterleaveIO)
 import Web.Page
 import Text.ParserCombinators.Parsec
 import Data.TagStr
+import Data.Range
+import Data.Binary.Defer.Index
 
 
 actionWeb :: CmdQuery -> IO ()
@@ -66,16 +68,21 @@ runQuery dbs q | not $ usefulQuery $ fromRight $ query q =
 
 
 runQuery dbs CmdQuery{query = Right q} =
-    ["<h1>Searched for " ++ qstr ++ "</h1>"
-    ,"<p>todo</p>"
-    ]
+    ["<h1>Searched for " ++ qstr ++ "</h1>"] ++
+    ["<p>" ++ showTagHTML sug ++ "</p>" | Just sug <- [suggestQuery dbs q]] ++
+    if null res then
+        ["<p>No results found</p>"]
+    else
+        ["<table>"] ++ map (f . renderResult) res ++ ["</table>"]
     where
+        res = searchRange (rangeStartCount 0 25) dbs q
+        f (m,r,v) = "<tr><td class='mod'>" ++ maybe "" showModule m ++
+                    "</td><td>" ++ showTagHTML r ++ "</td></tr>"
+
         qstr = unwords $ names q ++
                ["::" | names q /= [] && isJust (typeSig q)] ++
                [showTagHTML (renderEntryText view $ renderTypeSig t) | Just t <- [typeSig q]]
         view = [ArgPosNum i i | i <- [0..10]]
-
-
 
 
 
