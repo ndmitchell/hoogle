@@ -23,6 +23,12 @@ on f g x y = f (g x) (g y)
 swap (a,b) = (b,a)
 
 
+fix :: Eq a => (a -> a) -> a -> a
+fix f x = if x == x2 then x else fix f x2
+    where x2 = f x
+
+
+
 -- | If anyone of them returns Nothing, the whole thing does
 mapMaybeAll :: (a -> Maybe b) -> [a] -> Maybe [b]
 mapMaybeAll f xs = g [] xs
