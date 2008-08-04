@@ -1,7 +1,7 @@
 
 
 module Hoogle.DataBase.TypeSearch.TypeScore(
-    TypeScore, newTypeScore, costTypeScore
+    TypeScore, newTypeScore, costTypeScore, costsTypeScore
     ) where
 
 import General.Code
@@ -14,7 +14,7 @@ import qualified Data.Set as Set
 
 
 data TypeScore = TypeScore
-    {score :: !Int
+    {costTypeScore :: !Int
     ,badargs :: Int
     ,bind :: Binding
     ,badInstance :: (TypeContext, TypeContext)
@@ -22,12 +22,9 @@ data TypeScore = TypeScore
     }
 
 
-costTypeScore :: TypeScore -> Int
-costTypeScore = score
-
 instance Show TypeScore where
     show t = unwords $
-             ['#' : show (score t)] ++
+             ['#' : show (costTypeScore t)] ++
              replicate (badargs t) "badarg" ++
              [show $ bind t] ++
              both inst (badInstance t) ++
@@ -39,14 +36,14 @@ instance Show TypeScore where
 
 
 instance Eq TypeScore where
-    (==) = (==) `on` score
+    (==) = (==) `on` costTypeScore
 
 instance Ord TypeScore where
-    compare = compare `on` score
+    compare = compare `on` costTypeScore
 
 
 newTypeScore :: Instances -> EntryInfo -> EntryInfo -> Binding -> TypeScore
-newTypeScore is query result bs = t{score = calcScore t}
+newTypeScore is query result bs = t{costTypeScore = calcScore t}
     where
         t = TypeScore 0
             (entryInfoArity result - entryInfoArity query)
@@ -61,10 +58,17 @@ newTypeScore is query result bs = t{score = calcScore t}
 
 
 calcScore :: TypeScore -> Int
-calcScore t =
-    scoreDeadArg * badargs t +
-    costBinding (bind t) +
-    scoreAliasFwd * length (fst $ badAlias t) +
-    scoreAliasBwd * length (snd $ badAlias t) +
-    scoreInstanceAdd * length (fst $ badInstance t) +
-    scoreInstanceDel * length (snd $ badInstance t)
+calcScore t = costBinding (bind t) + score (costsTypeScoreLocal t)
+
+
+costsTypeScoreLocal :: TypeScore -> [Score]
+costsTypeScoreLocal t =
+    ScoreDeadArg *+ badargs t ++
+    ScoreAliasFwd *+ length (fst $ badAlias t) ++
+    ScoreAliasBwd *+ length (snd $ badAlias t) ++
+    ScoreInstanceAdd *+ length (fst $ badInstance t) ++
+    ScoreInstanceDel *+ length (snd $ badInstance t)
+
+
+costsTypeScore :: TypeScore -> [Score]
+costsTypeScore t = costsBinding (bind t) ++ costsTypeScoreLocal t

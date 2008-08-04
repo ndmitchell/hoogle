@@ -1,19 +1,31 @@
 
-module Hoogle.DataBase.TypeSearch.Score where
+module Hoogle.DataBase.TypeSearch.Score(
+    Score(..), cost, score, (*+)
+    ) where
 
--- Oh, wow, my first _ever_ use of default!
-default(Int)
 
--- scores and their costs
+infixl 7  *+ -- same as *
 
-scoreAliasFwd = 1
-scoreAliasBwd = 1
-scoreUnbox = 1
-scoreRebox = 1
-scoreRestrict = 1
-scoreUnrestrict = 1
-scoreDupVarResult = 1
-scoreDupVarQuery = 1
-scoreInstanceDel = 1
-scoreInstanceAdd = 1
-scoreDeadArg = 1
+(*+) :: Score -> Int -> [Score]
+(*+) = flip replicate
+
+
+data Score = ScoreAliasFwd
+           | ScoreAliasBwd
+           | ScoreUnbox
+           | ScoreRebox
+           | ScoreRestrict
+           | ScoreUnrestrict
+           | ScoreDupVarResult
+           | ScoreDupVarQuery
+           | ScoreInstanceDel
+           | ScoreInstanceAdd
+           | ScoreDeadArg
+
+
+score :: [Score] -> Int
+score = sum . map cost
+
+
+cost :: Score -> Int
+cost _ = 1

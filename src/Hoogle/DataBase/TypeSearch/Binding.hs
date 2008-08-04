@@ -5,7 +5,7 @@
 
 module Hoogle.DataBase.TypeSearch.Binding(
     Binding, newBinding, newBindingUnbox, newBindingRebox,
-    addBinding, costBinding, mergeBindings, bindings
+    addBinding, costBinding, costsBinding, mergeBindings, bindings
     ) where
 
 import Hoogle.TypeSig.All
@@ -44,27 +44,27 @@ costBinding (Binding x _ _ _) = x
 
 
 newBinding, newBindingUnbox, newBindingRebox :: Binding
-newBinding      = Binding 0          []      Map.empty Map.empty
-newBindingUnbox = Binding scoreUnbox [Unbox] Map.empty Map.empty
-newBindingRebox = Binding scoreRebox [Rebox] Map.empty Map.empty
+newBinding      = Binding 0                 []      Map.empty Map.empty
+newBindingUnbox = Binding (cost ScoreUnbox) [Unbox] Map.empty Map.empty
+newBindingRebox = Binding (cost ScoreRebox) [Rebox] Map.empty Map.empty
 
 
 
-cost b v = if b then v else 0
+costIf b v = if b then cost v else 0
 
 
 addBinding :: (Type, Type) -> Binding -> Maybe Binding
 addBinding (TVar a, TVar b) (Binding c box x y) = Just $ Binding c2 box x2 y2
     where (x2,cx) = addVar a b x
           (y2,cy) = addVar b a y
-          c2 = c + cost cx scoreDupVarQuery + cost cy scoreDupVarResult
+          c2 = c + costIf cx ScoreDupVarQuery + costIf cy ScoreDupVarResult
 
 addBinding (TVar a, TLit b) (Binding c box x y) = do
     (x2,cx) <- addLit a b x
-    return $ Binding (c + cost cx scoreRestrict) box x2 y
+    return $ Binding (c + costIf cx ScoreRestrict) box x2 y
 addBinding (TLit a, TVar b) (Binding c box x y) = do
     (y2,cy) <- addLit b a y
-    return $ Binding (c + cost cy scoreUnrestrict) box x y2
+    return $ Binding (c + costIf cy ScoreUnrestrict) box x y2
 
 addBinding (TLit a, TLit b) bind = if a == b then Just bind else Nothing
 
@@ -88,19 +88,30 @@ mergeBindings :: [Binding] -> Maybe Binding
 mergeBindings bs = do
     let (box,ls,rs) = unzip3 [(b,l,r) | Binding _ b l r <- bs]
         (bl,br) = (Map.unionsWith f ls, Map.unionsWith f rs)
-        cb = sum [if b == Unbox then scoreUnbox else scoreRebox | b <- concat box]
-    cl <- score scoreDupVarQuery  scoreRestrict   bl
-    cr <- score scoreDupVarResult scoreUnrestrict br
-    return $ Binding (cl+cr+cb) (concat box) bl br
+        res i = Binding i (concat box) bl br
+    s <- costsBindingLocal (res 0)
+    return $ res (score s)
     where
         f (l1,vs1) (l2,vs2)
             | l1 /= l2 && isJust l1 && isJust l2 = (Just "", vs1)
             | otherwise = (l1 `mplus` l2, Set.union vs1 vs2)
 
-        score var restrict = liftM sum . mapM g . Map.elems
+
+costsBindingLocal :: Binding -> Maybe [Score]
+costsBindingLocal (Binding _ box l r) = do
+    let cb = [if b == Unbox then ScoreUnbox else ScoreRebox | b <- box]
+    cl <- f ScoreDupVarQuery  ScoreRestrict   l
+    cr <- f ScoreDupVarResult ScoreUnrestrict r
+    return $ cb++cl++cr
+    where
+        f var restrict = concatMapM g . Map.elems
             where
                 g (Just "", _) = Nothing
-                g (l, vs) = Just $ cost (isJust l) restrict + var * (max 0 $ Set.size vs - 1)
+                g (l, vs) = Just $ [restrict|isJust l] ++ var *+ (max 0 $ Set.size vs - 1)
+
+
+costsBinding :: Binding -> [Score]
+costsBinding = fromJust . costsBindingLocal
 
 
 bindings :: Binding -> [(Type, Type)]
