@@ -84,4 +84,6 @@ newGraphsResults is query e args res = do
     b <- mergeBindings $ map resultArgBind $ args ++ [res]
     let s = newTypeScore is query (fromLink e) b
         view = zipWith ArgPosNum [0..] $ map resultArgPos args
-    return (e, view, s)
+        -- need to fake at least one ArgPosNum, so we know we have some highlight info
+        view2 = [ArgPosNum (-1) (-1) | null view] ++ view
+    return (e, view2, s)
