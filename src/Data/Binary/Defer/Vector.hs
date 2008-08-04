@@ -1,4 +1,6 @@
 
+-- TODO: Should probably use ByteString instead?
+
 module Data.Binary.Defer.Vector(
     Vector, toList, fromList
     ) where
