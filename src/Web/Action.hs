@@ -6,6 +6,7 @@ import Hoogle.All
 import Hoogle.Query.All
 import General.Code
 import System.IO.Unsafe(unsafeInterleaveIO)
+import Web.Page
 
 
 actionWeb :: CmdQuery -> IO ()
@@ -35,5 +36,6 @@ loadDataBases CmdQuery{query=Right q} = do
 loadDataBases _ = return ([], [])
 
 
+-- TODO: Should escape the query text
 runQuery :: CmdQuery -> [DataBase] -> String
-runQuery _ _ = "hello"
+runQuery q _ = header (queryText q) ++ footer
