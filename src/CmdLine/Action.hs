@@ -45,6 +45,10 @@ actionCmdLine q | TestFile{} `elemEnum` queryFlags q =
     mapM_ (actionTest q) [x | TestFile x <- queryFlags q]
 
 
+actionCmdLine q | Rank{} `elemEnum` queryFlags q =
+    mapM_ rank [x | Rank x <- queryFlags q]
+
+
 actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
     mapM_ (actionConvert q) [x | Convert x <- queryFlags q]
 

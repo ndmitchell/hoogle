@@ -33,6 +33,7 @@ data CmdFlag = Version           -- ^ Version information
              | Debug             -- ^ Do debugging activities
              | Include FilePath  -- ^ Include directory
              | TestFile FilePath -- ^ Run tests in a file
+             | Rank FilePath     -- ^ Generate rankings
                deriving (Eq {-! Enum !-} )
 
 
@@ -86,6 +87,7 @@ flagInfo =
     ,f (ArgNone Debug) ["debug"] [PCmdLine] "Debugging only"
     ,f (ArgDir Include) ["i","include"] [PCmdLine,PMultiple] "Include directories"
     ,f (ArgFileIn TestFile ["txt"]) ["testfile"] [PCmdLine,PMultiple] "Run tests from a file"
+    ,f (ArgFileIn Rank ["txt"]) ["rank"] [PCmdLine,PMultiple] "Generate ranking scores"
     ]
     where f = FlagInfo
 
@@ -205,7 +207,7 @@ parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = [True]
 --------------------------------------------------------
 -- DERIVES GENERATED CODE
 -- DO NOT MODIFY BELOW THIS LINE
--- CHECKSUM: 1149839663
+-- CHECKSUM: 780144949
 
 instance Enum CmdFlag
     where toEnum 0 = Version{}
@@ -224,6 +226,7 @@ instance Enum CmdFlag
           toEnum 13 = Debug{}
           toEnum 14 = Include{}
           toEnum 15 = TestFile{}
+          toEnum 16 = Rank{}
           toEnum n = error ((++) "toEnum " ((++) (show n) ", not defined for CmdFlag"))
           fromEnum (Version {}) = 0
           fromEnum (Web {}) = 1
@@ -241,3 +244,4 @@ instance Enum CmdFlag
           fromEnum (Debug {}) = 13
           fromEnum (Include {}) = 14
           fromEnum (TestFile {}) = 15
+          fromEnum (Rank {}) = 16
