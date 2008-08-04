@@ -40,15 +40,26 @@ loadDataBases _ = return ([], [])
 -- TODO: Should escape the query text
 runQuery :: [DataBase] -> CmdQuery -> [String]
 runQuery dbs CmdQuery{queryText = text, query = Left err} =
-    ["Parse error:", "  " ++ text
-    ,replicate (sourceColumn (errorPos err) + 1) ' ' ++ "^"
-    ,show err]
+    ["<h1>Parse error in user query</h1>"
+    ,"<p>"
+    ,"  Query: <tt>" ++ pre ++ "<span id='error'>" ++ post2 ++ "</span></tt><br/>"
+    ,"</p><p>"
+    ,"  Error: " ++ drop 1 (dropWhile (/= ':') $ show err) ++ "<br/>"
+    ,"</p><p>"
+    ,"  For information on what queries should look like, see the user manual."
+    ,"</p>"
+    ]
+    where
+        (pre,post) = splitAt (sourceColumn (errorPos err) - 1) text
+        post2 = if null post then concat (replicate 3 "&nbsp;") else post
+
 
 runQuery dbs q | not $ usefulQuery $ fromRight $ query q =
     ["<h1>Welcome to Hoogle</h1>"
-    ,"<p id='content'>"
+    ,"<p>"
     ,"  Hoogle is a Haskell API search engine, have fun!"
     ,"</p>"
     ]
+
 
 runQuery dbs q = ["Search here"]

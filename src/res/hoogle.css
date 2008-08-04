@@ -73,8 +73,7 @@ h1 {
 	border-top: 1px solid #36c;
 }
 
-#content {
-	min-height: 100px;
+p {
 	padding-left: 20px;
 	padding-right: 20px;
 }
@@ -83,6 +82,12 @@ h1 {
 /********************************************************************
 *  RESULTS
 */
+
+#error {
+	border-bottom: 2px dotted red;
+}
+
+
 
 #select {
 	margin-top: 15px;
