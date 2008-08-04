@@ -16,7 +16,7 @@ parseQuery input = parse parsecQuery "" input
 -- TODO: I don't think this handles spaces/quotes properly in the right
 --       places.
 parseCmdLineQuery :: [String] -> Either ParseError Query
-parseCmdLineQuery args = parseQuery $ concat $ intersperse " " $ map f args
+parseCmdLineQuery args = parseQuery $ unwords $ map f args
     where
         f x | any isSpace x && ("--" `isPrefixOf` x || "/" `isPrefixOf` x) = "\"" ++ x ++ "\""
             | otherwise = x
