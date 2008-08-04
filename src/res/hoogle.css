@@ -6,10 +6,13 @@ body {
 	margin: 0px;
 	font-family: sans-serif;
 	padding: 3px;
+	font-size: 10pt;
 }
 
 a img {
 	border-width: 0px;
+	padding: 0px;
+	margin: 0px;
 }
 
 a:hover {
@@ -20,13 +23,24 @@ a:hover {
 *  THE TOP
 */
 
-#header {
-	width: 100%;
-	font-size: 11pt;
+#links {
+	float: right;
+	padding-right: 10px;
 }
 
-#header a {
-	text-decoration: none;
+input {
+	margin-bottom: 22px;
+}
+
+#text {
+	width: 300px;
+	margin-right: 5px;
+	margin-left: 5px;
+}
+
+#submit {
+	padding-left: 15px;
+	padding-right: 15px;
 }
 
 
@@ -67,15 +81,6 @@ a:hover {
 /********************************************************************
 *  HEADING TEXT
 */
-
-#logo {
-	float: left;
-}
-
-#logo a:hover {
-	background-color: white;
-}
-	
 
 h1 {
 	margin-top: 15px;
