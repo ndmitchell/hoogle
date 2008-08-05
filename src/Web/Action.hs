@@ -47,9 +47,9 @@ runQuery :: [DataBase] -> CmdQuery -> [String]
 runQuery dbs CmdQuery{queryText = text, query = Left err} =
     ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
-    ,"  Query: <tt>" +? pre ++ "<span id='error'>" +? post2 ++ "</span></tt><br/>"
+    ,"  Query: <tt>" +& pre ++ "<span id='error'>" +& post2 ++ "</span></tt><br/>"
     ,"</p><p>"
-    ,"  Error: " +? drop 1 (dropWhile (/= ':') $ show err) ++ "<br/>"
+    ,"  Error: " +& drop 1 (dropWhile (/= ':') $ show err) ++ "<br/>"
     ,"</p><p>"
     ,"  For information on what queries should look like, see the user manual."
     ,"</p>"
@@ -100,8 +100,8 @@ renderRes r =
         urlModule = urlPkg +++ concat (intersperse "-" $ fromMaybe [] modu) +++ ".html"
         urlItem = urlModule +++ "#v:" +++ escapeHTML (entryName $ fromLink $ resultEntry r)
 
-        url (TagHyperlink _ x) = Just $ "</a><a href='" +? urlItem ++ "'>" ++ showTagHTML x ++
-                                        "</a><a class='dull' href='" +? urlItem ++ "'>"
+        url (TagHyperlink _ x) = Just $ "</a><a href='" +& urlItem ++ "'>" ++ showTagHTML x ++
+                                        "</a><a class='dull' href='" +& urlItem ++ "'>"
         url _ = Nothing
 
         a +++ b = if null a || null b then [] else a ++ b
@@ -111,7 +111,9 @@ td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++
 href url x = if null url then x else "<a class='dull' href='" ++ url ++ "'>" ++ x ++ "</a>"
 
 
-a +? b = a ++ escapeHTML b
+-- | Escape the second argument before appending
+(+&) :: String -> String -> String
+a +& b = a ++ escapeHTML b
 
 
 escapeHTML = concatMap f
@@ -133,5 +135,5 @@ showTagHTMLWith f x = g x
         g (Tags xs) = concatMap g xs
         g (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
         g (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
-        g (TagHyperlink url x) = "<a href=\"" +? url ++ "\">" ++ showTagHTML x ++ "</a>"
+        g (TagHyperlink url x) = "<a href=\"" +& url ++ "\">" ++ showTagHTML x ++ "</a>"
         g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
