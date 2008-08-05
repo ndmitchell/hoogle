@@ -67,7 +67,8 @@ addResultAll is query (pos,res) (ResultAll i e info) =
         -- must take one element from 0
         -- must use res from ind
         path :: [[ResultArg]]
-        path = f i IntSet.empty $ zip [0..] info
+        path = f i set $ zip [0..] info
+            where set = if ind == 0 then IntSet.empty else IntSet.singleton (resultArgPos res)
 
         f bad set [] = [[] | bad == 0]
         f bad set ((i,x):xs)
