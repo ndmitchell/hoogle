@@ -32,3 +32,7 @@ chars :: [Char]
 @test ":: String" string chars
 @test "[Char]" chars string
 @test "Functor m => (a -> b) -> m a -> m b" fmap unfmap eq
+
+-- tests that arguments are not reused
+int2 :: Char -> Int -> Int
+@test "Int -> Int -> Int" !int2
