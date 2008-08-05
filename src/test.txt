@@ -10,6 +10,7 @@ unsafeCoerce :: a -> b
 map :: (a -> b) -> [a] -> [b]
 fmap :: Functor m => (a -> b) -> m a -> m b
 unfmap :: (a -> b) -> m a -> m b
+eq :: Eq a => (a -> b) -> m a -> m b
 fst :: (a,b) -> a
 snd :: (a,b) -> b
 (==) :: Eq a => a -> a -> Bool
@@ -21,13 +22,13 @@ chars :: [Char]
 
 
 @test "id" id
-@test "map" map fmap unfmap
--- for the map test, unfmap or fmap are the same level
-@test "(a -> b) -> [a] -> [b]" map fmap unfmap
-@test "a -> b" unsafeCoerce *
+@test "map" map fmap,unfmap
+@test "(a -> b) -> [a] -> [b]" map fmap,unfmap
+@test "a -> b" unsafeCoerce
 @test "(c,d) -> d" snd fst
 @test "(c,d) -> c" fst snd
-@test "Bool -> Bool -> Bool" == *
-@test "Bool -> Bool" not * == *
-@test ":: String" string chars *
-@test "[Char]" chars string *
+@test "Bool -> Bool -> Bool" ==
+@test "Bool -> Bool" not ==
+@test ":: String" string chars
+@test "[Char]" chars string
+@test "Functor m => (a -> b) -> m a -> m b" fmap unfmap eq
