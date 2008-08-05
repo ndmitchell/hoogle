@@ -12,6 +12,7 @@ body {
 a img {
 	padding: 0px;
 	margin: 0px;
+	border: 0px;
 }
 
 a:hover {
@@ -100,6 +101,13 @@ td {
 	font-size: 8pt;
 	color: #080;
 }
+
+a.dull:hover, a.dull, a.dull:visited {
+	color: inherit;
+	text-decoration: none;
+	background-color: inherit;
+}
+
 
 .pkg {
 	vertical-align: top;

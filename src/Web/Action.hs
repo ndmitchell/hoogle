@@ -86,19 +86,29 @@ runQuery dbs CmdQuery{query = Right q} =
 
 renderRes :: Result -> [String]
 renderRes r =
-        [tr $ td "mod" modname ++ td "" (showTagHTML text)
+        [tr $ td "mod" modname ++ td "" (href urlItem $ showTagHTMLWith url text)
         ,tr $ td "pkg" pkgname ++ td "doc" doc]
     where
         pkg = liftM (fromLink . modulePackage . fromLink) $ entryModule $ fromLink $ resultEntry r
     
         (modu,text,_) = renderResult r
-        modname = maybe "" showModule modu
-        pkgname = maybe "" packageName pkg
+        modname = maybe "" (href urlModule . showModule) modu
+        pkgname = maybe "" (href urlPkg . packageName) pkg
         doc = takeWhile (/= '\n') $ showTagHTML $ renderHaddock $ entryDocs $ fromLink $ resultEntry r
 
-        tr x = "<tr>" ++ x ++ "</tr>"
-        td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
+        urlPkg = "http://hackage.haskell.org/packages/archive/" +++ maybe "" packageName pkg +++ "/latest/doc/html/"
+        urlModule = urlPkg +++ concat (intersperse "-" $ fromMaybe [] modu) +++ ".html"
+        urlItem = urlModule +++ "#v:" +++ escapeHTML (entryName $ fromLink $ resultEntry r)
 
+        url (TagHyperlink _ x) = Just $ "</a><a href='" +? urlItem ++ "'>" ++ showTagHTML x ++
+                                        "</a><a class='dull' href='" +? urlItem ++ "'>"
+        url _ = Nothing
+
+        a +++ b = if null a || null b then [] else a ++ b
+
+tr x = "<tr>" ++ x ++ "</tr>"
+td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
+href url x = if null url then x else "<a class='dull' href='" ++ url ++ "'>" ++ x ++ "</a>"
 
 
 a +? b = a ++ escapeHTML b
@@ -112,9 +122,16 @@ escapeHTML = concatMap f
         f x = [x]
 
 
-showTagHTML (Str x) = escapeHTML x
-showTagHTML (Tags xs) = concatMap showTagHTML xs
-showTagHTML (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
-showTagHTML (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
-showTagHTML (TagHyperlink url x) = "<a href=\"" +? url ++ "\">" ++ showTagHTML x ++ "</a>"
-showTagHTML (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
+showTagHTML = showTagHTMLWith (const Nothing)
+
+
+showTagHTMLWith :: (TagStr -> Maybe String) -> TagStr -> String
+showTagHTMLWith f x = g x
+    where
+        g x | isJust (f x) = fromJust $ f x
+        g (Str x) = escapeHTML x
+        g (Tags xs) = concatMap g xs
+        g (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
+        g (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
+        g (TagHyperlink url x) = "<a href=\"" +? url ++ "\">" ++ showTagHTML x ++ "</a>"
+        g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
