@@ -2,6 +2,9 @@
 function on_load()
 {
     document.getElementById('q').focus();
+
+    if (document.location.hash != "")
+        document.location.hash = document.location.hash;
 }
 
 // add hoogle as a quicksearch tag, available on Firefox/Mozilla
