@@ -86,11 +86,14 @@ runQuery dbs CmdQuery{query = Right q} =
 
 renderRes :: Result -> [String]
 renderRes r =
-        [tr $ td "mod" (maybe "" showModule modu) ++ td "" (showTagHTML text)
-        ,tr $ td "pkg" pkg ++ td "doc" doc]
+        [tr $ td "mod" modname ++ td "" (showTagHTML text)
+        ,tr $ td "pkg" pkgname ++ td "doc" doc]
     where
+        pkg = liftM (fromLink . modulePackage . fromLink) $ entryModule $ fromLink $ resultEntry r
+    
         (modu,text,_) = renderResult r
-        pkg = maybe "" (packageName . fromLink . modulePackage . fromLink) $ entryModule $ fromLink $ resultEntry r
+        modname = maybe "" showModule modu
+        pkgname = maybe "" packageName pkg
         doc = takeWhile (/= '\n') $ showTagHTML $ renderHaddock $ entryDocs $ fromLink $ resultEntry r
 
         tr x = "<tr>" ++ x ++ "</tr>"
