@@ -17,6 +17,7 @@ import Data.Binary.Defer.Index
 
 actionWeb :: CmdQuery -> IO ()
 actionWeb q = do
+    putStr "Content-type: text/html\n\n"
     (skipped,dbs) <- loadDataBases q
     let res = unlines $ header (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
     when (Debug `elem` queryFlags q) $
