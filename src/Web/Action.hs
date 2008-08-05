@@ -96,20 +96,22 @@ renderRes r =
         pkgname = maybe "" (href urlPkg . packageName) pkg
         doc = takeWhile (/= '\n') $ showTagHTML $ renderHaddock $ entryDocs $ fromLink $ resultEntry r
 
-        urlPkg = "http://hackage.haskell.org/packages/archive/" +++ maybe "" packageName pkg +++ "/latest/doc/html/"
-        urlModule = urlPkg +++ concat (intersperse "-" $ fromMaybe [] modu) +++ ".html"
-        urlItem = urlModule +++ "#v:" +++ escapeHTML (entryName $ fromLink $ resultEntry r)
+        urlPkg = "http://hackage.haskell.org/packages/archive/" +? maybe "" packageName pkg +? "/latest/doc/html/"
+        urlModule = urlPkg +? concat (intersperse "-" $ fromMaybe [] modu) +? ".html"
+        urlItem = urlModule +? "#v:" +? escapeHTML (entryName $ fromLink $ resultEntry r)
 
         url (TagHyperlink _ x) = Just $ "</a><a href='" +& urlItem ++ "'>" ++ showTagHTML x ++
                                         "</a><a class='dull' href='" +& urlItem ++ "'>"
         url _ = Nothing
 
-        a +++ b = if null a || null b then [] else a ++ b
-
 tr x = "<tr>" ++ x ++ "</tr>"
 td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
 href url x = if null url then x else "<a class='dull' href='" ++ url ++ "'>" ++ x ++ "</a>"
 
+
+-- | Only append strings if neither one is empty
+(+?) :: String -> String -> String
+a +? b = if null a || null b then [] else a ++ b
 
 -- | Escape the second argument before appending
 (+&) :: String -> String -> String
