@@ -18,9 +18,6 @@ header query =
 
 links =
     ["<div id='links'>"
-    ,"  <!--[if IE]><span style='display:none;'><![endif]-->"
-    ,"    <a href='javascript:addHoogle()'>Firefox plugin</a> |"
-    ,"  <!--[if IE]></span><![endif]-->"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>Manual</a> |"
     ,"  <a href='http://www.haskell.org/'>haskell.org</a>"
     ,"</div>"
