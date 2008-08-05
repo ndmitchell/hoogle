@@ -89,7 +89,6 @@ other-modules:
     Hoogle.TypeSig.All
     Hoogle.TypeSig.Parser
     Hoogle.TypeSig.Type
-    Main
     Test.All
     Test.General
     Test.Parse_Query
