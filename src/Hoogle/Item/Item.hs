@@ -85,7 +85,7 @@ renderEntryText view = Tags . map f
         f (ArgPos i s) = (if null res then id else TagColor (head res)) $ Str s
             where res = [k+1 | ArgPosNum k j <- view, j == i]
         f (ArgRes s) = (if args then TagColor 0 else id) $ Str s
-        f (Focus x) = renderFocus [i | FocusOn i <- view] x
+        f (Focus x) = TagHyperlink "" $ renderFocus [i | FocusOn i <- view] x
 
 
 renderFocus :: [Range] -> String -> TagStr
