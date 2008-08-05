@@ -3,9 +3,9 @@
     or the command line arguments.
 
     Need to return the following pieces of information:
-    
+
     * Was there a query, or was nothing entered
-    
+
     * Are you wanting to operate in Web mode or Command Line mode. Adding a
     Web parameter to Command Line gives you Web mode.
 
@@ -24,7 +24,7 @@ import Hoogle.Query.All
 
 data CmdQuery = CmdQuery {
     queryWeb :: Bool, -- ^ Are you operating from the web (via CGI)
-    queryText :: String, -- ^ The string the user entered, @""@ for no string
+    queryText :: String, -- ^ The string the user entered, @\"\"@ for no string
     query :: Either ParseError Query, -- ^ The actual query
     queryFlags :: [CmdFlag], -- ^ The flags from the query
     queryBadFlags :: [String] -- ^ The bad flags
