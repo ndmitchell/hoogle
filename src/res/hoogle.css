@@ -89,6 +89,7 @@ p, table {
 }
 
 .mod {
+	color: #080;
 	vertical-align: bottom;
 	text-align: right;
 	font-size: 8pt;
