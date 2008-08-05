@@ -87,10 +87,11 @@ runQuery dbs CmdQuery{query = Right q} =
 renderRes :: Result -> [String]
 renderRes r =
         [tr $ td "mod" (maybe "" showModule modu) ++ td "" (showTagHTML text)
-        ,tr $ td "pkg" pkg ++ td "doc" "todo"]
+        ,tr $ td "pkg" pkg ++ td "doc" doc]
     where
         (modu,text,_) = renderResult r
         pkg = maybe "" (packageName . fromLink . modulePackage . fromLink) $ entryModule $ fromLink $ resultEntry r
+        doc = takeWhile (/= '\n') $ showTagHTML $ renderHaddock $ entryDocs $ fromLink $ resultEntry r
 
         tr x = "<tr>" ++ x ++ "</tr>"
         td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
