@@ -21,7 +21,7 @@ testFile srcfile dbfile = do
 
 
 -- LineNo Query Results
-data Test = Test Int String Query [[String]]
+data Test = Test Int String Query [String] [[String]]
             deriving Show
 
 
@@ -29,7 +29,8 @@ parseTest :: Int -> String -> Maybe Test
 parseTest line str | "@test " `isPrefixOf` str =
     case reads $ drop 5 str of
         [(x,rest)] -> case parseQuery x of
-            Right q -> Just $ Test line x q (map (split ',') $ words rest)
+            Right q -> let (no,yes) = partition ("!" `isPrefixOf`) $ words rest
+                       in Just $ Test line x q (map tail no) (map (split ',') yes)
             _ -> err
         _ -> err
     where err = error $ "Couldn't parse @test on line " ++ show line
@@ -37,18 +38,20 @@ parseTest line str = Nothing
 
 
 runTest :: DataBase -> Test -> Bool
-runTest db (Test _ _ q ans) =
-        ordered (group $ map resultScore res) &&       -- all results are in order
-        all (`elem` map fst items) (concat ans) &&     -- all items are present
-        ordered (map (map (`lookupJust` items)) ans)   -- all items are in order
+runTest db (Test _ _ q bad ans) =
+        ordered (group $ map resultScore res) &&         -- all results are in order
+        all (`elem` map fst items) (concat ans) &&       -- all items are present
+        ordered (map (map (`lookupJust` items)) ans) &&  -- all items are in order
+        all (`notElem` map fst items) bad                -- all the bad items are absent
     where
         res = searchAll [db] q
         items = map (entryName . fromLink . resultEntry &&& resultScore) res
 
         ordered ((x:xs):(y:ys):zs) = x < y && all (== x) xs && ordered ((y:ys):zs)
         ordered [x:xs] = all (== x) xs
+        ordered [] = True
 
 
 failedTest :: Test -> String
-failedTest (Test line str _ _) = "Line " ++ show line ++ ", " ++ str
+failedTest (Test line str _ _ _) = "Line " ++ show line ++ ", " ++ str
 
