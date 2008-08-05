@@ -67,21 +67,41 @@ runQuery dbs q | not $ usefulQuery $ fromRight $ query q =
     ]
 
 
-runQuery dbs CmdQuery{query = Right q} =
+runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
     ["<h1>Searching for " ++ qstr ++ "</h1>"] ++
     ["<p>" ++ showTagHTML sug ++ "</p>" | Just sug <- [suggestQuery dbs q]] ++
     if null res then
         ["<p>No results found</p>"]
-    else
-        ["<table>"] ++ concatMap renderRes res ++ ["</table>"]
+    else -- error $ show (length res, length pre, length now, length post) -
+        ["<table>"] ++
+        concatMap renderRes pre ++
+        insertMore (concatMap renderRes now) ++
+        [moreResults | not $ null post] ++
+        ["</table>"]
     where
-        res = searchRange (rangeStartCount 0 25) dbs q
+        start = headDef 0 [i-1 | Start i <- flags]
+        count = headDef 20 [n | Count n <- flags]
+        res = searchRange (rangeStartCount 0 (start+count+1)) dbs q
+        (pre,res2) = splitAt start res
+        (now,post) = splitAt count res2
+
+        moreResults = "<tr><td></td><td><a href='" ++ urlMore ++ "' class='more'>Show more results</a></td></tr>"
+        urlMore = "?q=" +% queryText cq ++ "&start=" ++ show (start+count+1) ++ "#more"
 
         qstr = unwords $ ["<b>" +& n ++ "</b>" | n <- names q] ++
                ["::" | names q /= [] && isJust (typeSig q)] ++
                [showTagHTML (renderEntryText view $ renderTypeSig t) | Just t <- [typeSig q]]
         view = [ArgPosNum i i | i <- [0..10]]
 
+
+-- insert <a name=more> where you can
+insertMore :: [String] -> [String]
+insertMore [] = []
+insertMore (x:xs) = f x : xs
+    where
+        f ('>':xs) | not $ "<td" `isPrefixOf` xs = "><a name='more'></a>" ++ xs
+        f (x:xs) = x : f xs
+        f [] = []
 
 
 renderRes :: Result -> [String]
@@ -116,6 +136,8 @@ a +? b = if null a || null b then [] else a ++ b
 -- | Escape the second argument before appending
 (+&) :: String -> String -> String
 a +& b = a ++ escapeHTML b
+
+(+%) = (+&) -- CGI query string escaping
 
 
 escapeHTML = concatMap f

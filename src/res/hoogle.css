@@ -108,7 +108,6 @@ a.dull:hover, a.dull, a.dull:visited {
 	background-color: inherit;
 }
 
-
 .pkg {
 	vertical-align: top;
 	text-align: right;
@@ -121,6 +120,21 @@ a.dull:hover, a.dull, a.dull:visited {
 	font-size: 8pt;
 	padding-bottom: 10px;
 }
+
+.c0{background-color: #fcc;}
+.c1{background-color: #cfc;}
+.c2{background-color: #ccf;}
+.c3{background-color: #ffc;}
+.c4{background-color: #fcf;}
+.c5{background-color: #cff;}
+
+.more {
+	padding-left: 12px;
+	background-image: url(more.png);
+	background-repeat: no-repeat;
+	background-position: center left;
+}
+
 
 
 
@@ -176,13 +190,6 @@ a.dull:hover, a.dull, a.dull:visited {
 }
 
 .func {color: black;}
-
-.c0{background-color: #fcc;}
-.c1{background-color: #cfc;}
-.c2{background-color: #ccf;}
-.c3{background-color: #ffc;}
-.c4{background-color: #fcf;}
-.c5{background-color: #cff;}
 
 
 #suggest, #lambdabot {
