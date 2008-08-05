@@ -1,7 +1,7 @@
 // registered with the body onload event
 function on_load()
 {
-	document.getElementById('txt').focus();
+    document.getElementById('q').focus();
 }
 
 // add hoogle as a quicksearch tag, available on Firefox/Mozilla
