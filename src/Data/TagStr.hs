@@ -40,11 +40,11 @@ showTagConsole x = f [] x
             where x = tagInner t
         
         getCode (TagBold _) = Just "1"
-        getCode (TagHyperlink _ _) = Just "4"
+        getCode (TagHyperlink url _) = if null url then Nothing else Just "4"
         getCode (TagUnderline _) = Just "4"
         getCode (TagColor n _) | n <= 5 && n >= 0 = Just ['3', intToDigit (n + 1)]
         getCode _ = Nothing
-        
+
         tag stack = chr 27 : '[' : (concat $ intersperse ";" $ ("0":reverse stack)) ++ "m"
 
 
