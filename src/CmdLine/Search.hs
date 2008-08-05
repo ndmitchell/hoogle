@@ -48,7 +48,7 @@ actionSearch flags q = do
 
         verbose = Verbose `elem` flags
         color = Color True `elem` flags
-        showTag = if color then showTagConsole else show
+        showTag = if color then showTagConsole else showTagText
 
         f (m,r,v) = maybe "" (\m -> showModule m ++ " ") m ++
                     showTag r ++ (if verbose then "  -- " ++ v else "")

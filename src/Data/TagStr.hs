@@ -3,6 +3,7 @@ module Data.TagStr where
 
 import Data.Char
 import Data.List
+import Data.Generics.Uniplate
 
 
 data TagStr = Str String
@@ -11,33 +12,32 @@ data TagStr = Str String
             | TagUnderline TagStr
             | TagHyperlink String TagStr
             | TagColor Int TagStr
+              deriving Show
 
 
-tagInner (TagBold x) = x
-tagInner (TagUnderline x) = x
-tagInner (TagHyperlink _ x) = x
-tagInner (TagColor _ x) = x
+instance Uniplate TagStr where
+    uniplate (Tags xs) = (xs, Tags)
+    uniplate (TagBold x) = ([x], \[x] -> TagBold x)
+    uniplate (TagUnderline x) = ([x], \[x] -> TagUnderline x)
+    uniplate (TagHyperlink i x) = ([x], \[x] -> TagHyperlink i x)
+    uniplate (TagColor i x) = ([x], \[x] -> TagColor i x)
+    uniplate x = ([], const x)
 
 
-showTag :: TagStr -> String
-showTag x = f x
-    where
-        f (Str x) = x
-        f (Tags x) = concatMap f x
-        f x = f $ tagInner x
+showTagText :: TagStr -> String
+showTagText x = concat [y | Str y <- universe x]
 
 
 showTagConsole :: TagStr -> String
 showTagConsole x = f [] x
     where
         f a (Str x) = x
-        f a (Tags xs) = concatMap (f a) xs
 
         f a t =
             case getCode t of
-                Nothing -> f a x
-                Just val -> tag (val:a) ++ f (val:a) x ++ tag a
-            where x = tagInner t
+                Nothing -> g a
+                Just val -> tag (val:a) ++ g (val:a) ++ tag a
+            where g a = concatMap (f a) (children t)
         
         getCode (TagBold _) = Just "1"
         getCode (TagHyperlink url _) = if null url then Nothing else Just "4"
@@ -47,10 +47,3 @@ showTagConsole x = f [] x
 
         tag stack = chr 27 : '[' : (concat $ intersperse ";" $ ("0":reverse stack)) ++ "m"
 
-
-
-
-instance Show TagStr where
-    show (Str x) = x
-    show (Tags x) = concatMap show x
-    show x = show $ tagInner x
