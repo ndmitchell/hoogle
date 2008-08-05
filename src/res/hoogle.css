@@ -69,6 +69,7 @@ h1 {
 	font-size: 10pt;
 	padding: 5px;
 	margin-top: 0px;
+	font-weight: normal;
 	/* nicer colors, but do not work for type search coloring */
 	background-color: #f4f4f4;
 	border-top: 1px solid #bbb; /* #36c; */

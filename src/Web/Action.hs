@@ -45,7 +45,7 @@ loadDataBases _ = return ([], [])
 -- TODO: Should escape the query text
 runQuery :: [DataBase] -> CmdQuery -> [String]
 runQuery dbs CmdQuery{queryText = text, query = Left err} =
-    ["<h1>Parse error in user query</h1>"
+    ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
     ,"  Query: <tt>" +? pre ++ "<span id='error'>" +? post2 ++ "</span></tt><br/>"
     ,"</p><p>"
@@ -60,7 +60,7 @@ runQuery dbs CmdQuery{queryText = text, query = Left err} =
 
 
 runQuery dbs q | not $ usefulQuery $ fromRight $ query q =
-    ["<h1>Welcome to Hoogle</h1>"
+    ["<h1><b>Welcome to Hoogle</b></h1>"
     ,"<p>"
     ,"  Hoogle is a Haskell API search engine, have fun!"
     ,"</p>"
@@ -79,7 +79,7 @@ runQuery dbs CmdQuery{query = Right q} =
         f (m,r,v) = "<tr><td class='mod'>" ++ maybe "" showModule m ++
                     "</td><td>" ++ showTagHTML r ++ "</td></tr>"
 
-        qstr = unwords $ names q ++
+        qstr = unwords $ ["<b>" ++ n ++ "</b>" | n <- names q] ++
                ["::" | names q /= [] && isJust (typeSig q)] ++
                [showTagHTML (renderEntryText view $ renderTypeSig t) | Just t <- [typeSig q]]
         view = [ArgPosNum i i | i <- [0..10]]
