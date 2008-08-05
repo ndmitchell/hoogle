@@ -96,3 +96,4 @@ other-modules:
     Test.Parse_TypeSig
     Web.Action
     Web.All
+    Web.Page
