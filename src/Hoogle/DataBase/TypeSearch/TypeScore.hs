@@ -52,7 +52,7 @@ newTypeScore is query result bs = t{costTypeScore = calcScore t}
             (entryInfoAlias query `diff` entryInfoAlias result)
 
         diff a b = (a \\ b, b \\ a)
-        ctx = nub $ concat [f c b | (c,v) <- entryInfoContext result, (TVar a, b) <- bindings bs, a == v]
+        ctx = nub $ concat [f c b | (c,v) <- entryInfoContext result, (b, TVar a) <- bindings bs, a == v]
         f c (TVar v) = [(c,v)]
         f c (TLit l) = [(c,l) | not $ hasInstance is c l]
 
