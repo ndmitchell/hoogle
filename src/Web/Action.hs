@@ -77,7 +77,7 @@ runQuery dbs CmdQuery{query = Right q} =
     where
         res = searchRange (rangeStartCount 0 25) dbs q
 
-        qstr = unwords $ ["<b>" ++ n ++ "</b>" | n <- names q] ++
+        qstr = unwords $ ["<b>" +& n ++ "</b>" | n <- names q] ++
                ["::" | names q /= [] && isJust (typeSig q)] ++
                [showTagHTML (renderEntryText view $ renderTypeSig t) | Just t <- [typeSig q]]
         view = [ArgPosNum i i | i <- [0..10]]
