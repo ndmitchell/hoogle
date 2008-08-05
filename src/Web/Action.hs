@@ -73,16 +73,27 @@ runQuery dbs CmdQuery{query = Right q} =
     if null res then
         ["<p>No results found</p>"]
     else
-        ["<table>"] ++ map (f . renderResult) res ++ ["</table>"]
+        ["<table>"] ++ concatMap renderRes res ++ ["</table>"]
     where
         res = searchRange (rangeStartCount 0 25) dbs q
-        f (m,r,v) = "<tr><td class='mod'>" ++ maybe "" showModule m ++
-                    "</td><td>" ++ showTagHTML r ++ "</td></tr>"
 
         qstr = unwords $ ["<b>" ++ n ++ "</b>" | n <- names q] ++
                ["::" | names q /= [] && isJust (typeSig q)] ++
                [showTagHTML (renderEntryText view $ renderTypeSig t) | Just t <- [typeSig q]]
         view = [ArgPosNum i i | i <- [0..10]]
+
+
+
+renderRes :: Result -> [String]
+renderRes r =
+        [tr $ td "mod" (maybe "" showModule modu) ++ td "" (showTagHTML text)
+        ,tr $ td "pkg" pkg ++ td "doc" "todo"]
+    where
+        (modu,text,_) = renderResult r
+        pkg = maybe "" (packageName . fromLink . modulePackage . fromLink) $ entryModule $ fromLink $ resultEntry r
+
+        tr x = "<tr>" ++ x ++ "</tr>"
+        td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
 
 
 
