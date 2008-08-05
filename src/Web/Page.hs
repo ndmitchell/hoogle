@@ -7,7 +7,7 @@ header query =
     ,"<html>"
     ,"  <head>"
     ,"     <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1' />"
-    ,"     <title>" ++ query ++ " - Hoogle</title>"
+    ,"     <title>" ++ query ++ (if null query then "" else " - ") ++ "Hoogle</title>"
     ,"     <link type='text/css' rel='stylesheet' href='res/hoogle.css'>"
     ,"     <link type='image/png' rel='icon' href='res/favicon.png'>"
     ,"     <script type='text/javascript' src='res/hoogle.js'> </script>"
