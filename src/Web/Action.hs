@@ -68,7 +68,7 @@ runQuery dbs q | not $ usefulQuery $ fromRight $ query q =
 
 
 runQuery dbs CmdQuery{query = Right q} =
-    ["<h1>Searched for " ++ qstr ++ "</h1>"] ++
+    ["<h1>Searching for " ++ qstr ++ "</h1>"] ++
     ["<p>" ++ showTagHTML sug ++ "</p>" | Just sug <- [suggestQuery dbs q]] ++
     if null res then
         ["<p>No results found</p>"]
