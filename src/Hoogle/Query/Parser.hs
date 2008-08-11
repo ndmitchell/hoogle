@@ -37,7 +37,11 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
     
         names = do a <- many (flag <|> name)
                    b <- option blank (string "::" >> spaces >> types)
-                   return (merge (merges a) b)
+                   let res@Query{names=names} = merge (merges a) b
+                       (op,nop) = partition ((`elem` ascSymbols) . head) names
+                   if op /= [] && nop /= []
+                       then fail "Combination of operators and names"
+                       else return res
         
         name = (do x <- operator ; spaces ; return blank{names=[x]})
                <|>
@@ -55,7 +59,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
                    b <- parsecTypeSig
                    c <- flags
                    return $ merges [a,blank{typeSig=Just b},c]
-        
+
         flag = do x <- parseFlagScope ; spaces ; return x
         flags = many flag >>= return . merges
                    
@@ -67,7 +71,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
 --     /?  (special case)
 --     +Data.Map
 parseFlagScope :: Parser Query
-parseFlagScope = do x <- try scope <|> flag
+parseFlagScope = do x <- try scope <|> try flag
                     spaces
                     return x
     where

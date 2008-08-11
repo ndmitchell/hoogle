@@ -13,6 +13,9 @@ parse_Query = do
     "/?" === defaultQuery{flags = [Flag "?" ""]}
     "/count=10" === defaultQuery{flags = [Flag "count" "10"]}
     "map" === defaultQuery{names = ["map"]}
+    "-" === defaultQuery{names = ["-"]}
+    "/" === defaultQuery{names = ["/"]}
+    "->" === defaultQuery{names = ["->"]}
     "foldl'" === defaultQuery{names = ["foldl'"]}
     "fold'l" === defaultQuery{names = ["fold'l"]}
     "Int#" === defaultQuery{names = ["Int#"]}
