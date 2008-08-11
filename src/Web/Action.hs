@@ -9,6 +9,7 @@ import Hoogle.Search.All
 import General.Code
 import System.IO.Unsafe(unsafeInterleaveIO)
 import Web.Page
+import Web.Text
 import Text.ParserCombinators.Parsec
 import Data.TagStr
 import Data.Range
@@ -128,37 +129,3 @@ renderRes r =
 tr x = "<tr>" ++ x ++ "</tr>"
 td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
 href url x = if null url then x else "<a class='dull' href='" ++ url ++ "'>" ++ x ++ "</a>"
-
-
--- | Only append strings if neither one is empty
-(+?) :: String -> String -> String
-a +? b = if null a || null b then [] else a ++ b
-
--- | Escape the second argument before appending
-(+&) :: String -> String -> String
-a +& b = a ++ escapeHTML b
-
-(+%) = (+&) -- CGI query string escaping
-
-
-escapeHTML = concatMap f
-    where
-        f '\"' = "&quot;"
-        f '<' = "&lt;"
-        f '>' = "&gt;"
-        f x = [x]
-
-
-showTagHTML = showTagHTMLWith (const Nothing)
-
-
-showTagHTMLWith :: (TagStr -> Maybe String) -> TagStr -> String
-showTagHTMLWith f x = g x
-    where
-        g x | isJust (f x) = fromJust $ f x
-        g (Str x) = escapeHTML x
-        g (Tags xs) = concatMap g xs
-        g (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
-        g (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
-        g (TagHyperlink url x) = "<a href=\"" +& url ++ "\">" ++ showTagHTML x ++ "</a>"
-        g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
