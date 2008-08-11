@@ -6,6 +6,7 @@ import Hoogle.All
 import Hoogle.Query.All
 import Hoogle.Item.All
 import Hoogle.Search.All
+import Numeric
 import General.Code
 import System.IO.Unsafe(unsafeInterleaveIO)
 import Web.Page
@@ -120,7 +121,8 @@ renderRes r =
 
         urlPkg = "http://hackage.haskell.org/packages/archive/" +? maybe "" packageName pkg +? "/latest/doc/html/"
         urlModule = urlPkg +? concat (intersperse "-" $ fromMaybe [] modu) +? ".html"
-        urlItem = urlModule +? "#v:" +? escapeHTML (entryName $ fromLink $ resultEntry r)
+        urlItem = if isNothing pkg then keywordURL $ entryName $ fromLink $ resultEntry r else
+                  urlModule +? "#v:" +? escapeHTML (entryName $ fromLink $ resultEntry r)
 
         url (TagHyperlink _ x)
             | null urlItem = Just $ "<span class='a'>" ++ showTagHTML x ++ "</span>"
@@ -131,3 +133,12 @@ renderRes r =
 tr x = "<tr>" ++ x ++ "</tr>"
 td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
 href url x = if null url then x else "<a class='dull' href='" ++ url ++ "'>" ++ x ++ "</a>"
+
+
+
+keywordURL :: String -> String
+keywordURL name = "http://www.haskell.org/haskellwiki/Keywords#" ++ concatMap f name
+    where
+        f x | isAlpha x || x `elem` "_-:" = [x]
+            | otherwise = '.' : map toUpper (showHex (ord x) "")
+
