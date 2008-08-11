@@ -103,6 +103,10 @@ td {
     color: #080;
 }
 
+.a {
+    color: blue;
+}
+
 a.dull:hover, a.dull, a.dull:visited {
     color: inherit;
     text-decoration: none;

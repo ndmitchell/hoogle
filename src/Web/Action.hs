@@ -122,8 +122,10 @@ renderRes r =
         urlModule = urlPkg +? concat (intersperse "-" $ fromMaybe [] modu) +? ".html"
         urlItem = urlModule +? "#v:" +? escapeHTML (entryName $ fromLink $ resultEntry r)
 
-        url (TagHyperlink _ x) = Just $ "</a><a href='" +& urlItem ++ "'>" ++ showTagHTML x ++
-                                        "</a><a class='dull' href='" +& urlItem ++ "'>"
+        url (TagHyperlink _ x)
+            | null urlItem = Just $ "<span class='a'>" ++ showTagHTML x ++ "</span>"
+            | otherwise = Just $ "</a><a href='" +& urlItem ++ "'>" ++ showTagHTML x ++
+                                 "</a><a class='dull' href='" +& urlItem ++ "'>"
         url _ = Nothing
 
 tr x = "<tr>" ++ x ++ "</tr>"
