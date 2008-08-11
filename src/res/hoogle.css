@@ -130,7 +130,7 @@ a.dull:hover, a.dull, a.dull:visited {
 .c5{background-color: #cff;}
 
 .more {
-    padding-left: 12px;
+    padding-left: 16px;
     background-image: url(more.png);
     background-repeat: no-repeat;
     background-position: center left;
