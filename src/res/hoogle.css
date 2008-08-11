@@ -133,11 +133,12 @@ a.dull:hover, a.dull, a.dull:visited {
 .c4{background-color: #fcf;}
 .c5{background-color: #cff;}
 
-.more {
+.more, .more:visited {
     padding-left: 16px;
     background-image: url(more.png);
     background-repeat: no-repeat;
     background-position: center left;
+    color: blue;
 }
 
 
