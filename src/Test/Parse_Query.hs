@@ -13,6 +13,9 @@ parse_Query = do
     "/?" === defaultQuery{flags = [Flag "?" ""]}
     "/count=10" === defaultQuery{flags = [Flag "count" "10"]}
     "map" === defaultQuery{names = ["map"]}
+    "foldl'" === defaultQuery{names = ["foldl'"]}
+    "fold'l" === defaultQuery{names = ["fold'l"]}
+    "Int#" === defaultQuery{names = ["Int#"]}
     "concat map" === defaultQuery{names = ["concat","map"]}
     "a -> b" === defaultQuery{typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "(a b)" === defaultQuery{typeSig = Just (TypeSig [] (TApp (TVar "a") [TVar "b"]))}
