@@ -36,6 +36,7 @@ parse_TypeSig = do
     "Eq a => a" === TypeSig [TApp (TLit "Eq") [TVar "a"]] (TVar "a")
     "Class a b => a b" === TypeSig [TApp (TLit "Class") [TVar "a",TVar "b"]] (TApp (TVar "a") [TVar "b"])
     "(Ord a, Eq b) => a -> b" === TypeSig [TApp (TLit "Ord") [TVar "a"],TApp (TLit "Eq") [TVar "b"]] (TFun [TVar "a",TVar "b"])
+    "Eq a =# a" === TypeSig [TApp (TLit "Eq") [TVar "a"]] (TVar "a")
 
     -- forall
     "forall a . a -> a" === TypeSig [] (TFun [TVar "a", TVar "a"])
