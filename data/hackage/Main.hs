@@ -50,6 +50,10 @@ readPackages = foldl' f Map.empty . map words . lines
     where f mp ws = Map.insert (ws !! 7) (ws !! 8) mp
 
 
+evil = ["Emping" -- Has Aux.hs in the tar file
+       ,"GPLib" -- been deleted since
+       ]
+
 readPackage :: String -> String -> IO ()
 readPackage name ver = do
     let url = "hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ ver ++ "/" ++ name ++ "-" ++ ver ++ ".tar.gz"
@@ -59,7 +63,7 @@ readPackage name ver = do
 
     b1 <- doesFileExist res
     b2 <- doesFileExist (res <.> "fail")
-    when (not $ b1 || b2) $ do
+    when (not $ b1 || b2 || name `elem` evil) $ do
         file <- wget url
         system_ $ "tar -xzf " ++ file ++ " -C temp"
         src <- readFile cabal
