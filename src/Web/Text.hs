@@ -16,6 +16,7 @@ a +? b = if null a || null b then [] else a ++ b
 a +& b = a ++ escapeHTML b
 
 -- | Escape the second argument as a CGI query string before appending
+-- TODO: Implement
 (+%) :: String -> String -> String
 a +% b = a ++ escapeCGI b
 
