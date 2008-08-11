@@ -93,7 +93,8 @@ parseFlagScope = do x <- try scope <|> flag
         modname = keyword `sepBy1` (char '.')
 
 
+-- TODO: Should share this definition with Hoogle.TypeSig.Parser
 keyword = do x <- letter
-             xs <- many $ satisfy (\x -> isAlphaNum x || x == '_')
+             xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#")
              return (x:xs)
 
