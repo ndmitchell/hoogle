@@ -60,12 +60,15 @@ readPackage name ver = do
         hoo = "temp/" ++ name ++ "-" ++ ver ++ "/dist/doc/html/" ++ name ++ "/" ++ name ++ ".txt"
         res = "haddock/" ++ name ++ "-" ++ ver ++ ".txt"
         cabal = "temp/" ++ name ++ "-" ++ ver ++ "/" ++ name ++ ".cabal"
+        tar = "temp/" ++ name ++ "-" ++ ver ++ ".tar"
 
     b1 <- doesFileExist res
     b2 <- doesFileExist (res <.> "fail")
     when (not $ b1 || b2 || name `elem` evil) $ do
         file <- wget url
-        system_ $ "tar -xzf " ++ file ++ " -C temp"
+        copyFile file (tar <.> "gz")
+        system_ $ "gunzip " ++ (tar <.> "gz")
+        system_ $ "tar -xf " ++ tar ++ " -C temp"
         src <- readFile cabal
         let (deps,src2) = filterBuildDepends src
         withDirectory ("temp/" ++ name ++ "-" ++ ver) $ do
