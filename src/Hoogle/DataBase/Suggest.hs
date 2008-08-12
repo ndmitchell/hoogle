@@ -112,13 +112,13 @@ askSuggest sug q@(TypeSig con typ)
         -- try and improve the type --
         typ2 = removeTApp $ transform f $ insertTApp typ
             where
-                free = map (TVar . (:[])) $ ['a'..] \\ [x | TVar [x] <- universe typ]
+                vars = filter isTVar (universe typ) ++ [TVar [x] | x <- ['a'..]]
 
                 f (TVar x) | length x > 1 = g (TVar x) x
                 f (TLit x) = g (TLit x) x
                 f (TApp (TLit x) xs) | isJust m && not (null kinds) && n `notElem` kinds =
                         TApp (TLit x) $ if maximum kinds > n
-                        then xs ++ take (minimum (filter (> n) kinds) - n) free
+                        then xs ++ take (minimum (filter (> n) kinds) - n) vars
                         else take (maximum kinds) xs
                     where
                         m@ ~(Just SuggestItem{suggestData=d}) = get x
