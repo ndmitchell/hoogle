@@ -68,7 +68,7 @@ readPackage name ver = do
     when (not $ b1 || b2 || name `elem` evil) $ do
         file <- wget url
         copyFile file (tar <.> "gz")
-        system_ $ "gunzip " ++ (tar <.> "gz")
+        system_ $ "gunzip --force " ++ (tar <.> "gz")
         system_ $ "tar -xf " ++ tar ++ " -C temp"
         src <- readFile cabal
         let (deps,src2) = filterBuildDepends src
