@@ -3,6 +3,7 @@ module Hoogle.Query.Render(renderQuery) where
 
 import General.Code
 import Data.TagStr
+import Data.Generics.Uniplate
 import Hoogle.Query.Type
 import Hoogle.TypeSig.All
 
@@ -12,9 +13,11 @@ renderQuery x = Tags $ namesig ++ scp ++ itms ++ flgs
     where
         namesig = case (null (names x), isNothing (typeSig x)) of
                       (True, True) -> []
-                      (True, False) -> showType
+                      (True, False) -> [Str ":: " | namelike] ++ showType
                       (False, True) -> showName 
                       _ -> showName ++ [Str " :: "] ++ showType
+            where namelike = and [isAlpha y || isSpace y | Str xs <- universe $ Tags showType
+                                                         , y:ys <- [dropWhile isSpace xs]]
         
         showName = intersperse (Str " ") $ map (TagBold . Str) (names x)
         showType = Str (showConstraint con) :
