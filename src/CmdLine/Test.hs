@@ -20,7 +20,10 @@ testFile srcfile dbfile = do
         putStrLn $ show (length bad) ++ " tests failed"
 
 
--- LineNo Query Results
+-- LineNo Query NoResults YesResults
+-- NoResults is a list of results that are not allowed to appear
+-- YesResults are sets of results, which must be in order, and within a set must
+--            have the same Score
 data Test = Test Int String Query [String] [[String]]
             deriving Show
 
