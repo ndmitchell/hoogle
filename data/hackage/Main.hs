@@ -73,7 +73,7 @@ readPackage name ver = do
         src <- readFile cabal
         let (deps,src2) = filterBuildDepends src
         withDirectory ("temp/" ++ name ++ "-" ++ ver) $ do
-            system $ "cabal install"
+            system $ "cabal install --disable-optimization"
             system $ "cabal haddock --hoogle"
         b <- doesFileExist hoo
         if b then do
