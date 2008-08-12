@@ -21,6 +21,7 @@ data Cost = CostAliasFwd
           | CostInstanceDel
           | CostInstanceAdd
           | CostDeadArg
+          | CostArgReorder
             deriving (Show,Eq,Ord,Enum,Bounded)
 
 
@@ -40,3 +41,4 @@ cost CostDupVarQuery  =    5  -- 5..1000
 cost CostInstanceDel  =    4  -- 4..999
 cost CostInstanceAdd  =    4  -- 4..999
 cost CostDeadArg      =    3  -- 3..998
+cost CostArgReorder   =    1  -- 1..1000

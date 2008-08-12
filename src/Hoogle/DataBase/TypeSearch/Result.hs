@@ -83,8 +83,9 @@ addResultAll is query (pos,res) (ResultAll i e info) =
 newGraphsResults :: Instances -> EntryInfo -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
 newGraphsResults is query e args res = do
     b <- mergeBindings $ map resultArgBind $ args ++ [res]
-    let s = newTypeScore is query (fromLink e) b
-        view = zipWith ArgPosNum [0..] $ map resultArgPos args
+    let aps = map resultArgPos args
+        s = newTypeScore is query (fromLink e) (aps == sort aps) b
+        view = zipWith ArgPosNum [0..] aps
         -- need to fake at least one ArgPosNum, so we know we have some highlight info
         view2 = [ArgPosNum (-1) (-1) | null view] ++ view
     return (e, view2, s)

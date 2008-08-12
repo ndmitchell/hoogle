@@ -16,6 +16,7 @@ import qualified Data.Set as Set
 data TypeScore = TypeScore
     {costTypeScore :: !Int
     ,badargs :: Int
+    ,badorder :: Bool
     ,bind :: Binding
     ,badInstance :: (TypeContext, TypeContext)
     ,badAlias :: ([String], [String])
@@ -26,6 +27,7 @@ instance Show TypeScore where
     show t = unwords $
              ['#' : show (costTypeScore t)] ++
              replicate (badargs t) "badarg" ++
+             ["badorder" | badorder t] ++
              [show $ bind t] ++
              both inst (badInstance t) ++
              both alis (badAlias t)
@@ -42,11 +44,12 @@ instance Ord TypeScore where
     compare = compare `on` costTypeScore
 
 
-newTypeScore :: Instances -> EntryInfo -> EntryInfo -> Binding -> TypeScore
-newTypeScore is query result bs = t{costTypeScore = calcScore t}
+newTypeScore :: Instances -> EntryInfo -> EntryInfo -> Bool -> Binding -> TypeScore
+newTypeScore is query result inorder bs = t{costTypeScore = calcScore t}
     where
         t = TypeScore 0
             (entryInfoArity result - entryInfoArity query)
+            (not inorder)
             bs 
             (entryInfoContext query `diff` ctx)
             (entryInfoAlias query `diff` entryInfoAlias result)
@@ -64,6 +67,7 @@ calcScore t = costBinding (bind t) + score (costsTypeScoreLocal t)
 costsTypeScoreLocal :: TypeScore -> [Cost]
 costsTypeScoreLocal t =
     CostDeadArg *+ badargs t ++
+    [CostArgReorder | badorder t] ++
     CostAliasFwd *+ length (fst $ badAlias t) ++
     CostAliasBwd *+ length (snd $ badAlias t) ++
     CostInstanceAdd *+ length (fst $ badInstance t) ++
