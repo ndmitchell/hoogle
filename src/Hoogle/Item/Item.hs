@@ -71,7 +71,8 @@ data EntryScore = EntryScore Int String String [String]
 
 entryScore :: Entry -> EntryScore
 entryScore e = EntryScore
-    (length m) (map toLower $ entryName e) (entryName e) m
+    (if entryType e == EntryOther then length m else 0)
+    (map toLower $ entryName e) (entryName e) m
     where m = maybe [] (moduleName . fromLink) $ entryModule e
 
 
