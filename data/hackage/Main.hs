@@ -53,6 +53,7 @@ readPackages = foldl' f Map.empty . map words . lines
 evil = ["Emping" -- Has Aux.hs in the tar file
        ,"GPLib" -- been deleted since
        ,"HAppS" -- doesn't seem to exist
+       ,"Safe" -- superceeded by safe
        ]
 
 readPackage :: String -> String -> IO ()
