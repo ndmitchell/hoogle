@@ -29,7 +29,8 @@ escapeHTML = concatMap f
 
 escapeCGI = concatMap f
     where
-        f x | isAlphaNum x = [x]
+        f x | isAlphaNum x || x `elem` "-" = [x]
+            | x == ' ' = "+"
             | otherwise = '%' : ['0'|length s == 1] ++ s
             where s = showHex (ord x) ""
 
