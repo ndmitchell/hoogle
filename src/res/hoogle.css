@@ -73,8 +73,8 @@ h1 {
     margin-top: 0px;
     font-weight: normal;
     /* nicer colors, but do not work for type search coloring */
-    background-color: #f4f4f4;
-    border-top: 1px solid #bbb; /* #36c; */
+    background-color: #e4e4e4;
+    border-top: 1px solid #999; /* #36c; */
 }
 
 p, table {
