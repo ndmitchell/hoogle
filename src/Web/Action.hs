@@ -15,6 +15,7 @@ import Text.ParserCombinators.Parsec
 import Data.TagStr
 import Data.Range
 import Data.Binary.Defer.Index
+import Data.Generics.Uniplate
 
 
 actionWeb :: CmdQuery -> IO ()
@@ -72,7 +73,7 @@ runQuery dbs q | not $ usefulQuery $ fromRight $ query q =
 
 runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
     ["<h1>Searching for " ++ qstr ++ "</h1>"] ++
-    ["<p>" ++ showTagHTML sug ++ "</p>" | Just sug <- [suggestQuery dbs q]] ++
+    ["<p>" ++ showTagHTML (transform qurl sug) ++ "</p>" | Just sug <- [suggestQuery dbs q]] ++
     if null res then
         ["<p>No results found</p>"]
     else
@@ -95,6 +96,10 @@ runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
                ["::" | names q /= [] && isJust (typeSig q)] ++
                [showTagHTML (renderEntryText view $ renderTypeSig t) | Just t <- [typeSig q]]
         view = [ArgPosNum i i | i <- [0..10]]
+
+        qurl (TagHyperlink url x) | "query:" `isPrefixOf` url = TagHyperlink ("?q=" +% drop 6 url) x
+        qurl x = x
+
 
 
 -- insert <a name=more> where you can
