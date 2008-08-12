@@ -75,7 +75,7 @@ runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
     ["<p>" ++ showTagHTML sug ++ "</p>" | Just sug <- [suggestQuery dbs q]] ++
     if null res then
         ["<p>No results found</p>"]
-    else -- error $ show (length res, length pre, length now, length post) -
+    else
         ["<table>"] ++
         concatMap renderRes pre ++
         insertMore (concatMap renderRes now) ++
