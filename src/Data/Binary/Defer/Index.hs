@@ -3,7 +3,7 @@ module Data.Binary.Defer.Index(
     Id,
     Index, newIndex,
     Lookup, newLookup, lookupKey, lookupIndex,
-    Link, newLink, fromLink, linkKey,
+    Link, newLink, fromLink, linkKey, indexLinks,
     Index_, newIndex_, getLink, getLookup, indexFreeze
     ) where
 
@@ -107,6 +107,10 @@ instance Typeable a => BinaryDefer (Link a) where
     size _ = size (0 :: Id)
     putFixed = put
     getFixed = get
+
+
+indexLinks :: Index a -> [Link a]
+indexLinks (Index x) = zipWith newLink [0..] $ elems x
 
 
 ---------------------------------------------------------------------
