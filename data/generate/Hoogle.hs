@@ -4,6 +4,8 @@ module Hoogle(hoogle) where
 import Util
 
 hoogle :: String -> IO ()
+hoogle "keyword" = copyFile "temp/keyword/hoogle.txt" "result/keyword.txt"
+
 hoogle x = do
     -- read the cabal info
     cabal <- readFile $ "temp/" ++ x ++ "/" ++ x ++ ".cabal"
@@ -17,7 +19,7 @@ hoogle x = do
     where
         f version depends x
             | "@package" `isPrefixOf` x = x : ["@version " ++ version | version /= ""] ++
-                                              ["@depends " ++ d | d <- depends]
+                                              ["@depends " ++ d | d <- depends, d /= "rts"]
             | "@version" `isPrefixOf` x && version /= "" = []
             | otherwise = [x]
 
