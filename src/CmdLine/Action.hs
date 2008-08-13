@@ -57,7 +57,9 @@ actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
 
 
 actionCmdLine q | Combine{} `elemEnum` queryFlags q = do
-    let files = [x | Combine x <- queryFlags q]
+    -- TODO: Work around a bug in CmdLine.Flags, try /merge=t1;t2
+    --       and you get [t1,t1,t2,t2]
+    let files = nub [x | Combine x <- queryFlags q]
         outfile = headDef "default.hoo" [x | Output x <- queryFlags q]
     putStrLn $ "Combining " ++ show (length files) ++ " databases"
     combine files outfile
