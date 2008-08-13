@@ -149,6 +149,7 @@ flagsHelp = unlines $ map f res
 -- Parsing Flags
 
 -- TODO: check no flag is specified twice
+-- TODO: Fix a bug, try /merge=t1;t2 and you get [t1,t1,t2,t2]
 parseFlags :: Permission -> [(String,String)] -> IO ([CmdFlag],[String])
 parseFlags perm xs = do
     let args = concatMap (parseFlag perm) xs
