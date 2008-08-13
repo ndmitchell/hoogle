@@ -38,8 +38,6 @@ data S = S {pkg :: Package
            ,modId :: Int
            ,mods :: [Module]
            ,modCur :: Maybe (Link Module)
-           ,entId :: Int
-           ,ents :: [(TextItem, Maybe Entry)]
            }
 
 
@@ -47,53 +45,41 @@ entriesItems :: Items -> [Link Entry]
 entriesItems = indexLinks . entries
 
 
--- TODO: Should be: createItems :: [(TextItem,String)] -> (Items, [Link Entry])
---       then propagate through
 createItems :: [(TextItem,String)] -> Items
-createItems xs = fst $ res
+createItems xs = Items (newIndex [pkg s])
+                       (newIndex $ reverse $ mods s)
+                       (newIndex $ sortOn entryScore ents)
     where
-        res = unS $ execState (mapM (uncurry f) xs) s0
-        s0 = S (Package "" "" "" "") 0 [] Nothing 0 []
+        -- circular programming to get pkg correct
+        (ents, s) = flip runState s0 $ concatMapM (uncurry $ addTextItem (newLink 0 $ pkg s)) xs
+        s0 = S (Package "" "" "" "") 0 [] Nothing
 
-        unS s = (Items (newIndex [pkg s])
-                       ms
-                       (newIndex $ mapMaybe (liftM fromLink . snd) esJ2)
-                ,map (id *** const Nothing) esN ++ esJ2)
-            where
-                ms = newIndex $ reverse $ mods s
-                (esJ,esN) = partition (isJust . snd) $ ents s
-                esJ2 = zipWith (\i (ti,Just e) -> (ti,Just $ newLink i e)) [0..] $
-                       sortOn (entryScore . fromJust . snd) esJ
 
-        f :: TextItem -> String -> State S ()
-        f i@ItemInstance{} _ = addTextItem i
+-- add a TextItem to the state S
+addTextItem :: Link Package -> TextItem -> String -> State S [Entry]
+addTextItem linkPkg ti doc = case ti of
+    ItemInstance{} -> return []
 
-        f i@(ItemAttribute "keyword" name) d = addEntry i False EntryKeyword d
-                [Keyword "keyword",Text " ",Focus name]
+    ItemAttribute "keyword" name -> add False EntryKeyword [Keyword "keyword",Text " ",Focus name]
 
-        f i@(ItemAttribute name val) _ = do
-            addTextItem i
-            when (name == "package") $ modify $ \s -> s{pkg = (pkg s){packageName = val}}
-            when (name == "version") $ modify $ \s -> s{pkg = (pkg s){packageVersion = val}}
+    ItemAttribute name val -> do
+        when (name == "package") $ modify $ \s -> s{pkg = (pkg s){packageName = val}}
+        when (name == "version") $ modify $ \s -> s{pkg = (pkg s){packageVersion = val}}
+        return []
 
-        f i@(ItemModule xs) d = do
+    ItemModule xs -> do
+        let m = Module xs linkPkg
+        modId <- gets modId
+        modify $ \s -> s{modId = modId + 1, mods = m : mods s
+                        ,modCur = Just $ newLink modId m}
+        add True EntryModule [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
+
+    _ -> add True EntryOther (renderTextItem ti)
+
+    where
+        add modu typ txt = do
             s <- get
-            let modI = modId s
-                m = Module xs (newLink 0 $ lookupIndex (newLookup 0) (packages $ fst res))
-            put s{modId = modI + 1, mods = m : mods s
-                 ,modCur = Just $ newLink modI m}
-            addEntry i True EntryModule d
-                [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
-
-        f i d = addEntry i True EntryOther d (renderTextItem i)
-
-        addTextItem i = modify $ \s -> s{ents = (i,Nothing) : ents s}
-
-        addEntry i modu typ doc txt = do
-            s <- get
-            let entI = entId s
-                sig = case i of ItemFunc _ s -> Just (Defer s); _ -> Nothing
-                e = Entry (if modu then modCur s else Nothing)
+            let sig = case ti of ItemFunc _ s -> Just (Defer s); _ -> Nothing
+            return [Entry (if modu then modCur s else Nothing)
                           (headDef "" [i | Focus i <- txt])
-                          txt typ (newHaddock doc) sig
-            put $ s{entId = entI + 1, ents = (i, Just e) : ents s}
+                          txt typ (newHaddock doc) sig]
