@@ -1,5 +1,5 @@
 
-module CmdLine.Files(getDataBaseFiles) where
+module CmdLine.Files(getDataBaseFiles, getDataBaseFilesNoDefault) where
 
 import CmdLine.Flag
 import General.Glob
@@ -12,16 +12,23 @@ import Paths_hoogle(getDataDir)
 -- otherwise use the CmdFlag and any +package query flags
 getDataBaseFiles :: [CmdFlag] -> Query -> IO [FilePath]
 getDataBaseFiles flags q = do
+    xs <- getDataBaseFilesNoDefault flags q
+    if null xs
+        then liftM (:[]) $ resolve flags "default"
+        else return xs
+
+
+getDataBaseFilesNoDefault :: [CmdFlag] -> Query -> IO [FilePath]
+getDataBaseFilesNoDefault flags q = do
     let dataFil = [x | DataFile x <- flags]
         plusPkg = [x | PlusPackage x <- scope q]
-    if null dataFil && null plusPkg then
-        liftM (:[]) $ resolve "default"
-     else do
-        rs <- mapM resolve plusPkg
-        return $ dataFil ++ rs
-    where
-        inc = [x | Include x <- flags]
-        resolve x = do
-            dataDir <- getDataDir
-            [x] <- globFile (inc++[dataDir]) ["hoo"] x
-            return x
+    rs <- mapM (resolve flags) plusPkg
+    return $ dataFil ++ rs
+
+
+resolve :: [CmdFlag] -> String -> IO FilePath
+resolve flags x = do
+    let inc = [x | Include x <- flags]
+    dataDir <- getDataDir
+    [x] <- globFile (inc++[dataDir]) ["hoo"] x
+    return x
