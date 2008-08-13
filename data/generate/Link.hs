@@ -11,7 +11,7 @@ link xs = do
 
 convert :: String -> [String] -> IO ()
 convert hoo dep = system_ $ unwords $
-    ["hoogle","/convert=result/" ++ hoo] ++ ["/depends=result/" ++ d | d <- dep]
+    ["hoogle","/convert=result/" ++ hoo] ++ ["/data=result/" ++ d | d <- dep]
 
 
 depends :: String -> IO [String]
