@@ -17,7 +17,7 @@ import Hoogle.DataBase.Serialise
 createDataBase :: [DataBase] -> TextBase -> DataBase
 createDataBase deps xs = DataBase items
         (createNameSearch ys) (createTypeSearch as is ys)
-        (createSuggest (map suggest deps) ys) as is
+        (createSuggest (map suggest deps) zs) as is
     where
         (items,ys) = createItems xs
         zs = map fst xs

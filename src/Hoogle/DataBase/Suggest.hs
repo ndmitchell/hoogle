@@ -45,11 +45,11 @@ instance BinaryDefer SuggestItem where
 
 -- note: do not look inside class's for data type information
 --       as they may have higher-kinds and get it wrong
-createSuggest :: [Suggest] -> [(TextItem, a)] -> Suggest
+createSuggest :: [Suggest] -> [TextItem] -> Suggest
 createSuggest deps xs = mergeSuggest (s:deps)
     where
         s = Suggest $ newTrie $ Map.toList res
-        res = foldl f Map.empty $ concatMap (getTextItem . fst) xs
+        res = foldl f Map.empty $ concatMap getTextItem xs
             where f m (s,i) = Map.insertWith joinItem (map toLower s) i m
 
         sData  c n = (c, SuggestItem Nothing [(c,n)] [])
