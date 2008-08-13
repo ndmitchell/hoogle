@@ -5,7 +5,9 @@ module Util(
     module Control.Exception,
     module Data.List,
     module Data.Char,
+    module Data.Maybe,
     module Control.Monad,
+    module Numeric,
     module System.Environment,
     module System.FilePath
     ) where
@@ -18,8 +20,10 @@ import System.FilePath
 import System.IO
 import Data.List
 import Data.Char
+import Data.Maybe
 import Control.Monad
 import Control.Exception
+import Numeric
 
 
 system_ x = do
