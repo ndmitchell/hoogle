@@ -33,11 +33,18 @@ cabalInfo src = (version,depends)
 
 
 readFields :: String -> [String] -> [String]
-readFields name = concatMap f
+readFields name = f
     where
-        f x | (name ++ ":") `isPrefixOf` map toLower x2 = [x4]
+        f (x:xs) | (name ++ ":") `isPrefixOf` map toLower x2 =
+                [x4 | x4 /= []] ++ map trim ys ++ f zs
             where
-                x4 = reverse $ dropWhile isSpace $ reverse $ dropWhile isSpace x3
+                x4 = trim x3
                 x3 = drop (length name + 1) x2
-                x2 = dropWhile isSpace x
-        f x = []
+                (spc,x2) = span isSpace x
+                (ys,zs) = span ((> length spc) . length . takeWhile isSpace) xs
+        f (x:xs) = f xs
+        f [] = []
+
+
+trim = reverse . ltrim . reverse . ltrim
+ltrim = dropWhile isSpace
