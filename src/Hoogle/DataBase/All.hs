@@ -17,11 +17,11 @@ import General.Code
 
 createDataBase :: [DataBase] -> TextBase -> DataBase
 createDataBase deps xs = DataBase items
-        (createNameSearch ys2) (createTypeSearch as is ys2)
+        (createNameSearch ys) (createTypeSearch as is ys)
         (createSuggest (map suggest deps) zs) as is
     where
-        (items,ys) = createItems xs
-        ys2 = mapMaybe snd ys
+        items = createItems xs
+        ys = entriesItems items
         zs = map fst xs
         as = createAliases (map aliases deps) zs
         is = createInstances (map instances deps) zs

@@ -42,10 +42,15 @@ data S = S {pkg :: Package
            ,ents :: [(TextItem, Maybe Entry)]
            }
 
+
+entriesItems :: Items -> [Link Entry]
+entriesItems = indexLinks . entries
+
+
 -- TODO: Should be: createItems :: [(TextItem,String)] -> (Items, [Link Entry])
 --       then propagate through
-createItems :: [(TextItem,String)] -> (Items, [(TextItem, Maybe (Link Entry))])
-createItems xs = res
+createItems :: [(TextItem,String)] -> Items
+createItems xs = fst $ res
     where
         res = unS $ execState (mapM (uncurry f) xs) s0
         s0 = S (Package "" "" "" "") 0 [] Nothing 0 []
