@@ -39,7 +39,7 @@ data Entry = Entry
     ,entryText :: [EntryText]
     ,entryType :: EntryType
     ,entryDocs :: Haddock
-    ,entryItem :: Defer TextItem
+    ,entryTypesig :: Maybe (Defer TypeSig)
     }
 
 typename_Entry = mkTyCon "Hoogle.DataBase.Item.Entry"
