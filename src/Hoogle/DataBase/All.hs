@@ -25,6 +25,10 @@ createDataBase deps xs = DataBase items
         is = createInstances (map instances deps) zs
 
 
+combineDataBase :: [DataBase] -> DataBase
+combineDataBase = head
+
+
 searchName :: DataBase -> String -> [(Link Entry,EntryView,TextScore)]
 searchName db = searchNameSearch (nameSearch db)
 

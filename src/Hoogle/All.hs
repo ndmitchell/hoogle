@@ -3,7 +3,7 @@ module Hoogle.All(
     Query(..), parseQuery, renderQuery, suggestQuery, usefulQuery,
     Flag(..),
     DataBase, loadDataBase, showDataBase,
-    convert, rank,
+    convert, rank, combine,
     searchAll, searchRange, Result(..)
     ) where
 

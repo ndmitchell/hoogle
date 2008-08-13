@@ -56,6 +56,16 @@ actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
     mapM_ (actionConvert q) [x | Convert x <- queryFlags q]
 
 
+actionCmdLine q | Combine{} `elemEnum` queryFlags q = do
+    let files = [x | Combine x <- queryFlags q]
+        outfile = headDef "default.hoo" [x | Output x <- queryFlags q]
+    putStrLn $ "Combining " ++ show (length files) ++ " databases"
+    combine files outfile
+    when (Dump{} `elemEnum` queryFlags q) $ do
+        putStrLn ""
+        actionDump q outfile
+
+
 actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
     dbs <- getDataBaseFiles (queryFlags q) (fromRight $ query q)
     mapM_ (actionDump q) dbs

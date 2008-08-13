@@ -22,5 +22,5 @@ import System.Cmd
 import System.Directory
 import System.Environment
 import System.Exit
-import System.FilePath hiding (FilePath)
+import System.FilePath hiding (FilePath,combine)
 import System.IO

@@ -34,6 +34,7 @@ data CmdFlag = Version           -- ^ Version information
              | Include FilePath  -- ^ Include directory
              | TestFile FilePath -- ^ Run tests in a file
              | Rank FilePath     -- ^ Generate rankings
+             | Combine FilePath  -- ^ Merge a set of databases
                deriving (Show,Eq {-! Enum !-} )
 
 
@@ -88,6 +89,7 @@ flagInfo =
     ,f (ArgDir Include) ["i","include"] [PCmdLine,PMultiple] "Include directories"
     ,f (ArgFileIn TestFile ["txt"]) ["testfile"] [PCmdLine,PMultiple] "Run tests from a file"
     ,f (ArgFileIn Rank ["txt"]) ["rank"] [PCmdLine,PMultiple] "Generate ranking scores"
+    ,f (ArgFileIn Combine ["hoo"]) ["combine"] [PCmdLine,PMultiple] "Combine multiple databases"
     ]
     where f = FlagInfo
 
@@ -207,7 +209,7 @@ parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = [True]
 --------------------------------------------------------
 -- DERIVES GENERATED CODE
 -- DO NOT MODIFY BELOW THIS LINE
--- CHECKSUM: 780144949
+-- CHECKSUM: 1401092643
 
 instance Enum CmdFlag
     where toEnum 0 = Version{}
@@ -227,6 +229,7 @@ instance Enum CmdFlag
           toEnum 14 = Include{}
           toEnum 15 = TestFile{}
           toEnum 16 = Rank{}
+          toEnum 17 = Combine{}
           toEnum n = error ((++) "toEnum " ((++) (show n) ", not defined for CmdFlag"))
           fromEnum (Version {}) = 0
           fromEnum (Web {}) = 1
@@ -245,3 +248,4 @@ instance Enum CmdFlag
           fromEnum (Include {}) = 14
           fromEnum (TestFile {}) = 15
           fromEnum (Rank {}) = 16
+          fromEnum (Combine {}) = 17
