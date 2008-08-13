@@ -20,7 +20,7 @@ createDataBase deps xs = DataBase items
         (createSuggest (map suggest deps) ys) as is
     where
         (items,ys) = createItems xs
-        zs = map fst ys
+        zs = map fst xs
         as = createAliases (map aliases deps) zs
         is = createInstances (map instances deps) zs
 
