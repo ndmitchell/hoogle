@@ -31,9 +31,9 @@ instance BinaryDefer TypeSearch where
 ---------------------------------------------------------------------
 -- CREATION
 
-createTypeSearch :: Aliases -> Instances -> [(TextItem, Maybe (Link Entry))] -> TypeSearch
+createTypeSearch :: Aliases -> Instances -> [Link Entry] -> TypeSearch
 createTypeSearch aliases instances xs = TypeSearch $ newGraphs aliases instances types
-    where types = [(e, sig) | (ItemFunc _ sig, Just e) <- xs]
+    where types = [(x, sig) | x <- xs, ItemFunc _ sig <- [fromDefer $ entryItem $ fromLink x]]
 
 
 ---------------------------------------------------------------------

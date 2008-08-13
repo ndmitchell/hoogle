@@ -69,7 +69,7 @@ Both are sorted by the string they represent.
 ---------------------------------------------------------------------
 -- CREATION
 
-createNameSearch :: [(a, Maybe (Link Entry))] -> NameSearch
+createNameSearch :: [Link Entry] -> NameSearch
 createNameSearch xs = NameSearch
         (newTrie $ f sub (zip [0..] pre))
         (newChunk $ map snd pre)
@@ -89,8 +89,8 @@ createNameSearch xs = NameSearch
                 pr = takeWhile (isPrefixOf x . fst . snd) ys2
 
 
-extractText :: [(a, Maybe (Link Entry))] -> [(String, Link Entry)]
-extractText xs = [(map toLower s, e) |(_, Just e) <- xs, Focus s <- entryText $ fromLink e]
+extractText :: [Link Entry] -> [(String, Link Entry)]
+extractText xs = [(map toLower s, e) | e <- xs, Focus s <- entryText $ fromLink e]
 
 
 substrs, prefixes :: [a] -> [[a]]
