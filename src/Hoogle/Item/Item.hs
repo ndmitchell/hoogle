@@ -39,6 +39,7 @@ data Entry = Entry
     ,entryText :: [EntryText]
     ,entryType :: EntryType
     ,entryDocs :: Haddock
+    ,entryItem :: Defer TextItem
     }
 
 typename_Entry = mkTyCon "Hoogle.DataBase.Item.Entry"
@@ -128,7 +129,7 @@ instance Show Module where
     show (Module a b) = unwords [showModule a, "{" ++ show b ++ "}"]
 
 instance Show Entry where
-    show (Entry a _ b _ _) = unwords [concatMap f b, m]
+    show (Entry a _ b _ _ _) = unwords [concatMap f b, m]
         where
             m = case a of
                     Nothing -> ""
@@ -150,8 +151,8 @@ instance BinaryDefer Module where
     get = get2 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e) = put5 a b c d e
-    get = get5 Entry
+    put (Entry a b c d e f) = put6 a b c d e f
+    get = get6 Entry
 
 instance BinaryDefer EntryText where
     put (Keyword a)  = putByte 0 >> put1 a
