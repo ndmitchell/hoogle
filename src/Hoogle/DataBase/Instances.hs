@@ -34,7 +34,7 @@ createInstances deps xs = mergeInstances (i:deps)
 
 
 mergeInstances :: [Instances] -> Instances
-mergeInstances = Instances . Map.unionsWith (++) . map fromInstances
+mergeInstances = Instances . Map.unionsWith (\x y -> nub $ x ++ y) . map fromInstances
 
 
 
