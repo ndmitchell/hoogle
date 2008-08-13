@@ -42,6 +42,8 @@ data S = S {pkg :: Package
            ,ents :: [(TextItem, Maybe Entry)]
            }
 
+-- TODO: Should be: createItems :: [(TextItem,String)] -> (Items, [Link Entry])
+--       then propagate through
 createItems :: [(TextItem,String)] -> (Items, [(TextItem, Maybe (Link Entry))])
 createItems xs = res
     where
