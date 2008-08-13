@@ -7,7 +7,13 @@ import Hoogle
 import Util
 
 
-defaults = ["base","array","keyword"]
+defaults = ["keyword","base","array","Cabal","HUnit","QuickCheck","bytestring"
+           ,"containers","directory","filepath","haskell-src","mtl"
+           ,"network","parallel","parsec","pretty","process","random","stm"
+           ,"template-haskell","time","xhtml"]
+           \\
+           ["network"]
+
 
 
 main :: IO ()
