@@ -40,7 +40,7 @@ data CmdFlag = Version           -- ^ Version information
 
 -- | In which circumstances are you allowed to pass this command
 data Permission = PWebArgs | PWebQuery | PCmdLine | PMultiple
-                  deriving Eq
+                  deriving (Show,Eq)
 
 data Argument = ArgNone CmdFlag
               | ArgBool (Bool     -> CmdFlag)
@@ -69,7 +69,7 @@ data FlagInfo = FlagInfo {
     names :: [String],
     permissions :: [Permission],
     description :: String
-    }
+    } deriving Show
 
 flagInfo =
     [f (ArgNone Version) ["version","ver"] [PCmdLine] "Print out version information"
