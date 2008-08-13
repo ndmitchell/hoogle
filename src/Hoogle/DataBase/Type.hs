@@ -19,14 +19,13 @@ import Data.Binary.Defer
 import General.Code
 
 
+-- suggest, aliases and instances are used for linking with packages
+-- that depend on this database
 data DataBase = DataBase
     {items :: Items
     ,nameSearch :: NameSearch
     ,typeSearch :: TypeSearch
     ,suggest :: Suggest
-    -- aliases and instances are stored
-    -- but only used for linking with packages that depend
-    -- on this database
     ,aliases :: Aliases
     ,instances :: Instances
     }
