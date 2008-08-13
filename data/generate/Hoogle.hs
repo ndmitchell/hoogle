@@ -8,28 +8,27 @@ hoogle "keyword" = copyFile "temp/keyword/hoogle.txt" "result/keyword.txt"
 
 hoogle x = do
     -- read the cabal info
-    cabal <- readFile $ "temp/" ++ x ++ "/" ++ x ++ ".cabal"
-    let (version,depends) = cabalInfo cabal
+    cabal <- liftM lines $ readFile $ "temp/" ++ x ++ "/" ++ x ++ ".cabal"
 
     -- rewrite with extra information
     src <- readFile $ "temp/" ++ x ++ "/hoogle.txt"
-    writeFile ("result/" ++ x ++ ".txt") $ unlines $ concatMap (f version depends)
+    writeFile ("result/" ++ x ++ ".txt") $ unlines $ concatMap (f cabal)
         $ lines $ filter (/= '\r') src
         -- '\r' because of haddock/cabal interactions going weird..
     where
-        f version depends x
-            | "@package" `isPrefixOf` x = x : ["@version " ++ version | version /= ""] ++
-                                              ["@depends " ++ d | d <- depends, d /= "rts"]
-            | "@version" `isPrefixOf` x && version /= "" = []
+        f cabal x
+            | "@package" `isPrefixOf` x =
+                [x] ++
+                ["@version " ++ v | let v = cabalVersion cabal, v /= ""] ++
+                ["@depends " ++ d | d <- cabalDepends cabal, d /= "rts"]
+            | "@version" `isPrefixOf` x = []
             | otherwise = [x]
 
 
-cabalInfo src = (version,depends)
-    where
-        src2 = lines src
-        version = head $ readFields "version" src2 ++ [""]
-        depends = nub $ filter f $ words $ map (rep ',' ' ') $ unwords $ readFields "build-depends" src2
-        f x = x /= "" && isAlpha (head x)
+cabalVersion xs = head $ readFields "version" xs ++ [""]
+
+cabalDepends xs = nub $ filter f $ words $ map (rep ',' ' ') $ unwords $ readFields "build-depends" xs
+    where f x = x /= "" && isAlpha (head x)
 
 
 readFields :: String -> [String] -> [String]
