@@ -5,6 +5,7 @@ import Download
 import Haddock
 import Hoogle
 import Util
+import Link
 
 
 defaults = ["keyword","base","array","Cabal","HUnit","QuickCheck","bytestring"
@@ -21,7 +22,9 @@ main = do
     createDirectoryIfMissing True "temp"
     createDirectoryIfMissing True "result"
     xs <- getArgs
-    mapM_ process $ if null xs then defaults else xs
+    xs <- return $ if null xs then defaults else xs
+    mapM_ process xs
+    link xs
 
 
 process :: String -> IO ()
