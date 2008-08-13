@@ -55,7 +55,7 @@ runRankTest tb (RankTest t xs) = order $ map grab xs2
         xs2 = zip ["f" ++ show i | i <- [1..]] xs
 
         res = searchAll [db] q
-        db = createDataBase $ tb ++ [(ItemFunc a b, "") | (a,b) <- xs2]
+        db = createDataBase [] $ tb ++ [(ItemFunc a b, "") | (a,b) <- xs2]
         q = defaultQuery{typeSig=Just t}
 
         grab :: (String,TypeSig) -> (TypeSig,[Cost])

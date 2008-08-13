@@ -14,15 +14,15 @@ import Hoogle.Item.All
 import Hoogle.DataBase.Serialise
 
 
-createDataBase :: TextBase -> DataBase
-createDataBase xs = DataBase items
-        (createNameSearch ys) (createTypeSearch aliases instances ys)
-        (createSuggest ys) aliases instances
+createDataBase :: [DataBase] -> TextBase -> DataBase
+createDataBase deps xs = DataBase items
+        (createNameSearch ys) (createTypeSearch as is ys)
+        (createSuggest (map suggest deps) ys) as is
     where
         (items,ys) = createItems xs
         zs = map fst ys
-        aliases = createAliases zs
-        instances = createInstances zs
+        as = createAliases (map aliases deps) zs
+        is = createInstances (map instances deps) zs
 
 
 searchName :: DataBase -> String -> [(Link Entry,EntryView,TextScore)]

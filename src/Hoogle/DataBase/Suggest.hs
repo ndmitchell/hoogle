@@ -5,7 +5,7 @@ module Hoogle.DataBase.Suggest where
 
 import General.Code
 import Data.Binary.Defer
-import Data.Binary.Defer.Trie
+import Data.Binary.Defer.Trie as Trie
 import Data.Binary.Defer.Index
 import qualified Data.Map as Map
 import Hoogle.TextBase.All
@@ -45,9 +45,10 @@ instance BinaryDefer SuggestItem where
 
 -- note: do not look inside class's for data type information
 --       as they may have higher-kinds and get it wrong
-createSuggest :: [(TextItem, a)] -> Suggest
-createSuggest xs = Suggest $ newTrie $ Map.toList res
+createSuggest :: [Suggest] -> [(TextItem, a)] -> Suggest
+createSuggest deps xs = mergeSuggest (s:deps)
     where
+        s = Suggest $ newTrie $ Map.toList res
         res = foldl f Map.empty $ concatMap (getTextItem . fst) xs
             where f m (s,i) = Map.insertWith joinItem (map toLower s) i m
 
@@ -75,6 +76,10 @@ createSuggest xs = Suggest $ newTrie $ Map.toList res
             [ (name, SuggestItem (Just c) [] [])
             | n:_ <- [name], isUpper n
             , (TLit c,_) <- [fromTApp $ last $ fromTFun x]]
+
+
+mergeSuggest :: [Suggest] -> Suggest
+mergeSuggest = Suggest . Trie.unionsWith joinItem . map fromSuggest
 
 
 joinItem :: SuggestItem -> SuggestItem -> SuggestItem

@@ -11,10 +11,10 @@ import Data.Generics.Uniplate
 import General.Code
 
 
-newtype Aliases = Aliases (Map.Map String Alias)
+newtype Aliases = Aliases {fromAliases :: Map.Map String Alias}
 
 instance BinaryDefer Aliases where
-    put (Aliases a) = put a
+    put = put . fromAliases
     get = get1 Aliases
 
 instance Show Aliases where
@@ -32,11 +32,19 @@ instance BinaryDefer Alias where
     get = get2 Alias
 
 
-createAliases :: [TextItem] -> Aliases
-createAliases ti = Aliases $ transitiveClosure $ Map.fromList
-    [ (name, Alias [v | TVar v <- args] rhs)
-    | ItemAlias (TypeSig _ lhs) (TypeSig _ rhs) <- ti
-    , let (TLit name, args) = fromTApp lhs]
+createAliases :: [Aliases] -> [TextItem] -> Aliases
+createAliases deps ti = mergeAliases (a:deps)
+    where
+        a = Aliases $ transitiveClosure $ Map.fromList
+            [ (name, Alias [v | TVar v <- args] rhs)
+            | ItemAlias (TypeSig _ lhs) (TypeSig _ rhs) <- ti
+            , let (TLit name, args) = fromTApp lhs]
+
+
+-- the first is the most important
+mergeAliases :: [Aliases] -> Aliases
+mergeAliases [x] = x
+mergeAliases xs = Aliases $ transitiveClosure $ Map.unions $ map fromAliases xs
 
 
 -- Must be careful with aliases which expand back to themselves

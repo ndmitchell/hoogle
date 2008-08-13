@@ -7,13 +7,14 @@ import Hoogle.DataBase.All
 
 
 -- error messages are given using trace and error
-convert :: Bool -> FilePath -> FilePath -> IO ()
-convert debugCheck tb db = do
+convert :: Bool -> [FilePath] -> FilePath -> FilePath -> IO ()
+convert debugCheck deps tb db = do
     res <- parseTextBase tb
     case res of
         Left  x -> error $ show x
         Right x -> do
-            let y = createDataBase x
+            dbs <- mapM loadDataBase deps
+            let y = createDataBase dbs x
             saveDataBase db y
 
             when (debugCheck) $ do

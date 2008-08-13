@@ -13,7 +13,7 @@ import Data.Generics.Uniplate
 
 
 -- Map type [classes]
-newtype Instances = Instances (Map.Map String [String])
+newtype Instances = Instances {fromInstances :: Map.Map String [String]}
 
 instance Show Instances where
     show (Instances mp) = unlines $ map f $ Map.toList mp
@@ -21,15 +21,22 @@ instance Show Instances where
 
 
 instance BinaryDefer Instances where
-    put (Instances x) = put1 x
+    put = put1 . fromInstances
     get = get1 Instances
 
 
-createInstances :: [TextItem] -> Instances
-createInstances xs = Instances $ foldl f Map.empty ys
+createInstances :: [Instances] -> [TextItem] -> Instances
+createInstances deps xs = mergeInstances (i:deps)
     where
+        i = Instances $ foldl f Map.empty ys
         ys = [(v, c) | ItemInstance (TypeSig [] (TApp (TLit c) vs)) <- xs, TLit v <- vs]
         f mp (v,c) = Map.insertWith (++) v [c] mp
+
+
+mergeInstances :: [Instances] -> Instances
+mergeInstances = Instances . Map.unionsWith (++) . map fromInstances
+
+
 
 
 -- Convert:
