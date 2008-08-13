@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.Instances(
-    Instances, createInstances,
+    Instances, createInstances, mergeInstances,
     normInstances, hasInstance
     ) where
 

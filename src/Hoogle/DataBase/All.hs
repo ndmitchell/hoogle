@@ -28,7 +28,15 @@ createDataBase deps xs = DataBase items
 
 
 combineDataBase :: [DataBase] -> DataBase
-combineDataBase = head
+combineDataBase dbs = DataBase items_
+        (createNameSearch ys) (createTypeSearch as is ys)
+        ss as is
+    where
+        items_ = mergeItems $ map items dbs
+        ys = entriesItems items_
+        ss = mergeSuggest $ map suggest dbs
+        as = mergeAliases $ map aliases dbs
+        is = mergeInstances $ map instances dbs
 
 
 searchName :: DataBase -> String -> [(Link Entry,EntryView,TextScore)]

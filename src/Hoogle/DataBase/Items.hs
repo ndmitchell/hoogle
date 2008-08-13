@@ -83,3 +83,7 @@ addTextItem linkPkg ti doc = case ti of
             return [Entry (if modu then modCur s else Nothing)
                           (headDef "" [i | Focus i <- txt])
                           txt typ (newHaddock doc) sig]
+
+
+mergeItems :: [Items] -> Items
+mergeItems = head

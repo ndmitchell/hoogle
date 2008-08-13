@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.Aliases(
-    Aliases, createAliases, normAliases
+    Aliases, createAliases, normAliases, mergeAliases
     ) where
 
 import Hoogle.TextBase.All
