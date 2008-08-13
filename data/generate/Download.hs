@@ -12,12 +12,14 @@ download x = do
     when (not b) $ do
         if x == "base" then do
             system_ "darcs get --partial --repo-name=temp/base http://darcs.haskell.org/ghc-6.8/packages/base"
-         else if x == "keywords" then do
-            createDirectoryIfMissing True "keywords"
-            system_ "wget http://haskell.org/haskellwiki/Keywords -O temp/keywords/keywords.html"
+         else if x == "keyword" then do
+            createDirectoryIfMissing True "temp/keyword"
+            system_ "wget http://haskell.org/haskellwiki/Keywords -O temp/keyword/keyword.html"
          else do
             src <- openURL $ "http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ x
             let link = head [url | TagOpen "a" [("href",url)] <- parseTags src, ".tar.gz" `isSuffixOf` url]
-            system_ $ "wget " ++ link ++ " -O temp/" ++ x ++ ".tar.gz"
+            system_ $ "wget http://hackage.haskell.org/" ++ link ++ " -O temp/" ++ x ++ ".tar.gz"
             system_ $ "gunzip --force temp/" ++ x ++ ".tar.gz"
             system_ $ "tar -xf temp/" ++ x ++ ".tar -C temp"
+            renameDirectory ("temp/" ++ dropExtension (takeBaseName link)) ("temp/" ++ x)
+
