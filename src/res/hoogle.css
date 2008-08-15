@@ -138,7 +138,7 @@ a.dull:hover, a.dull, a.dull:visited {
 
 .more, .more:visited {
     padding-left: 16px;
-    background-image: url(more.png);
+    background-image: url(more_blue.png);
     background-repeat: no-repeat;
     background-position: center left;
     color: blue;
