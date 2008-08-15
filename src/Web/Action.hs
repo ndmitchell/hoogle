@@ -114,15 +114,15 @@ insertMore (x:xs) = f x : xs
 
 renderRes :: Result -> [String]
 renderRes r =
-        [tr $ td "mod" modname ++ td "" (href urlItem $ showTagHTMLWith url text)
-        ,tr $ td "pkg" pkgname ++ td "doc" docShort]
+        [tr $ modname ++ td "" (href urlItem $ showTagHTMLWith url text)
+        ,tr $ pkgname ++ td "doc" docShort]
     where
         ent = fromLink $ resultEntry r
         pkg = liftM fromLink $ entryPackage ent
     
         (modu,text,_) = renderResult r
-        modname = maybe "" (href urlModule . showModule) modu
-        pkgname = maybe "" (href urlPkg . packageName) pkg
+        modname = td "mod" $ maybe "" (href urlModule . showModule) modu
+        pkgname = td "pkg" $ maybe "" (href urlPkg . packageName) pkg
 
         doc = renderHaddock $ entryDocs $ ent
         docShort = showTagHTML $ trimTags 100 $ transform (onStr $ map (rep '\n' ' ')) doc
