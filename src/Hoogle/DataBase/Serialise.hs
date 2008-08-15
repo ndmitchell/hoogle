@@ -8,10 +8,13 @@ import Data.Binary.Raw
 import General.Code
 
 import Hoogle.DataBase.Type
+import Paths_hoogle
+import Data.Version
 
 
--- TODO: Should use the Cabal version number instead
-hooVersion = 1 :: Int
+hooVersion :: [Int]
+hooVersion = take 4 $ versionBranch version ++ repeat 0
+
 hooString = "HOOG"
 
 
@@ -19,7 +22,7 @@ saveDataBase :: FilePath -> DataBase -> IO ()
 saveDataBase file db = do
     h <- openBinaryFile file WriteMode
     mapM_ (hPutChar h) hooString
-    hPutInt h hooVersion
+    mapM_ (hPutByte h) hooVersion
     runDeferPut h $ put db
     hClose h
 
@@ -36,9 +39,10 @@ loadDataBase file = do
     when (str /= hooString) $
         error $ "Not a hoogle database: " ++ file
 
-    ver <- hGetInt h
-    when (ver /= hooVersion) $
-        error $ "Wrong hoogle database version: " ++ show ver ++
-                " found, expected " ++ show hooVersion
+    let showVer = showVersion . flip Version []
+    ver <- replicateM 4 (hGetByte h)
+    when (ver /= hooVersion && "hugs" `notElem` versionTags version) $
+        error $ "Wrong hoogle database version: " ++ showVer ver ++
+                " found, expected " ++ showVer hooVersion
 
     runDeferGet h get
