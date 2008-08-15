@@ -31,6 +31,7 @@ renderHaddock (Haddock xs) = Tags $ f False $ parseHaddock $ toList xs
 
         f True (Char '\n':xs) = Str "\n" : Str "> " : f True xs
 
+        -- TODO: tt is ignored, add a TagMonospage?
         f pre (Tag "tt" x:xs) = f pre (x++xs)
         f pre (Tag [t,'l'] x:xs) | t `elem` "ou" = tail $ f pre (filter (/= nl) x ++ xs)
         f pre (Tag "pre" x:xs) = init (init $ tail $ f True x) ++ f pre xs
