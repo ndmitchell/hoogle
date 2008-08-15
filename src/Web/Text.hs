@@ -1,8 +1,7 @@
 
 module Web.Text where
 
-import Data.Char
-import Data.Maybe
+import General.Code
 import Data.TagStr
 import Numeric
 
@@ -25,6 +24,7 @@ escapeHTML = concatMap f
         f '\"' = "&quot;"
         f '<' = "&lt;"
         f '>' = "&gt;"
+        f '\n' = "<br/>"
         f x = [x]
 
 escapeCGI = concatMap f
@@ -46,5 +46,8 @@ showTagHTMLWith f x = g x
         g (Tags xs) = concatMap g xs
         g (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
         g (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
+        g (TagHyperlink "" x) = g (TagHyperlink url x)
+            where str = showTagText x
+                  url = if "http:" `isPrefixOf` str then str else "?q=" +% str
         g (TagHyperlink url x) = "<a href=\"" +& url ++ "\">" ++ showTagHTML x ++ "</a>"
         g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
