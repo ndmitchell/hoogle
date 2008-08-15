@@ -10,6 +10,7 @@ import General.Code
 import Hoogle.DataBase.Type
 
 
+-- TODO: Should use the Cabal version number instead
 hooVersion = 1 :: Int
 hooString = "HOOG"
 
