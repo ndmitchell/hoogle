@@ -117,20 +117,23 @@ renderRes r =
         [tr $ td "mod" modname ++ td "" (href urlItem $ showTagHTMLWith url text)
         ,tr $ td "pkg" pkgname ++ td "doc" docShort]
     where
-        pkg = liftM (fromLink . modulePackage . fromLink) $ entryModule $ fromLink $ resultEntry r
+        ent = fromLink $ resultEntry r
+        pkg = liftM fromLink $ entryPackage ent
     
         (modu,text,_) = renderResult r
         modname = maybe "" (href urlModule . showModule) modu
         pkgname = maybe "" (href urlPkg . packageName) pkg
-        doc = renderHaddock $ entryDocs $ fromLink $ resultEntry r
+
+        doc = renderHaddock $ entryDocs $ ent
         docShort = showTagHTML $ trimTags 100 $ transform (onStr $ map (rep '\n' ' ')) doc
         docLong = showTagHTML doc
 
         urlPkg = "http://hackage.haskell.org/packages/archive/" +? maybe "" packageName pkg +? "/" +?
                  maybe "" packageVersion pkg +? "/doc/html/"
-        urlModule = urlPkg +? concat (intersperse "-" $ fromMaybe [] modu) +? ".html"
-        urlItem = if isNothing pkg then keywordURL $ entryName $ fromLink $ resultEntry r else
-                  urlModule +? "#v:" +? escapeHTML (entryName $ fromLink $ resultEntry r)
+        urlModule = urlPkg +? concat (intersperse "-" $ maybe [] (moduleName . fromLink) $ entryModule ent) +? ".html"
+        urlItem = if isNothing pkg then keywordURL $ entryName ent else
+                  if isNothing modu then urlModule else
+                  urlModule +? "#v:" +? escapeHTML (entryName ent)
 
         url (TagHyperlink _ x)
             | null urlItem = Just $ "<span class='a'>" ++ showTagHTML x ++ "</span>"
