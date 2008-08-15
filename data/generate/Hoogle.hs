@@ -19,7 +19,7 @@ hoogle name = do
         f cabal x
             | "@package" `isPrefixOf` x =
                 [x] ++
-                ["@version " ++ v | let v = cabalVersion cabal, v /= "",
+                ["@version " ++ v2 | let v = cabalVersion cabal, v /= "",
                     let v2 = if name == "base" && v == "3.0.2.0" then "3.0.1.0" else v] ++
                 ["@depends " ++ d | d <- cabalDepends cabal, d /= "rts"]
             | "@version" `isPrefixOf` x = []
