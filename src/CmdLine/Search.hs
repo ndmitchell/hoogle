@@ -35,9 +35,14 @@ actionSearch flags q = do
     if null res then
         putStrLn "No results found"
      else if Info `elemEnum` flags then do
+        let ent = fromLink $ resultEntry $ head res
         putStrLn $ f $ renderResult $ head res
         putStrLn ""
-        putStrLn $ showTag $ renderHaddock $ entryDocs $ fromLink $ resultEntry $ head res
+        putStrLn $ showTag $ renderHaddock $ entryDocs ent
+        when (isJust $ entryPackage ent) $ do
+            let pkg = fromLink $ fromJust $ entryPackage ent
+            putStrLn $ "\nFrom package " ++ packageName pkg ++ ", version " ++ packageVersion pkg
+        -- TODO: Add link URL if possible
      else
         putStr $ unlines $ map (f . renderResult) res
     where
