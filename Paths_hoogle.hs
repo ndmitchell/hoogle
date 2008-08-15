@@ -9,7 +9,7 @@ module Paths_hoogle where
 import Data.Version(Version(..))
 
 version :: Version
-version = Version {versionBranch = [4,0], versionTags = ["manual"]}
+version = Version {versionBranch = [4,0], versionTags = ["hugs"]}
 
 getDataDir :: IO FilePath
 getDataDir = return ""
