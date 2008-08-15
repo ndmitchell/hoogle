@@ -144,6 +144,15 @@ a.dull:hover, a.dull, a.dull:visited {
     color: blue;
 }
 
+.doc .more, .doc .less {
+    padding-left: 14px;
+    background-image: url(more_gray.png);
+    background-repeat: no-repeat;
+    background-position: center left;
+}
+.doc .less {
+    background-image: url(less_gray.png);
+}
 
 
 

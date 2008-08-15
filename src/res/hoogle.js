@@ -25,3 +25,16 @@ function addEngine(name,ext,cat,pid)
     }
 }
 
+function doc_more(i)
+{
+    document.getElementById('s' + i).style.display = "none";
+    document.getElementById('l' + i).style.display = "block";
+    return false;
+}
+
+function doc_less(i)
+{
+    document.getElementById('l' + i).style.display = "none";
+    document.getElementById('s' + i).style.display = "block";
+    return false;
+}

@@ -78,14 +78,14 @@ runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
         ["<p>No results found</p>"]
     else
         ["<table>"] ++
-        concatMap renderRes pre ++
-        insertMore (concatMap renderRes now) ++
+        concatMap (uncurry renderRes) pre ++
+        insertMore (concatMap (uncurry renderRes) now) ++
         [moreResults | not $ null post] ++
         ["</table>"]
     where
         start = headDef 0 [i-1 | Start i <- flags]
         count = headDef 20 [n | Count n <- flags]
-        res = searchRange (rangeStartCount 0 (start+count+1)) dbs q
+        res = zip [0..] $ searchRange (rangeStartCount 0 (start+count+1)) dbs q
         (pre,res2) = splitAt start res
         (now,post) = splitAt count res2
 
@@ -112,10 +112,10 @@ insertMore (x:xs) = f x : xs
         f [] = []
 
 
-renderRes :: Result -> [String]
-renderRes r =
+renderRes :: Int -> Result -> [String]
+renderRes i r =
         [tr $ modname ++ td "" (href urlItem $ showTagHTMLWith url text)
-        ,tr $ pkgname ++ td "doc" docShort]
+        ,tr $ pkgname ++ td "doc" docs]
     where
         ent = fromLink $ resultEntry r
         pkg = liftM fromLink $ entryPackage ent
@@ -123,6 +123,17 @@ renderRes r =
         (modu,text,_) = renderResult r
         modname = td "mod" $ maybe "" (href urlModule . showModule) modu
         pkgname = td "pkg" $ maybe "" (href urlPkg . packageName) pkg
+
+        docs = if length docLong == 0 then "" else
+               if docShort == docLong then docShort else
+               "<div id='s" ++ show i ++ "'>" ++
+                    "<a class='more' href='" ++ urlItem ++ "' onclick='return doc_more(" ++ show i ++ ")'> </a>" ++
+                    docShort ++
+               "</div>" ++
+               "<div style='display:none' id='l" ++ show i ++ "'>" ++
+                    "<a class='less' onclick='return doc_less(" ++ show i ++ ")'> </a>" ++
+                    docLong ++
+               "</div>"
 
         doc = renderHaddock $ entryDocs $ ent
         docShort = showTagHTML $ trimTags 100 $ transform (onStr $ map (rep '\n' ' ')) doc
