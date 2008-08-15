@@ -124,7 +124,8 @@ renderRes r =
         pkgname = maybe "" (href urlPkg . packageName) pkg
         doc = takeWhile (/= '\n') $ showTagHTML $ renderHaddock $ entryDocs $ fromLink $ resultEntry r
 
-        urlPkg = "http://hackage.haskell.org/packages/archive/" +? maybe "" packageName pkg +? "/latest/doc/html/"
+        urlPkg = "http://hackage.haskell.org/packages/archive/" +? maybe "" packageName pkg +? "/" +?
+                 maybe "" packageVersion pkg +? "/doc/html/"
         urlModule = urlPkg +? concat (intersperse "-" $ fromMaybe [] modu) +? ".html"
         urlItem = if isNothing pkg then keywordURL $ entryName $ fromLink $ resultEntry r else
                   urlModule +? "#v:" +? escapeHTML (entryName $ fromLink $ resultEntry r)
