@@ -6,13 +6,13 @@ import Util
 hoogle :: String -> IO ()
 hoogle "keyword" = copyFile "temp/keyword/hoogle.txt" "result/keyword.txt"
 
-hoogle x = do
+hoogle name = do
     -- read the cabal info
-    cabal <- liftM lines $ readFile $ "temp/" ++ x ++ "/" ++ x ++ ".cabal"
+    cabal <- liftM lines $ readFile $ "temp/" ++ name ++ "/" ++ name ++ ".cabal"
 
     -- rewrite with extra information
-    src <- readFile $ "temp/" ++ x ++ "/hoogle.txt"
-    writeFile ("result/" ++ x ++ ".txt") $ unlines $ concatMap (f cabal)
+    src <- readFile $ "temp/" ++ name ++ "/hoogle.txt"
+    writeFile ("result/" ++ name ++ ".txt") $ unlines $ concatMap (f cabal)
         $ lines $ filter (/= '\r') src
         -- '\r' because of haddock/cabal interactions going weird..
     where
