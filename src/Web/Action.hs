@@ -115,14 +115,16 @@ insertMore (x:xs) = f x : xs
 renderRes :: Result -> [String]
 renderRes r =
         [tr $ td "mod" modname ++ td "" (href urlItem $ showTagHTMLWith url text)
-        ,tr $ td "pkg" pkgname ++ td "doc" doc]
+        ,tr $ td "pkg" pkgname ++ td "doc" docShort]
     where
         pkg = liftM (fromLink . modulePackage . fromLink) $ entryModule $ fromLink $ resultEntry r
     
         (modu,text,_) = renderResult r
         modname = maybe "" (href urlModule . showModule) modu
         pkgname = maybe "" (href urlPkg . packageName) pkg
-        doc = takeWhile (/= '\n') $ showTagHTML $ renderHaddock $ entryDocs $ fromLink $ resultEntry r
+        doc = renderHaddock $ entryDocs $ fromLink $ resultEntry r
+        docShort = showTagHTML $ trimTags 100 $ transform (onStr $ map (rep '\n' ' ')) doc
+        docLong = showTagHTML doc
 
         urlPkg = "http://hackage.haskell.org/packages/archive/" +? maybe "" packageName pkg +? "/" +?
                  maybe "" packageVersion pkg +? "/doc/html/"

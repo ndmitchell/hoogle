@@ -51,3 +51,19 @@ showTagHTMLWith f x = g x
                   url = if "http:" `isPrefixOf` str then str else "?q=" +% str
         g (TagHyperlink url x) = "<a href=\"" +& url ++ "\">" ++ showTagHTML x ++ "</a>"
         g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
+
+
+trimTags :: Int -> TagStr -> TagStr
+trimTags n (Tags xs) = Tags $ f n xs
+    where
+        f n [] = []
+        f n (x:xs) | m <  n = x : f (n-m) xs
+                   | otherwise = [trimTags n x, Str "..."]
+            where m = length (showTagText x)
+trimTags n x | length (showTagText x) > n = Tags []
+             | otherwise = x
+
+
+onStr :: (String -> String) -> TagStr -> TagStr
+onStr f (Str x) = Str $ f x
+onStr f x = x
