@@ -252,3 +252,6 @@ traceInline msg x = unsafePerformIO $ do
 errorLines :: [String] -> b
 errorLines [] = error "errorLines, finished"
 errorLines (x:xs) = trace x $ errorLines xs
+
+
+rep from to x = if x == from then to else x
