@@ -42,6 +42,10 @@ data Entry = Entry
     ,entryTypesig :: Maybe (Defer TypeSig)
     }
 
+entryPackage :: Entry -> Maybe (Link Package)
+entryPackage = liftM (modulePackage . fromLink) . entryModule
+
+
 typename_Entry = mkTyCon "Hoogle.DataBase.Item.Entry"
 instance Typeable Entry where typeOf _ = mkTyConApp typename_Entry []
 
