@@ -114,16 +114,19 @@ a.dull:hover, a.dull, a.dull:visited {
 }
 
 .pkg {
-    vertical-align: top;
     text-align: right;
+}
+
+.pkg, .doc {
+    vertical-align: top;
     font-size: 8pt;
     color: #888;
     padding-bottom: 10px;
 }
 
-.doc {
-    font-size: 8pt;
-    padding-bottom: 10px;
+.doc a {
+    color: #888;
+    padding-bottom: 0px;
 }
 
 .c0{background-color: #fcc;}
