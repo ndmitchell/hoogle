@@ -6,7 +6,8 @@ import System.IO.Unsafe
 import Data.Binary.Raw
 import Control.Monad.Reader
 import Data.IORef
-import Data.ByteString as BS
+import Data.List
+import qualified Data.ByteString as BS
 
 import Data.Typeable
 import qualified Data.TypeMap as TypeMap
@@ -19,12 +20,13 @@ import qualified Data.TypeMap as TypeMap
 -- and removes hGetPos as being a bottleneck
 -- possibly still not worth it though
 
-type DeferPut a = ReaderT (Handle, IORef Int, IORef [DeferPending]) IO a
-data DeferPending = DeferPending Int (DeferPut ())
+type DeferPut a = ReaderT (Handle, IORef Int, IORef [DeferPending], IORef [DeferPatchup]) IO a
+data DeferPending = DeferPending !Int (DeferPut ())
+data DeferPatchup = DeferPatchup !Int !Int -- a b = at position a, write out b
 
 putValue :: (Handle -> a -> IO ()) -> Int -> a -> DeferPut ()
 putValue f size x = do
-    (h,p,_) <- ask
+    (h,p,_,_) <- ask
     lift $ do
         modifyIORef p (+size)
         f h x
@@ -36,15 +38,15 @@ putByte = putValue hPutByte 1
 putChr :: Char -> DeferPut ()
 putChr  = putValue hPutChar 1
 
-putByteString :: ByteString -> DeferPut ()
+putByteString :: BS.ByteString -> DeferPut ()
 putByteString x = do
     let len = BS.length x
     putInt len
-    putValue hPut len x
+    putValue BS.hPut len x
 
 putDefer :: DeferPut () -> DeferPut ()
 putDefer x = do
-    (h,p,ref) <- ask
+    (h,p,ref,_) <- ask
     lift $ do
         p2 <- readIORef p
         hPutInt h 0 -- to backpatch
@@ -54,14 +56,17 @@ putDefer x = do
 runDeferPut :: Handle -> DeferPut () -> IO ()
 runDeferPut h m = do
     ref <- newIORef []
+    back <- newIORef []
     i <- hGetPos h
     p <- newIORef $ fromInteger i
-    runReaderT (m >> runDeferPendings) (h,p,ref)
+    runReaderT (m >> runDeferPendings) (h,p,ref,back)
+    patch <- readIORef back
+    mapM_ (\(DeferPatchup a b) -> do hSetPos h (toInteger a); hPutInt h b) patch
 
 
 runDeferPendings :: DeferPut ()
 runDeferPendings = do
-    (h,_,ref) <- ask
+    (h,_,ref,back) <- ask
     todo <- lift $ readIORef ref
     lift $ writeIORef ref []
     mapM_ runDeferPending todo
@@ -77,12 +82,10 @@ runDeferPendings = do
 --       Should save lots of openning the file etc
 runDeferPending :: DeferPending -> DeferPut ()
 runDeferPending (DeferPending pos act) = do
-    (h,p,_) <- ask
+    (h,p,_,back) <- ask
     lift $ do
         p2 <- readIORef p
-        hSetPos h (toInteger pos)
-        hPutInt h p2
-        hSetPos h (toInteger p2)
+        modifyIORef back (DeferPatchup pos p2 :)
     act
     runDeferPendings
 
@@ -99,7 +102,7 @@ getByte = do h <- asks fst; lift $ hGetByte h
 getChr :: DeferGet Char
 getChr  = do h <- asks fst; lift $ hGetChar h
 
-getByteString :: DeferGet ByteString
+getByteString :: DeferGet BS.ByteString
 getByteString = do
     h <- asks fst
     len <- lift $ hGetInt h
