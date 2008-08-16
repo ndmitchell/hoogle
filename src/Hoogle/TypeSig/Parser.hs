@@ -98,9 +98,11 @@ parsecTypeSig = do whites
 
         keysymbol = try $ do
             x <- many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
-            if x `elem` ["::","=>","=#",".","=","#",":","-","+","/","--"] then fail "Bad symbol" else
-                return $ if x == "-#" then "->" else x
-        ascSymbol = "!#$%&*+./<=>?@\\^|-~:"
+            if x `elem` ["->","-#"] then return "->" -- fast shortcut for arrows
+             else if x `elem` reservedSym then fail "Bad symbol"
+             else return x
+        ascSymbol = "->#!$%&*+./<=?@\\^|-~:"
+        reservedSym = ["::","=>","=#",".","=","#",":","-","+","/","--"]
 
 
 optionBool p = (p >> return True) <|> return False
