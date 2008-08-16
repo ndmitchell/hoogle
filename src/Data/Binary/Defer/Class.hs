@@ -155,9 +155,7 @@ instance (BinaryDefer a, BinaryDefer b) => BinaryDefer (Either a b) where
 -- strategy: write out in 100 byte chunks, where each successive
 -- chunk is lazy, but the first is not
 instance BinaryDefer a => BinaryDefer [a] where
-    put xs | null b = putByte (length a) >> mapM_ put a
-           | otherwise = putByte maxByte >> mapM_ put a >> putDefer (put b)
-        where (a,b) = splitAt 100 xs
+    put xs = putList xs
 
     get = do
         i <- getByte
@@ -167,6 +165,14 @@ instance BinaryDefer a => BinaryDefer [a] where
             xs <- replicateM 100 get
             ys <- getDefer get
             return (xs++ys)
+
+
+-- Extracted to allow putList to appear on the profile
+putList :: BinaryDefer a => [a] -> DeferPut ()
+putList xs | null b = putByte (length a) >> mapM_ put a
+           | otherwise = putByte maxByte >> mapM_ put a >> putDefer (put b)
+        where (a,b) = splitAt 100 xs
+
 
 
 instance BinaryDefer ByteString where
