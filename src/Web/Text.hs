@@ -53,6 +53,8 @@ showTagHTMLWith f x = g x
         g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
 
 
+-- TODO: Should be in Data.TagStr?
+
 -- TODO: Should only break on spaces
 trimTags :: Int -> TagStr -> TagStr
 trimTags n (Tags xs) = Tags $ f n xs
