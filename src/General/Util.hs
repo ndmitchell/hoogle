@@ -255,3 +255,16 @@ errorLines (x:xs) = trace x $ errorLines xs
 
 
 rep from to x = if x == from then to else x
+
+
+-- | Like splitAt, but also return the number of items that were split.
+--   For performance.
+-- TODO: compare to 0 in the inner loop
+splitAtLength :: Int -> [a] -> (Int,[a],[a])
+splitAtLength n xs = f n xs
+    where
+        f i xs | i == 0 = (n,[],xs)
+        f i [] = (n-i,[],[])
+        f i (x:xs) = (a,x:b,c)
+            where (a,b,c) = f (i-1) xs
+
