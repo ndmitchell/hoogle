@@ -17,15 +17,15 @@ import qualified Data.TypeMap as TypeMap
 type DeferPut a = ReaderT (Handle, IORef [DeferPending]) IO a
 data DeferPending = DeferPending Integer (DeferPut ())
 
-putWithHandle :: (Handle -> IO ()) -> DeferPut ()
-putWithHandle f = do (h,_) <- ask; lift $ f h
+putValue :: (Handle -> a -> IO ()) -> a -> DeferPut ()
+putValue f x = do (h,_) <- ask; lift $ f h x
 
 putInt, putByte :: Int -> DeferPut ()
-putInt  x = putWithHandle $ flip hPutInt  x
-putByte x = putWithHandle $ flip hPutByte x
+putInt  = putValue hPutInt
+putByte = putValue hPutByte
 
 putChr :: Char -> DeferPut ()
-putChr  x = putWithHandle $ flip hPutChar x
+putChr  = putValue hPutChar
 
 putDefer :: DeferPut () -> DeferPut ()
 putDefer x = do
