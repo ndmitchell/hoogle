@@ -88,7 +88,7 @@ docFormat (TagOpen "p" _:xs) = g 0 [] $ words $ f xs
                        | otherwise = g (n+nx+1) (x:acc) xs
             where nx = length x
 
-        f (TagOpen "code" _:xs) = "<tt>" ++ innerText a ++ f (drop 1 b)
+        f (TagOpen "code" _:xs) = "<tt>" ++ innerText a ++ "</tt>" ++ f (drop 1 b)
             where (a,b) = break (~== "</code>") xs
         f (x:xs) = h x ++ f xs
         f [] = []
