@@ -170,8 +170,10 @@ instance BinaryDefer a => BinaryDefer [a] where
 
 
 instance BinaryDefer ByteString where
-    put = putByteString
-    get = getByteString
+    put = putDefer . putByteString
+    get = getDefer getByteString
+    putFixed = put
+    getFixed = get
 
 
 newtype Defer a = Defer a

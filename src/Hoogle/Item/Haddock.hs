@@ -11,7 +11,7 @@ import Data.ByteString.Char8(ByteString,pack,unpack)
 
 -- TODO: Should be a bytestring, then use hPut from ByteString
 --       to write out faster
-newtype Haddock = Haddock (Defer ByteString)
+newtype Haddock = Haddock ByteString
 
 
 instance BinaryDefer Haddock where
@@ -19,11 +19,11 @@ instance BinaryDefer Haddock where
     get = get1 Haddock
 
 
-newHaddock = Haddock . Defer . pack
+newHaddock = Haddock . pack
 
 
 renderHaddock :: Haddock -> TagStr
-renderHaddock (Haddock xs) = Tags $ f False $ parseHaddock $ unpack $ fromDefer xs
+renderHaddock (Haddock xs) = Tags $ f False $ parseHaddock $ unpack xs
     where
         nl = Char '\n'
 
