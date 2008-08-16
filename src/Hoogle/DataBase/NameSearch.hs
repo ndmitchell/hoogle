@@ -5,11 +5,9 @@ module Hoogle.DataBase.NameSearch
     ) where
 
 import Data.Binary.Defer
-import Data.Binary.Defer.Trie
-import Data.Binary.Defer.Chunk
+import Data.Binary.Defer.Array
 import Data.Binary.Defer.Index
-import Data.Char
-import Data.List
+import qualified Data.Map as Map
 import Data.Range
 import General.Code
 import Hoogle.Item.All
@@ -19,83 +17,69 @@ import Hoogle.TextBase.All
 ---------------------------------------------------------------------
 -- DATA TYPES
 
-data NameSearch = NameSearch (Trie NameItem) (Chunk (Int,Link Entry))
+{-
+The idea is that NameItem's are sorted by name, so exact/start matching
+is done by binary searching this list.
+
+The rest of the results are taken by unioning all the suggestions in the
+second element, and searching in order. All the results will end up
+sorted by name (since they have identical names)
+
+The original code was based around a Trie, gave fast performance, but
+didn't merge common strings and consumed about 10x the disk space.
+-}
+
+
+data NameSearch = NameSearch (Array NameItem) [(Char, [Int])]
                   deriving Show
 
-data NameItem = NameItem {nameStart :: Int
-                         ,nameCountAll :: Int -- number that match exactly
-                         ,nameCountAny :: Int -- number that match a prefix
-                         }
+data NameItem = NameItem {key :: String
+                         ,rest :: Defer [(String, [Link Entry])]}
 
 instance Show NameItem where
-    show (NameItem a b c) = unwords $ map show [a,b,c]
-
+    show (NameItem a b) = show a ++ " " ++ show (fromDefer b)
 
 instance BinaryDefer NameSearch where
     put (NameSearch a b) = put2 a b
     get = get2 NameSearch
 
 instance BinaryDefer NameItem where
-    put (NameItem a b c) = put3 a b c
-    get = get3 NameItem
+    put (NameItem a b) = put2 a b
+    get = get2 NameItem
 
-{-
-TRIE data structure
-
-Given the functions "map" and "pm" we would generate:
-
-Trie:
-"ap"   (0,1,1)
-"m"    (1,1,2)
-"ma"   (2,0,1)  
-"map"  (2,1,1)
-"p"    (3,1,2)
-"pm"   (4,1,1)
-
-Chunk:
-0 "ap"   (1,[map])
-1 "m"    (1,[pm])
-2 "map"  (0,[map])
-3 "p"    (2,[map])
-4 "pm"   (0,[pm])
-
-There will be one trie entry per unique substring.
-There will be one chunk entry per suffix.
-Both are sorted by the string they represent.
-
-[item] is the id of the item.
--}
 
 ---------------------------------------------------------------------
 -- CREATION
 
 createNameSearch :: [Link Entry] -> NameSearch
-createNameSearch xs = NameSearch
-        (newTrie $ f sub (zip [0..] pre))
-        (newChunk $ map snd pre)
+createNameSearch xs = NameSearch (array $ Map.elems items) (Map.toList shortcuts)
     where
-        ys = extractText xs
-        sub = map head $ group $ sort $ concatMap (substrs . fst) ys
-        pre = sortBy (compare `on` fst)
-                  [(p,(i,e)) | (s,e) <- ys, (i,p) <- zip [0..] $ prefixes s]
+        items = buildItems xs
+        shortcuts = buildShortcuts items
 
-        f :: [String] -> [(Int,(String,a))] -> [(String,NameItem)]
-        f [] _ = []
-        f (x:xs) ys = (x,NameItem s neq (neq+npr)) : f xs ys2
+
+buildShortcuts :: Map.Map String NameItem -> Map.Map Char [Int]
+buildShortcuts = Map.map sort . foldl' add Map.empty . zip [0..] . Map.keys
+    where
+        add mp (i,s) = foldl' g mp $ nub s
+            where g mp x = Map.insertWith (++) x [i] mp
+
+
+buildItems :: [Link Entry] -> Map.Map String NameItem
+buildItems = Map.map norm . foldl' add Map.empty
+    where
+        add mp e = Map.insertWith f ltext (NameItem ltext $ Defer [(text, [e])]) mp
             where
-                s = fst $ head ys
-                (neq,npr) = (length eq, length pr)
-                (eq,ys2) = span ((==) x . fst . snd) ys
-                pr = takeWhile (isPrefixOf x . fst . snd) ys2
+                text = entryName $ fromLink e
+                ltext = map toLower text
 
+                f _ (NameItem a b) = NameItem a $ Defer $ g $ fromDefer b
+                g [] = [(text, [e])]
+                g ((x1,x2):xs) | x1 == text = (x1, e : x2) : xs
+                               | otherwise = (x1,x2) : g xs
 
-extractText :: [Link Entry] -> [(String, Link Entry)]
-extractText xs = [(map toLower s, e) | e <- xs, Focus s <- entryText $ fromLink e]
-
-
-substrs, prefixes :: [a] -> [[a]]
-substrs = concatMap (tail . inits) . prefixes
-prefixes = init . tails
+        norm (NameItem a b) = NameItem a $ Defer $ f $ fromDefer b
+            where f x = sortFst [(a, sortOn linkKey b) | (a,b) <- x]
 
 
 ---------------------------------------------------------------------
@@ -111,25 +95,83 @@ instance Show TextScore where
     show TSNone = "_"
 
 
+{-
+Step 1: Binary search for find the exact match
+Step 2: Follow from that item finding ones which start
+Step 3: Use the hint set to merge into a list of results
+-}
+
 searchNameSearch :: NameSearch -> String -> [(Link Entry,EntryView,TextScore)]
-searchNameSearch (NameSearch trie chunk) str =
-    case lookupTrie (map toLower str) trie of
-        Nothing -> []
-        Just i -> nubIntOn (linkKey . fst3) $ order exact0E ++ order (exact0S ++ start) ++ order none
-            where
-                (exact0,exactN) = partition ((==) 0 . fst) exact
-                (partial0,partialN) = partition ((==) 0 . fst) partial
-                (exact,partial) = splitAt (nameCountAll i) $
-                    lookupChunk (rangeStartCount (nameStart i) (nameCountAny i)) chunk
-
-                none = map (f $ const TSNone) $ exactN ++ partialN
-                (exact0E,exact0S) = partition ((==) TSExact . thd3) $ map (f test) exact0
-                start = map (f $ const TSStart) partial0
-                test e = if entryName e == str then TSExact else TSStart
+searchNameSearch (NameSearch items shortcuts) str = step1 ++ step2 ++ step3
     where
+        lstr = map toLower str
         nstr = length str
-        order = sortOn (linkKey . fst3)
+        rangePrefix = FocusOn $ rangeStartCount 0 nstr
 
-        f :: (Entry -> TextScore) -> (Int, Link Entry) -> (Link Entry,EntryView,TextScore)
-        f score (p,e) = (e, FocusOn (rangeStartCount p nstr), score $ fromLink e)
+        (exact,prefix) = startPos items lstr
+        (prefixes,lastpre) = followPrefixes items lstr prefix
+
+
+        step1 = if isJust exact then f TSExact yes ++ f TSStart no else []
+            where
+                (yes,no) = partition ((==) str . fst) $ fromDefer $ rest $ items ! fromJust exact
+                f scr xs = [(x, rangePrefix, scr) | x <- concatMap snd xs]
+
+        step2 = [(x, rangePrefix, TSStart) | x <- prefixes]
+
+        seen i = fromMaybe prefix exact <= i && i <= lastpre
+        step3 = [(e,view,TSNone) | i <- xs, let x = items ! i
+                , Just p <- [testMatch lstr $ key x]
+                , let view = FocusOn $ rangeStartCount p nstr
+                , e <- concatMap snd $ fromDefer $ rest x]
+            where xs = filter (not . seen) $ intersectOrds $ map (flip (lookupJustDef []) shortcuts) $ nub lstr
+
+
+-- Return the index of the string as the first component
+-- Return the first possible index of the prefix as the second
+startPos :: Array NameItem -> String -> (Maybe Int, Int)
+startPos xs x = f 0 (arraySize xs - 1)
+    where
+        f low high | high - low < 3 = g low high
+                   | otherwise =
+            case compare x (key $ xs ! mid) of
+                    EQ -> (Just mid, mid+1)
+                    GT -> f (mid+1) high
+                    LT -> f low (mid-1)
+            where
+                mid = (high + low) `div` 2
+
+        g low high | low > high = (Nothing, low)
+        g low high = if k == x then (Just low, low+1)
+                     else if k `isPrefixOf` x then (Nothing, low)
+                     else g (low+1) high
+            where k = key $ xs ! low
+
+
+-- Return all the items you can match following the prefix
+-- Plus the last item that was a valid prefix index
+followPrefixes :: Array NameItem -> String -> Int -> ([Link Entry], Int)
+followPrefixes xs x i = f i
+    where
+        n = arraySize xs
+        f i | i < n && x `isPrefixOf` key xsi = (concatMap snd (fromDefer $ rest xsi) ++ res, end)
+            | otherwise = ([],i-1)
+            where xsi = xs ! i
+                  (res,end) = f (i+1)
+
+
+testMatch :: String -> String -> Maybe Int
+testMatch find within = listToMaybe [i | (i,x) <- zip [0..] $ tails within, find `isPrefixOf` x]
+
+
+intersectOrd :: [Int] -> [Int] -> [Int]
+intersectOrd (x:xs) (y:ys) = case compare x y of
+    EQ -> x : intersectOrd xs ys
+    LT -> intersectOrd xs (y:ys)
+    GT -> intersectOrd (x:xs) ys
+intersectOrd _ _ = []
+
+
+intersectOrds :: [[Int]] -> [Int]
+intersectOrds = fold1 intersectOrd
 
