@@ -72,6 +72,9 @@ runDeferPendings = do
 --       Then accumulate a list of backpatches, which are written out at the
 --       very end. i.e. two defer sets, move from set 1 to set 2, then action
 --       Will save one hSetPos per update, plus give much better cache performance (hopefully)
+
+-- TODO: Write into a Ptr buffer, then use hPutBuf to do the actual writing out
+--       Should save lots of openning the file etc
 runDeferPending :: DeferPending -> DeferPut ()
 runDeferPending (DeferPending pos act) = do
     (h,p,_) <- ask
