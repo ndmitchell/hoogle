@@ -9,6 +9,8 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Vector
 
 
+-- TODO: Should be a bytestring, then use hPut from ByteString
+--       to write out faster
 newtype Haddock = Haddock (Vector Char)
 
 
