@@ -68,6 +68,10 @@ data EntryType = EntryModule
                | EntryOther
                  deriving (Eq,Enum,Show)
 
+
+-- TODO: EntryScore is over-prescriptive, and not overly useful
+--       Have name and type scores to it themselves, using name only
+--       to break ties when merging
 -- the number of elements in the module name
 -- the name of the entry, in lower case
 -- the name of the entry
