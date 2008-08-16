@@ -94,7 +94,7 @@ docFormat (TagOpen "p" _:xs) = g 0 [] $ words $ f xs
         f [] = []
 
         h (TagText x) = unwords (lines x)
-        h (TagOpen "a" xs) = "<a href=\"" ++ (fromJust $ lookup "href" xs) ++ "\">"
-        h (TagClose "a") = "</a>"
+        h (TagOpen "a" xs) = ""
+        h (TagClose "a") = ""
         h (TagClose "p") = ""
         h x = error $ "docFormat.f: " ++ show x
