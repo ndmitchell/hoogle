@@ -32,6 +32,8 @@ typename_Module = mkTyCon "Hoogle.DataBase.Item.Module"
 instance Typeable Module where typeOf _ = mkTyConApp typename_Module []
 
 
+-- TODO: Is entryName every used? Can it make use of the invariant?
+
 -- invariant: entryName == head [i | Focus i <- entryText]
 data Entry = Entry
     {entryModule :: Maybe (Link Module)
