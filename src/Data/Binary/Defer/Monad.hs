@@ -6,6 +6,7 @@ import System.IO.Unsafe
 import Data.Binary.Raw
 import Control.Monad.Reader
 import Data.IORef
+import Data.ByteString as BS
 
 import Data.Typeable
 import qualified Data.TypeMap as TypeMap
@@ -34,6 +35,12 @@ putByte = putValue hPutByte 1
 
 putChr :: Char -> DeferPut ()
 putChr  = putValue hPutChar 1
+
+putByteString :: ByteString -> DeferPut ()
+putByteString x = do
+    let len = BS.length x
+    putInt len
+    putValue hPut len x
 
 putDefer :: DeferPut () -> DeferPut ()
 putDefer x = do
@@ -88,6 +95,12 @@ getByte = do h <- asks fst; lift $ hGetByte h
 
 getChr :: DeferGet Char
 getChr  = do h <- asks fst; lift $ hGetChar h
+
+getByteString :: DeferGet ByteString
+getByteString = do
+    h <- asks fst
+    len <- lift $ hGetInt h
+    lift $ BS.hGet h len
 
 getDefer :: DeferGet a -> DeferGet a
 getDefer x = do

@@ -4,7 +4,7 @@ module Data.Binary.Defer.Class where
 import Control.Monad
 import Data.Binary.Defer.Monad
 import Data.Binary.Raw
-
+import Data.ByteString(ByteString)
 
 ---------------------------------------------------------------------
 -- BinaryDefer
@@ -167,6 +167,11 @@ instance BinaryDefer a => BinaryDefer [a] where
             xs <- replicateM 100 get
             ys <- getDefer get
             return (xs++ys)
+
+
+instance BinaryDefer ByteString where
+    put = putByteString
+    get = getByteString
 
 
 newtype Defer a = Defer a
