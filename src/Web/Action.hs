@@ -17,15 +17,30 @@ import Data.Range
 import Data.Binary.Defer.Index
 import Data.Generics.Uniplate
 
+import Data.Time.Clock
+import Data.Time.Calendar
+import General.CGI(cgiArgs)
+
 
 actionWeb :: CmdQuery -> IO ()
 actionWeb q = do
     putStr "Content-type: text/html\n\n"
+    logMessage q
     (skipped,dbs) <- loadDataBases q
     let res = unlines $ header (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
     putStrLn res
     when (Debug `elem` queryFlags q) $
         writeFile "temp.htm" res
+
+
+logMessage :: CmdQuery -> IO ()
+logMessage q = do
+    time <- getCurrentTime
+    cgi <- liftM (fromMaybe []) $ cgiArgs
+    appendFile "res/log.txt" $ (++ "\n") $ unwords $
+        [showGregorian (utctDay time)
+        ,show (queryText q)] ++
+        ["?" ++ a ++ "=" ++ c ++ b ++ c | (a,b) <- cgi, let c = ['\"' | any isSpace b]]
 
 
 -- is the package not something that might go wrong
