@@ -24,8 +24,6 @@ import qualified Data.Map as Map
 import qualified Data.Heap as Heap
 import General.Code
 import Data.Key
-import qualified Data.Binary.Defer.Graph as G
-import Data.Binary.Defer.Graph hiding (Graph, Graph_)
 
 
 
