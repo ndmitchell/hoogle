@@ -6,7 +6,6 @@ import System.IO.Unsafe
 import Data.Binary.Raw
 import Control.Monad.Reader
 import Data.IORef
-import Data.List
 import qualified Data.ByteString as BS
 
 import Data.Typeable
