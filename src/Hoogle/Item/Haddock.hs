@@ -6,12 +6,12 @@ module Hoogle.Item.Haddock(
 import General.Code
 import Data.TagStr
 import Data.Binary.Defer
-import Data.Binary.Defer.Vector
+import Data.ByteString.Char8(ByteString,pack,unpack)
 
 
 -- TODO: Should be a bytestring, then use hPut from ByteString
 --       to write out faster
-newtype Haddock = Haddock (Vector Char)
+newtype Haddock = Haddock (Defer ByteString)
 
 
 instance BinaryDefer Haddock where
@@ -19,11 +19,11 @@ instance BinaryDefer Haddock where
     get = get1 Haddock
 
 
-newHaddock = Haddock . fromList
+newHaddock = Haddock . Defer . pack
 
 
 renderHaddock :: Haddock -> TagStr
-renderHaddock (Haddock xs) = Tags $ f False $ parseHaddock $ toList xs
+renderHaddock (Haddock xs) = Tags $ f False $ parseHaddock $ unpack $ fromDefer xs
     where
         nl = Char '\n'
 
