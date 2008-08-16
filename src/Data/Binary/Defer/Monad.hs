@@ -14,40 +14,62 @@ import qualified Data.TypeMap as TypeMap
 ---------------------------------------------------------------------
 -- Defer Put
 
-type DeferPut a = ReaderT (Handle, IORef [DeferPending]) IO a
-data DeferPending = DeferPending Integer (DeferPut ())
+-- Storing the position explicitly gives a ~5% speed up
+-- and removes hGetPos as being a bottleneck
+-- possibly still not worth it though
 
-putValue :: (Handle -> a -> IO ()) -> a -> DeferPut ()
-putValue f x = do (h,_) <- ask; lift $ f h x
+type DeferPut a = ReaderT (Handle, IORef Int, IORef [DeferPending]) IO a
+data DeferPending = DeferPending Int (DeferPut ())
+
+putValue :: (Handle -> a -> IO ()) -> Int -> a -> DeferPut ()
+putValue f size x = do
+    (h,p,_) <- ask
+    lift $ do
+        modifyIORef p (+size)
+        f h x
 
 putInt, putByte :: Int -> DeferPut ()
-putInt  = putValue hPutInt
-putByte = putValue hPutByte
+putInt  = putValue hPutInt  4
+putByte = putValue hPutByte 1
 
 putChr :: Char -> DeferPut ()
-putChr  = putValue hPutChar
+putChr  = putValue hPutChar 1
 
 putDefer :: DeferPut () -> DeferPut ()
 putDefer x = do
-    (h,ref) <- ask
-    p <- lift $ hGetPos h
-    lift $ hPutInt h 0 -- to backpatch
-    lift $ modifyIORef ref (DeferPending p x :)
+    (h,p,ref) <- ask
+    lift $ do
+        p2 <- readIORef p
+        hPutInt h 0 -- to backpatch
+        modifyIORef p (+4)
+        modifyIORef ref (DeferPending p2 x :)
 
 runDeferPut :: Handle -> DeferPut () -> IO ()
 runDeferPut h m = do
     ref <- newIORef []
-    runReaderT m (h,ref)
-    todo <- readIORef ref
-    mapM_ (runDeferPending h) (reverse todo)
-
-runDeferPending :: Handle -> DeferPending -> IO ()
-runDeferPending h (DeferPending pos act) = do
     i <- hGetPos h
-    hSetPos h pos
-    hPutInt h (fromInteger i)
-    hSetPos h i
-    runDeferPut h act
+    p <- newIORef $ fromInteger i
+    runReaderT (m >> runDeferPendings) (h,p,ref)
+
+
+runDeferPendings :: DeferPut ()
+runDeferPendings = do
+    (h,_,ref) <- ask
+    todo <- lift $ readIORef ref
+    lift $ writeIORef ref []
+    mapM_ runDeferPending todo
+
+
+runDeferPending :: DeferPending -> DeferPut ()
+runDeferPending (DeferPending pos act) = do
+    (h,p,_) <- ask
+    lift $ do
+        p2 <- readIORef p
+        hSetPos h (toInteger pos)
+        hPutInt h p2
+        hSetPos h (toInteger p2)
+    act
+    runDeferPendings
 
 
 ---------------------------------------------------------------------
