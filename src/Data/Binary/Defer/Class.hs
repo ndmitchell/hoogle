@@ -5,6 +5,7 @@ import Control.Monad
 import Data.Binary.Defer.Monad
 import Data.Binary.Raw
 import Data.ByteString(ByteString)
+import General.Util(splitAtLength)
 
 ---------------------------------------------------------------------
 -- BinaryDefer
@@ -169,10 +170,9 @@ instance BinaryDefer a => BinaryDefer [a] where
 
 -- Extracted to allow putList to appear on the profile
 putList :: BinaryDefer a => [a] -> DeferPut ()
-putList xs | null b = putByte (length a) >> mapM_ put a
+putList xs | null b = putByte n >> mapM_ put a
            | otherwise = putByte maxByte >> mapM_ put a >> putDefer (put b)
-        where (a,b) = splitAt 100 xs
-
+        where (n,a,b) = splitAtLength 100 xs
 
 
 instance BinaryDefer ByteString where
