@@ -30,7 +30,7 @@ didn't merge common strings and consumed about 10x the disk space.
 -}
 
 
-data NameSearch = NameSearch (Array NameItem) [(Char, [Int])]
+data NameSearch = NameSearch (Array NameItem) [(Char, IntList)]
                   deriving Show
 
 data NameItem = NameItem {key :: String
@@ -58,8 +58,8 @@ createNameSearch xs = NameSearch (array $ Map.elems items) (Map.toList shortcuts
         shortcuts = buildShortcuts items
 
 
-buildShortcuts :: Map.Map String NameItem -> Map.Map Char [Int]
-buildShortcuts = Map.map sort . foldl' add Map.empty . zip [0..] . Map.keys
+buildShortcuts :: Map.Map String NameItem -> Map.Map Char IntList
+buildShortcuts = Map.map (toIntList . sort) . foldl' add Map.empty . zip [0..] . Map.keys
     where
         add mp (i,s) = foldl' g mp $ nub s
             where g mp x = Map.insertWith (++) x [i] mp
@@ -124,7 +124,8 @@ searchNameSearch (NameSearch items shortcuts) str = step1 ++ step2 ++ step3
                 , Just p <- [testMatch lstr $ key x]
                 , let view = FocusOn $ rangeStartCount p nstr
                 , e <- concatMap snd $ fromDefer $ rest x]
-            where xs = filter (not . seen) $ intersectOrds $ map (flip (lookupJustDef []) shortcuts) $ nub lstr
+            where xs = filter (not . seen) $ intersectOrds $
+                       map (maybe [] fromIntList . flip lookup shortcuts) $ nub lstr
 
 
 -- Return the index of the string as the first component
@@ -174,4 +175,32 @@ intersectOrd _ _ = []
 
 intersectOrds :: [[Int]] -> [Int]
 intersectOrds = fold1 intersectOrd
+
+
+---------------------------------------------------------------------
+-- IntList TYPE
+
+type IntList = [IntRange]
+data IntRange = IntRange !Int !Int
+
+instance Show IntRange where
+    show (IntRange a b) = show a ++ ".." ++ show b
+
+instance BinaryDefer IntRange where
+    put (IntRange a b) = put2 a b
+    get = get2 IntRange
+
+
+toIntList :: [Int] -> IntList
+toIntList [] = []
+toIntList (x:xs) = f x xs
+    where
+        f i [] = [IntRange x i]
+        f i (y:ys) | y == i+1 = f y ys
+                   | otherwise = IntRange x i : toIntList (y:ys)
+
+
+fromIntList :: IntList -> [Int]
+fromIntList = concatMap (\(IntRange a b) -> [a..b])
+
 
