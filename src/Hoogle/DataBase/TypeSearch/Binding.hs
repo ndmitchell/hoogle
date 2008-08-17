@@ -1,6 +1,8 @@
 {-|
     Deal with variable bindings/alpha renaming in searches
     And with restrictions
+
+    Deals with how the query is mapped to the result
 -}
 
 module Hoogle.DataBase.TypeSearch.Binding(
@@ -117,4 +119,4 @@ costsBinding = fromJust . costsBindingLocal
 bindings :: Binding -> [(Type, Type)]
 bindings (Binding _ _ a b) =
     [(TVar v, t) | (v,(l,vs)) <- Map.toList a, t <- [TLit l | Just l <- [l]] ++ map TVar (Set.toList vs)] ++
-    [(TVar v, TLit l) | (v,(Just l,_)) <- Map.toList b]
+    [(TLit l, TVar v) | (v,(Just l,_)) <- Map.toList b]
