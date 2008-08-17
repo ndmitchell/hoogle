@@ -21,14 +21,13 @@ suggestQuery db q | any f (names q) = Just $ Str "Can't think of anything more i
 
 -- They search for "Maybe a", did they mean ":: Maybe a"
 suggestQuery db q@Query{typeSig=Nothing, names=n:ames} | all f (n:ames) = Just $ didYouMean q2
-    where q2 = q{names = [], typeSig = Just $ TypeSig [] $ TApp (g n) (map g ames)}
+    where q2 = fixup db $ q{names = [], typeSig = Just $ TypeSig [] $ TApp (g n) (map g ames)}
           f (x:xs) = if null xs then isLower x else isUpper x
           g xs@(x:_) = if isLower x then TVar xs else TLit xs
 
-
 -- See what the type signature suggests from the database
-suggestQuery db q | isJust $ typeSig q =
-    case suggestion db (fromJust $ typeSig q) of
+suggestQuery db q@Query{typeSig=Just t} =
+    case suggestion db t of
         Nothing -> Nothing
         Just (Left s) -> Just $ TagBold $ Str s
         Just (Right t) -> Just $ didYouMean $ q{typeSig = Just t}
@@ -40,3 +39,11 @@ suggestQuery db q = Nothing
 didYouMean :: Query -> TagStr
 didYouMean q = Tags [TagBold $ Str "Did you mean: ", TagHyperlink ("query:" ++ s) $ Str s]
     where s = showTagText $ renderQuery q
+
+
+fixup :: [DataBase] -> Query -> Query
+fixup db q@Query{typeSig=Just t} =
+    case suggestion db t of
+        Just (Right t) -> q{typeSig=Just t}
+        _ -> q
+fixup db q = q
