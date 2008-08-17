@@ -7,7 +7,8 @@ link :: [String] -> IO ()
 link xs = do
     deps <- mapM (\x -> do d <- depends x; return (x, xs `intersect` d)) xs
     mapM_ (\d -> convert d (fromJust $ lookup d deps)) $ order deps
-    system_ $ unwords $ "hoogle" : ["/combine=result/" ++ x | x <- xs]
+    when (length xs > 1) $
+        system_ $ unwords $ "hoogle" : ["/combine=result/" ++ x | x <- xs]
 
 
 convert :: String -> [String] -> IO ()
