@@ -133,7 +133,7 @@ renderTypeSig (TypeSig con sig) = Text (showConstraint con) :
 showModule = concat . intersperse "."
 
 instance Show Package where
-    show (Package a b c d) = unwords [a,b,c,d]
+    show (Package a b c d) = unwords $ filter (/= "") [a,b,c,d]
 
 instance Show Module where
     show (Module a b) = unwords [showModule a, "{" ++ show b ++ "}"]
