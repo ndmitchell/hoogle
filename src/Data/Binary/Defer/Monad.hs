@@ -64,6 +64,7 @@ runDeferPut h m = do
     ref <- newIORef []
     back <- newIORef []
     runReaderT (m >> runDeferPendings) (buf,ref,back)
+    bufferFlush buf
     patch <- readIORef back
     mapM_ (\(DeferPatchup a b) -> do hSetPos h (toInteger a); hPutInt h b) patch
 
