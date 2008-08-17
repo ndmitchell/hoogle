@@ -154,7 +154,7 @@ a.dull:hover, a.dull, a.dull:visited {
     background-image: url(less_gray.png);
 }
 
-.example {
+#example {
     margin: auto;
     margin-top: 20px;
     margin-bottom: 20px;
@@ -166,7 +166,7 @@ a.dull:hover, a.dull, a.dull:visited {
     text-align: left;
 }
 
-.example a {
+#example a {
     margin-left: 20px;
 }
 
