@@ -50,5 +50,5 @@ instance BinaryDefer TextItem where
 
 -- TODO: Add a putEnum/getEnum
 instance BinaryDefer DataKeyword where
-    put = putByte . fromEnum
-    get = liftM toEnum getByte
+    put = putByte . fromIntegral . fromEnum
+    get = liftM (toEnum . fromIntegral) getByte

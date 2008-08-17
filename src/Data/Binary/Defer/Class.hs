@@ -161,7 +161,7 @@ instance BinaryDefer a => BinaryDefer [a] where
     get = do
         i <- getByte
         if i /= maxByte then do
-            replicateM i get
+            replicateM (fromIntegral i) get
          else do
             xs <- replicateM 100 get
             ys <- getDefer get
@@ -170,7 +170,7 @@ instance BinaryDefer a => BinaryDefer [a] where
 
 -- Extracted to allow putList to appear on the profile
 putList :: BinaryDefer a => [a] -> DeferPut ()
-putList xs | null b = putByte n >> mapM_ put a
+putList xs | null b = putByte (fromIntegral n) >> mapM_ put a
            | otherwise = putByte maxByte >> mapM_ put a >> putDefer (put b)
         where (n,a,b) = splitAtLength 100 xs
 

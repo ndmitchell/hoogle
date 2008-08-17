@@ -12,6 +12,7 @@ module Data.Binary.Raw(
 import System.IO
 import Control.Monad
 import Data.Bits
+import Data.Word
 import Data.Char
 
 
@@ -22,7 +23,7 @@ hSetPos :: Handle -> Integer -> IO ()
 hSetPos hndl i = hSeek hndl AbsoluteSeek i
 
 
-maxByte :: Int
+maxByte :: Word8
 maxByte = 0xff
 
 -- FROM the Binary module, thanks to the Hac 07 people!
