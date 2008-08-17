@@ -154,8 +154,21 @@ a.dull:hover, a.dull, a.dull:visited {
     background-image: url(less_gray.png);
 }
 
+.example {
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 3px;
+    width: 300px;
+    border: 2px solid #cc0;
+    background-color: #ffc;
+    font-size: 10pt;
+    text-align: left;
+}
 
-
+.example a {
+    margin-left: 20px;
+}
 
 
 
