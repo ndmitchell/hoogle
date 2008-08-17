@@ -78,12 +78,7 @@ runQuery dbs CmdQuery{queryText = text, query = Left err} =
         post2 = if null post then concat (replicate 3 "&nbsp;") else post
 
 
-runQuery dbs q | not $ usefulQuery $ fromRight $ query q =
-    ["<h1><b>Welcome to Hoogle</b></h1>"
-    ,"<p>"
-    ,"  Hoogle is a Haskell API search engine, have fun!"
-    ,"</p>"
-    ]
+runQuery dbs q | not $ usefulQuery $ fromRight $ query q = welcome
 
 
 runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =

@@ -1,5 +1,5 @@
 
-module Web.Page(header, footer) where
+module Web.Page(header, footer, welcome) where
 
 import Web.Text
 
@@ -39,4 +39,12 @@ footer =
     ["    <p id='footer'>&copy; <a href='http://www.cs.york.ac.uk/~ndm/'>Neil Mitchell</a> 2004-2008</p>"
     ,"  </body>"
     ,"</html>"
+    ]
+
+
+welcome =
+    ["<h1><b>Welcome to Hoogle</b></h1>"
+    ,"<p>"
+    ,"  Hoogle is a Haskell API search engine, have fun!"
+    ,"</p>"
     ]
