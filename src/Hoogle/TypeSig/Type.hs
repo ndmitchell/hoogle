@@ -127,10 +127,18 @@ showConstraint xs = "(" ++ concat (intersperse ", " $ map show xs) ++ ") => "
 instance Show Type where
     showsPrec i x = showString $ f i x
         where
+            -- Show lists and tuples specially
             f i (TApp (TLit "[]") [x]) = "[" ++ show x ++ "]"
             f i (TApp (TLit ('(':tup)) xs)
                 | not (null tup) && last tup == ')' && all (== ',') (init tup) && length tup == length xs
                 = b True $ concat $ intersperse ", " $ map show xs
+
+            -- Should parallel lists and unboxed tuples specially
+            f i (TApp (TLit "[::]") [x]) = "[:" ++ show x ++ ":]"
+            f i (TApp (TLit ('(':'#':tup)) xs)
+                | "#)" `isSuffixOf` tup && all (== ',') (drop 2 $ reverse tup) && length tup - 1 == length xs
+                = "(# " ++ (concat $ intersperse ", " $ map show xs) ++ " #)"
+
             
             f i (TLit x) = x
             f i (TVar x) = x
