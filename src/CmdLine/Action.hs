@@ -108,5 +108,5 @@ actionConvert q infile = do
 
 actionTest :: CmdQuery -> FilePath -> IO ()
 actionTest q infile = do
-    outfile <- actionConvert q infile
+    outfile <- actionConvert q{queryFlags = Debug : queryFlags q} infile
     testFile infile outfile
