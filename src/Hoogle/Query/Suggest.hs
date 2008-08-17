@@ -20,10 +20,9 @@ suggestQuery db q | any f (names q) = Just $ Str "Can't think of anything more i
     where f x = length x == 6 && "oogle" `isSuffixOf` x
 
 -- They search for "Maybe a", did they mean ":: Maybe a"
-suggestQuery db q@Query{typeSig=Nothing, names=n:ames} | all f (n:ames) = Just $ didYouMean q2
-    where q2 = fixup db $ q{names = [], typeSig = Just $ TypeSig [] $ TApp (g n) (map g ames)}
+suggestQuery db q@Query{typeSig=Nothing, names=names} | all f names = Just $ didYouMean q2
+    where q2 = fixup db $ q{names = [], typeSig = Just $ TypeSig [] $ toApp $ map toLitVar names}
           f (x:xs) = if null xs then isLower x else isUpper x
-          g xs@(x:_) = if isLower x then TVar xs else TLit xs
 
 -- See what the type signature suggests from the database
 suggestQuery db q@Query{typeSig=Just t} =
@@ -47,3 +46,7 @@ fixup db q@Query{typeSig=Just t} =
         Just (Right t) -> q{typeSig=Just t}
         _ -> q
 fixup db q = q
+
+
+toLitVar xs@(x:_) = if isLower x then TVar xs else TLit xs
+toApp (x:xs) = TApp x xs
