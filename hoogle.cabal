@@ -23,9 +23,9 @@ flag splitBase
 
 executable hoogle
     if flag(splitBase)
-        build-depends: base >= 3, directory, process, containers, array, parsec, filepath, safe, uniplate, mtl
+        build-depends: base >= 3, directory, process, containers, array, parsec, filepath, safe, uniplate, mtl, bytestring, time
     else
-        build-depends: base < 3, parsec, filepath, safe, uniplate, mtl
+        build-depends: base < 3, parsec, filepath, safe, uniplate, mtl, bytestring
 
     main-is:            Main.hs
     hs-source-dirs:     src
