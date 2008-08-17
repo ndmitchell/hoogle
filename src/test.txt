@@ -38,3 +38,9 @@ chars :: [Char]
 -- tests that arguments are not reused
 int2 :: Char -> Int -> Int
 @test "Int -> Int -> Int" !int2
+
+-- test that instances are applied properly
+instance Ord Bar
+ordId :: Ord a => a -> a
+nonId :: Non a => a -> a
+@test "Bar -> Bar" ordId,id nonId
