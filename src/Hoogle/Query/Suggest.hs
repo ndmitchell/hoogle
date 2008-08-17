@@ -19,6 +19,11 @@ suggestQuery db q | "google" `elem` map (map toLower) (names q) =
 suggestQuery db q | any f (names q) = Just $ Str "Can't think of anything more interesting to search for?"
     where f x = length x == 6 && "oogle" `isSuffixOf` x
 
+-- They searched for "Int to Float", they meant "Int -> Float"
+suggestQuery db q@Query{typeSig=Nothing, names=names} | "to" `elem` names = Just $ didYouMean q2
+    where q2 = fixup db $ q{names = [] ,typeSig = Just $ TypeSig [] t2}
+          t2 = TFun $ map (toApp . map toLitVar) $ split "to" $ names
+
 -- They search for "Maybe a", did they mean ":: Maybe a"
 suggestQuery db q@Query{typeSig=Nothing, names=names} | all f names = Just $ didYouMean q2
     where q2 = fixup db $ q{names = [], typeSig = Just $ TypeSig [] $ toApp $ map toLitVar names}
