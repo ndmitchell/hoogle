@@ -12,9 +12,13 @@ hoogle name = do
 
     -- rewrite with extra information
     src <- readFile $ "temp/" ++ name ++ "/hoogle.txt"
-    writeFile ("result/" ++ name ++ ".txt") $ unlines $ concatMap (f cabal)
-        $ lines $ filter (/= '\r') src
-        -- '\r' because of haddock/cabal interactions going weird..
+
+    -- '\r' because of haddock/cabal interactions going weird..
+    let res = concatMap (f cabal) $ lines $ filter (/= '\r') src
+        (res1,res2) = if name == "base" then splitGHC res else (res,[])
+
+    writeFile ("result/" ++ name ++ ".txt") $ unlines res1
+    when (res2 /= []) $ writeFile "result/ghc.txt" $ unlines $ ghcPrefix cabal ++ res2
     where
         f cabal x
             | "@package" `isPrefixOf` x =
@@ -48,3 +52,22 @@ readFields name = f
 
 trim = reverse . ltrim . reverse . ltrim
 ltrim = dropWhile isSpace
+
+
+splitGHC :: [String] -> ([String],[String])
+splitGHC = f True
+    where
+        f pile xs | null b = add pile xs ([], [])
+                  | otherwise = add pile2 (a++[b1]) $ f pile2 bs
+            where
+                pile2 = if not $ "module " `isPrefixOf` b1 then pile
+                        else not $ "module GHC." `isPrefixOf` b1
+                b1:bs = b
+                (a,b) = span isComment xs
+
+        add left xs (a,b) = if left then (xs++a,b) else (a,xs++b)
+        isComment x = x == "--" || "-- " `isPrefixOf` x
+
+
+ghcPrefix :: [String ] -> [String]
+ghcPrefix cabal = ["-- GHC stuff here, TODO"]
