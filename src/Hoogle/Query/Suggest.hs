@@ -19,7 +19,12 @@ suggestQuery db q | isJust $ typeSig q =
     case suggestion db (fromJust $ typeSig q) of
         Nothing -> Nothing
         Just (Left s) -> Just $ TagBold $ Str s
-        Just (Right t) -> Just $ Tags [TagBold $ Str "Did you mean: ", TagHyperlink ("query:" ++ q2) $ Str q2]
-            where q2 = showTagText $ renderQuery q{typeSig = Just t}
+        Just (Right t) -> Just $ didYouMean $ q{typeSig = Just t}
 
 suggestQuery db q = Nothing
+
+
+
+didYouMean :: Query -> TagStr
+didYouMean q = Tags [TagBold $ Str "Did you mean: ", TagHyperlink ("query:" ++ s) $ Str s]
+    where s = showTagText $ renderQuery q
