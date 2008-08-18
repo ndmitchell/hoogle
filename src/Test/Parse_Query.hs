@@ -13,6 +13,8 @@ parse_Query = do
     "/?" === defaultQuery{flags = [Flag "?" ""]}
     "/count=10" === defaultQuery{flags = [Flag "count" "10"]}
     "map" === defaultQuery{names = ["map"]}
+    "#" === defaultQuery{names = ["#"]}
+    "c#" === defaultQuery{names = ["c#"]}
     "-" === defaultQuery{names = ["-"]}
     "/" === defaultQuery{names = ["/"]}
     "->" === defaultQuery{names = ["->"]}
