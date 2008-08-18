@@ -25,7 +25,7 @@ hoogle name = do
                 [x] ++
                 ["@version " ++ v2 | let v = cabalVersion cabal, v /= "",
                     let v2 = if name == "base" then "3.0.1.0" else v] ++
-                ["@depends " ++ d | d <- cabalDepends cabal, d /= "rts"]
+                ["@depends " ++ d | d <- ["ghc" | name == "base"] ++ cabalDepends cabal, d /= "rts"]
             | "@version" `isPrefixOf` x = []
             | otherwise = [x]
 

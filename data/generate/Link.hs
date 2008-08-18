@@ -6,7 +6,7 @@ import Util
 link :: [String] -> IO ()
 link xs = do
     let ys = xs ++ ["ghc" | "base" `elem` xs]
-    deps <- mapM (\x -> do d <- depends x; return (x, xs `intersect` d)) ys
+    deps <- mapM (\x -> do d <- depends x; return (x, ys `intersect` d)) ys
     mapM_ (\d -> convert d (fromJust $ lookup d deps)) $ order deps
     when (length xs > 1) $
         system_ $ unwords $ "hoogle" : "/output=result/default.hoo" : ["/combine=result/" ++ x | x <- xs]
