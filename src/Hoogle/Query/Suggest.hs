@@ -25,7 +25,7 @@ suggestQuery db q@Query{typeSig=Nothing, names=names} | "to" `elem` names = Just
           t2 = TFun $ map (toApp . map toLitVar) $ split "to" $ names
 
 -- They search for "Maybe a", did they mean ":: Maybe a"
-suggestQuery db q@Query{typeSig=Nothing, names=names} | all f names = Just $ didYouMean q2
+suggestQuery db q@Query{typeSig=Nothing, names=names} | length names > 1 && all f names = Just $ didYouMean q2
     where q2 = fixup db $ q{names = [], typeSig = Just $ TypeSig [] $ toApp $ map toLitVar names}
           f (x:xs) = if null xs then isLower x else isUpper x
 
