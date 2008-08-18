@@ -70,7 +70,8 @@ runQuery dbs CmdQuery{queryText = text, query = Left err} =
     ,"</p><p>"
     ,"  Error: " +& drop 1 (dropWhile (/= ':') $ show err) ++ "<br/>"
     ,"</p><p>"
-    ,"  For information on what queries should look like, see the user manual."
+    ,"  For information on what queries should look like, see the"
+    ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>user manual</a>."
     ,"</p>"
     ]
     where
