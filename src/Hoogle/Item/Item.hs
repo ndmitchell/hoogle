@@ -117,12 +117,15 @@ renderFocus rs = Tags . f (mergeRanges rs) 0
 renderTextItem :: TextItem -> [EntryText]
 renderTextItem x = case x of
     ItemClass i -> [Keyword "class", Text " "] ++ typeHead i
-    ItemFunc name typ -> [Focus name, Text " :: "] ++ renderTypeSig typ
+    ItemFunc name typ -> operator name ++ [Text " :: "] ++ renderTypeSig typ
     ItemAlias a b -> [Keyword "type", Text " "] ++ typeHead a ++ [Text $ " = " ++ show b]
     ItemData d t -> [Keyword (show d), Text " "] ++ typeHead t
     where
         typeHead (TypeSig con sig) = [Text $ showConstraint con, Focus a, Text b]
             where (a,b) = break (== ' ') $ show sig
+
+        operator xs@(x:_) | not $ isAlpha x || x `elem` "#_'" = [Text "(",Focus xs,Text ")"]
+        operator xs = [Focus xs]
 
 
 renderTypeSig :: TypeSig -> [EntryText]
