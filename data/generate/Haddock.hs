@@ -80,7 +80,11 @@ keywordFormat x = concat ["" : docs ++ ["@keyword " ++ n] | n <- name]
 
 
 docFormat :: [Tag] -> [String]
-docFormat (TagOpen "pre" _:xs) = map ("> " ++) $ lines $ innerText xs
+docFormat (TagOpen "pre" _:xs) = ["<pre>"] ++ map (drop n) ys ++ ["</pre>"]
+    where
+        ys = lines $ innerText xs
+        n = minimum $ map (length . takeWhile isSpace) ys
+
 docFormat (TagOpen "p" _:xs) = g 0 [] $ words $ f xs
     where
         g n acc [] = [unwords $ reverse $ acc | acc /= []]
