@@ -19,6 +19,7 @@ a +& b = a ++ escapeHTML b
 a +% b = a ++ escapeCGI b
 
 
+-- TODO: Should be somewhere else
 escapeHTML = concatMap f
     where
         f '\"' = "&quot;"
