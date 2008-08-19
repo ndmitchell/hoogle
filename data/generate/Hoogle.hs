@@ -89,4 +89,5 @@ basePrefix =
     ["@package base"
     ,"@version 3.0.1.0"
     ,"@haddock http://haskell.org/ghc/docs/latest/html/libraries/base/"
+    ,"@hackage http://haskell.org/ghc/docs/latest/html/libraries/index.html"
     ]
