@@ -67,6 +67,7 @@ addTextItem linkPkg ti doc = case ti of
         when (name == "package") $ modifyPkg $ \s -> s{packageName = val}
         when (name == "version") $ modifyPkg $ \s -> s{packageVersion = val}
         when (name == "haddock") $ modifyPkg $ \s -> s{haddockURL = val}
+        when (name == "hackage") $ modifyPkg $ \s -> s{hackageURL = val}
         return []
 
     ItemModule xs -> do

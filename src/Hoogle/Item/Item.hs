@@ -16,7 +16,7 @@ data Package = Package
     {packageName :: String
     ,packageVersion :: String
     ,haddockURL :: String
-    ,hscolourURL :: String
+    ,hackageURL :: String
     }
 
 typename_Package = mkTyCon "Hoogle.DataBase.Item.Package"
