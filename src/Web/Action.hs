@@ -125,20 +125,20 @@ insertMore (x:xs) = f x : xs
 
 renderRes :: Int -> Result -> [String]
 renderRes i r =
-        [tr $ modname ++ td "" (href urlItem $ showTagHTMLWith url text)
+        [tr $ modname ++ td "" (href urlEnt $ showTagHTMLWith url text)
         ,tr $ pkgname ++ td "doc" docs]
     where
         ent = fromLink $ resultEntry r
         pkg = liftM fromLink $ entryPackage ent
     
         (modu,text,_) = renderResult r
-        modname = td "mod" $ maybe "" (href urlModule . showModule) modu
+        modname = td "mod" $ maybe "" (href urlMod . showModule) modu
         pkgname = td "pkg" $ maybe "" (href urlPkg . packageName) pkg
 
         docs = if length docLong == 0 then "" else
                if docShort == docLong then docShort else
                "<div id='s" ++ show i ++ "'>" ++
-                    "<a class='more' href='" ++ urlItem ++ "' onclick='return doc_more(" ++ show i ++ ")'> </a>" ++
+                    "<a class='more' href='" ++ urlEnt ++ "' onclick='return doc_more(" ++ show i ++ ")'> </a>" ++
                     docShort ++
                "</div>" ++
                "<div style='display:none' id='l" ++ show i ++ "'>" ++
@@ -150,28 +150,16 @@ renderRes i r =
         docShort = showTagHTML $ trimTags 100 $ transform (onStr $ map (rep '\n' ' ')) doc
         docLong = showTagHTML doc
 
-        urlPkg = "http://hackage.haskell.org/packages/archive/" +? maybe "" packageName pkg +? "/" +?
-                 maybe "" packageVersion pkg +? "/doc/html/"
-        urlModule = urlPkg +? concat (intersperse "-" $ maybe [] (moduleName . fromLink) $ entryModule ent) +? ".html"
-        urlItem = if isNothing pkg then keywordURL $ entryName ent else
-                  if isNothing modu then urlModule else
-                  urlModule +? "#v:" +? escapeHTML (entryName ent)
+        urlPkg = entryPackageURL ent
+        urlMod = entryModuleURL ent
+        urlEnt = entryURL ent
 
         url (TagHyperlink _ x)
-            | null urlItem = Just $ "<span class='a'>" ++ showTagHTML x ++ "</span>"
-            | otherwise = Just $ "</a><a href='" +& urlItem ++ "'>" ++ showTagHTML x ++
-                                 "</a><a class='dull' href='" +& urlItem ++ "'>"
+            | null urlEnt = Just $ "<span class='a'>" ++ showTagHTML x ++ "</span>"
+            | otherwise = Just $ "</a><a href='" +& urlEnt ++ "'>" ++ showTagHTML x ++
+                                 "</a><a class='dull' href='" +& urlEnt ++ "'>"
         url _ = Nothing
 
 tr x = "<tr>" ++ x ++ "</tr>"
 td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
 href url x = if null url then x else "<a class='dull' href='" ++ url ++ "'>" ++ x ++ "</a>"
-
-
-
-keywordURL :: String -> String
-keywordURL name = "http://www.haskell.org/haskellwiki/Keywords#" ++ concatMap f name
-    where
-        f x | isAlpha x || x `elem` "_-:" = [x]
-            | otherwise = '.' : map toUpper (showHex (ord x) "")
-
