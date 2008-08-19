@@ -22,13 +22,19 @@ hoogle name = do
     where
         f cabal x
             | "@package" `isPrefixOf` x =
-                [x] ++
-                ["@version " ++ v2 | let v = cabalVersion cabal, v /= "",
-                    let v2 = if name == "base" then "3.0.1.0" else v] ++
-                ["@depends " ++ d | d <- ["ghc" | name == "base"] ++ cabalDepends cabal, d /= "rts"]
+                if name == "base" then
+                    basePrefix ++ ["@depends ghc"]
+                else let v = cabalVersion cabal in
+                    [x, "@version " ++ v] ++ urls name v ++
+                    ["@depends " ++ d | d <- cabalDepends cabal]
             | "@version" `isPrefixOf` x = []
             | otherwise = [x]
 
+urls name version
+    | name == "keyword" = ["@haddock http://haskell.org/haskellwiki/Keywords"]
+    | otherwise =
+        ["@haddock http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ version ++ "/doc/html/"
+        ,"@hackage http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ name]
 
 cabalVersion xs = head $ readFields "version" xs ++ [""]
 
@@ -76,7 +82,11 @@ ghcPrefix =
     ,"-- See Hoogle, http://www.haskell.org/hoogle/"
     ,""
     ,"-- | GHC modules that are part of the base library"
-    ,"@package base"
+    ] ++ basePrefix ++ [""]
+
+basePrefix :: [String]
+basePrefix =
+    ["@package base"
     ,"@version 3.0.1.0"
-    ,""
+    ,"@haddock http://haskell.org/ghc/docs/latest/html/libraries/base/"
     ]
