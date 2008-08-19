@@ -14,6 +14,8 @@ import Hoogle.Item.All
 import Data.Generics.Uniplate
 
 
+-- TODO: Move to a Map, first benchmark how much this slows down the
+--       searching, versus how much space is saved
 newtype Suggest = Suggest {fromSuggest :: Trie SuggestItem}
 
 -- if something is both a data and a ctor, no need to mention the ctor
