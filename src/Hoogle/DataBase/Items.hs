@@ -63,11 +63,11 @@ addTextItem linkPkg ti doc = case ti of
     ItemAttribute "keyword" name -> add False EntryKeyword [Keyword "keyword",Text " ",Focus name]
 
     ItemAttribute name val -> do
-        let modifyPkg f = modify $ \s -> s{pkg = f (pkg s)}
-        when (name == "package") $ modifyPkg $ \s -> s{packageName = val}
-        when (name == "version") $ modifyPkg $ \s -> s{packageVersion = val}
-        when (name == "haddock") $ modifyPkg $ \s -> s{haddockURL = val}
-        when (name == "hackage") $ modifyPkg $ \s -> s{hackageURL = val}
+        let modifyPkg x f = when (name == x) $ modify $ \s -> s{pkg = f $ pkg s}
+        modifyPkg "package" $ \s -> s{packageName = val}
+        modifyPkg "version" $ \s -> s{packageVersion = val}
+        modifyPkg "haddock" $ \s -> s{haddockURL = val}
+        modifyPkg "hackage" $ \s -> s{hackageURL = val}
         return []
 
     ItemModule xs -> do
