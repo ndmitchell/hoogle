@@ -33,6 +33,7 @@ instance Typeable Module where typeOf _ = mkTyConApp typename_Module []
 
 
 -- TODO: Is entryName every used? Can it make use of the invariant?
+--       Perhaps just store the entryText, then regenerate entryName at load time
 
 -- invariant: entryName == head [i | Focus i <- entryText]
 data Entry = Entry
