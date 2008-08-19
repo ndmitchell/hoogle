@@ -39,10 +39,13 @@ actionSearch flags q = do
         putStrLn $ f $ renderResult $ head res
         putStrLn ""
         putStrLn $ showTag $ renderHaddock $ entryDocs ent
+
         when (isJust $ entryPackage ent) $ do
             let pkg = fromLink $ fromJust $ entryPackage ent
             putStrLn $ "\nFrom package " ++ packageName pkg ++ ", version " ++ packageVersion pkg
-        -- TODO: Add link URL if possible
+
+        let url = entryURL ent
+        when (url /= "") $ putStrLn $ "Documentation: " ++ url
      else
         putStr $ unlines $ map (f . renderResult) res
     where
