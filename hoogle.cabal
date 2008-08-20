@@ -22,10 +22,11 @@ flag splitBase
     Description: Choose the new smaller, split-up base package.
 
 executable hoogle
+    build-depends: parsec, filepath, safe, uniplate, mtl, time
     if flag(splitBase)
-        build-depends: base >= 3, directory, process, containers, array, parsec, filepath, safe, uniplate, mtl, bytestring, time
+        build-depends: base >= 3, directory, process, containers, array, bytestring
     else
-        build-depends: base < 3, parsec, filepath, safe, uniplate, mtl, time
+        build-depends: base < 3
 
     main-is:            Main.hs
     hs-source-dirs:     src
