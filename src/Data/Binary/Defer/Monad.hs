@@ -84,7 +84,8 @@ runDeferPending (DeferPending pos act) = do
     (buf,_,back) <- ask
     lift $ do
         p <- bufferPos buf
-        modifyIORef back (DeferPatchup pos p :)
+        b <- bufferPatch buf pos (fromIntegral p :: Int32)
+        when (not b) $ modifyIORef back (DeferPatchup pos p :)
     act
     runDeferPendings
 
@@ -146,6 +147,15 @@ bufferPos (Buffer h file ptr buf) = do
     j <- readIORef buf
     return $ i + j
 
+
+-- Patch at position p, with value v
+-- Return True if you succeeded
+bufferPatch :: Buffer -> Int -> Int32 -> IO Bool
+bufferPatch (Buffer h file ptr buf) p v = do
+    i <- readIORef file
+    if p < i then return False else do
+        pokeByteOff ptr (p-i) v
+        return True
 
 ---------------------------------------------------------------------
 -- Defer Get
