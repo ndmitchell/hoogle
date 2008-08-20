@@ -3,19 +3,23 @@ module Link(link) where
 
 import Util
 
+hoo x = "../../database/" ++ map toLower x ++ ".hoo"
+hooFlag flag x = "--" ++ flag ++ "=" ++ hoo x
+
+
 link :: [String] -> IO ()
 link xs = do
     let ys = xs ++ ["ghc" | "base" `elem` xs]
     deps <- mapM (\x -> do d <- depends x; return (x, ys `intersect` d)) ys
     mapM_ (\d -> convert d (fromJust $ lookup d deps)) $ order deps
     when (length xs > 1) $
-        system_ $ unwords $ "hoogle" : "/output=result/default.hoo" : ["/combine=result/" ++ map toLower x | x <- xs]
+        system_ $ unwords $ "hoogle" : hooFlag "output" "default" : [hooFlag "combine" x | x <- xs]
 
 
 convert :: String -> [String] -> IO ()
 convert hoo dep = system_ $ unwords $
-    ["hoogle","/convert=result/" ++ hoo,"/output=result/" ++ map toLower hoo ++ ".hoo"] ++
-    ["/data=result/" ++ d | d <- dep]
+    ["hoogle","/convert=result/" ++ hoo, hooFlag "output" hoo] ++
+    [hooFlag "data" d | d <- dep]
 
 
 depends :: String -> IO [String]

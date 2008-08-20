@@ -21,6 +21,7 @@ main :: IO ()
 main = do
     createDirectoryIfMissing True "temp"
     createDirectoryIfMissing True "result"
+    createDirectoryIfMissing True "../../database"
     xs <- getArgs
     xs <- return $ if null xs then defaults else xs
     mapM_ process xs
