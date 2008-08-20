@@ -105,6 +105,8 @@ askSuggest sug q@(TypeSig con typ)
                     [] -> Nothing
                     xs -> Just $ foldr1 joinItem xs
 
+        typ2 = improve get typ
+
         -- figure out if you have a totally unknown thing --
         classes = [x | c <- con, (TLit x,_) <- [fromTApp c], bad True x]
         datas = [x | TLit x <- concatMap universe $ typ : concatMap (snd . fromTApp) con
@@ -115,28 +117,29 @@ askSuggest sug q@(TypeSig con typ)
             Nothing -> True
             Just i | cls -> null $ suggestClass i
                    | otherwise -> null (suggestData i) && isNothing (suggestCtor i)
+        
 
-        -- try and improve the type --
-        typ2 = removeTApp $ transform f $ insertTApp typ
+improve :: (String -> Maybe SuggestItem) -> Type -> Type
+improve get typ = removeTApp $ transform f $ insertTApp typ
+    where
+        vars = filter isTVar (universe typ) ++ [TVar [x] | x <- ['a'..]]
+
+        f (TVar x) | length x > 1 = g (TVar x) x
+        f (TLit x) = g (TLit x) x
+        f (TApp (TLit x) xs) | isJust m && not (null kinds) && n `notElem` kinds =
+                TApp (TLit x) $ if maximum kinds > n
+                then xs ++ take (minimum (filter (> n) kinds) - n) vars
+                else take (maximum kinds) xs
             where
-                vars = filter isTVar (universe typ) ++ [TVar [x] | x <- ['a'..]]
-
-                f (TVar x) | length x > 1 = g (TVar x) x
-                f (TLit x) = g (TLit x) x
-                f (TApp (TLit x) xs) | isJust m && not (null kinds) && n `notElem` kinds =
-                        TApp (TLit x) $ if maximum kinds > n
-                        then xs ++ take (minimum (filter (> n) kinds) - n) vars
-                        else take (maximum kinds) xs
-                    where
-                        m@ ~(Just SuggestItem{suggestData=d}) = get x
-                        kinds = [b | (a,b) <- d, a == x]
-                        n = length xs
-                f x = x
+                m@ ~(Just SuggestItem{suggestData=d}) = get x
+                kinds = [b | (a,b) <- d, a == x]
+                n = length xs
+        f x = x
 
 
-                g def x | isJust m && x `notElem` (map fst d) &&
-                          (not (null d) || isJust c)
-                        = if isJust c then TLit $ fromJust c
-                          else TLit $ fst $ head $ d
-                    where m@ ~(Just SuggestItem{suggestData=d, suggestCtor=c}) = get x
-                g def x = def
+        g def x | isJust m && x `notElem` (map fst d) &&
+                  (not (null d) || isJust c)
+                = if isJust c then TLit $ fromJust c
+                  else TLit $ fst $ head $ d
+            where m@ ~(Just SuggestItem{suggestData=d, suggestCtor=c}) = get x
+        g def x = def
