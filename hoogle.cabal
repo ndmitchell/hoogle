@@ -16,7 +16,31 @@ description:
 homepage:           http://www.haskell.org/hoogle/
 stability:          Beta
 extra-source-files: README.txt
-data-files:         default.hoo
+data-dir:           database
+data-files:
+    array.hoo
+    base.hoo
+    bytestring.hoo
+    cabal.hoo
+    containers.hoo
+    default.hoo
+    directory.hoo
+    filepath.hoo
+    ghc.hoo
+    haskell-src.hoo
+    hunit.hoo
+    keyword.hoo
+    mtl.hoo
+    parallel.hoo
+    parsec.hoo
+    pretty.hoo
+    process.hoo
+    quickcheck.hoo
+    random.hoo
+    stm.hoo
+    template-haskell.hoo
+    time.hoo
+    xhtml.hoo
 
 flag splitBase
     Description: Choose the new smaller, split-up base package.
