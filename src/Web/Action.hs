@@ -20,6 +20,7 @@ import Data.Generics.Uniplate
 import Data.Time.Clock
 import Data.Time.Calendar
 import General.CGI(cgiArgs)
+import Paths_hoogle
 
 
 actionWeb :: CmdQuery -> IO ()
@@ -55,7 +56,8 @@ loadDataBases :: CmdQuery -> IO ([String], [DataBase])
 loadDataBases CmdQuery{query=Right q} = do
     let pkgs = nub [x | PlusPackage x <- scope q, safePackage x]
         files = if null pkgs then ["default"] else pkgs
-    files <- filterM doesFileExist $ map (\x -> "res" </> x <.> "hoo") files
+    root <- getDataDir
+    files <- filterM doesFileExist $ map (\x -> root </> x <.> "hoo") files
     dbs <- unsafeInterleaveIO $ mapM loadDataBase files
     return ([], dbs)
 loadDataBases _ = return ([], [])

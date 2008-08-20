@@ -4,7 +4,7 @@
 #       And York's GHC 6.6 has a broken time library.
 
 mkdir deploy/res --parents
-runhaskell Setup configure --with-compiler=ghc-6.6.1 --with-hc-pkg=ghc-pkg-6.6.1 --user
+runhaskell Setup configure --with-compiler=ghc-6.6.1 --with-hc-pkg=ghc-pkg-6.6.1 --user --datadir=res
 runhaskell Setup build
 cp dist/build/hoogle/hoogle deploy/index.cgi
 deploy/index.cgi /convert=hoogle.txt /output=deploy/res/default.hoo
