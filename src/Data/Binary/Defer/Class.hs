@@ -66,6 +66,13 @@ putFixed5 x1 x2 x3 x4 x5 = putFixed x1 >> putFixed x2 >> putFixed x3 >> putFixed
 putFixed6 x1 x2 x3 x4 x5 x6 = putFixed x1 >> putFixed x2 >> putFixed x3 >> putFixed x4 >> putFixed x5 >> putFixed x6
 
 
+putEnumByte :: Enum a => a -> DeferPut ()
+putEnumByte x = putByte $ fromIntegral $ fromEnum x
+
+getEnumByte :: Enum a => DeferGet a
+getEnumByte = liftM (toEnum . fromIntegral) getByte
+
+
 instance BinaryDefer Int where
     put = putInt
     get = getInt
