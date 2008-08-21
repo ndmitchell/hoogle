@@ -6,7 +6,8 @@ import Link
 import Util
 
 
-defaults = ["keyword","base","array","Cabal","HUnit","QuickCheck","bytestring"
+defaults = ["keyword","hackage","base"
+           ,"array","Cabal","HUnit","QuickCheck","bytestring"
            ,"containers","directory","filepath","haskell-src","mtl"
            ,"network","parallel","parsec","pretty","process","random","stm"
            ,"template-haskell","time","xhtml"]
