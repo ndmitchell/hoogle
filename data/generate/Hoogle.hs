@@ -4,6 +4,7 @@ module Hoogle(hoogle) where
 import Util
 
 hoogle :: String -> IO ()
+
 hoogle name = do
     -- read the cabal info
     cabal <- liftM lines $ readFile $ "temp/" ++ name ++ "/" ++ name ++ ".cabal"
@@ -52,10 +53,6 @@ readFields name = f
                 (ys,zs) = span ((> length spc) . length . takeWhile isSpace) xs
         f (x:xs) = f xs
         f [] = []
-
-
-trim = reverse . ltrim . reverse . ltrim
-ltrim = dropWhile isSpace
 
 
 splitGHC :: [String] -> ([String],[String])

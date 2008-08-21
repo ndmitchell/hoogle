@@ -33,6 +33,10 @@ isSubstrOf x y = any (x `isPrefixOf`) (tails y)
 
 rep from to x = if x == from then to else x
 
+trim = reverse . ltrim . reverse . ltrim
+
+ltrim = dropWhile isSpace
+
 
 ---------------------------------------------------------------------
 -- System.IO
