@@ -91,6 +91,9 @@ instance Uniplate Type where
 variables :: Type -> [String]
 variables x = [v | TVar v <- universe x]
 
+variablesSig :: TypeSig -> [String]
+variablesSig (TypeSig xs x) = concatMap variables (xs ++ [x])
+
 
 ---------------------------------------------------------------------
 -- BINARYDEFER INSTANCES
