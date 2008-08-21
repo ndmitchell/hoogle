@@ -27,7 +27,7 @@ package name = do
              ,"@hackage http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ name]
 
 
-doc = zipWith (++) ("-- | " : repeat "--   ")
+doc = map rtrim . zipWith (++) ("-- | " : repeat "--   ")
 
 
 hackagePrefix =
