@@ -114,7 +114,7 @@ cabalField :: String -> Cabal -> [String]
 cabalField name (Cabal xs) = f xs
     where
         f (x:xs) | (name ++ ":") `isPrefixOf` map toLower x2 =
-                [x4 | x4 /= []] ++ map trim ys ++ f zs
+                [x4 | x4 /= []] ++ map (rep "." "" . trim) ys ++ f zs
             where
                 x4 = trim x3
                 x3 = drop (length name + 1) x2
