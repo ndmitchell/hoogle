@@ -22,12 +22,12 @@ package name = do
     cabal <- readCabal' $ "temp/hackage/" ++ name ++ "/" ++ ver ++ "/" ++ name ++ ".cabal"
     
     return $ [""] ++
-             doc (cabalField "synopsis" cabal ++ [""] ++ cabalField "description" cabal) ++
+             doc (cabalField True "synopsis" cabal ++ [""] ++ cabalField True "description" cabal) ++
              ["@package " ++ name, "@version " ++ ver
              ,"@hackage http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ name]
 
 
-doc = map rtrim . zipWith (++) ("-- | " : repeat "--   ")
+doc = map rtrim . zipWith (++) ("-- | " : repeat "--   ") . lines . haddock . unlines
 
 
 hackagePrefix =
@@ -35,3 +35,10 @@ hackagePrefix =
     ,"-- From http://hackage.haskell.org/"
     ,"-- See Hoogle, http://www.haskell.org/hoogle/"
     ]
+
+
+-- Fix up some of the haddock documentation bits
+-- Currently not done, do we want to try getting Haddock to do this?
+-- Is there some code in Haddock that can be libraried off, or stolen?
+haddock :: String -> String
+haddock x = x
