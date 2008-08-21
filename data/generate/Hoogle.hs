@@ -10,10 +10,10 @@ hoogle name = do
     cabal <- readCabal $ "temp/" ++ name ++ "/" ++ name ++ ".cabal"
 
     -- rewrite with extra information
-    src <- readFile $ "temp/" ++ name ++ "/hoogle.txt"
+    src <- readTextBase $ "temp/" ++ name ++ "/hoogle.txt"
 
     -- '\r' because of haddock/cabal interactions going weird..
-    let res = concatMap (f cabal) $ lines $ filter (/= '\r') src
+    let res = concatMap (f cabal) src
         (res1,res2) = if name == "base" then splitGHC res else (res,[])
 
     writeFile ("result/" ++ name ++ ".txt") $ unlines res1

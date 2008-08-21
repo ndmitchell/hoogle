@@ -105,3 +105,10 @@ cabalField name (Cabal xs) = f xs
         f (x:xs) = f xs
         f [] = []
 
+
+---------------------------------------------------------------------
+-- Hoogle.TextBase
+
+-- filter '\r' because of haddock/cabal interactions going weird..
+readTextBase :: FilePath -> IO [String]
+readTextBase = liftM (lines . filter (/= '\r')) . readFile
