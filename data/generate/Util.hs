@@ -6,6 +6,7 @@ module Util(
     module Data.List,
     module Data.Char,
     module Data.Maybe,
+    module Data.Version,
     module Control.Monad,
     module Numeric,
     module System.Environment,
@@ -21,10 +22,11 @@ import System.IO
 import Data.List
 import Data.Char
 import Data.Maybe
+import Data.Version
 import Control.Monad
 import Control.Exception
 import Numeric
-
+import Text.ParserCombinators.ReadP
 
 ---------------------------------------------------------------------
 -- Pure
@@ -36,6 +38,15 @@ rep from to x = if x == from then to else x
 trim = reverse . ltrim . reverse . ltrim
 
 ltrim = dropWhile isSpace
+
+
+---------------------------------------------------------------------
+-- Data.Version
+
+readVersion :: String -> Version
+readVersion xs = case filter (null . snd) $ readP_to_S parseVersion xs of
+    [(a,_)] -> a
+    y -> error $ "Failed in readVersion, " ++ show (xs,y)
 
 
 ---------------------------------------------------------------------
@@ -64,6 +75,11 @@ writeBinaryFile file x = do
     hPutStr h x
     hClose h
 
+lsDirectories dir = do
+    src <- getDirectoryContents dir
+    src <- return $ filter (not . all (== '.')) src
+    filterM (doesDirectoryExist . (dir </>)) src
+
 
 ---------------------------------------------------------------------
 -- System.Make
@@ -85,6 +101,8 @@ depends x deps act = do
 newtype Cabal = Cabal [String]
 
 readCabal = liftM (Cabal . lines) . readFile
+
+readCabal' = liftM (Cabal . lines) . readFile'
 
 cabalVersion xs = head $ cabalField "version" xs ++ [""]
 
