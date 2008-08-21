@@ -32,6 +32,6 @@ process :: String -> IO ()
 process x = do
     putStrLn $ "Processing " ++ x
     case x of
-        "base" -> processBase x
+        "base" -> processBase
         "keyword" -> processKeyword
         _ -> processDefault x
