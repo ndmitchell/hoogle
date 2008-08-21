@@ -104,16 +104,16 @@ readCabal = liftM (Cabal . lines) . readFile
 
 readCabal' = liftM (Cabal . lines) . readFile'
 
-cabalVersion xs = head $ cabalField "version" xs ++ [""]
+cabalVersion xs = head $ cabalField True "version" xs ++ [""]
 
-cabalDepends xs = nub $ filter f $ words $ map (rep ',' ' ') $ unwords $ cabalField "build-depends" xs
+cabalDepends xs = nub $ filter f $ words $ map (rep ',' ' ') $ unwords $ cabalField False "build-depends" xs
     where f x = x /= "" && isAlpha (head x)
 
 
-cabalField :: String -> Cabal -> [String]
-cabalField name (Cabal xs) = f xs
+cabalField :: Bool -> String -> Cabal -> [String]
+cabalField root name (Cabal xs) = f xs
     where
-        f (x:xs) | (name ++ ":") `isPrefixOf` map toLower x2 =
+        f (x:xs) | (name ++ ":") `isPrefixOf` map toLower x2 && (null spc || not root) =
                 [x4 | x4 /= []] ++ map (rep "." "" . trim) ys ++ f zs
             where
                 x4 = trim x3
