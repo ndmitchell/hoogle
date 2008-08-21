@@ -80,19 +80,23 @@ removeTApp = transform f
 ---------------------------------------------------------------------
 -- UNIPLATE INSTANCES
 
-onTypeSig :: BiplateType TypeSig Type
-onTypeSig (TypeSig xs x) = (x:xs, \(x:xs) -> TypeSig xs x)
-
 instance Uniplate Type where
     uniplate (TApp x xs) = (x:xs, \(x:xs) -> TApp x xs)
     uniplate (TFun xs) = (xs, \xs -> TFun xs)
     uniplate x = ([], \[] -> x)
 
+onTypeSig :: BiplateType TypeSig Type
+onTypeSig (TypeSig xs x) = (x:xs, \(x:xs) -> TypeSig xs x)
+
+transformSig = transformOn onTypeSig
+universeSig = universeOn onTypeSig
+
+
 variables :: Type -> [String]
 variables x = [v | TVar v <- universe x]
 
 variablesSig :: TypeSig -> [String]
-variablesSig (TypeSig xs x) = concatMap variables (xs ++ [x])
+variablesSig x = [v | TVar v <- universeSig x]
 
 
 ---------------------------------------------------------------------
