@@ -48,7 +48,7 @@ instance BinaryDefer TextItem where
             5 -> get1 ItemInstance
             6 -> get2 ItemAttribute
 
--- TODO: Add a putEnum/getEnum
+
 instance BinaryDefer DataKeyword where
-    put = putByte . fromIntegral . fromEnum
-    get = liftM (toEnum . fromIntegral) getByte
+    put = putEnumByte
+    get = getEnumByte
