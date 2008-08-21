@@ -41,9 +41,8 @@ actionSearch flags q = do
         putStrLn $ showTag $ renderHaddock $ entryDocs ent
         putStrLn ""
 
-        when (isJust $ entryPackage ent) $ do
-            let pkg = fromLink $ fromJust $ entryPackage ent
-            putStrLn $ "From package " ++ packageName pkg ++ ", version " ++ packageVersion pkg
+        let pkg = fromLink $ entryPackage ent
+        putStrLn $ "From package " ++ packageName pkg ++ ", version " ++ packageVersion pkg
 
         let url = entryURL ent
         when (url /= "") $ putStrLn url

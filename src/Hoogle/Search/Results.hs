@@ -60,20 +60,20 @@ filterResults :: Query -> [Result] -> [Result]
 filterResults q = f mods correctModule . f pkgs correctPackage
     where
         f [] act = id
-        f xs act = filter (maybe True (act xs . fromLink) . entryModule . fromLink . resultEntry)
+        f xs act = filter (act xs . fromLink . resultEntry)
 
         mods = filter (\x -> isPlusModule x || isMinusModule x) $ scope q
         pkgs = [x | MinusPackage x <- scope q]
 
 
 -- pkgs is a non-empty list of MinusPackage values
-correctPackage :: [String] -> Module -> Bool
-correctPackage pkgs = (`notElem` pkgs) . packageName . fromLink . modulePackage
+correctPackage :: [String] -> Entry -> Bool
+correctPackage pkgs = (`notElem` pkgs) . packageName . fromLink . entryPackage
 
 
 -- mods is a non-empty list of PlusModule/MinusModule
-correctModule :: [Scope] -> Module -> Bool
-correctModule mods = f base mods . moduleName
+correctModule :: [Scope] -> Entry -> Bool
+correctModule mods = maybe True (f base mods . moduleName . fromLink) . entryModule
     where
         base = isMinusModule $ head mods
 

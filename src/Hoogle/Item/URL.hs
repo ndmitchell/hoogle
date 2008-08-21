@@ -20,15 +20,14 @@ entryURL e@Entry{entryType=EntryKeyword} =
 
 
 entryModuleURL :: Entry -> String
-entryModuleURL Entry{entryModule=Just m} | pkg /= "" =
+entryModuleURL Entry{entryModule=Just m, entryPackage=p} | pkg /= "" =
         pkg ++ concat (intersperse "-" name) ++ ".html"
     where
         name = moduleName $ fromLink m
-        pkg = haddockURL $ fromLink $ modulePackage $ fromLink m
+        pkg = haddockURL $ fromLink p
 entryModuleURL _ = ""
 
 
 entryPackageURL :: Entry -> String
-entryPackageURL Entry{entryModule=Just m} = if a == "" then b else a
-    where Package{hackageURL=a, haddockURL=b} = fromLink $ modulePackage $ fromLink m
-entryPackageURL _ = ""
+entryPackageURL e = if a == "" then b else a
+    where Package{hackageURL=a, haddockURL=b} = fromLink $ entryPackage e

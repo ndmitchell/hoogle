@@ -25,7 +25,6 @@ instance Typeable Package where typeOf _ = mkTyConApp typename_Package []
 
 data Module = Module
     {moduleName :: [String]
-    ,modulePackage :: Link Package
     }
 
 typename_Module = mkTyCon "Hoogle.DataBase.Item.Module"
@@ -38,15 +37,13 @@ instance Typeable Module where typeOf _ = mkTyConApp typename_Module []
 -- invariant: entryName == head [i | Focus i <- entryText]
 data Entry = Entry
     {entryModule :: Maybe (Link Module)
+    ,entryPackage :: Link Package
     ,entryName :: String
     ,entryText :: [EntryText]
     ,entryType :: EntryType
     ,entryDocs :: Haddock
     ,entryTypesig :: Maybe (Defer TypeSig)
     }
-
-entryPackage :: Entry -> Maybe (Link Package)
-entryPackage = liftM (modulePackage . fromLink) . entryModule
 
 
 typename_Entry = mkTyCon "Hoogle.DataBase.Item.Entry"
@@ -140,7 +137,7 @@ instance Show Package where
     show (Package a b c d) = unwords $ filter (/= "") [a,b,c,d]
 
 instance Show Module where
-    show (Module a b) = unwords [showModule a, "{" ++ show b ++ "}"]
+    show (Module a) = showModule a
 
 instance Show Entry where
     show e = unwords [concatMap f $ entryText e, m]
@@ -161,12 +158,12 @@ instance BinaryDefer Package where
     get = get4 Package
 
 instance BinaryDefer Module where
-    put (Module a b) = put2 a b
-    get = get2 Module
+    put (Module a) = put1 a
+    get = get1 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e f) = put6 a b c d e f
-    get = get6 Entry
+    put (Entry a b c d e f g) = put7 a b c d e f g
+    get = get7 Entry
 
 instance BinaryDefer EntryText where
     put (Keyword a)  = putByte 0 >> put1 a

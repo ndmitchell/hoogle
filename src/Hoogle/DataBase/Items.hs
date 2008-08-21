@@ -71,7 +71,7 @@ addTextItem linkPkg ti doc = case ti of
         return []
 
     ItemModule xs -> do
-        let m = Module xs linkPkg
+        let m = Module xs
         modId <- gets modId
         modify $ \s -> s{modId = modId + 1, mods = m : mods s
                         ,modCur = Just $ newLink modId m}
@@ -83,7 +83,7 @@ addTextItem linkPkg ti doc = case ti of
         add modu typ txt = do
             s <- get
             let sig = case ti of ItemFunc _ s -> Just (Defer s); _ -> Nothing
-            return [Entry (if modu then modCur s else Nothing)
+            return [Entry (if modu then modCur s else Nothing) linkPkg
                           (headDef "" [i | Focus i <- txt])
                           txt typ (newHaddock doc) sig]
 
@@ -101,8 +101,9 @@ mergeItems xs = Items
                 (pi+length p3,p3:ps, mi+length m3,m3:ms, ei+length e3,e3:es)
             where
                 (p2,p3) = add pi p id
-                (m2,m3) = add mi m $ \x -> x{modulePackage = p2 !! linkKey (modulePackage x)}
-                (e2,e3) = add ei e $ \x -> x{entryModule = liftM (\x -> m2 !! linkKey x) $ entryModule x}
+                (m2,m3) = add mi m id
+                (e2,e3) = add ei e $ \x -> x{entryModule = liftM (\x -> m2 !! linkKey x) $ entryModule x
+                                            ,entryPackage = p2 !! linkKey (entryPackage x)}
 
                 add i xs f = (zipWith newLink [i..] xs2, xs2)
                     where xs2 = map (f . fromLink) $ indexLinks xs

@@ -131,11 +131,10 @@ renderRes i r =
         ,tr $ pkgname ++ td "doc" docs]
     where
         ent = fromLink $ resultEntry r
-        pkg = liftM fromLink $ entryPackage ent
     
         (modu,text,_) = renderResult r
         modname = td "mod" $ maybe "" (href urlMod . showModule) modu
-        pkgname = td "pkg" $ maybe "" (href urlPkg . packageName) pkg
+        pkgname = td "pkg" $ href urlPkg $ packageName $ fromLink $ entryPackage ent
 
         docs = if length docLong == 0 then "" else
                if docShort == docLong then docShort else
