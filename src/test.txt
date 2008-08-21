@@ -44,3 +44,8 @@ instance Ord Bar
 ordId :: Ord a => a -> a
 nonId :: Non a => a -> a
 @test "Bar -> Bar" ordId,id nonId
+
+-- test that packages can be searched for
+@package pkg1
+@package pkg2
+@test "pkg" pkg1,pkg2
