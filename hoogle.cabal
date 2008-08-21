@@ -27,6 +27,7 @@ data-files:
     directory.hoo
     filepath.hoo
     ghc.hoo
+    hackage.hoo
     haskell-src.hoo
     hunit.hoo
     keyword.hoo
