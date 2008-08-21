@@ -62,6 +62,7 @@ data EntryView = FocusOn Range -- characters in the range should be focused
                  deriving Show
 
 data EntryType = EntryModule
+               | EntryPackage
                | EntryKeyword
                | EntryOther
                  deriving (Eq,Enum,Show)
@@ -181,5 +182,6 @@ instance BinaryDefer EntryText where
                 4 -> get1 ArgRes
 
 instance BinaryDefer EntryType where
-    put = put . fromEnum
-    get = liftM toEnum get
+    put = putEnumByte
+    get = getEnumByte
+
