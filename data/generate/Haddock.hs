@@ -7,10 +7,8 @@ import Util
 haddock :: String -> IO ()
 haddock x = do
     let res = "temp/" ++ x ++ "/hoogle.txt"
-    b <- doesFileExist res
-    when (not b) $ do
-        b <- doesFileExist $ "temp/" ++ x ++ "/setup.exe"
-        when (not b) $ setupFile ("temp/" ++ x ++ "/setup.exe")
+    depends res [] $ do
+        setupFile $ "temp/" ++ x ++ "/setup.exe"
 
         dir <- getCurrentDirectory
         bracket_ (setCurrentDirectory $ "temp/" ++ x) (setCurrentDirectory dir) $ do
@@ -21,8 +19,8 @@ haddock x = do
 
 
 setupFile file = do
-    b <- doesFileExist "temp/setup.exe"
-    when (not b) $ do
-        writeFile "temp/Setup.hs" "import Distribution.Simple; main = defaultMain"
-        system_ "ghc --make temp/Setup.hs -o temp/setup.exe"
-    copyFile "temp/setup.exe" file
+    depends file [] $ do
+        depends "temp/setup.exe" [] $ do
+            writeFile "temp/Setup.hs" "import Distribution.Simple; main = defaultMain"
+            system_ "ghc --make temp/Setup.hs -o temp/setup.exe"
+        copyFile "temp/setup.exe" file

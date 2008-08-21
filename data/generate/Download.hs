@@ -8,8 +8,7 @@ import Text.HTML.Download
 
 download :: String -> IO ()
 download x = do
-    b <- doesDirectoryExist $ "temp/" ++ x
-    when (not b) $ do
+    depends ("temp/" ++ x ++ "/" ++ x ++ ".cabal") [] $ do
         src <- openURL $ "http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ x
         let link = head [url | TagOpen "a" [("href",url)] <- parseTags src, ".tar.gz" `isSuffixOf` url]
         system_ $ "wget http://hackage.haskell.org/" ++ link ++ " -O temp/" ++ x ++ ".tar.gz"
