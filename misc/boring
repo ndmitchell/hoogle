@@ -47,3 +47,13 @@
 (^|/|\.)core$
 \.(obj|a|exe|so|lo|la)$
 ^\.darcs-temp-mail$
+# Those specific to Hoogle below this line
+^temp$
+^src/obj$
+^dist$
+^database$
+^data/generate/obj$
+^data/generate/result$
+^data/generate/temp$
+^darcs-ssh$
+\.exe\.manifest$
