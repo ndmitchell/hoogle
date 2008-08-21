@@ -1,11 +1,11 @@
 
 module Main(main) where
 
-import Download
-import Haddock
-import Hoogle
-import Util
+import Base
+import Keyword
+import Default
 import Link
+import Util
 
 
 defaults = ["keyword","base","array","Cabal","HUnit","QuickCheck","bytestring"
@@ -31,6 +31,7 @@ main = do
 process :: String -> IO ()
 process x = do
     putStrLn $ "Processing " ++ x
-    download x
-    haddock x
-    hoogle x
+    case x of
+        "base" -> processBase x
+        "keyword" -> processKeyword x
+        _ -> processDefault x
