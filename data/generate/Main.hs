@@ -1,9 +1,7 @@
 
 module Main(main) where
 
-import Base
-import Keyword
-import Default
+import Base; import Keyword; import Hackage; import Default
 import Link
 import Util
 
@@ -34,4 +32,5 @@ process x = do
     case x of
         "base" -> processBase
         "keyword" -> processKeyword
+        "hackage" -> processHackage
         _ -> processDefault x
