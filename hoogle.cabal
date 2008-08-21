@@ -65,9 +65,7 @@ executable hoogle
         CmdLine.Test
         Data.Binary.Defer
         Data.Binary.Defer.Array
-        Data.Binary.Defer.Chunk
         Data.Binary.Defer.Class
-        Data.Binary.Defer.Graph
         Data.Binary.Defer.Index
         Data.Binary.Defer.Map
         Data.Binary.Defer.Monad
@@ -104,7 +102,9 @@ executable hoogle
         Hoogle.Item.All
         Hoogle.Item.Haddock
         Hoogle.Item.Item
+        Hoogle.Item.URL
         Hoogle.Operations.All
+        Hoogle.Operations.Combine
         Hoogle.Operations.Convert
         Hoogle.Operations.Rank
         Hoogle.Operations.RankSolve
