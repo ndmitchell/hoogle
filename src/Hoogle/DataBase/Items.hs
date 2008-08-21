@@ -36,7 +36,7 @@ instance Show Items where
 -- temporary state structure
 data S a = S {count :: Int, values :: [a]}
 
-newS = S 0 []
+newS = S (-1) []
 newIndexS = newIndex . reverse . values
 addS x (S i xs) = S (i+1) (x:xs)
 getS (S i (x:xs)) = newLink i x
