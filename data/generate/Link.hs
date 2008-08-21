@@ -10,7 +10,7 @@ hooFlag flag x = "--" ++ flag ++ "=" ++ hoo x
 link :: [String] -> IO ()
 link xs = do
     let ys = xs ++ ["ghc" | "base" `elem` xs]
-    deps <- mapM (\x -> do d <- depends x; return (x, ys `intersect` d)) ys
+    deps <- mapM (\x -> do d <- dependencies x; return (x, ys `intersect` d)) ys
     mapM_ (\d -> convert d (fromJust $ lookup d deps)) $ order deps
     when (length xs > 1) $
         system_ $ unwords $ "hoogle" : hooFlag "output" "default" : [hooFlag "combine" x | x <- xs]
@@ -22,8 +22,8 @@ convert hoo dep = system_ $ unwords $
     [hooFlag "data" d | d <- dep]
 
 
-depends :: String -> IO [String]
-depends x = do
+dependencies :: String -> IO [String]
+dependencies x = do
     src <- readFile $ "result/" ++ x ++ ".txt"
     return [d
         | x <- takeWhile (\x -> null x || "--" `isPrefixOf` x || "@" `isPrefixOf` x) $ lines src
