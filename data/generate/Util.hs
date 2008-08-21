@@ -54,3 +54,12 @@ writeBinaryFile file x = do
 rep from to x = if x == from then to else x
 
 
+depends :: FilePath -> [FilePath] -> IO () -> IO ()
+depends x deps act = do
+    b <- doesFileExist x
+    if not b then act
+     else if null deps then return ()
+     else do
+        xt <- getModificationTime x
+        dt <- liftM maximum $ mapM getModificationTime deps
+        when (xt < dt) act
