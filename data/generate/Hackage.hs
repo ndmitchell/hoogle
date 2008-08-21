@@ -38,7 +38,7 @@ hackagePrefix =
 
 
 -- Fix up some of the haddock documentation bits
--- Currently not done, do we want to try getting Haddock to do this?
--- Is there some code in Haddock that can be libraried off, or stolen?
+-- Currently not done, should ideally be done by Haddock
+-- Need to use GHC.parseHaddockComment, and therefore GHC API :-(
 haddock :: String -> String
 haddock x = x
