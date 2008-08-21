@@ -77,8 +77,6 @@ runDeferPendings = do
     mapM_ runDeferPending todo
 
 
--- TODO: Write into a Ptr buffer, then use hPutBuf to do the actual writing out
---       Should save lots of openning the file etc
 runDeferPending :: DeferPending -> DeferPut ()
 runDeferPending (DeferPending pos act) = do
     (buf,_,back) <- ask
