@@ -259,7 +259,6 @@ rep from to x = if x == from then to else x
 
 -- | Like splitAt, but also return the number of items that were split.
 --   For performance.
--- TODO: compare to 0 in the inner loop
 splitAtLength :: Int -> [a] -> (Int,[a],[a])
 splitAtLength n xs = f n xs
     where
