@@ -29,11 +29,9 @@ hoogle name = do
             | "@version" `isPrefixOf` x = []
             | otherwise = [x]
 
-urls name version
-    | name == "keyword" = ["@haddock http://haskell.org/haskellwiki/Keywords"]
-    | otherwise =
-        ["@haddock http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ version ++ "/doc/html/"
-        ,"@hackage http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ name]
+urls name version =
+    ["@haddock http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ version ++ "/doc/html/"
+    ,"@hackage http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ name]
 
 
 splitGHC :: [String] -> ([String],[String])

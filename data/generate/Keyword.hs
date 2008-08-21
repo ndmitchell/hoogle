@@ -25,6 +25,7 @@ keywordPrefix =
     ,""
     ,"-- | Haskell keywords, always available"
     ,"@package keyword"
+    ,"@haddock http://haskell.org/haskellwiki/Keywords"
     ]
 
 
