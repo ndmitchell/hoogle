@@ -34,11 +34,13 @@ instance Show Items where
 
 
 -- temporary state structure
-data S = S {pkg :: Package
-           ,modId :: Int
-           ,mods :: [Module]
-           ,modCur :: Maybe (Link Module)
-           }
+data S a = S {count :: Int, values :: [a]}
+
+newS = S 0 []
+newIndexS = newIndex . reverse . values
+addS x (S i xs) = S (i+1) (x:xs)
+getS (S i (x:xs)) = newLink i x
+getS _ = error "DataBase.Items.getS, lacking a package/module?"
 
 
 entriesItems :: Items -> [Link Entry]
@@ -46,46 +48,43 @@ entriesItems = indexLinks . entries
 
 
 createItems :: [(TextItem,String)] -> Items
-createItems xs = Items (newIndex [pkg s])
-                       (newIndex $ reverse $ mods s)
+createItems xs = Items (newIndexS pkgs) (newIndexS mods)
                        (newIndex $ sortOn entryScore ents)
     where
-        -- circular programming to get pkg correct
-        (ents, s) = flip runState s0 $ concatMapM (uncurry $ addTextItem (newLink 0 $ pkg s)) xs
-        s0 = S (Package "" "" "" "") 0 [] Nothing
+        (ents, (pkgs,mods)) = flip runState (newS,newS) $ concatMapM addTextItem $ init $ tails xs
 
 
 -- add a TextItem to the state S
-addTextItem :: Link Package -> TextItem -> String -> State S [Entry]
-addTextItem linkPkg ti doc = case ti of
+addTextItem :: [(TextItem,String)] -> State (S Package, S Module) [Entry]
+addTextItem ((ti,doc):rest) = case ti of
     ItemInstance{} -> return []
 
-    ItemAttribute "keyword" name -> add False EntryKeyword [Keyword "keyword",Text " ",Focus name]
+    ItemAttribute "keyword" name ->
+        add False EntryKeyword [Keyword "keyword",Text " ",Focus name]
 
-    ItemAttribute name val -> do
-        let modifyPkg x f = when (name == x) $ modify $ \s -> s{pkg = f $ pkg s}
-        modifyPkg "package" $ \s -> s{packageName = val}
-        modifyPkg "version" $ \s -> s{packageVersion = val}
-        modifyPkg "haddock" $ \s -> s{haddockURL = val}
-        modifyPkg "hackage" $ \s -> s{hackageURL = val}
-        return []
+    ItemAttribute "package" name -> do
+        modify $ \(ps,ms) -> (addS (addPkg (Package name "" "" "") rest) ps, ms)
+        add False EntryPackage [Keyword "package",Text " ",Focus name]
+
+    ItemAttribute _ _ -> return []
 
     ItemModule xs -> do
-        let m = Module xs
-        modId <- gets modId
-        modify $ \s -> s{modId = modId + 1, mods = m : mods s
-                        ,modCur = Just $ newLink modId m}
+        modify $ \(ps,ms) -> (ps, addS (Module xs) ms)
         add True EntryModule [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 
     _ -> add True EntryOther (renderTextItem ti)
-
     where
         add modu typ txt = do
-            s <- get
+            (ps,ms) <- get
             let sig = case ti of ItemFunc _ s -> Just (Defer s); _ -> Nothing
-            return [Entry (if modu then modCur s else Nothing) linkPkg
+            return [Entry (if modu then Just $ getS ms else Nothing) (getS ps)
                           (headDef "" [i | Focus i <- txt])
                           txt typ (newHaddock doc) sig]
+
+        addPkg pkg ((ItemAttribute "version" x,_) : xs) = addPkg pkg{packageVersion=x} xs
+        addPkg pkg ((ItemAttribute "haddock" x,_) : xs) = addPkg pkg{haddockURL    =x} xs
+        addPkg pkg ((ItemAttribute "hackage" x,_) : xs) = addPkg pkg{hackageURL    =x} xs
+        addPkg pkg _ = pkg
 
 
 mergeItems :: [Items] -> Items
