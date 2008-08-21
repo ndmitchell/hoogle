@@ -36,16 +36,11 @@ actionSearch flags q = do
         putStrLn "No results found"
      else if Info `elemEnum` flags then do
         let ent = fromLink $ resultEntry $ head res
-        putStrLn $ f $ renderResult $ head res
-        putStrLn ""
-        putStrLn $ showTag $ renderHaddock $ entryDocs ent
-        putStrLn ""
-
-        let pkg = fromLink $ entryPackage ent
+            pkg = fromLink $ entryPackage ent
+        putStrLns 2 $ f $ renderResult $ head res
+        putStrLns 2 $ showTag $ renderHaddock $ entryDocs ent
         putStrLn $ "From package " ++ packageName pkg ++ ", version " ++ packageVersion pkg
-
-        let url = entryURL ent
-        when (url /= "") $ putStrLn url
+        putStrLns 1 $ entryURL ent
      else
         putStr $ unlines $ map (f . renderResult) res
     where
@@ -60,3 +55,11 @@ actionSearch flags q = do
 
         f (m,r,v) = maybe "" (\m -> showModule m ++ " ") m ++
                     showTag r ++ (if verbose then "  -- " ++ v else "")
+
+
+-- Put out a string with some blank links following
+-- Do not put out the blank lines if no text output
+putStrLns :: Int -> String -> IO ()
+putStrLns n xs = when (xs /= "") $ do
+                     putStr xs
+                     putStr $ replicate n '\n'
