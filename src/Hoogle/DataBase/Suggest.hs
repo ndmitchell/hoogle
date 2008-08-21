@@ -105,7 +105,7 @@ askSuggest sug q@(TypeSig con typ)
                     [] -> Nothing
                     xs -> Just $ foldr1 joinItem xs
 
-        typ2 = improve get typ
+        typ2 = improve get vars False typ
 
         -- figure out if you have a totally unknown thing --
         classes = [x | c <- con, (TLit x,_) <- [fromTApp c], bad True x]
@@ -117,18 +117,18 @@ askSuggest sug q@(TypeSig con typ)
             Nothing -> True
             Just i | cls -> null $ suggestClass i
                    | otherwise -> null (suggestData i) && isNothing (suggestCtor i)
-        
+        vars = variablesSig q ++ map (:[]) ['a'..]
 
-improve :: (String -> Maybe SuggestItem) -> Type -> Type
-improve get typ = removeTApp $ transform f $ insertTApp typ
+
+
+improve :: (String -> Maybe SuggestItem) -> [String] -> Bool -> Type -> Type
+improve get vars cls typ = removeTApp $ transform f $ insertTApp typ
     where
-        vars = filter isTVar (universe typ) ++ [TVar [x] | x <- ['a'..]]
-
         f (TVar x) | length x > 1 = g (TVar x) x
         f (TLit x) = g (TLit x) x
         f (TApp (TLit x) xs) | isJust m && not (null kinds) && n `notElem` kinds =
                 TApp (TLit x) $ if maximum kinds > n
-                then xs ++ take (minimum (filter (> n) kinds) - n) vars
+                then xs ++ take (minimum (filter (> n) kinds) - n) (map TVar vars)
                 else take (maximum kinds) xs
             where
                 m@ ~(Just SuggestItem{suggestData=d}) = get x
