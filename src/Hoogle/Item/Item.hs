@@ -143,9 +143,9 @@ instance Show Module where
     show (Module a b) = unwords [showModule a, "{" ++ show b ++ "}"]
 
 instance Show Entry where
-    show (Entry a _ b _ _ _) = unwords [concatMap f b, m]
+    show e = unwords [concatMap f $ entryText e, m]
         where
-            m = case a of
+            m = case entryModule e of
                     Nothing -> ""
                     Just y -> "{#" ++ show (linkKey y) ++ "}"
 
