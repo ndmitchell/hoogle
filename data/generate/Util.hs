@@ -82,5 +82,26 @@ depends x deps act = do
 ---------------------------------------------------------------------
 -- Cabal
 
+newtype Cabal = Cabal [String]
 
+readCabal = liftM (Cabal . lines) . readFile
+
+cabalVersion xs = head $ cabalField "version" xs ++ [""]
+
+cabalDepends xs = nub $ filter f $ words $ map (rep ',' ' ') $ unwords $ cabalField "build-depends" xs
+    where f x = x /= "" && isAlpha (head x)
+
+
+cabalField :: String -> Cabal -> [String]
+cabalField name (Cabal xs) = f xs
+    where
+        f (x:xs) | (name ++ ":") `isPrefixOf` map toLower x2 =
+                [x4 | x4 /= []] ++ map trim ys ++ f zs
+            where
+                x4 = trim x3
+                x3 = drop (length name + 1) x2
+                (spc,x2) = span isSpace x
+                (ys,zs) = span ((> length spc) . length . takeWhile isSpace) xs
+        f (x:xs) = f xs
+        f [] = []
 

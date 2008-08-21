@@ -7,7 +7,7 @@ hoogle :: String -> IO ()
 
 hoogle name = do
     -- read the cabal info
-    cabal <- liftM lines $ readFile $ "temp/" ++ name ++ "/" ++ name ++ ".cabal"
+    cabal <- readCabal $ "temp/" ++ name ++ "/" ++ name ++ ".cabal"
 
     -- rewrite with extra information
     src <- readFile $ "temp/" ++ name ++ "/hoogle.txt"
@@ -34,25 +34,6 @@ urls name version
     | otherwise =
         ["@haddock http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ version ++ "/doc/html/"
         ,"@hackage http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ name]
-
-cabalVersion xs = head $ readFields "version" xs ++ [""]
-
-cabalDepends xs = nub $ filter f $ words $ map (rep ',' ' ') $ unwords $ readFields "build-depends" xs
-    where f x = x /= "" && isAlpha (head x)
-
-
-readFields :: String -> [String] -> [String]
-readFields name = f
-    where
-        f (x:xs) | (name ++ ":") `isPrefixOf` map toLower x2 =
-                [x4 | x4 /= []] ++ map trim ys ++ f zs
-            where
-                x4 = trim x3
-                x3 = drop (length name + 1) x2
-                (spc,x2) = span isSpace x
-                (ys,zs) = span ((> length spc) . length . takeWhile isSpace) xs
-        f (x:xs) = f xs
-        f [] = []
 
 
 splitGHC :: [String] -> ([String],[String])
