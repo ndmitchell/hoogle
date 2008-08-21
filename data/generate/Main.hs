@@ -33,5 +33,5 @@ process x = do
     case x of
         "base" -> processBase
         "keyword" -> processKeyword
-        "hackage" -> processHackage
+        "hackage" -> processHackage defaults
         _ -> processDefault x

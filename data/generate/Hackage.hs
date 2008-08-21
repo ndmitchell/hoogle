@@ -4,14 +4,14 @@ module Hackage where
 import Util
 
 
-processHackage = do
+processHackage exclude = do
     depends "temp/hackage/hackage.tar" [] $ do
         createDirectoryIfMissing True "temp/hackage"
         system_ "wget http://hackage.haskell.org/packages/archive/00-index.tar.gz -O temp/hackage/hackage.tar.gz"
         system_ $ "gunzip --force temp/hackage/hackage.tar.gz"
         system_ $ "tar -xf temp/hackage/hackage.tar -C temp/hackage"
 
-    xs <- mapM package =<< lsDirectories "temp/hackage"
+    xs <- mapM package . filter (`notElem` exclude) =<< lsDirectories "temp/hackage"
     writeFile "temp/hackage/hoogle.txt" $ unlines $ hackagePrefix ++ concat xs
     copyFile "temp/hackage/hoogle.txt" "result/hackage.txt"
 
