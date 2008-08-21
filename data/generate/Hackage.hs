@@ -23,7 +23,8 @@ package name = do
     
     return $ [""] ++
              doc (cabalField "synopsis" cabal ++ [""] ++ cabalField "description" cabal) ++
-             ["@package " ++ name, "@version " ++ ver]
+             ["@package " ++ name, "@version " ++ ver
+             ,"@hackage http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ name]
 
 
 doc = zipWith (++) ("-- | " : repeat "--   ")
