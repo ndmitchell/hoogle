@@ -3,7 +3,7 @@ build-type:         Simple
 name:               hoogle
 version:            4.0.0.4
 license:            GPL
-license-file:       LICENSE
+license-file:       docs/LICENSE
 category:           Development
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
