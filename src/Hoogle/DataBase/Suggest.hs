@@ -95,7 +95,7 @@ joinItem (SuggestItem a1 b1 c1) (SuggestItem a2 b2 c2) =
 
 askSuggest :: [Suggest] -> TypeSig -> Maybe (Either String TypeSig)
 askSuggest sug q@(TypeSig con typ)
-        | typ2 /= typ = Just (Right $ TypeSig con typ2)
+        | q2 /= q = Just (Right q2)
         | not $ null datas = unknown "type" datas
         | not $ null classes = unknown "class" classes
         | otherwise = Nothing
@@ -105,7 +105,11 @@ askSuggest sug q@(TypeSig con typ)
                     [] -> Nothing
                     xs -> Just $ foldr1 joinItem xs
 
-        typ2 = improve get vars False typ
+        con2 = map (improve get True) con
+        typ2 = improve get False typ
+        q2 = contextTrim $ insertVars $ TypeSig con2 typ2
+        insertVars = transformSig (\x -> if x == TVar "" then TVar var else x)
+        var = head $ filter (/= "") $ variables typ2 ++ concatMap variables con2 ++ ["a"]
 
         -- figure out if you have a totally unknown thing --
         classes = [x | c <- con, (TLit x,_) <- [fromTApp c], bad True x]
@@ -117,29 +121,46 @@ askSuggest sug q@(TypeSig con typ)
             Nothing -> True
             Just i | cls -> null $ suggestClass i
                    | otherwise -> null (suggestData i) && isNothing (suggestCtor i)
-        vars = variablesSig q ++ map (:[]) ['a'..]
 
 
+-- remove context which doesn't reference variables in the RHS
+contextTrim :: TypeSig -> TypeSig
+contextTrim (TypeSig con typ) = TypeSig (filter (not . bad) con) typ
+    where var = variables typ
+          bad x = isTVar (fst $ fromTApp x) || null (variables x `intersect` var)
 
-improve :: (String -> Maybe SuggestItem) -> [String] -> Bool -> Type -> Type
-improve get vars cls typ = removeTApp $ transform f $ insertTApp typ
+
+improve :: (String -> Maybe SuggestItem) -> Bool -> Type -> Type
+improve get cls typ
+        | cls == False = f $ transform (improveName nameTyp) typ
+        | cls == True  = improveArity arity $
+            tApp (improveName nameCls t1) (map (transform (improveName nameTyp)) ts)
     where
-        f (TVar x) | length x > 1 = g (TVar x) x
-        f (TLit x) = g (TLit x) x
-        f (TApp (TLit x) xs) | isJust m && not (null kinds) && n `notElem` kinds =
-                TApp (TLit x) $ if maximum kinds > n
-                then xs ++ take (minimum (filter (> n) kinds) - n) (map TVar vars)
-                else take (maximum kinds) xs
-            where
-                m@ ~(Just SuggestItem{suggestData=d}) = get x
-                kinds = [b | (a,b) <- d, a == x]
-                n = length xs
-        f x = x
+        (t1,ts) = fromTApp typ
+        nameTyp = maybe [] (\x -> maybeToList (suggestCtor x) ++ map fst (suggestData x)) . get
+        nameCls = maybe [] (map fst . suggestClass) . get
+        
+        arity x = lookup x . (if cls then suggestClass else suggestData) =<< get x
+          
+        f x = case improveArity arity x of
+                   TApp x xs -> TApp x (map f xs)
+                   x -> descend f x
 
 
-        g def x | isJust m && x `notElem` (map fst d) &&
-                  (not (null d) || isJust c)
-                = if isJust c then TLit $ fromJust c
-                  else TLit $ fst $ head $ d
-            where m@ ~(Just SuggestItem{suggestData=d, suggestCtor=c}) = get x
-        g def x = def
+-- Given a name, return its arity
+improveArity :: (String -> Maybe Int) -> Type -> Type
+improveArity f o = case fromTApp o of
+    (TLit x, xs) ->
+        case f x of
+            Just i -> tApp (TLit x) $ take i $ xs ++ repeat (TVar "")
+            _ -> o
+    _ -> o
+
+
+-- Given a name, return the names it could possibly be
+improveName :: (String -> [String]) -> Type -> Type
+improveName f (TLit x) | ys /= [] && x `notElem` ys = TLit (head ys)
+    where ys = f x
+improveName f (TVar x) | length x > 1 && ys /= [] = TLit (head ys)
+    where ys = f x
+improveName f x = x
