@@ -26,6 +26,17 @@ import Control.Exception
 import Numeric
 
 
+---------------------------------------------------------------------
+-- Pure
+
+isSubstrOf x y = any (x `isPrefixOf`) (tails y)
+
+rep from to x = if x == from then to else x
+
+
+---------------------------------------------------------------------
+-- System.IO
+
 system_ x = do
     putStrLn $ "Running: " ++ x
     res <- system x
@@ -44,15 +55,14 @@ readFile' x = do
     hClose h
     return s
 
-isSubstrOf x y = any (x `isPrefixOf`) (tails y)
-
 writeBinaryFile file x = do
     h <- openBinaryFile file WriteMode
     hPutStr h x
     hClose h
 
-rep from to x = if x == from then to else x
 
+---------------------------------------------------------------------
+-- System.Make
 
 depends :: FilePath -> [FilePath] -> IO () -> IO ()
 depends x deps act = do
@@ -63,3 +73,10 @@ depends x deps act = do
         xt <- getModificationTime x
         dt <- liftM maximum $ mapM getModificationTime deps
         when (xt < dt) act
+
+
+---------------------------------------------------------------------
+-- Cabal
+
+
+
