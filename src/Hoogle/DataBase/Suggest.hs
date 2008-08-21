@@ -1,6 +1,4 @@
 
--- TODO: Suggestions from imported packages should be detailed
-
 module Hoogle.DataBase.Suggest where
 
 import General.Code
