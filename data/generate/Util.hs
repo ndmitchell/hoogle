@@ -112,3 +112,12 @@ cabalField name (Cabal xs) = f xs
 -- filter '\r' because of haddock/cabal interactions going weird..
 readTextBase :: FilePath -> IO [String]
 readTextBase = liftM (lines . filter (/= '\r')) . readFile
+
+
+-- replace the @package line, delete any @version lines
+replaceTextBasePrefix :: [String] -> [String] -> [String]
+replaceTextBasePrefix with = f
+    where
+        f (x:xs) | "@package " `isPrefixOf` x = with ++ dropWhile ("@version " `isPrefixOf`) xs
+                 | otherwise = x : f xs
+        f [] = error "replaceTextBasePrefix, @package not found"

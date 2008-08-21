@@ -8,26 +8,20 @@ hoogle :: String -> IO ()
 hoogle name = do
     -- read the cabal info
     cabal <- readCabal $ "temp/" ++ name ++ "/" ++ name ++ ".cabal"
+    let prefix = if name == "base" then
+                     basePrefix ++ ["@depends ghc"]
+                 else let v = cabalVersion cabal in
+                     ["@package " ++ name, "@version " ++ v] ++ urls name v ++
+                     ["@depends " ++ d | d <- cabalDepends cabal]
 
     -- rewrite with extra information
     src <- readTextBase $ "temp/" ++ name ++ "/hoogle.txt"
-
-    -- '\r' because of haddock/cabal interactions going weird..
-    let res = concatMap (f cabal) src
+    let res = replaceTextBasePrefix prefix src
         (res1,res2) = if name == "base" then splitGHC res else (res,[])
 
     writeFile ("result/" ++ name ++ ".txt") $ unlines res1
     when (res2 /= []) $ writeFile "result/ghc.txt" $ unlines $ ghcPrefix ++ res2
-    where
-        f cabal x
-            | "@package" `isPrefixOf` x =
-                if name == "base" then
-                    basePrefix ++ ["@depends ghc"]
-                else let v = cabalVersion cabal in
-                    [x, "@version " ++ v] ++ urls name v ++
-                    ["@depends " ++ d | d <- cabalDepends cabal]
-            | "@version" `isPrefixOf` x = []
-            | otherwise = [x]
+
 
 urls name version =
     ["@haddock http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ version ++ "/doc/html/"
