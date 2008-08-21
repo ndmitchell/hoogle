@@ -33,5 +33,5 @@ process x = do
     putStrLn $ "Processing " ++ x
     case x of
         "base" -> processBase x
-        "keyword" -> processKeyword x
+        "keyword" -> processKeyword
         _ -> processDefault x

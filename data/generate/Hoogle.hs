@@ -4,8 +4,6 @@ module Hoogle(hoogle) where
 import Util
 
 hoogle :: String -> IO ()
-hoogle "keyword" = copyFile "temp/keyword/hoogle.txt" "result/keyword.txt"
-
 hoogle name = do
     -- read the cabal info
     cabal <- liftM lines $ readFile $ "temp/" ++ name ++ "/" ++ name ++ ".cabal"
