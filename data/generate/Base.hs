@@ -1,7 +1,7 @@
 
 module Base where
 
-import Haddock
+import Default
 import Util
 
 processBase = do
