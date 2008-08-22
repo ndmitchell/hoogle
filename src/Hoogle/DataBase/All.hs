@@ -50,3 +50,7 @@ searchType db = searchTypeSearch (aliases db) (instances db) (typeSearch db)
 
 suggestion :: [DataBase] -> TypeSig -> Maybe (Either String TypeSig)
 suggestion db = askSuggest (map suggest db)
+
+
+completions :: DataBase -> String -> [String]
+completions db = completionsNameSearch (nameSearch db)

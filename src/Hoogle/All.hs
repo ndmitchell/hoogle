@@ -4,7 +4,8 @@ module Hoogle.All(
     Flag(..),
     DataBase, loadDataBase, showDataBase,
     convert, rank, combine,
-    searchAll, searchRange, Result(..)
+    searchAll, searchRange, Result(..),
+    completions
     ) where
 
 import Hoogle.Query.All

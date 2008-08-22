@@ -2,6 +2,7 @@
 module Hoogle.DataBase.NameSearch
     (NameSearch, createNameSearch
     ,TextScore, searchNameSearch
+    ,completionsNameSearch
     ) where
 
 import Data.Binary.Defer
@@ -175,6 +176,22 @@ intersectOrd _ _ = []
 
 intersectOrds :: [[Int]] -> [Int]
 intersectOrds = fold1 intersectOrd
+
+
+---------------------------------------------------------------------
+-- COMPLETIONS
+
+completionsNameSearch :: NameSearch -> String -> [String]
+completionsNameSearch (NameSearch items _) str =
+        concatMap (map fst . fromDefer . rest) $
+        takeWhile ((lstr `isPrefixOf`) . key) $
+        map ((!) items) [start .. arraySize items - 1]
+    where
+        lstr = map toLower str
+        nstr = length str
+
+        (exact,prefix) = startPos items lstr
+        start = fromMaybe prefix exact
 
 
 ---------------------------------------------------------------------

@@ -35,6 +35,7 @@ data CmdFlag = Version           -- ^ Version information
              | TestFile FilePath -- ^ Run tests in a file
              | Rank FilePath     -- ^ Generate rankings
              | Combine FilePath  -- ^ Merge a set of databases
+             | Mode String       -- ^ Web modes
                deriving (Show,Eq {-! Enum !-} )
 
 
@@ -90,6 +91,7 @@ flagInfo =
     ,f (ArgFileIn TestFile ["txt"]) ["testfile"] [PCmdLine,PMultiple] "Run tests from a file"
     ,f (ArgFileIn Rank ["txt"]) ["rank"] [PCmdLine,PMultiple] "Generate ranking scores"
     ,f (ArgFileIn Combine ["hoo"]) ["combine"] [PCmdLine,PMultiple] "Combine multiple databases"
+    ,f (ArgStr Mode) ["mode"] [PCmdLine,PWebArgs] "Web mode"
     ]
     where f = FlagInfo
 

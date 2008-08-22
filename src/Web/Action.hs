@@ -25,10 +25,15 @@ import Paths_hoogle
 
 actionWeb :: CmdQuery -> IO ()
 actionWeb q = do
-    putStr "Content-type: text/html\n\n"
     logMessage q
-    (skipped,dbs) <- loadDataBases q
-    let res = unlines $ header (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
+    res <-
+        if Mode "suggest" `elem` queryFlags q then do
+            putStr "Content-type: application/json\n\n"
+            runSuggest q
+        else do
+            putStr "Content-type: text/html\n\n"
+            (skipped,dbs) <- loadDataBases q
+            return $ unlines $ header (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
     putStrLn res
     when (Debug `elem` queryFlags q) $
         writeFile "temp.htm" res
@@ -42,6 +47,15 @@ logMessage q = do
         [showGregorian (utctDay time)
         ,show (queryText q)] ++
         ["?" ++ a ++ "=" ++ c ++ b ++ c | (a,b) <- cgi, let c = ['\"' | any isSpace b]]
+
+
+runSuggest :: CmdQuery -> IO String
+runSuggest CmdQuery{query=Right Query{scope=[], names=[x], typeSig=Nothing}} = do
+    root <- getDataDir
+    db <- loadDataBase $ root </> "default.hoo"
+    let res = take 8 $ completions db x
+    return $ "[" ++ show x ++ "," ++ show res ++ "]"
+runSuggest _ = return ""
 
 
 -- is the package not something that might go wrong
