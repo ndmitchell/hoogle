@@ -69,7 +69,7 @@ data FlagInfo = FlagInfo {
     names :: [String],
     permissions :: [Permission],
     description :: String
-    } deriving Show
+    }
 
 flagInfo =
     [f (ArgNone Version) ["version","ver"] [PCmdLine] "Print out version information"
