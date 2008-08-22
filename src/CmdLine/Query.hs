@@ -51,7 +51,7 @@ cmdQueryCGI xs = do
             (flags2,bad2) <- flagsWebQuery $ queryArgs res
             return $ CmdQuery True str (Right res) (flags2++flags1) (bad2++bad1)
     where
-        (q,notq) = partition ((==) "q" . fst) xs
+        (q,notq) = partition ((`elem` ["q","hoogle"]) . fst) xs
         str = unwords $ map snd q
 
 

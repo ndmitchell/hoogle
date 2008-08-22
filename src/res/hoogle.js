@@ -1,7 +1,7 @@
 // registered with the body onload event
 function on_load()
 {
-    document.getElementById('q').focus();
+    document.getElementById("hoogle").focus();
 
     if (document.location.hash != "")
         document.location.hash = document.location.hash;
