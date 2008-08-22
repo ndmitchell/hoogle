@@ -11,7 +11,7 @@
     <Url type="text/html" template="http://haskell.org/hoogle/?q={searchTerms}"/>
 
     <Image height="16" width="16" type="image/png">favicon.png</Image>
-    <!-- <Image height="64" width="64" type="image/png">favicon64.png</Image> -->
+    <Image height="64" width="64" type="image/png">favicon64.png</Image>
     <Developer>Neil Mitchell</Developer>
     <AdultContent>false</AdultContent>
     <Language>en-us</Language>
