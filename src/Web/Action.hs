@@ -102,7 +102,7 @@ runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
         (pre,res2) = splitAt start res
         (now,post) = splitAt count res2
 
-        moreResults = "<tr><td></td><td><a href=\"" ++ urlMore ++ "\" class='more'>Show more results</a></td></tr>"
+        moreResults = "<tr><td></td><td><a href=\"" +& urlMore ++ "\" class='more'>Show more results</a></td></tr>"
         urlMore = "?q=" +% queryText cq ++ "&start=" ++ show (start+count+1) ++ "#more"
 
         qstr = unwords $ ["<b>" +& n ++ "</b>" | n <- names q] ++
