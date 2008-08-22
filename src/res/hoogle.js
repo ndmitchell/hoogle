@@ -15,18 +15,6 @@ function add_search()
     window.external.AddSearchProvider('res/search.xml');
 }
 
-function addEngine(name,ext,cat,pid)
-{
-    if ((typeof window.sidebar == "object") && (typeof window.sidebar.addSearchEngine == "function"))
-    {
-        window.sidebar.addSearchEngine(
-            'http://mycroft.mozdev.org/install.php/' + pid + "/" + name + ".src",
-            'http://mycroft.mozdev.org/install.php/' + pid + "/" + name + "."+ ext, name, cat);
-    } else {
-        alert("You will need a browser which supports Sherlock to install this plugin.");
-    }
-}
-
 function doc_more(i)
 {
     document.getElementById('s' + i).style.display = "none";
