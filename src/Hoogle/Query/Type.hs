@@ -12,7 +12,7 @@ import Hoogle.TypeSig.All
 usefulQuery query = not (null (names query)) || isJust (typeSig query)
 
 
-defaultQuery = Query [] [] Nothing []
+blankQuery = Query [] [] Nothing []
 
 data Query = Query {
         scope :: [Scope],

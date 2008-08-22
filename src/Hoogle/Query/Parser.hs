@@ -22,12 +22,10 @@ parseCmdLineQuery args = parseQuery $ unwords $ map f args
             | otherwise = x
 
 
-blank = Query [] [] Nothing []
-
 merge (Query a1 b1 c1 d1) (Query a2 b2 c2 d2) =
         Query (a1++a2) (b1++b2) (c1 `mplus` c2) (d1++d2)
 
-merges xs = foldr merge blank xs
+merges xs = foldr merge blankQuery xs
 
 
 parsecQuery :: Parser Query
@@ -36,19 +34,19 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
         end f = do x <- f; eof; return x
     
         names = do a <- many (flag <|> name)
-                   b <- option blank (string "::" >> spaces >> types)
+                   b <- option blankQuery (string "::" >> spaces >> types)
                    let res@Query{names=names} = merge (merges a) b
                        (op,nop) = partition ((`elem` ascSymbols) . head) names
                    if op /= [] && nop /= []
                        then fail "Combination of operators and names"
                        else return res
         
-        name = (do x <- operator ; spaces ; return blank{names=[x]})
+        name = (do x <- operator ; spaces ; return blankQuery{names=[x]})
                <|>
                (do xs <- keyword `sepBy1` (char '.') ; spaces
                    return $ case xs of
-                       [x] -> blank{names=[x]}
-                       xs -> blank{names=[last xs],scope=[PlusModule (init xs)]}
+                       [x] -> blankQuery{names=[x]}
+                       xs -> blankQuery{names=[last xs],scope=[PlusModule (init xs)]}
                )
         
         operator = between (char '(') (char ')') op <|> op
@@ -58,7 +56,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
         types = do a <- flags
                    b <- parsecTypeSig
                    c <- flags
-                   return $ merges [a,blank{typeSig=Just b},c]
+                   return $ merges [a,blankQuery{typeSig=Just b},c]
 
         flag = do x <- parseFlagScope ; spaces ; return x
         flags = many flag >>= return . merges
@@ -80,7 +78,7 @@ parseFlagScope = do x <- try scope <|> try flag
         flag = do string "--" <|> string "/"
                   name <- many1 letter <|> string "?"
                   extra <- (do char '='; flagExtra) <|> (return "")
-                  return blank{flags=[Flag (map toLower name) extra]}
+                  return blankQuery{flags=[Flag (map toLower name) extra]}
             where
                 flagExtra = quoteStr <|> spaceStr
                 quoteStr = between (char '\"') (char '\"') (many anyChar)
@@ -91,8 +89,8 @@ parseFlagScope = do x <- try scope <|> try flag
                        aModule  = if pm == '+' then PlusModule  else MinusModule
                    modu <- modname
                    case modu of
-                       [x] -> return $ blank{scope=[if isLower (head x) then aPackage x else aModule [x]]}
-                       xs -> return $ blank{scope=[aModule xs]}
+                       [x] -> return $ blankQuery{scope=[if isLower (head x) then aPackage x else aModule [x]]}
+                       xs -> return $ blankQuery{scope=[aModule xs]}
 
         modname = keyword `sepBy1` (char '.')
 
