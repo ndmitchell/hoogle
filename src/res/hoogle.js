@@ -7,24 +7,24 @@ function on_load()
         document.location.hash = document.location.hash;
 
     if (window.external.AddSearchProvider)
-        document.getElementById('plugin').style.display = "";
+        document.getElementById("plugin").style.display = "";
 }
 
 function add_search()
 {
-    window.external.AddSearchProvider('res/search.xml');
+    window.external.AddSearchProvider("res/search.xml");
 }
 
 function doc_more(i)
 {
-    document.getElementById('s' + i).style.display = "none";
-    document.getElementById('l' + i).style.display = "block";
+    document.getElementById("s" + i).style.display = "none";
+    document.getElementById("l" + i).style.display = "block";
     return false;
 }
 
 function doc_less(i)
 {
-    document.getElementById('l' + i).style.display = "none";
-    document.getElementById('s' + i).style.display = "block";
+    document.getElementById("l" + i).style.display = "none";
+    document.getElementById("s" + i).style.display = "block";
     return false;
 }
