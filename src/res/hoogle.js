@@ -5,12 +5,14 @@ function on_load()
 
     if (document.location.hash != "")
         document.location.hash = document.location.hash;
+
+    if (window.external.AddSearchProvider)
+        document.getElementById('search').style.display = "";
 }
 
-// add hoogle as a quicksearch tag, available on Firefox/Mozilla
-function addHoogle()
+function add_search()
 {
-    addEngine('hoogle','png','Programming','4691');
+    window.external.AddSearchProvider('res/search.xml');
 }
 
 function addEngine(name,ext,cat,pid)

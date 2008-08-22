@@ -6,11 +6,12 @@ import Web.Text
 header query =
     ["<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
     ,"<html>"
-    ,"  <head>"
+    ,"  <head profile='http://a9.com/-/spec/opensearch/1.1/'>"
     ,"     <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1' />"
     ,"     <title>" ++ (query +? " - ") ++ "Hoogle</title>"
     ,"     <link type='text/css' rel='stylesheet' href='res/hoogle.css' />"
     ,"     <link type='image/png' rel='icon' href='res/favicon.png' />"
+    ,"     <link type='application/opensearchdescription+xml' rel='search' href='res/search.xml' title='Hoogle' />"
     ,"     <script type='text/javascript' src='res/hoogle.js'> </script>"
     ,"  </head>"
     ,"  <body onload='on_load()'>"
@@ -19,6 +20,7 @@ header query =
 
 links =
     ["<div id='links'>"
+    ,"  <span id='search' style='display:none;'><a href='javascript:add_search()'>Search plugin</a> |</span>"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>Manual</a> |"
     ,"  <a href='http://www.haskell.org/'>haskell.org</a>"
     ,"</div>"
