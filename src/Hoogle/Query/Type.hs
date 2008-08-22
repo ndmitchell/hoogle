@@ -12,21 +12,20 @@ import Hoogle.TypeSig.All
 usefulQuery query = not (null (names query)) || isJust (typeSig query)
 
 
-defaultQuery = Query [] [] Nothing [] []
+defaultQuery = Query [] [] Nothing []
 
 data Query = Query {
         scope :: [Scope],
         names :: [String],
         typeSig :: Maybe TypeSig,
-        items :: [ItemType],
         flags :: [Flag]
     }
     deriving Show
 
 
 instance Eq Query where
-    (Query a1 b1 c1 d1 e1) == (Query a2 b2 c2 d2 e2) =
-        and [a1 `setEq` a2, b1 `setEq` b2, c1 == c2, d1 `setEq` d2, e1 `setEq` e2]
+    (Query a1 b1 c1 d1) == (Query a2 b2 c2 d2) =
+        and [a1 `setEq` a2, b1 `setEq` b2, c1 == c2, d1 `setEq` d2]
 
 
 data Scope = PlusPackage  String
@@ -37,20 +36,6 @@ data Scope = PlusPackage  String
 
 isPlusModule  (PlusModule  _) = True; isPlusModule  _ = False
 isMinusModule (MinusModule _) = True; isMinusModule _ = False
-
-
-data ItemType = ItemModule
-              | ItemType
-              | ItemFunction
-              | ItemClass
-              deriving (Eq, Show, Read)
-
-itemTypes =
-    [(["module"], ItemModule)
-    ,(["type","data"], ItemType)
-    ,(["function","ctor","fun"], ItemFunction)
-    ,(["class","instance"], ItemClass)
-    ]
 
 
 -- primarily for consoles, but some work on the web search

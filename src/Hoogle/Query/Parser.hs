@@ -22,10 +22,10 @@ parseCmdLineQuery args = parseQuery $ unwords $ map f args
             | otherwise = x
 
 
-blank = Query [] [] Nothing [] []
+blank = Query [] [] Nothing []
 
-merge (Query a1 b1 c1 d1 e1) (Query a2 b2 c2 d2 e2) =
-        Query (a1++a2) (b1++b2) (c1 `mplus` c2) (d1++d2) (e1++e2)
+merge (Query a1 b1 c1 d1) (Query a2 b2 c2 d2) =
+        Query (a1++a2) (b1++b2) (c1 `mplus` c2) (d1++d2)
 
 merges xs = foldr merge blank xs
 
