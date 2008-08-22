@@ -50,7 +50,7 @@ showTagHTMLWith f x = g x
         g (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
         g (TagHyperlink "" x) = g (TagHyperlink url x)
             where str = showTagText x
-                  url = if "http:" `isPrefixOf` str then str else "?q=" +% str
+                  url = if "http:" `isPrefixOf` str then str else "?hoogle=" +% str
         g (TagHyperlink url x) = "<a href=\"" +& url ++ "\">" ++ showTagHTML x ++ "</a>"
         g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
 

@@ -72,4 +72,4 @@ welcome =
     ,"</p>"
     ]
     where
-        search x = "<a href='?q=" +% x ++ "'>" +& x ++ "</a><br/>"
+        search x = "<a href='?hoogle=" +% x ++ "'>" +& x ++ "</a><br/>"

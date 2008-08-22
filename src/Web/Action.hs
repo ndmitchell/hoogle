@@ -117,14 +117,14 @@ runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
         (now,post) = splitAt count res2
 
         moreResults = "<tr><td></td><td><a href=\"" +& urlMore ++ "\" class='more'>Show more results</a></td></tr>"
-        urlMore = "?q=" +% queryText cq ++ "&start=" ++ show (start+count+1) ++ "#more"
+        urlMore = "?hoogle=" +% queryText cq ++ "&start=" ++ show (start+count+1) ++ "#more"
 
         qstr = unwords $ ["<b>" +& n ++ "</b>" | n <- names q] ++
                ["::" | names q /= [] && isJust (typeSig q)] ++
                [showTagHTML (renderEntryText view $ renderTypeSig t) | Just t <- [typeSig q]]
         view = [ArgPosNum i i | i <- [0..10]]
 
-        qurl (TagHyperlink url x) | "query:" `isPrefixOf` url = TagHyperlink ("?q=" +% drop 6 url) x
+        qurl (TagHyperlink url x) | "query:" `isPrefixOf` url = TagHyperlink ("?hoogle=" +% drop 6 url) x
         qurl x = x
 
 
