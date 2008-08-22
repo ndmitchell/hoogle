@@ -25,6 +25,7 @@ escapeHTML = concatMap f
         f '\"' = "&quot;"
         f '<' = "&lt;"
         f '>' = "&gt;"
+        f '&' = "&amp;"
         f '\n' = "<br/>"
         f x = [x]
 
