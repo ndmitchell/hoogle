@@ -7,7 +7,7 @@ function on_load()
         document.location.hash = document.location.hash;
 
     if (window.external.AddSearchProvider)
-        document.getElementById('search').style.display = "";
+        document.getElementById('plugin').style.display = "";
 }
 
 function add_search()

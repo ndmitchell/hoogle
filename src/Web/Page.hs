@@ -20,7 +20,7 @@ header query =
 
 links =
     ["<div id='links'>"
-    ,"  <span id='search' style='display:none;'><a href='javascript:add_search()'>Search plugin</a> |</span>"
+    ,"  <span id='plugin' style='display:none;'><a href='javascript:add_search()'>Search plugin</a> |</span>"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>Manual</a> |"
     ,"  <a href='http://www.haskell.org/'>haskell.org</a>"
     ,"</div>"
