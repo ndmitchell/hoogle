@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="main" title="Hoogle" width="300" height="300" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <caption label="Welcome to Hoogle"/>
+</window>
