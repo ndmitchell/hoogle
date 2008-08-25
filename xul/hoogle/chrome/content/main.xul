@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<window id="main" title="Hoogle" width="600" height="500" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<window onload="on_load()" id="main" title="Hoogle Local" width="600" height="500" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <script src="main.js"/>
-    <button label="Press Me" oncommand="test(); return false;"/>
-    <iframe src="http://google.com/" style="background-color:white; height:500px;" />
+    <iframe src="file:///c:/neil/hoogle/src/temp.htm" flex="1" id="iframe" style="background-color:white;" />
 </window>
