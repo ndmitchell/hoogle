@@ -9,7 +9,7 @@
     </Description>
     <Tags>haskell</Tags>
     <Url type="text/html" template="http://haskell.org/hoogle/?hoogle={searchTerms}"/>
-    <Url type="application/x-suggestions+json" template="http://haskell.org/hoogle/?hoogle={searchTerms}&mode=suggest"/>
+    <Url type="application/x-suggestions+json" template="http://haskell.org/hoogle/?hoogle={searchTerms}&amp;mode=suggest"/>
 
     <Image height="16" width="16" type="image/png">favicon.png</Image>
     <Image height="64" width="64" type="image/png">favicon64.png</Image>
