@@ -6,6 +6,7 @@ import Util
 hoo x = "../../database/" ++ map toLower x ++ ".hoo"
 hooFlag flag x = "--" ++ flag ++ "=" ++ hoo x
 
+hoogle = normalise "../../dist/build/hoogle/hoogle"
 
 link :: [String] -> IO ()
 link xs = do
@@ -13,12 +14,12 @@ link xs = do
     deps <- mapM (\x -> do d <- dependencies x; return (x, ys `intersect` d)) ys
     mapM_ (\d -> convert d (fromJust $ lookup d deps)) $ order deps
     when (length xs > 1) $
-        system_ $ unwords $ "hoogle" : hooFlag "output" "default" : [hooFlag "combine" x | x <- xs]
+        system_ $ unwords $ hoogle : hooFlag "output" "default" : [hooFlag "combine" x | x <- xs]
 
 
 convert :: String -> [String] -> IO ()
 convert hoo dep = system_ $ unwords $
-    ["hoogle","/convert=result/" ++ hoo, hooFlag "output" hoo] ++
+    [hoogle,"/convert=result/" ++ hoo, hooFlag "output" hoo] ++
     [hooFlag "data" d | d <- dep]
 
 
