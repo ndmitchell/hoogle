@@ -150,9 +150,9 @@ renderRes i r =
         modname = td "mod" $ maybe "" (href urlMod . showModule) modu
         pkgname = td "pkg" $ href urlPkg $ packageName $ fromLink $ entryPackage ent
 
-        docs = "<div id='d" ++ show i ++ "' class='shut'>" ++
-                   "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++ urlEnt ++ "'></a>" ++
-                   (showTagHTML $ renderHaddock $ entryDocs ent) ++
+        docs = ("<div id='d" ++ show i ++ "' class='shut'>" ++
+                   "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++ urlEnt ++ "'></a>") +?
+                   (showTagHTML $ renderHaddock $ entryDocs ent) +?
                "</div>"
 
         urlPkg = entryPackageURL ent
