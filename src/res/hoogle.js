@@ -12,7 +12,7 @@ function on_load()
 
 function add_search()
 {
-    window.external.AddSearchProvider("res/search.xml");
+    window.external.AddSearchProvider("http://haskell.org/hoogle/res/search.xml");
 }
 
 function doc_more(i)
