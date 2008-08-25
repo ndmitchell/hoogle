@@ -37,6 +37,7 @@ actionWeb q = do
     putStrLn res
     when (Debug `elem` queryFlags q) $
         writeFile "temp.htm" res
+    sequence_ [writeFile x res | Output x <- queryFlags q]
 
 
 logMessage :: CmdQuery -> IO ()
