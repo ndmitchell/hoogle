@@ -151,7 +151,7 @@ startPos xs x = f 0 (arraySize xs - 1)
 
         g low high | low > high = (Nothing, low)
         g low high = if k == x then (Just low, low+1)
-                     else if k `isPrefixOf` x then (Nothing, low)
+                     else if x `isPrefixOf` k then (Nothing, low)
                      else g (low+1) high
             where k = key $ xs ! low
 
