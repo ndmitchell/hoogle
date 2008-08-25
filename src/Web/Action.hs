@@ -141,7 +141,7 @@ insertMore (x:xs) = f x : xs
 
 renderRes :: Int -> Result -> [String]
 renderRes i r =
-        [tr $ modname ++ td "" (href urlEnt $ showTagHTMLWith url text)
+        [tr $ modname ++ td "ans" (href urlEnt $ showTagHTMLWith url text)
         ,tr $ pkgname ++ td "doc" docs]
     where
         ent = fromLink $ resultEntry r

@@ -72,9 +72,10 @@ h1 {
     padding: 5px;
     margin-top: 0px;
     font-weight: normal;
-    /* nicer colors, but do not work for type search coloring */
+    /* background for the heading must be gray,
+       to make type searching visisble */
     background-color: #e4e4e4;
-    border-top: 1px solid #999; /* #36c; */
+    border-top: 1px solid #999;
 }
 
 p, table {
@@ -84,49 +85,52 @@ p, table {
 
 
 /********************************************************************
-*  RESULTS
+*  SPECIAL PAGES
 */
 
 #error {
     border-bottom: 2px dotted red;
 }
 
+#example {
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 3px;
+    width: 300px;
+    border: 2px solid #cc0;
+    background-color: #ffc;
+    font-size: 10pt;
+    text-align: left;
+}
+
+#example a {
+    margin-left: 20px;
+}
+
+
+/********************************************************************
+*  RESULTS
+*/
+
 td {
     padding-bottom: 0px;
     padding-top: 0px;
 }
 
-.mod {
-    vertical-align: bottom;
-    text-align: right;
-    font-size: 8pt;
-    color: #080;
+a.dull, a.dull:hover {
+    background-color: white;
+    text-decoration: none;
 }
 
-.a {
+/** ANSWERS **/
+
+.ans .a {
     color: blue;
 }
 
-a.dull:hover, a.dull, a.dull:visited {
-    color: inherit;
-    text-decoration: none;
-    background-color: inherit;
-}
-
-.pkg {
-    text-align: right;
-}
-
-.pkg, .doc {
-    vertical-align: top;
-    font-size: 8pt;
-    color: #888;
-    padding-bottom: 10px;
-}
-
-.doc a {
-    color: inherit;
-    padding-bottom: 0px;
+.ans a.dull {
+    color: black
 }
 
 .c0{background-color: #fcc;}
@@ -144,6 +148,43 @@ a.dull:hover, a.dull, a.dull:visited {
     color: blue;
 }
 
+/** MODULES **/
+
+.mod {
+    vertical-align: bottom;
+    text-align: right;
+    font-size: 8pt;
+}
+.mod, .mod a {
+    color: #080;
+    text-decoration: none;
+    background-color: white;
+}
+
+/** PACKAGES **/
+
+.pkg {
+    text-align: right;
+    vertical-align: top;
+    font-size: 8pt;
+    padding-bottom: 10px;
+}
+.pkg, .pkg a {
+    color: #888;
+    text-decoration: none;
+    background-color: white;
+}
+
+/** DOCS **/
+
+.doc {
+    vertical-align: top;
+    font-size: 8pt;
+    padding-bottom: 10px;
+}
+.doc, .doc a {
+    color: #888;
+}
 
 .docs {
     margin: 2px;
@@ -168,18 +209,3 @@ a.dull:hover, a.dull, a.dull:visited {
 
 
 
-#example {
-    margin: auto;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    padding: 3px;
-    width: 300px;
-    border: 2px solid #cc0;
-    background-color: #ffc;
-    font-size: 10pt;
-    text-align: left;
-}
-
-#example a {
-    margin-left: 20px;
-}
