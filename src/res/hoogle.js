@@ -19,4 +19,5 @@ function docs(i)
 {
     var e = document.getElementById("d" + i);
     e.className = (e.className == "shut" ? "open" : "shut");
+    return false;
 }

@@ -151,7 +151,7 @@ renderRes i r =
         pkgname = td "pkg" $ href urlPkg $ packageName $ fromLink $ entryPackage ent
 
         docs = "<div id='d" ++ show i ++ "' class='shut'>" ++
-                   "<a class='docs' href='javascript:docs(" ++ show i ++ ")'></a>" ++
+                   "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++ urlEnt ++ "'></a>" ++
                    (showTagHTML $ renderHaddock $ entryDocs ent) ++
                "</div>"
 
