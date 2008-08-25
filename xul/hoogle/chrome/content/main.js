@@ -1,20 +1,12 @@
 
 function on_load()
 {
-    var iframe = document.getElementById("iframe");
-    iframe.contentDocument.body.setAttribute("id","xul");
-
-    links = iframe.contentDocument.getElementsByTagName("a");
-    for (var i in links)
-    {
-        if (!links[i].onclick)
-            links[i].onclick = trapclick;
-    }
+    runHoogle("");
 }
 
 function trapclick(e)
 {
-    var url = e.currentTarget;
+    var url = e.currentTarget.toString();
     var uri = Components
         .classes["@mozilla.org/network/simple-uri;1"]
         .getService(Components.interfaces.nsIURI);
@@ -28,8 +20,12 @@ function trapclick(e)
     }
     else
     {
-        runHoogle();
-        alert("handle links: " + url);
+        var s = url.substr(url.indexOf("="));
+        alert(s);
+        runHoogle(uri.query);
+        if (uri.ref) {
+            alert("Handle ref: " + uri.ref);
+        }
     }
 
     return false;
@@ -44,9 +40,13 @@ function debug(x)
     alert(s);
 }
 
+function beep()
+{
+    alert("beep");
+}
 
 
-function runHoogle()
+function runHoogle(cmd)
 {
     var file = Components
         .classes["@mozilla.org/file/local;1"]
@@ -58,7 +58,37 @@ function runHoogle()
         .createInstance(Components.interfaces.nsIProcess);
     proc.init(file);
 
-    var argv = ["/web","/debug","hoogle_local"];
+    var argv = ["/web","/output=C:/Neil/hoogle/src/temp.htm","filter"];
     proc.run(true, argv, argv.length);
-    alert("run");
+
+
+    var iframe = document.getElementById("iframe");
+    iframe.contentDocument.body.className = "";
+    iframe.webNavigation.reload(0);
+    
+    runHoogle_cont();
+}
+
+function runHoogle_cont()
+{
+    var iframe = document.getElementById("iframe");
+    if (iframe.contentDocument.body.className != "loaded")
+    {
+        window.setTimeout(runHoogle_cont, 100);
+        return;
+    }
+
+    iframe.contentDocument.body.setAttribute("id","xul");
+    
+    var base = iframe.contentDocument.createElement("base");
+    base.setAttribute("href","file:///c:/neil/hoogle/src/");
+    var head = iframe.contentDocument.documentElement.firstChild;
+    head.insertBefore(base, head.firstChild);
+    
+    links = iframe.contentDocument.getElementsByTagName("a");
+    for (var i in links)
+    {
+        if (!links[i].onclick)
+            links[i].onclick = trapclick;
+    }
 }
