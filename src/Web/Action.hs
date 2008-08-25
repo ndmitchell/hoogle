@@ -44,7 +44,7 @@ logMessage :: CmdQuery -> IO ()
 logMessage q = do
     time <- getCurrentTime
     cgi <- liftM (fromMaybe []) $ cgiArgs
-    appendFile "res/log.txt" $ (++ "\n") $ unwords $
+    appendFile "log.txt" $ (++ "\n") $ unwords $
         [showGregorian (utctDay time)
         ,show (queryText q)] ++
         ["?" ++ a ++ "=" ++ c ++ b ++ c | (a,b) <- cgi, let c = ['\"' | any isSpace b]]
