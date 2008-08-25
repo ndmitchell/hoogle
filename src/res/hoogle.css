@@ -125,7 +125,7 @@ a.dull:hover, a.dull, a.dull:visited {
 }
 
 .doc a {
-    color: #888;
+    color: inherit;
     padding-bottom: 0px;
 }
 
@@ -144,15 +144,29 @@ a.dull:hover, a.dull, a.dull:visited {
     color: blue;
 }
 
-.doc .more, .doc .less {
-    padding-left: 14px;
-    background-image: url(more_gray.png);
+
+.docs {
+    margin: 2px;
+    margin-right: 4px;
+    width: 10px;
+    height: 10px;
+    display: block;
+    float: left;
     background-repeat: no-repeat;
-    background-position: center left;
+    background-position: center center;
 }
-.doc .less {
-    background-image: url(less_gray.png);
+
+.shut .docs {background-image: url(more_gray.png);}
+.open .docs {background-image: url(less_gray.png);}
+
+.shut {
+    max-height: 1.5em;
+    overflow: hidden;
+    color: #888;
 }
+.shut br {display: none;}
+
+
 
 #example {
     margin: auto;

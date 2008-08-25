@@ -15,16 +15,8 @@ function add_search()
     window.external.AddSearchProvider("http://haskell.org/hoogle/res/search.xml");
 }
 
-function doc_more(i)
+function docs(i)
 {
-    document.getElementById("s" + i).style.display = "none";
-    document.getElementById("l" + i).style.display = "block";
-    return false;
-}
-
-function doc_less(i)
-{
-    document.getElementById("l" + i).style.display = "none";
-    document.getElementById("s" + i).style.display = "block";
-    return false;
+    var e = document.getElementById("d" + i);
+    e.className = (e.className == "shut" ? "open" : "shut");
 }

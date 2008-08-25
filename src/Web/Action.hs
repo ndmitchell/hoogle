@@ -150,20 +150,10 @@ renderRes i r =
         modname = td "mod" $ maybe "" (href urlMod . showModule) modu
         pkgname = td "pkg" $ href urlPkg $ packageName $ fromLink $ entryPackage ent
 
-        docs = if length docLong == 0 then "" else
-               if docShort == docLong then docShort else
-               "<div id='s" ++ show i ++ "'>" ++
-                    "<a class='more' href='" ++ urlEnt ++ "' onclick='return doc_more(" ++ show i ++ ")'> </a>" ++
-                    docShort ++
-               "</div>" ++
-               "<div style='display:none' id='l" ++ show i ++ "'>" ++
-                    "<a class='less' onclick='return doc_less(" ++ show i ++ ")'> </a>" ++
-                    docLong ++
+        docs = "<div id='d" ++ show i ++ "' class='shut'>" ++
+                   "<a class='docs' href='javascript:docs(" ++ show i ++ ")'></a>" ++
+                   (showTagHTML $ renderHaddock $ entryDocs ent) ++
                "</div>"
-
-        doc = renderHaddock $ entryDocs $ ent
-        docShort = showTagHTML $ trimTags 100 $ transform (onStr $ map (rep '\n' ' ')) doc
-        docLong = showTagHTML doc
 
         urlPkg = entryPackageURL ent
         urlMod = entryModuleURL ent
