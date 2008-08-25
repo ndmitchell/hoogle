@@ -1,3 +1,4 @@
+
 // registered with the body onload event
 function on_load()
 {
@@ -8,6 +9,8 @@ function on_load()
 
     if (window.external && ("AddSearchProvider" in window.external))
         document.getElementById("plugin").style.display = "";
+
+    document.body.className = "loaded";
 }
 
 function add_search()
