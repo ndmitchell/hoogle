@@ -6,7 +6,7 @@ function on_load()
     if (document.location.hash != "")
         document.location.hash = document.location.hash;
 
-    if (window.external.AddSearchProvider)
+    if (window.external && ("AddSearchProvider" in window.external))
         document.getElementById("plugin").style.display = "";
 }
 
