@@ -29,12 +29,13 @@ main = do
 
 sdist = do
     sanityCheck
-    system_ "cabal install --global"
+    system_ "cabal build"
     x <- getCurrentDirectory
     bracket_
         (setCurrentDirectory "data/generate")
         (setCurrentDirectory x)
         (system_ "run.bat")
+    sanityCheck
     system_ "cabal install --global"
     system_ "cabal sdist"
 
