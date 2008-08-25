@@ -32,13 +32,19 @@ didn't merge common strings and consumed about 10x the disk space.
 
 
 data NameSearch = NameSearch (Array NameItem) [(Char, IntList)]
-                  deriving Show
 
 data NameItem = NameItem {key :: String
                          ,rest :: Defer [(String, [Link Entry])]}
 
+
+instance Show NameSearch where
+    show (NameSearch a b) =
+            concat (zipWith (\a b -> show a ++ " " ++ show b) [0..] (elems a)) ++
+            unlines [c : " = " ++ show d | (c,d) <- b]
+
 instance Show NameItem where
-    show (NameItem a b) = show a ++ " " ++ show (fromDefer b)
+    show (NameItem a b) = unlines $ a : map f (fromDefer b)
+        where f (a,b) = unwords $ " " : a : ['#' : show (linkKey x) | x <- b]
 
 instance BinaryDefer NameSearch where
     put (NameSearch a b) = put2 a b
