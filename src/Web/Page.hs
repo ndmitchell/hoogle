@@ -27,7 +27,7 @@ links =
     ]
 
 search query =
-    ["<form action='?' method='get'>"
+    ["<form action='.' method='get'>"
     ,"  <div id='search'>"
     ,"    <a id='logo' href='http://haskell.org/hoogle/'>" ++
            "<img src='res/hoogle.png' alt='Hoogle' />" ++
