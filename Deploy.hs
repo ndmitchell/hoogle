@@ -9,6 +9,7 @@ import Control.Exception
 import Control.Monad
 import Data.Char
 import Data.List
+import Data.Maybe
 import System.Cmd
 import System.Directory
 import System.Environment
@@ -16,32 +17,42 @@ import System.Exit
 import System.FilePath
 
 
+cmds = let (*) = (,) in
+       ["sdist" * sdist
+       ,"sanity" * sanity
+       ,"linecount" * linecount
+       ,"web" * web
+       ]
+
+
 main = do
     xs <- getArgs
-    case xs of
-        ["sdist"] -> sdist
-        ["linecount"] -> wc
-        _ -> error $ "Unknown arguments, expected one of: sdist linecount"
+    case flip lookup cmds =<< listToMaybe xs of
+        Nothing -> error $ "Expected one of: " ++ unwords (map fst cmds)
+        Just act -> act
 
 
 ---------------------------------------------------------------------
 -- SDIST
 
 sdist = do
-    sanityCheck
-    system_ "cabal build"
-    x <- getCurrentDirectory
-    bracket_
-        (setCurrentDirectory "data/generate")
-        (setCurrentDirectory x)
-        (system_ "run.bat")
-    sanityCheck
+    sanity
+    databases
+    sanity
     system_ "cabal install --global"
     system_ "cabal sdist"
 
 
+databases = do
+    system_ "cabal build"
+    withDirectory "data/generate" $
+        system_ "run.bat"
 
-sanityCheck = do
+
+---------------------------------------------------------------------
+-- SANITY CHECK
+
+sanity = do
     src <- liftM (map (dropWhile isSpace) . lines) $ readFile "hoogle.cabal"
     let grab x = takeWhile (/= "") $ drop 1 $ dropWhile (/= x) src
 
@@ -71,9 +82,25 @@ check left right = do
 
 
 ---------------------------------------------------------------------
+-- SDIST
+
+web = do
+    createDirectoryIfMissing True "dist/web/res"
+    databases
+    system_ "ssh ndm@venice.cs.york.ac.uk -m misc/build-york.sh"
+    system_ "scp ndm@venice.cs.york.ac.uk:/tmp/ndm/hoogle/dist/build/hoogle/hoogle dist/web/index.cgi"
+    copyFiles "database" "dist/web/res" ["hoo"]
+    copyFiles "src/res" "dist/web/res" ["js","css","png","xml"]
+    withDirectory "dist/web" $ system_ "tar -cf ../web.tar *"
+    system_ "gzip dist/web.tar --force"
+    system_ "scp -r dist/web.tar.gz ndm@haskell.org:/haskell/hoogle/release.tar.gz"
+    system_ "ssh ndm@haskell.org -m misc/build-haskell.sh"
+
+
+---------------------------------------------------------------------
 -- LINECOUNT
 
-wc = do
+linecount = do
     src <- liftM (map (dropWhile isSpace) . lines) $ readFile "hoogle.cabal"
     let files = sort $ (:) "Main" $ takeWhile (/= "") $ drop 1 $ dropWhile (/= "other-modules:") src
         lenfiles = maximum $ map length files
@@ -102,3 +129,16 @@ system_ x = do
     r <- system x
     when (r /= ExitSuccess) $ error "System command failed"
 
+
+copyFiles from to exts = do
+    xs <- getDirectoryContents from
+    sequence [copyFile (from </> x) (to </> x) | x <- xs
+             ,takeExtension x `elem` map ('.':) exts]
+
+
+withDirectory dir act = do
+    x <- getCurrentDirectory
+    bracket_
+        (setCurrentDirectory dir)
+        (setCurrentDirectory x)
+        act
