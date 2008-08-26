@@ -60,6 +60,7 @@ function runHoogle(cmd)
     var file = Components
         .classes["@mozilla.org/file/local;1"]
         .createInstance(Components.interfaces.nsILocalFile);
+    // TODO: Hard coded path
     file.initWithPath("C:\\Program Files\\Haskell\\bin\\hoogle.exe");
 
     var proc = Components
@@ -67,6 +68,7 @@ function runHoogle(cmd)
         .createInstance(Components.interfaces.nsIProcess);
     proc.init(file);
 
+    // TODO: Hard coded path
     var argv = ["/web","/output=C:/Neil/hoogle/src/temp.htm",cmd];
     proc.run(true, argv, argv.length);
 
@@ -93,6 +95,7 @@ function runHoogle_cont()
 
     // insert a base element    
     var base = iframe.contentDocument.createElement("base");
+    // TODO: Hard coded path
     base.setAttribute("href","file:///c:/neil/hoogle/src/");
     var head = iframe.contentDocument.documentElement.firstChild;
     head.insertBefore(base, head.firstChild);
