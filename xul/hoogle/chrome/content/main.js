@@ -20,16 +20,24 @@ function trapclick(e)
     }
     else
     {
-        var s = url.substr(url.indexOf("="));
-        alert(s);
-        runHoogle(uri.query);
-        if (uri.ref) {
-            alert("Handle ref: " + uri.ref);
-        }
+        var s = url.substr(url.indexOf("=")+1);
+        if (url.indexOf("#more") == -1)
+            runHoogle(s);
+        else
+            alert("Hoogle Local does not currently support 'more'");
     }
 
     return false;
 }
+
+function trapsubmit(e)
+{
+    var iframe = document.getElementById("iframe");
+    var q = iframe.contentDocument.getElementById("hoogle").value;
+    runHoogle(q);
+    return false;
+}
+
 
 
 function debug(x)
@@ -58,7 +66,7 @@ function runHoogle(cmd)
         .createInstance(Components.interfaces.nsIProcess);
     proc.init(file);
 
-    var argv = ["/web","/output=C:/Neil/hoogle/src/temp.htm","filter"];
+    var argv = ["/web","/output=C:/Neil/hoogle/src/temp.htm",cmd];
     proc.run(true, argv, argv.length);
 
 
@@ -71,6 +79,7 @@ function runHoogle(cmd)
 
 function runHoogle_cont()
 {
+    // Check the document has loaded
     var iframe = document.getElementById("iframe");
     if (iframe.contentDocument.body.className != "loaded")
     {
@@ -78,17 +87,25 @@ function runHoogle_cont()
         return;
     }
 
+    // change the document id, triggers various style changes
     iframe.contentDocument.body.setAttribute("id","xul");
-    
+
+    // insert a base element    
     var base = iframe.contentDocument.createElement("base");
     base.setAttribute("href","file:///c:/neil/hoogle/src/");
     var head = iframe.contentDocument.documentElement.firstChild;
     head.insertBefore(base, head.firstChild);
-    
+
+    // repoint all the <a> links    
     links = iframe.contentDocument.getElementsByTagName("a");
     for (var i in links)
     {
         if (!links[i].onclick)
             links[i].onclick = trapclick;
     }
+    
+    // repoint the submit button
+    forms = iframe.contentDocument.getElementsByTagName("form");
+    for (var i in forms)
+        forms[i].onsubmit = trapsubmit;
 }
