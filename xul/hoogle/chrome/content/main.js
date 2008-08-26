@@ -21,7 +21,8 @@ function trapclick(e)
     else
     {
         var s = url.substr(url.indexOf("=")+1);
-        if (url.indexOf("#more") == -1)
+        s = decodeURIComponent(s.replace(/\+/g," "));
+        if (s.indexOf("#more") == -1)
             runHoogle(s);
         else
             alert("Hoogle Local does not currently support 'more'");
