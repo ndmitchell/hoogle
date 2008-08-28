@@ -97,6 +97,7 @@ function runHoogle_cont()
   try {
     // Check the document has loaded
     var iframe = document.getElementById("iframe");
+    // TODO: Could be done better with a nsIWebProgress on the iframe's <browser>
     if (iframe.contentDocument.body.className != "loaded")
     {
         window.setTimeout(runHoogle_cont, 100);
