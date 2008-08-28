@@ -106,7 +106,7 @@ function runHoogle_cont()
     // change the document id, triggers various style changes
     iframe.contentDocument.body.setAttribute("id","xul");
 
-    // insert a base element    
+    // insert a base element
     var base = iframe.contentDocument.createElement("base");
     // TODO: Hard coded path
     base.setAttribute("href","file:///c:/neil/hoogle/src/");
