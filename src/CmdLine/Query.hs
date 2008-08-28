@@ -55,6 +55,8 @@ cmdQueryCGI xs = do
         str = unwords $ map snd q
 
 
+-- TODO: Checking for web and debug specifically are both hacks
+--       Should parse any arguments it can separately
 cmdQueryArgs :: [String] -> IO CmdQuery
 cmdQueryArgs xs = case parseCmdLineQuery xs of
     Left err -> return $ CmdQuery (hasFlag ["w","web"]) orig (Left err) [Debug | hasFlag ["debug"]] []
