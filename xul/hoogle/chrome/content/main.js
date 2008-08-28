@@ -29,7 +29,10 @@ function trapclick(e)
         if (url.indexOf("#more") == -1)
             runHoogle(s);
         else
+        {
+            // TODO: Should support #more links
             alert("Hoogle Local does not currently support 'more'");
+        }
     }
 
     return false;
