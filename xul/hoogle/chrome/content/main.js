@@ -64,6 +64,7 @@ function beep()
 
 function runHoogle(cmd)
 {
+  try {
     lastCmd = cmd;
 
     var file = Components
@@ -87,10 +88,13 @@ function runHoogle(cmd)
     iframe.webNavigation.reload(0);
     
     runHoogle_cont();
+    
+  } catch(e) {alert("Error in runHoogle: " + e);}
 }
 
 function runHoogle_cont()
 {
+  try {
     // Check the document has loaded
     var iframe = document.getElementById("iframe");
     if (iframe.contentDocument.body.className != "loaded")
@@ -124,4 +128,6 @@ function runHoogle_cont()
 
     // fix the text element
     iframe.contentDocument.getElementById("hoogle").value = lastCmd;
+
+  } catch(e) {alert("Error in runHoogle_cont: " + e);}
 }
