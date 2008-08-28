@@ -1,4 +1,8 @@
 
+// The last command that was run as a Hoogle query
+var lastCmd;
+
+
 function on_load()
 {
     runHoogle("");
@@ -57,6 +61,8 @@ function beep()
 
 function runHoogle(cmd)
 {
+    lastCmd = cmd;
+
     var file = Components
         .classes["@mozilla.org/file/local;1"]
         .createInstance(Components.interfaces.nsILocalFile);
@@ -112,4 +118,7 @@ function runHoogle_cont()
     forms = iframe.contentDocument.getElementsByTagName("form");
     for (var i in forms)
         forms[i].onsubmit = trapsubmit;
+
+    // fix the text element
+    iframe.contentDocument.getElementById("hoogle").value = lastCmd;
 }
