@@ -33,18 +33,11 @@ actionWeb q = do
         else do
             putStr "Content-type: text/html\n\n"
             (skipped,dbs) <- loadDataBases q
-            return $ unlines $ header (escapeHTML $ queryText $ queryPretty q) ++ runQuery dbs q ++ footer
+            return $ unlines $ header (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
     putStrLn res
     when (Debug `elem` queryFlags q) $
         writeFile "temp.htm" res
     sequence_ [writeFile x res | Output x <- queryFlags q]
-
-
--- TODO: Hacky, requires a better parser
--- Strip out Web, Debug and Output from queryText
-queryPretty :: CmdQuery -> CmdQuery
-queryPretty q = q{queryText = unwords $ filter f $ words $ queryText q}
-    where f x = not $ any (`isPrefixOf` x) ["/debug","/output","/web"]
 
 
 logMessage :: CmdQuery -> IO ()
