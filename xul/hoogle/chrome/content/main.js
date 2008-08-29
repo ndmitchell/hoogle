@@ -5,9 +5,15 @@ var hoogle = getHoogle();
 
 function on_load()
 {
-    if (!hoogle)
-        alert("Failed to find the Hoogle binary, not much is going to work :-(");
-    runHoogle("");
+    if (hoogle)
+        runHoogle("");
+    else
+    {
+        alert("Hoogle Local cannot find the Hoogle executable\n\n" +
+              "Please ensure Hoogle is installed on your system, and is accessible " +
+              "from the PATH environment variable");
+        window.close();
+    }
 }
 
 function trapclick(e)
@@ -155,7 +161,7 @@ function getHoogle()
     for (var i in paths)
     {
         file.initWithPath(paths[i]);
-        file.append("hoogle" + exeExt);
+        file.append("hodogle" + exeExt);
         if (file.exists())
             return file;
     }
