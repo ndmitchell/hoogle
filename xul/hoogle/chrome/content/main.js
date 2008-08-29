@@ -161,7 +161,7 @@ function getHoogle()
     for (var i in paths)
     {
         file.initWithPath(paths[i]);
-        file.append("hodogle" + exeExt);
+        file.append("hoogle" + exeExt);
         if (file.exists())
             return file;
     }
