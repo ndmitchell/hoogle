@@ -1,10 +1,12 @@
 
 // The last command that was run as a Hoogle query
 var lastCmd;
-
+var hoogle = getHoogle();
 
 function on_load()
 {
+    if (!hoogle)
+        alert("Failed to find the Hoogle binary, not much is going to work :-(");
     runHoogle("");
 }
 
@@ -67,16 +69,10 @@ function runHoogle(cmd)
   try {
     lastCmd = cmd;
 
-    var file = Components
-        .classes["@mozilla.org/file/local;1"]
-        .createInstance(Components.interfaces.nsILocalFile);
-    // TODO: Hard coded path
-    file.initWithPath("C:\\Program Files\\Haskell\\bin\\hoogle.exe");
-
     var proc = Components
         .classes["@mozilla.org/process/util;1"]
         .createInstance(Components.interfaces.nsIProcess);
-    proc.init(file);
+    proc.init(hoogle);
 
     // TODO: Hard coded path
     var argv = ["/web","/output=C:/Neil/hoogle/src/temp.htm",cmd];
@@ -131,4 +127,39 @@ function runHoogle_cont()
     iframe.contentDocument.getElementById("hoogle").value = lastCmd;
 
   } catch(e) {alert("Error in runHoogle_cont: " + e);}
+}
+
+
+// Find the Hoogle binary on the PATH
+// getHoogle :: nsILocalFile
+function getHoogle()
+{
+  try {
+    var windows = Components
+        .classes["@mozilla.org/xre/app-info;1"]
+        .getService(Components.interfaces.nsIXULRuntime)
+        .OS == "WINNT";
+    var pathSep = windows ? ";" : ":";
+    var exeExt = windows ? ".exe" : "";
+
+    var path = Components
+        .classes["@mozilla.org/process/environment;1"]
+        .createInstance(Components.interfaces.nsIEnvironment)
+        .get("PATH");
+    var paths = path.split(pathSep);
+
+    var file = Components
+        .classes["@mozilla.org/file/local;1"]
+        .createInstance(Components.interfaces.nsILocalFile);
+
+    for (var i in paths)
+    {
+        file.initWithPath(paths[i]);
+        file.append("hoogle" + exeExt);
+        if (file.exists())
+            return file;
+    }
+    return undefined;
+
+  } catch(e) {alert("Error in getHoogle: " + e);}
 }
