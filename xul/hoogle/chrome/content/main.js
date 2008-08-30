@@ -5,13 +5,22 @@ var lastCmd;
 var hoogle = getHoogle();
 var xuldir = getXulDir();
 var iframesrc = getIframeSrc();
+var resdir = getResDir();
 
 function getIframeSrc()
 {
-    var src = xuldir.parent.parent;
-    src.append("src");
-    src.append("temp.htm");
-    return src.path;
+    var x = xuldir.parent.parent;
+    x.append("src");
+    x.append("temp.htm");
+    return x.path;
+}
+
+function getResDir()
+{
+    var x = xuldir.parent.parent;
+    x.append("src");
+    x.append("res");
+    return x.path;
 }
 
 function on_load()
@@ -99,12 +108,12 @@ function runHoogle(cmd)
     var argv = ["/web","/output=" + iframesrc,cmd];
     proc.run(true, argv, argv.length);
 
-
     var iframe = document.getElementById("iframe");
     iframe.contentDocument.body.className = "";
     iframe.webNavigation.loadURI("file:///" + iframesrc,0,null,null,null);
     
-    runHoogle_cont();
+    // TODO: Should be a timeout in runHoogle_cont (if anywhere)
+    window.setTimeout(runHoogle_cont, 100);
     
   } catch(e) {alert("Error in runHoogle: " + e);}
 }
@@ -115,25 +124,20 @@ function runHoogle_cont()
     // Check the document has loaded
     var iframe = document.getElementById("iframe");
     // TODO: Could be done better with a nsIWebProgress on the iframe's <browser>
-    if (iframe.contentDocument.body.className != "loaded")
-    {
-        window.setTimeout(runHoogle_cont, 100);
-        return;
-    }
+    //if (iframe.contentDocument.body.className != "loaded")
+    //{
+    //    window.setTimeout(runHoogle_cont, 100);
+    //    return;
+    //}
 
     // change the document id, triggers various style changes
     iframe.contentDocument.body.setAttribute("id","xul");
 
-    // insert a base element
-    // Does not appear to be possible, after document is loaded
-    // Best alternative is to repoint all the .js/.css links
-    /*
-    var base = iframe.contentDocument.createElement("base");
-    // TODO: Hard coded path
-    base.setAttribute("href","file:///c:/neil/hoogle/src/");
-    var head = iframe.contentDocument.documentElement.firstChild;
-    head.insertBefore(base, head.firstChild);
-    */
+    // repoint the res/ links
+    // TODO: Doesn't seem to repoint the <script> links properly
+    repoint(iframe.contentDocument, "link", "href");
+    repoint(iframe.contentDocument, "script", "src");
+    repoint(iframe.contentDocument, "img", "src");
 
     // repoint all the <a> links    
     links = iframe.contentDocument.getElementsByTagName("a");
@@ -152,6 +156,19 @@ function runHoogle_cont()
     iframe.contentDocument.getElementById("hoogle").value = lastCmd;
 
   } catch(e) {alert("Error in runHoogle_cont: " + e);}
+}
+
+function repoint(doc, tag, att)
+{
+    var xs = doc.getElementsByTagName(tag);
+    for (var i = 0; i < xs.length; i++)
+    {
+        var x = xs[i].getAttribute(att);
+        if (x && x.substr(0,4) == "res/")
+        {
+            xs[i].setAttribute(att,"file:///" + resdir + x.substr(3));
+        }
+    }
 }
 
 
