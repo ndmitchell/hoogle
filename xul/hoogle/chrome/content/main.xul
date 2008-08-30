@@ -4,5 +4,5 @@
 <window onload="on_load()" id="main" title="Hoogle Local" width="600" height="500" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <script src="main.js"/>
     <!-- TODO: Hard coded path -->
-    <iframe src="file:///C:/Neil/hoogle/src/temp.htm" flex="1" id="iframe" style="background-color:white;" />
+    <iframe src="about:blank" flex="1" id="iframe" style="background-color:white;" />
 </window>

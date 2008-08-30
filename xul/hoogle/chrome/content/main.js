@@ -1,12 +1,26 @@
 
 // The last command that was run as a Hoogle query
 var lastCmd;
+
 var hoogle = getHoogle();
+var xuldir = getXulDir();
+var iframesrc = getIframeSrc();
+
+function getIframeSrc()
+{
+    var src = xuldir.parent.parent;
+    src.append("src");
+    src.append("temp.htm");
+    return src.path;
+}
 
 function on_load()
 {
+  try {
     if (hoogle)
+    {
         runHoogle("");
+    }
     else
     {
         alert("Hoogle Local cannot find the Hoogle executable\n\n" +
@@ -14,6 +28,8 @@ function on_load()
               "from the PATH environment variable");
         window.close();
     }
+
+  } catch(e) {alert("Error in on_load: " + e);}
 }
 
 function trapclick(e)
@@ -80,14 +96,13 @@ function runHoogle(cmd)
         .createInstance(Components.interfaces.nsIProcess);
     proc.init(hoogle);
 
-    // TODO: Hard coded path
-    var argv = ["/web","/output=C:/Neil/hoogle/src/temp.htm",cmd];
+    var argv = ["/web","/output=" + iframesrc,cmd];
     proc.run(true, argv, argv.length);
 
 
     var iframe = document.getElementById("iframe");
     iframe.contentDocument.body.className = "";
-    iframe.webNavigation.reload(0);
+    iframe.webNavigation.loadURI("file:///" + iframesrc,0,null,null,null);
     
     runHoogle_cont();
     
@@ -110,11 +125,15 @@ function runHoogle_cont()
     iframe.contentDocument.body.setAttribute("id","xul");
 
     // insert a base element
+    // Does not appear to be possible, after document is loaded
+    // Best alternative is to repoint all the .js/.css links
+    /*
     var base = iframe.contentDocument.createElement("base");
     // TODO: Hard coded path
     base.setAttribute("href","file:///c:/neil/hoogle/src/");
     var head = iframe.contentDocument.documentElement.firstChild;
     head.insertBefore(base, head.firstChild);
+    */
 
     // repoint all the <a> links    
     links = iframe.contentDocument.getElementsByTagName("a");
@@ -168,4 +187,15 @@ function getHoogle()
     return undefined;
 
   } catch(e) {alert("Error in getHoogle: " + e);}
+}
+
+
+// Find the XUL directory
+// getXulDir :: nsIFile
+function getXulDir()
+{
+    return Components
+        .classes['@mozilla.org/file/directory_service;1']
+        .getService(Components.interfaces.nsIProperties)
+        .get("resource:app",Components.interfaces.nsIFile);
 }
