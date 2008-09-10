@@ -1,0 +1,61 @@
+\documentclass{tmr}
+
+\usepackage{mflogo}
+
+\title{Hoogle 4 Overview}
+\author{Neil Mitchell\email{ndmitchell@gmail.com}}
+
+\begin{document}
+
+\begin{introduction}
+This summer I have been very fortunate to work full-time on the next version of Hoogle, version 4. This article explains what Hoogle is, its history, and the possible future directions for Hoogle. The article does not attempt to explain how Hoogle works, or the technical details of its implementation.
+\end{introduction}
+
+\section{What is Hoogle}
+
+Hoogle is the Haskell API search engine. To quote from the Cabal description:
+
+\begin{quote}
+Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries by either function name, or by approximate type signature.
+\end{quote}
+
+Let's pull out some of those words, to explore what Hoogle does a bit more.
+
+\begin{description}
+\item[Haskell] Hoogle is written in Haskell, and is designed for Haskell programmers.
+\item[API] Hoogle works with API's, or ``Application Programmer Interfaces'' -- the types and functions provided by a package.
+\item[search engine] The Hoogle interface has many superficial resemblances to its namesake, Google. \footnote{Hoogle has no affiliation to Google, and the name is intended as a homage} It is easy to visit a web page, enter a search, and get the results -- all without installing any additional software. Of course, Hoogle comes as a command line tool as well.
+\item[standard Haskell libraries] By default, Hoogle will search the standard libraries that are shipped with the major compilers. These include the base library, array, time, mtl etc.
+\item[function name] Searches can be performed by name, searching for substrings of function names. In this manner Hoogle can be used much like a fast index to Haddock documentation.
+\item[approximate type signature] Searches can also be performed by type signature, even approximate type signature. If you have a rough idea of the function you are searching for then Hoogle may be able to help find it.
+\end{description}
+
+The hope is that Hoogle will be a very easy way for programmers to find the libraries they need. As programming goes from being about writing brand new software to composing existing components, Haskell has a distinct advantage with its high level of abstractions. Hopefully Hoogle can also aid, by providing quick access to find the libraries you desire.
+
+\section{The Past}
+
+I started Hoogle before my PhD, making Hoogle over 4 years old. The original version relied on the ZVON Haskell data, and was written entirely in client side Javascript. I realised that my PhD was likely to focus on Haskell, so saw Hoogle (or HAPI as the original version was called) as an easy way to learn Haskell, and as a handy search tool for learners.
+
+Once I started my PhD, and became more exposed to Haskell, I took the opportunity to rewrite Hoogle in Haskell as a proper server side web program in CGI. Being in the functional programming group at York University brought me to into contact with many great programmers, who gave me invaluable advice. Before long I had made a version of Hoogle on the web, and some people were starting to use it. Much of the initial excitment around Hoogle came from the Haskell IRC channel, and it was not long before a lambdabot plugin was developed.
+
+By this stage Hoogle 2 was starting to be hampered by the database of functions it was using, a common theme throughout Hoogle development. The ZVON database was a very useful index of the functions in the Haskell 98 standard, but lacked the additional heirarchical libraries that had been built up since. For Hoogle 3 I rewrote the code, making use of library information extracted from Haddock. Hoogle 3 was a lot more polished than version 2, and as my Haskell experience improved so Hoogle both became a nicer code-base, and more accurately reflected how Haskell programmers wanted to think about searching.
+
+However, Hoogle 3 was still insufficient in many ways -- the most obvious design flaw was the inability to search for higher-kinded type classes, of which \textit{Monad} is by far the most common. The other problem was one of scale, Hoogle 3 scaled linearly in the number of functions available, which worked fine on a small function database, but became a scaling issue when attempting to tackle all of Hackage.
+
+\section{The Present}
+
+Hoogle 4 was a brand new rewrite.
+
+\section{The Future}
+
+Hoogle 5 wants lots of new features.
+
+
+\section{Acknowledgements}
+
+Thanks to my mentor (Niklas), duncan, everyone at York, Google.
+
+
+\bibliography{hoogle}
+
+\end{document}
