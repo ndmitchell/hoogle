@@ -85,6 +85,6 @@ parsecTextItem = attribute <|> item
         keysymbol = many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
         ascSymbol = "!#$%&*+./<=>?@\\^|-~:"
 
-        keyword = do x <- letter
+        keyword = do x <- satisfy (\x -> isAlphaNum x || x == '_')
                      xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#")
                      return (x:xs)
