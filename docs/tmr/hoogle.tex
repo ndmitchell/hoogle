@@ -119,7 +119,7 @@ This section explains the guidelines used for organising the Hoogle codebase. Th
 
 \subsection{Structure your code as a library}
 
-Hoogle is a program, but is structured as a library, with client programs which make use of the library. Anything in the \code{Hoogle.*} module tree is part of the library, and is carefully checked to expose a sensible interface. Each client which makes use of Hoogle has its own top-level module. For the purposes of deployment, there is no library, but if the need arises an explicit library can easily be added. By forcing a split between the underlying functionality and the user interface, and by imagining other potential users of the library, we gain a cleaner separation of concerns.
+Hoogle is a program, but is structured as a library, with client programs which make use of the library. Any code within the \code{Hoogle} module tree is part of the library, and is carefully checked to expose a sensible interface. Each client which makes use of Hoogle has its own top-level module. For the purposes of deployment, there is no library, but if the need arises an explicit library can easily be added. By forcing a split between the underlying functionality and the user interface, and by imagining other potential users of the library, we gain a cleaner separation of concerns.
 
 \subsection{Put types in their own module}
 
@@ -127,7 +127,7 @@ All the data type definitions are placed in a module of their own, at the bottom
 
 \subsection{Group operations on a type}
 
-All basic operations on a type share the same module prefix. For example, operations on type signatures are given module names such as \code{Hoogle.TypeSig.Parse} and \code{Hoogle.TypeSig.Render}, each responsible for one particular operation. For modules wishing to use type signatures there is \code{Hoogle.TypeSig.All} which imports and reexports \code{Hoogle.TypeSig.*}, usually with a more restrictive export list. The intention is that no module outside of \code{Hoogle.TypeSig} should ever import a module other than \code{.All}. Many internal details can be hidden from the users of type signatures, which are useful to expose to the operations on type signatures.
+All basic operations on a type share the same module prefix. For example, operations on type signatures are given module names such as \code{Hoogle.TypeSig.Parse} and \code{Hoogle.TypeSig.Render}, each responsible for one particular operation. For modules wishing to use type signatures there is \code{Hoogle.TypeSig.All} which imports and reexports all the modules within \code{Hoogle.TypeSig}, usually with a more restrictive export list. The intention is that no module outside of \code{Hoogle.TypeSig} should ever import a module other than \code{.All}. Many internal details can be hidden from the users of type signatures, which are useful to expose to the operations on type signatures.
 
 Originally the \code{.All} module was simply called \code{Hoogle.TypeSig} -- which seems like a more natural choice. However, having the \code{.All} module in the same directory as the other related modules is beneficial, and makes it easier to keep the modules in sync. Additionally, it becomes easy to spot when a module from a different module prefix imports something in violation of the guidelines.
 
@@ -143,12 +143,13 @@ Version 3 had four executable programs -- one to generate ranking information, o
 
 \section{Conclusion}
 
-Hoogle has benefited greatly from feedback, encouragement, technical contributions, bug reporting and more. Versions 2 and 3 were helped substantially by many members of the functional programming group at York University, and the users of \verb"#haskell". While writing version 4 I was mentored by Niklas Broberg, received lots of help from Duncan Coutts, and was funded by Google through the haskell.org project. Hoogle has benefited from substantial contributions from David Waern, Don Stewart, Esa Ilari Vuokko, Gaal Yahas, Ganesh Sittampalam, Gwern Branwen, Henk-Jan van Tuyl, Mike Dodds, Thomas Davie, Thomas J\"{a}ger, Tillmann Rendel and Udo Stenzel.
-
-Hoogle is not finished. In addition to the future tasks given in this article, there are plenty of suggestions and bugs outstanding, most of which are documented in the bug database (\textsf{http://code.google.com/p/ndmitchell/issues/list}). Some bugs are marked as beginner, meaning they can be easily tackled by someone new to Hoogle -- and in some cases someone new to Haskell. If anyone wants to help, please email me at \textsf{ndmitchell@gmail.com}.
+Hoogle is not yet finished. In addition to the future tasks given in this article, there are plenty of suggestions and bugs outstanding, most of which are documented in the bug database (\textsf{http://code.google.com/p/ndmitchell/issues/list}). Some bugs are marked as beginner, meaning they can be easily tackled by someone new to Hoogle -- and in some cases someone new to Haskell. If anyone wants to help, please email me at \textsf{ndmitchell@gmail.com}.
 
 As the task of programming goes from one of painting on a blank canvas, to one of plumbing together existing components, Haskell has a distinct advantage with its high-level abstractions. As the number of libraries increases, finding the right functionality becomes harder. Hoogle aims to help by providing a simple way to find the right functions.
 
+\subsection{Acknowledgements}
+
+Hoogle has benefited greatly from feedback, encouragement, technical contributions, bug reporting and more. Versions 2 and 3 were helped substantially by many members of the functional programming group at York University, and the users of \verb"#haskell". While writing version 4 I was mentored by Niklas Broberg, received lots of help from Duncan Coutts, and was funded by Google through the haskell.org project. Hoogle has benefited from substantial contributions from David Waern, Don Stewart, Emily King, Esa Ilari Vuokko, Gaal Yahas, Ganesh Sittampalam, Gwern Branwen, Henk-Jan van Tuyl, Mike Dodds, Thomas Davie, Thomas J\"{a}ger, Tillmann Rendel and Udo Stenzel.
 
 \bibliography{hoogle}
 
