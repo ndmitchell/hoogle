@@ -152,7 +152,7 @@ renderRes i r =
         pkgname = td "pkg" $ href urlPkg $ packageName $ fromLink $ entryPackage ent
 
         docs = ("<div id='d" ++ show i ++ "' class='shut'>" ++
-                   "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++ urlEnt ++ "'></a>") +?
+                   "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" +& urlEnt ++ "'></a>") +?
                    (showTagHTML $ renderHaddock $ entryDocs ent) +?
                "</div>"
 
@@ -168,4 +168,4 @@ renderRes i r =
 
 tr x = "<tr>" ++ x ++ "</tr>"
 td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
-href url x = if null url then x else "<a class='dull' href='" ++ url ++ "'>" ++ x ++ "</a>"
+href url x = if null url then x else "<a class='dull' href='" +& url ++ "'>" ++ x ++ "</a>"

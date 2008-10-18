@@ -3,7 +3,6 @@ module Hoogle.Item.URL where
 
 import General.Code
 import Hoogle.Item.Item
-import Web.Text(escapeHTML) -- TODO: Shouldn't be importing this!
 import Numeric
 import Data.Binary.Defer.Index
 
@@ -12,7 +11,7 @@ import Data.Binary.Defer.Index
 entryURL :: Entry -> String
 entryURL e@Entry{entryType=EntryModule} = entryModuleURL e
 entryURL e@Entry{entryType=EntryPackage} = entryPackageURL e
-entryURL e@Entry{entryType=EntryOther} = entryModuleURL e ++ "#v:" ++ escapeHTML (entryName e)
+entryURL e@Entry{entryType=EntryOther} = entryModuleURL e ++ "#v:" ++ entryName e
 entryURL e@Entry{entryType=EntryKeyword} =
         "http://www.haskell.org/haskellwiki/Keywords#" ++ concatMap f (entryName e)
     where
