@@ -6,7 +6,7 @@ import Util
 
 processBase = do
     depends "temp/base/base.cabal" [] $ do
-        system_ "darcs get --partial --repo-name=temp/base http://darcs.haskell.org/ghc-6.8/packages/base"
+        system_ "darcs get --partial --repo-name=temp/base http://darcs.haskell.org/ghc-6.10/packages/base"
 
     basePatchup
     haddock "base"
@@ -56,7 +56,7 @@ ghcPrefix =
 basePrefix :: [String]
 basePrefix =
     ["@package base"
-    ,"@version 3.0.1.0"
+    ,"@version 4.0.0.0"
     ,"@haddock http://haskell.org/ghc/docs/latest/html/libraries/base/"
     ,"@hackage http://haskell.org/ghc/docs/latest/html/libraries/"
     ]
