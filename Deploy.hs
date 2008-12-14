@@ -87,8 +87,9 @@ check left right = do
 web = do
     createDirectoryIfMissing True "dist/web/res"
     databases
-    system_ "ssh ndm@venice.cs.york.ac.uk -m misc/build-york.sh"
-    system_ "scp ndm@venice.cs.york.ac.uk:/tmp/ndm/hoogle/dist/build/hoogle/hoogle dist/web/index.cgi"
+    when False $ -- skip until York has GHC 6.6.1 again
+        system_ "ssh ndm@venice.cs.york.ac.uk -m misc/build-york.sh"
+        system_ "scp ndm@venice.cs.york.ac.uk:/tmp/ndm/hoogle/dist/build/hoogle/hoogle dist/web/index.cgi"
     copyFiles "database" "dist/web/res" ["hoo"]
     copyFiles "src/res" "dist/web/res" ["js","css","png","xml"]
     withDirectory "dist/web" $ system_ "tar -cf ../web.tar *"
