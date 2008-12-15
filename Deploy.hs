@@ -22,6 +22,7 @@ cmds = let (*) = (,) in
        ,"sanity" * sanity
        ,"linecount" * linecount
        ,"web" * web
+       ,"database" * databases
        ]
 
 
