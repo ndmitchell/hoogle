@@ -19,11 +19,7 @@ processBase = do
 
 basePatchup = do
     -- FIX THE CABAL FILE
-    let cabal = "temp/base/base.cabal"
-    x <- readFile' cabal
-    let f x = not $ "ghc.prim" `isSubstrOf` map toLower x
-    x <- return $ unlines $ filter f $ lines x
-    writeBinaryFile cabal x
+    fixupCabal "base" $ \x -> [x | not $ "ghc.prim" `isSubstrOf` map toLower x]
 
     -- INCLUDE FILE
     copyFile "Config.h" "temp/base/include/HsBaseConfig.h"

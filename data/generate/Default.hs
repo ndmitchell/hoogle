@@ -22,26 +22,28 @@ download x = do
         renameDirectory ("temp/" ++ dropExtension (takeBaseName link)) ("temp/" ++ x)
 
 
+fixupCabal :: String -> (String -> [String]) -> IO ()
+fixupCabal name f = do
+    let file = "temp/" ++ name ++ "/" ++ name ++ ".cabal"
+    x <- readFile' file
+    x <- return $ unlines $ "Build-Type: Simple" : concatMap g (lines x)
+    writeBinaryFile file x
+    where
+        g x | "build-type" `isPrefixOf` map toLower x = []
+            | otherwise = f x
+
+
 haddock :: String -> IO ()
 haddock x = do
     let res = "temp/" ++ x ++ "/hoogle.txt"
     depends res [] $ do
-        setupFile $ "temp/" ++ x ++ "/setup.exe"
-
+        fixupCabal x (:[])
         dir <- getCurrentDirectory
         bracket_ (setCurrentDirectory $ "temp/" ++ x) (setCurrentDirectory dir) $ do
             system_ "cabal configure"
             system_ "cabal haddock --hoogle"
 
         copyFile ("temp/" ++ x ++ "/dist/doc/html/" ++ x ++ "/" ++ x ++ ".txt") res
-
-
-setupFile file = do
-    depends file [] $ do
-        depends "temp/setup.exe" [] $ do
-            writeFile "temp/Setup.hs" "import Distribution.Simple; main = defaultMain"
-            system_ "ghc --make temp/Setup.hs -o temp/setup.exe"
-        copyFile "temp/setup.exe" file
 
 
 hoogle :: String -> IO ()
