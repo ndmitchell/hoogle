@@ -12,7 +12,7 @@ defaults = ["keyword","hackage","base"
            ,"network","parallel","parsec","pretty","process","random","stm"
            ,"template-haskell","time","xhtml","syb"]
            \\
-           ["network"]
+           ["network","QuickCheck","directory"]
 
 
 
