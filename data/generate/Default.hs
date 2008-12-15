@@ -30,8 +30,8 @@ haddock x = do
 
         dir <- getCurrentDirectory
         bracket_ (setCurrentDirectory $ "temp/" ++ x) (setCurrentDirectory dir) $ do
-            system_ "setup configure"
-            system_ "setup haddock --hoogle"
+            system_ "cabal configure"
+            system_ "cabal haddock --hoogle"
 
         copyFile ("temp/" ++ x ++ "/dist/doc/html/" ++ x ++ "/" ++ x ++ ".txt") res
 
