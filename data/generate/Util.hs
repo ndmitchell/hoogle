@@ -80,6 +80,12 @@ lsDirectories dir = do
     src <- return $ filter (not . all (== '.')) src
     filterM (doesDirectoryExist . (dir </>)) src
 
+readUrl url = do
+    system_ $ "wget " ++ url ++ " -O wget_temp"
+    src <- readFile' "wget_temp"
+    removeFile "wget_temp"
+    return src
+
 
 ---------------------------------------------------------------------
 -- System.Make
