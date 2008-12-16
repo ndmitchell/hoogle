@@ -39,6 +39,7 @@ data-files:
     quickcheck.hoo
     random.hoo
     stm.hoo
+    syb.hoo
     template-haskell.hoo
     time.hoo
     xhtml.hoo
