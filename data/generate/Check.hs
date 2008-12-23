@@ -24,7 +24,7 @@ checkBase = check . foldl' add db
     where
         db = Map.fromList $ map (flip (,) 0) $ tests
         tests = ["module","Prelude"] : map (\x -> [x,"::"]) funcs
-        funcs = ["even","tan","cos","log","sin"]
+        funcs = ["even","tan","cos","log","sin","seq"]
 
         add db x = Map.adjustWithKey (const (+1)) (take 2 $ words x) db
         
