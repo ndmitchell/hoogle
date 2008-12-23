@@ -6,7 +6,7 @@ import Util
 
 processBase = do
     depends "temp/base/base.cabal" [] $ do
-        system_ "darcs get --partial --repo-name=temp/base http://darcs.haskell.org/ghc-6.10/packages/base"
+        system_ "darcs get --partial --repo-name=temp/base http://darcs.haskell.org/ghc-6.10/packages/base --tag=\"base 4.0.0.0\""
 
     basePatchup
     haddock "base"
