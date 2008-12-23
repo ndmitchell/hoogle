@@ -3,6 +3,7 @@ module Main(main) where
 
 import Base; import Keyword; import Hackage; import Default
 import Link
+import Check
 import Util
 
 
@@ -25,6 +26,7 @@ main = do
     xs <- return $ if null xs then defaults else xs
     mapM_ process xs
     link xs
+    check
 
 
 process :: String -> IO ()
