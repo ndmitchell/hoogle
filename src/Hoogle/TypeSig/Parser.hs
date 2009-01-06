@@ -51,7 +51,7 @@ parsecTypeSig = do whites
                        close
                        return $ tLit hash (length xs + 1)
                     ) <|>
-                    (do sym <- white $ keysymbol
+                    (do sym <- white keysymbol
                         close
                         return $ TLit sym
                     ) <|>

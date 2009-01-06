@@ -43,7 +43,7 @@ actionWeb q = do
 logMessage :: CmdQuery -> IO ()
 logMessage q = do
     time <- getCurrentTime
-    cgi <- liftM (fromMaybe []) $ cgiArgs
+    cgi <- liftM (fromMaybe []) cgiArgs
     appendFile "log.txt" $ (++ "\n") $ unwords $
         [showGregorian (utctDay time)
         ,show (queryText q)] ++

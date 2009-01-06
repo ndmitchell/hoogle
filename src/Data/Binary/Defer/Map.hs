@@ -17,5 +17,5 @@ import Data.Binary.Defer.Vector as Vector
 
 
 instance (Ord k, BinaryDefer k, BinaryDefer v) => BinaryDefer (Data.Map.Map k v) where
-    put = putDefer . put . Vector.fromList . Prelude.map (id *** Defer) . Data.Map.toAscList
-    get = getDefer $ liftM (Data.Map.fromAscList . Prelude.map (id *** fromDefer) . Vector.toList) get
+    put = putDefer . put . Vector.fromList . Prelude.map (second Defer) . Data.Map.toAscList
+    get = getDefer $ liftM (Data.Map.fromAscList . Prelude.map (second fromDefer) . Vector.toList) get

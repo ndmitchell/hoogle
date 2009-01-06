@@ -88,7 +88,7 @@ joinItem (SuggestItem a1 b1 c1) (SuggestItem a2 b2 c2) =
         (if null b1 && null b2 then a1 `mplus` a2 else Nothing)
         (f b1 b2) (f c1 c2)
     where
-        f x y = map (id *** maximum) $ sortGroupFsts $ x ++ y
+        f x y = map (second maximum) $ sortGroupFsts $ x ++ y
 
 
 askSuggest :: [Suggest] -> TypeSig -> Maybe (Either String TypeSig)
@@ -130,8 +130,8 @@ contextTrim (TypeSig con typ) = TypeSig (filter (not . bad) con) typ
 
 improve :: (String -> Maybe SuggestItem) -> Bool -> Type -> Type
 improve get cls typ
-        | cls == False = f $ transform (improveName nameTyp) typ
-        | cls == True  = improveArity arity $
+        | not cls = f $ transform (improveName nameTyp) typ
+        | otherwise = improveArity arity $
             tApp (improveName nameCls t1) (map (transform (improveName nameTyp)) ts)
     where
         (t1,ts) = fromTApp typ

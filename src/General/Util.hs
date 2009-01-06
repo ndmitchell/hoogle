@@ -68,7 +68,7 @@ selection n xs = remove (len-n) len [] xs
 -- | all permutations of a list
 permute :: [a] -> [[a]]
 permute [] = [[]]
-permute (x:xs) = concat $ map (\a -> zipWith f (inits a) (tails a)) (permute xs)
+permute (x:xs) = concatMap (\a -> zipWith f (inits a) (tails a)) (permute xs)
     where
         f a b = a ++ [x] ++ b
 

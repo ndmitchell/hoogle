@@ -83,7 +83,7 @@ runDeferPending (DeferPending pos act) = do
     lift $ do
         p <- bufferPos buf
         b <- bufferPatch buf pos (fromIntegral p :: Int32)
-        when (not b) $ modifyIORef back (DeferPatchup pos p :)
+        unless b $ modifyIORef back (DeferPatchup pos p :)
     act
     runDeferPendings
 

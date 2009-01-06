@@ -79,7 +79,7 @@ followAlias _ _ = Nothing
 
 
 normAliases :: Aliases -> Type -> ([String], Type)
-normAliases as t = (sort . nub *** id) $ f t
+normAliases as t = first (sort . nub) $ f t
     where
         f t = case followAlias as t of
                   Just (s,t) -> ([s],t)

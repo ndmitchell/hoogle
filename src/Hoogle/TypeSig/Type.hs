@@ -150,7 +150,7 @@ instance Show Type where
             f i (TLit x) = x
             f i (TVar x) = x
             
-            f i (TApp x xs) = b (i > 1) $ concat (intersperse " " $ map (f 2) (x:xs))
+            f i (TApp x xs) = b (i > 1) $ unwords $ map (f 2) (x:xs)
             f i (TFun xs)   = b (i > 0) $ concat (intersperse " -> " $ map (f 1) xs)
             
             b True x = "(" ++ x ++ ")"

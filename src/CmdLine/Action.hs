@@ -17,13 +17,13 @@ import Data.Version(showVersion)
 
 actionCmdLine :: CmdQuery -> IO ()
 
-actionCmdLine CmdQuery{queryText = text, query = Left err} = do
+actionCmdLine CmdQuery{queryText = text, query = Left err} =
     exitMessage ["Parse error:", "  " ++ text
                 ,replicate (sourceColumn (errorPos err) + 1) ' ' ++ "^"
                 ,show err]
 
 
-actionCmdLine q | not $ null $ queryBadFlags q = do
+actionCmdLine q | not $ null $ queryBadFlags q =
     exitMessage $ "Unrecognised or malformed flags:":
                   map ("  "++) (queryBadFlags q) ++
                   ["For details on correct flags pass --help"]
@@ -52,7 +52,7 @@ actionCmdLine q | Rank{} `elemEnum` queryFlags q =
     mapM_ rank [x | Rank x <- queryFlags q]
 
 
-actionCmdLine q | Convert{} `elemEnum` queryFlags q = do
+actionCmdLine q | Convert{} `elemEnum` queryFlags q =
     mapM_ (actionConvert q) [x | Convert x <- queryFlags q]
 
 
@@ -73,7 +73,7 @@ actionCmdLine q | Dump{} `elemEnum` queryFlags q = do
     mapM_ (actionDump q) dbs
 
 
-actionCmdLine q | not $ usefulQuery $ fromRight $ query q = do
+actionCmdLine q | not $ usefulQuery $ fromRight $ query q =
     exitMessage ["No query entered"
                 ,"Try --help for command line options"]
 

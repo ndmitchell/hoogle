@@ -58,8 +58,8 @@ solve xs mp = foldl' f mp xs
     where
         -- all x in xs, x.max = ys.max - 1
         -- all y in ys, y.min = xs.min + 1
-        f mp (xs :< ys) = upd (id *** min (maxRhs - 1)) xs $
-                          upd (max (minLhs + 1) *** id) ys mp
+        f mp (xs :< ys) = upd (second $ min (maxRhs - 1)) xs $
+                          upd (first  $ max (minLhs + 1)) ys mp
             where
                 minLhs = grab fst xs mp
                 maxRhs = grab snd ys mp

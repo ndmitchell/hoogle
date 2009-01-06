@@ -45,5 +45,5 @@ showTagConsole x = f [] x
         getCode (TagColor n _) | n <= 5 && n >= 0 = Just ['3', intToDigit (n + 1)]
         getCode _ = Nothing
 
-        tag stack = chr 27 : '[' : (concat $ intersperse ";" $ ("0":reverse stack)) ++ "m"
+        tag stack = chr 27 : '[' : (concat $ intersperse ";" $ "0":reverse stack) ++ "m"
 

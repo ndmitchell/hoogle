@@ -169,7 +169,7 @@ instance BinaryDefer a => BinaryDefer [a] where
 
     get = do
         i <- getByte
-        if i /= maxByte then do
+        if i /= maxByte then
             replicateM (fromIntegral i) get
          else do
             xs <- replicateM 100 get
