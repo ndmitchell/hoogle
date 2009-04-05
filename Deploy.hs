@@ -88,15 +88,14 @@ check left right = do
 web = do
     createDirectoryIfMissing True "dist/web/res"
     databases
-    when False $ do -- skip until York has GHC 6.6.1 again
-        system_ "ssh ndm@venice.cs.york.ac.uk -m misc/build-york.sh"
-        system_ "scp ndm@venice.cs.york.ac.uk:/tmp/ndm/hoogle/dist/build/hoogle/hoogle dist/web/index.cgi"
+    system_ "ssh ndm@community.haskell.org -m misc/build-compile.sh"
+    system_ "scp ndm@community.haskell.org:/tmp/ndm/hoogle/dist/build/hoogle/hoogle dist/web/index.cgi"
     copyFiles "database" "dist/web/res" ["hoo"]
     copyFiles "src/res" "dist/web/res" ["js","css","png","xml"]
     withDirectory "dist/web" $ system_ "tar -cf ../web.tar *"
     system_ "gzip dist/web.tar --force"
     system_ "scp -r dist/web.tar.gz ndm@haskell.org:/haskell/hoogle/release.tar.gz"
-    system_ "ssh ndm@haskell.org -m misc/build-haskell.sh"
+    system_ "ssh ndm@haskell.org -m misc/build-unpack.sh"
 
 
 ---------------------------------------------------------------------
