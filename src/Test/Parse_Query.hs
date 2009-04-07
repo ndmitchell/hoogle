@@ -34,3 +34,4 @@ parse_Query = do
     "[a]" === q{typeSig = Just (TypeSig [] (TApp (TLit "[]") [TVar "a"]))}
     "++" === q{names = ["++"]}
     "(++)" === q{names = ["++"]}
+    ":+:" === q{names = [":+:"]}

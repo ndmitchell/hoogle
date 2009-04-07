@@ -7,7 +7,7 @@ import Hoogle.TypeSig.All
 import Text.ParserCombinators.Parsec
 
 
-ascSymbols = "!#$%&*+./<=>?@\\^|-~"
+ascSymbols = "!#$%&*+./<=>?@\\^|-~:"
 
 parseQuery :: String -> Either ParseError Query
 parseQuery input = parse parsecQuery "" input
@@ -51,7 +51,9 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
         
         operator = between (char '(') (char ')') op <|> op
 
-        op = many1 $ satisfy (`elem` ascSymbols)
+        op = try $ do
+            res <- many1 $ satisfy (`elem` ascSymbols)
+            if res == "::" then fail ":: is not an operator name" else return res
         
         types = do a <- flags
                    b <- parsecTypeSig
