@@ -45,6 +45,7 @@ sdist = do
 
 
 databases = do
+    system_ "cabal configure"
     system_ "cabal build"
     withDirectory "data/generate" $
         system_ "run.bat"
