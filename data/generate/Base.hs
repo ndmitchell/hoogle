@@ -24,9 +24,20 @@ basePatchup = do
     -- INCLUDE FILE
     copyFile "Config.h" "temp/base/include/HsBaseConfig.h"
 
+seqDocs = 
+    ["-- | The value of <tt><a>seq</a> a b</tt> is bottom if <tt>a</tt> is"
+    ,"--   bottom, and otherwise equal to <tt>b</tt>. <a>seq</a> is usually"
+    ,"--   introduced to improve performance by avoiding unneeded laziness."
+    ,"seq :: a -> b -> b"]
+
+insertSeq = concatMap f
+    where
+        f x | "module Prelude" `isPrefixOf` x = x : seqDocs
+            | otherwise = [x]
+
 
 splitGHC :: [String] -> ([String],[String])
-splitGHC = f True
+splitGHC = f True . insertSeq
     where
         f pile xs | null b = add pile xs ([], [])
                   | otherwise = add pile2 (a++[b1]) $ f pile2 bs
