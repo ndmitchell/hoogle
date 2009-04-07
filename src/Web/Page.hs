@@ -40,7 +40,7 @@ search query =
 
 
 footer =
-    ["    <p id='footer'>&copy; <a href='http://www.cs.york.ac.uk/~ndm/'>Neil Mitchell</a> 2004-2008</p>"
+    ["    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2009</p>"
     ,"  </body>"
     ,"</html>"
     ]
@@ -67,7 +67,7 @@ welcome =
     ,"</p>"
     ,"<p>"
     ,"  I am very interested in any feedback you may have. Please "
-    ,"  <a href='http://www-users.cs.york.ac.uk/~ndm/contact/'>email me</a>, or add an entry to my"
+    ,"  <a href='http://community.haskell.org/~ndm/contact/'>email me</a>, or add an entry to my"
     ,"  <a href='http://code.google.com/p/ndmitchell/issues/list'>bug tracker</a>."
     ,"</p>"
     ]
