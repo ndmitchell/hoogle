@@ -30,6 +30,11 @@ fixupCabal name f = do
     writeBinaryFile file x
     where
         g x | "build-type" `isPrefixOf` map toLower x = []
+            | name `elem` ["containers","template-haskell"] &&
+              "build-depends" `isPrefixOf` dropWhile isSpace (map toLower x) =
+                  [takeWhile isSpace x ++
+                   "build-depends: base >= 4, pretty, packedstring, array, syb" ++
+                   (if name == "containers" then "" else ", containers")]
             | otherwise = f x
 
 
