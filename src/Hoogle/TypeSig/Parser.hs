@@ -67,10 +67,10 @@ parsecTypeSig = do whites
                     where h = ['#'|hash]
             
             
-        atom = do x <- satisfy isAlpha
+        atom = do x <- satisfy (\x -> isAlpha x || x == '_')
                   xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#")
                   whites
-                  return $ (if isLower x then TVar else TLit) (x:xs)
+                  return $ (if isLower x || x == '_' then TVar else TLit) (x:xs)
 
         -- may be [a], or [] (then application takes the a after it)
         list = do char '['

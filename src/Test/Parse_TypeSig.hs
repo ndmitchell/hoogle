@@ -9,7 +9,11 @@ parse_TypeSig = do
 
     -- really basic stuff
     "a" === TypeSig [] (TVar "a")
+    "a_" === TypeSig [] (TVar "a_")
+    "_" === TypeSig [] (TVar "_")
+    "_a" === TypeSig [] (TVar "_a")
     "A" === TypeSig [] (TLit "A")
+    "A_" === TypeSig [] (TLit "A_")
     "m a" === TypeSig [] (TApp (TVar "m") [TVar "a"])
     "M a b" === TypeSig [] (TApp (TLit "M") [TVar "a",TVar "b"])
 
