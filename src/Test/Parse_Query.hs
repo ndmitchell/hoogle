@@ -28,6 +28,7 @@ parse_Query = do
     "map :: a -> b" === q{names = ["map"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "+Data.Map map" === q{scope = [PlusModule ["Data","Map"]], names = ["map"]}
     "a -> b +foo" === q{scope = [PlusPackage "foo"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
+    "a -> b +foo-bar" === q{scope = [PlusPackage "foo-bar"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "a -> b /foo" === q{flags = [Flag "foo" ""], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "a -> b --foo" === q{flags = [Flag "foo" ""], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "Data.Map.map" === q{scope = [PlusModule ["Data","Map"]], names = ["map"]}

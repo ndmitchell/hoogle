@@ -43,7 +43,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
         
         name = (do x <- operator ; spaces ; return blankQuery{names=[x]})
                <|>
-               (do xs <- keyword `sepBy1` (char '.') ; spaces
+               (do xs <- keyword False `sepBy1` (char '.') ; spaces
                    return $ case xs of
                        [x] -> blankQuery{names=[x]}
                        xs -> blankQuery{names=[last xs],scope=[PlusModule (init xs)]}
@@ -94,11 +94,11 @@ parseFlagScope = do x <- try scope <|> try flag
                        [x] -> return $ blankQuery{scope=[if isLower (head x) then aPackage x else aModule [x]]}
                        xs -> return $ blankQuery{scope=[aModule xs]}
 
-        modname = keyword `sepBy1` (char '.')
+        modname = keyword True `sepBy1` (char '.')
 
 
--- TODO: Should share this definition with Hoogle.TypeSig.Parser
-keyword = do x <- letter
-             xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#")
-             return (x:xs)
+keyword hyphen = do
+    x <- letter
+    xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#" || (hyphen && x == '-'))
+    return (x:xs)
 
