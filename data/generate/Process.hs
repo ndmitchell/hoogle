@@ -1,8 +1,31 @@
 
-module Default where
+module Process where
 
 import Util
 import Text.HTML.TagSoup
+
+
+process :: Package -> IO ()
+process (name,ver) = do
+    (file,_) <- mirror $ "packages/archive/" ++ name ++ "/" ++ ver ++ "/doc/html/" ++ name ++ ".txt"
+    
+    -- read the cabal info
+    cabal <- readCabal $ "temp/hackage/" ++ name ++ "/" ++ ver ++ "/" ++ name ++ ".cabal"
+    let version = cabalVersion cabal
+        prefix = ["@package " ++ name
+                 ,"@version " ++ version
+                 ,"@haddock http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ version ++ "/doc/html/"
+                 ,"@hackage http://hackage.haskell.org/cgi-bin/hackage-scripts/package/" ++ name] ++
+                 ["@depends " ++ d | d <- delete name $ cabalDepends cabal]
+
+    -- rewrite with extra information
+    src <- readTextBase file
+    unless (null src) $
+        writeFile ("result/" ++ name ++ ".txt") $ unlines $ replaceTextBasePrefix prefix src
+    
+
+
+{-
 
 
 processDefault x = do
@@ -66,3 +89,4 @@ hoogle name = do
     src <- readTextBase $ "temp/" ++ name ++ "/hoogle.txt"
     writeFile ("result/" ++ name ++ ".txt") $ unlines $ replaceTextBasePrefix prefix src
 
+-}

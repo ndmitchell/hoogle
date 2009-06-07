@@ -1,11 +1,11 @@
 
-module Keyword where
+module Keywords(keywords) where
 
 import Util
 import Text.HTML.TagSoup
 
 
-processKeyword = do
+keywords = do
     depends "temp/keyword/keyword.html" [] $ do
         createDirectoryIfMissing True "temp/keyword"
         system_ "wget http://haskell.org/haskellwiki/Keywords -O temp/keyword/keyword.html"
@@ -13,9 +13,7 @@ processKeyword = do
     src <- readFile "temp/keyword/keyword.html"
     let items = concatMap keywordFormat $ partitions (~== "<a name>") $
                 takeWhile (~/= "<div class=printfooter>") $ parseTags src
-    writeFile "temp/keyword/hoogle.txt" (unlines $ keywordPrefix ++ items)
-
-    copyFile "temp/keyword/hoogle.txt" "result/keyword.txt"
+    writeFile "result/keyword.txt" (unlines $ keywordPrefix ++ items)
 
 
 keywordPrefix =

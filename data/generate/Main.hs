@@ -1,20 +1,32 @@
 
 module Main(main) where
 
-import Base; import Keyword; import Hackage; import Default
-import Link
-import Check
 import Util
+import Packages
+import Process
+import Keywords
+import Legacy
+import Base
+import Link
+import Platform
 
 
-defaults = ["keyword","hackage","base"
-           ,"array","Cabal","HUnit","QuickCheck","bytestring"
-           ,"containers","directory","filepath","haskell-src","mtl"
-           ,"network","parallel","parsec","pretty","process","random","stm"
-           ,"template-haskell","time","xhtml","syb"]
-           \\
-           ["network","QuickCheck","directory"]
+legacy = words "array bytestring containers pretty stm template-haskell syb"
 
+exclude = let a++b = concat[a," ",b] in words $
+    -- bug #184
+    "HList TypeCompose typical unicode-prelude uvector applicative-extras IOSpec" ++
+    "vector-space category-extras checkers reactive strict Vec linear-maps llvm" ++
+    "queuelike rewriting emgm grapefruit-records multirec RepLib sessions" ++
+    "HAppS-State happstack-state test-framework darcs" ++
+    -- implicit parameters
+    "ieee-utils line2pdf encoding" ++
+    -- type equality ~
+    "data-reify tfp" ++
+    -- weirdness with conv[foo]
+    "harpy HAppS-Data happstack-data" ++
+    -- parsing bugs
+    "haskell-src-meta"
 
 
 main :: IO ()
@@ -22,18 +34,15 @@ main = do
     createDirectoryIfMissing True "temp"
     createDirectoryIfMissing True "result"
     createDirectoryIfMissing True "../../database"
-    xs <- getArgs
-    xs <- return $ if null xs then defaults else xs
-    mapM_ process xs
-    link xs
-    check
+    xs <- packages
+    mapM_ f xs
+    keywords
+    xs <- getDirectoryContents "result"
+    link [a | x <- xs, let (a,b) = splitExtension x, b == ".txt", a `notElem` exclude]
+    platform
 
 
-process :: String -> IO ()
-process x = do
-    putStrLn $ "Processing " ++ x
-    case x of
-        "base" -> processBase
-        "keyword" -> processKeyword
-        "hackage" -> processHackage defaults
-        _ -> processDefault x
+f pkg@(name,ver)
+    | name == "base" = processBase pkg
+    | name `elem` legacy = processLegacy pkg
+    | otherwise = process pkg

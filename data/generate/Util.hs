@@ -2,6 +2,8 @@
 module Util(
     module Util,
     module System.Directory,
+    module System.Cmd,
+    module System.Exit,
     module Control.Exception,
     module Data.List,
     module Data.Char,
@@ -10,7 +12,8 @@ module Util(
     module Control.Monad,
     module Numeric,
     module System.Environment,
-    module System.FilePath
+    module System.FilePath,
+    module Mirror
     ) where
 
 import System.Cmd
@@ -27,6 +30,11 @@ import Control.Monad
 import Control.Exception
 import Numeric
 import Text.ParserCombinators.ReadP
+import Mirror
+
+
+-- name,version
+type Package = (String,String)
 
 ---------------------------------------------------------------------
 -- Pure
@@ -112,8 +120,9 @@ readCabal' = liftM (Cabal . lines) . readFile'
 
 cabalVersion xs = head $ cabalField True "version" xs ++ [""]
 
-cabalDepends xs = nub $ filter f $ words $ map (rep ',' ' ') $ unwords $ cabalField False "build-depends" xs
+cabalDepends xs = nub $ map (takeWhile g) $ filter f $ words $ map (rep ',' ' ') $ unwords $ cabalField False "build-depends" xs
     where f x = x /= "" && isAlpha (head x)
+          g x = isAlphaNum x || x `elem` "-_"
 
 
 cabalField :: Bool -> String -> Cabal -> [String]
@@ -143,5 +152,21 @@ replaceTextBasePrefix :: [String] -> [String] -> [String]
 replaceTextBasePrefix with = f
     where
         f (x:xs) | "@package " `isPrefixOf` x = with ++ dropWhile ("@version " `isPrefixOf`) xs
-                 | otherwise = x : f xs
+                 | otherwise = g x : f xs
         f [] = error "replaceTextBasePrefix, @package not found"
+
+        -- work around bug #183
+        g x | not ("--" `isPrefixOf` x) && not (all isSpace x) = "-- " ++ x
+            | otherwise = x
+
+
+---------------------------------------------------------------------
+-- Hoogle.Cmd
+
+hoo x = "../../database/" ++ map toLower x ++ ".hoo"
+
+hooFlag flag x = "--" ++ flag ++ "=" ++ hoo x
+
+hoogle_ :: [String] -> IO ()
+hoogle_ args = system_ $ unwords $ normalise "../../dist/build/hoogle/hoogle" : args
+
