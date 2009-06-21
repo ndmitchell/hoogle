@@ -15,9 +15,18 @@ import Numeric
 import Data.List
 
 
+-- The BOA server does not set QUERY_STRING if it would be blank.
+-- However, it does always set REQUEST_URI.
 cgiVariable :: IO (Maybe String)
-cgiVariable = catch (liftM Just $ getEnv "QUERY_STRING")
-                    (const $ return Nothing)
+cgiVariable = do
+    str <- envVariable "QUERY_STRING"
+    if isJust str
+        then return str
+        else liftM (liftM $ const "") $ envVariable "REQUEST_URI"
+
+
+envVariable :: String -> IO (Maybe String)
+envVariable x = catch (liftM Just $ getEnv x) (const $ return Nothing)
 
 
 cgiArgs :: IO (Maybe [(String, String)])
