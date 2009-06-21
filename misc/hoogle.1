@@ -1,0 +1,102 @@
+.de EX
+.ne 5
+.if n .sp 1
+.if t .sp .5
+.nf
+.in +.5i
+..
+.de EE
+.fi
+.in -.5i
+.if n .sp 1
+.if t .sp .5
+..
+.TH HOOGLE 1 "June 14, 2009"
+.SH NAME
+hoogle \- A Haskell API search engine.
+.SH SYNOPSIS
+.B hoogle
+.RI expression
+.SH DESCRIPTION
+Hoogle is a Haskell API search engine which allows you to search Haskell
+libraries by either function name, or by approximate type signature.
+
+.EE
+Example searches:
+
+.EX
+    map
+    (a -> b) -> [a] -> [b]
+    Ord a => [a] -> [a]
+    Data.Map.insert
+.EE
+
+The Hoogle manual (http://www.haskell.org/haskellwiki/Hoogle) contains more
+details, including further details on search queries, how to install Hoogle as
+a command line application and how to integrate Hoogle with Firefox/Emacs/Vim
+etc. 
+
+.SS "Flag reference:"
+.TP
+\fB\-\-version\fR
+Print out version information
+.TP
+\fB\-\-\fR?, \fB\-\-help\fR
+Show help message
+.TP
+\fB\-\-w\fR, \fB\-\-web\fR
+Run as though it was a CGI script
+.TP
+\fB\-\-c\fR, \fB\-\-color\fR=\fIBOOL\fR
+Show color output (default=false)
+.TP
+\fB\-\-s\fR, \fB\-\-start\fR=\fIPOS\fR
+First result to show (default=1)
+.TP
+\fB\-\-n\fR, \fB\-\-count\fR=\fIPOS\fR
+Number of results to show (default=all)
+.TP
+\fB\-\-test\fR
+Run the regression tests
+.TP
+\fB\-\-convert\fR=\fIFILE\fR
+Convert a database
+.TP
+\fB\-\-output\fR=\fIFILE\fR
+Output file for convert
+.TP
+\fB\-\-dump\fR=\fISTR\fR
+Dump a database for debugging
+.TP
+\fB\-\-d\fR, \fB\-\-data\fR=\fIFILE\fR
+Database file
+.TP
+\fB\-\-v\fR, \fB\-\-verbose\fR
+Display verbose information
+.TP
+\fB\-\-info\fR
+Display full information on an entry
+.TP
+\fB\-\-debug\fR
+Debugging only
+.TP
+\fB\-\-i\fR, \fB\-\-include\fR=\fIDIR\fR
+Include directories
+.TP
+\fB\-\-testfile\fR=\fIFILE\fR
+Run tests from a file
+.TP
+\fB\-\-rank\fR=\fIFILE\fR
+Generate ranking scores
+.TP
+\fB\-\-combine\fR=\fIFILE\fR
+Combine multiple databases
+.TP
+\fB\-\-mode\fR=\fISTR\fR
+Web mode
+
+.SH AUTHOR
+The text for this page was constructed from the Hoogle search engine's web page
+and the output of the help2man program by Erik de Castro Lopo
+<erikd@mega-nerd.com>, for the Debian GNU/Linux system (but may be used by
+others).
