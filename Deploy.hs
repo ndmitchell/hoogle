@@ -59,7 +59,8 @@ sanity = do
     let grab x = takeWhile (/= "") $ drop 1 $ dropWhile (/= x) src
 
     dbs <- filterM (doesFileExist . (</>) "database") =<< getDirectoryContents "database"
-    check (grab "data-files:") dbs
+    let dataFiles = grab "data-files:"
+    check dataFiles (dbs `intersect` dataFiles)
 
     system_ "ghc -M src/Main -isrc -i."
     deps <- readFile "Makefile"
