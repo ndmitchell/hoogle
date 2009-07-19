@@ -23,6 +23,9 @@ import General.CGI(cgiArgs)
 import Paths_hoogle
 
 
+logFile = "log.txt"
+
+
 actionWeb :: CmdQuery -> IO ()
 actionWeb q = do
     logMessage q
@@ -44,7 +47,7 @@ logMessage :: CmdQuery -> IO ()
 logMessage q = do
     time <- getCurrentTime
     cgi <- liftM (fromMaybe []) cgiArgs
-    appendFile "log.txt" $ (++ "\n") $ unwords $
+    appendFile logFile $ (++ "\n") $ unwords $
         [showGregorian (utctDay time)
         ,show (queryText q)] ++
         ["?" ++ a ++ "=" ++ c ++ b ++ c | (a,b) <- cgi, let c = ['\"' | any isSpace b]]

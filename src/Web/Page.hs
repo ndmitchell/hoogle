@@ -3,16 +3,18 @@ module Web.Page(header, footer, welcome) where
 
 import Web.Text
 
+resourcePath = "res/"
+
 header query =
     ["<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
     ,"<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>"
     ,"  <head profile='http://a9.com/-/spec/opensearch/1.1/'>"
     ,"     <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1' />"
     ,"     <title>" ++ (query +? " - ") ++ "Hoogle</title>"
-    ,"     <link type='text/css' rel='stylesheet' href='res/hoogle.css' />"
-    ,"     <link type='image/png' rel='icon' href='res/favicon.png' />"
-    ,"     <link type='application/opensearchdescription+xml' rel='search' href='res/search.xml' title='Hoogle' />"
-    ,"     <script type='text/javascript' src='res/hoogle.js'> </script>"
+    ,"     <link type='text/css' rel='stylesheet' href='" ++ resourcePath ++ "hoogle.css' />"
+    ,"     <link type='image/png' rel='icon' href='" ++ resourcePath ++ "favicon.png' />"
+    ,"     <link type='application/opensearchdescription+xml' rel='search' href='" ++ resourcePath ++ "search.xml' title='Hoogle' />"
+    ,"     <script type='text/javascript' src='" ++ resourcePath ++ "hoogle.js'> </script>"
     ,"  </head>"
     ,"  <body onload='on_load()'>"
     ] ++ links ++ search query
@@ -30,7 +32,7 @@ search query =
     ["<form action='.' method='get'>"
     ,"  <div id='search'>"
     ,"    <a id='logo' href='http://haskell.org/hoogle/'>" ++
-           "<img src='res/hoogle.png' alt='Hoogle' />" ++
+           "<img src='" ++ resourcePath ++ "hoogle.png' alt='Hoogle' />" ++
          "</a>"
     ,"    <input name='hoogle' id='hoogle' type='text' value=\"" ++ query ++ "\" />"
     ,"    <input id='submit' type='submit' value='Search' />"
