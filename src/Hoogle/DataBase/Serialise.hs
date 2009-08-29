@@ -12,8 +12,9 @@ import Paths_hoogle
 import Data.Version
 
 
+-- FIXME: Has become hard coded, go back to minor version lumps
 hooVersion :: [Int]
-hooVersion = take 4 $ versionBranch version ++ repeat 0
+hooVersion = [4,0,0,5] -- take 4 $ versionBranch version ++ repeat 0
 
 hooString = "HOOG"
 
