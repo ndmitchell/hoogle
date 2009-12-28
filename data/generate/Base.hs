@@ -64,7 +64,7 @@ basePrefix :: [String]
 basePrefix =
     ["@package base"
     ,"@version 4.0.0.0"
-    ,"@haddock http://haskell.org/ghc/docs/latest/html/libraries/base/"
+    ,"@haddock http://haskell.org/ghc/docs/latest/html/libraries/base-4.2.0.0/"
     ,"@hackage http://haskell.org/ghc/docs/latest/html/libraries/"
     ]
 
