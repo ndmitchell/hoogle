@@ -10,7 +10,7 @@ import Text.ParserCombinators.Parsec
 ascSymbols = "!#$%&*+./<=>?@\\^|-~:"
 
 parseQuery :: String -> Either ParseError Query
-parseQuery input = parse parsecQuery "" input
+parseQuery = parse parsecQuery ""
 
 
 -- TODO: I don't think this handles spaces/quotes properly in the right
@@ -25,7 +25,7 @@ parseCmdLineQuery args = parseQuery $ unwords $ map f args
 merge (Query a1 b1 c1 d1) (Query a2 b2 c2 d2) =
         Query (a1++a2) (b1++b2) (c1 `mplus` c2) (d1++d2)
 
-merges xs = foldr merge blankQuery xs
+merges = foldr merge blankQuery
 
 
 parsecQuery :: Parser Query

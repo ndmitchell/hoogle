@@ -82,7 +82,7 @@ removeTApp = transform f
 
 instance Uniplate Type where
     uniplate (TApp x xs) = (x:xs, \(x:xs) -> TApp x xs)
-    uniplate (TFun xs) = (xs, \xs -> TFun xs)
+    uniplate (TFun xs) = (xs, TFun)
     uniplate x = ([], \[] -> x)
 
 onTypeSig :: BiplateType TypeSig Type

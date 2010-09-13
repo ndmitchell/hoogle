@@ -97,7 +97,7 @@ askSuggest sug q@(TypeSig con typ)
         | otherwise = Nothing
     where
         tries = map fromSuggest sug
-        get x = case catMaybes $ map (lookupTrie $ map toLower x) tries of
+        get x = case mapMaybe (lookupTrie $ map toLower x) tries of
                     [] -> Nothing
                     xs -> Just $ foldr1 joinItem xs
 

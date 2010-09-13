@@ -52,7 +52,7 @@ hGetInt hndl = do
     return $! (w4 `shiftL` 24) .|.
               (w3 `shiftL` 16) .|.
               (w2 `shiftL`  8) .|.
-              (w1)
+              w1
 
 
 hGetByte :: Handle -> IO Int

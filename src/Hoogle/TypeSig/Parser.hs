@@ -7,7 +7,7 @@ import General.Code
 
 
 parseTypeSig :: String -> Either ParseError TypeSig
-parseTypeSig input = parse (do x <- parsecTypeSig ; eof ; return x) "" input
+parseTypeSig = parse (do x <- parsecTypeSig ; eof ; return x) ""
 
 
 parsecTypeSig :: Parser TypeSig
@@ -19,11 +19,11 @@ parsecTypeSig = do whites
         -- all the parser must swallow up all trailing white space after them
         context = try acontext <|> return []
         
-        acontext = do x <- conitems <|> (conitem >>= return . (:[]))
+        acontext = do x <- conitems <|> fmap (:[]) conitem
                       white $ char '=' >> oneOf "#>"
                       return x
         
-        conitems = between (wchar '(') (wchar ')') $ conitem `sepBy1` (wchar ',')
+        conitems = between (wchar '(') (wchar ')') $ conitem `sepBy1` wchar ','
         conitem = typ1
         
     

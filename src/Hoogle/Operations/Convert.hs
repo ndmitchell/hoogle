@@ -17,7 +17,7 @@ convert debugCheck deps tb db = do
             let y = createDataBase dbs x
             saveDataBase db y
 
-            when (debugCheck) $ do
+            when debugCheck $ do
                 putStr "Validating... "
                 hFlush stdout
                 z <- loadDataBase db
