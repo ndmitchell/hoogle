@@ -2,6 +2,7 @@
 module Hoogle.Query.Type where
 
 import Data.Maybe
+import Data.Monoid
 import Data.Generics.UniplateOn
 
 import General.Code
@@ -11,8 +12,6 @@ import Hoogle.TypeSig.All
 usefulQuery query = not (null (names query)) || isJust (typeSig query)
 
 
-blankQuery = Query [] [] Nothing []
-
 data Query = Query {
         scope :: [Scope],
         names :: [String],
@@ -20,6 +19,11 @@ data Query = Query {
         flags :: [Flag]
     }
     deriving Show
+
+instance Monoid Query where
+    mempty = Query [] [] Nothing []
+    mappend (Query a1 b1 c1 d1) (Query a2 b2 c2 d2) =
+        Query (a1++a2) (b1++b2) (c1 `mplus` c2) (d1++d2)
 
 
 instance Eq Query where

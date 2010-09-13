@@ -1,13 +1,14 @@
 
 module Test.Parse_Query(parse_Query) where
 
+import Data.Monoid
 import Test.General
 import Hoogle.Query.All
 import Hoogle.TypeSig.All
 
 parse_Query = do
     let (===) = parseTest parseQuery
-        q = blankQuery
+        q = mempty
 
     "/info" === q{flags = [Flag "info" ""]}
     "--info" === q{flags = [Flag "info" ""]}

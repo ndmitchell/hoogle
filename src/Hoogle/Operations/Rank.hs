@@ -1,6 +1,7 @@
 
 module Hoogle.Operations.Rank(rank) where
 
+import Data.Monoid
 import General.Code
 import Hoogle.Query.All
 import Hoogle.Search.All
@@ -56,7 +57,7 @@ runRankTest tb (RankTest t xs) = order $ map grab xs2
 
         res = searchAll [db] q
         db = createDataBase [] $ tb ++ [(ItemFunc a b, "") | (a,b) <- xs2]
-        q = blankQuery{typeSig=Just t}
+        q = mempty{typeSig=Just t}
 
         grab :: (String,TypeSig) -> (TypeSig,[Cost])
         grab (name,typ) = (,) typ $
