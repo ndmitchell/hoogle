@@ -5,7 +5,6 @@ module Data.Key(
     ) where
 
 import Data.List
-import General.Code
 
 
 data Key k v = Key k v

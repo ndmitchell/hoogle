@@ -1,7 +1,6 @@
 
 module Hoogle.Operations.Combine(combine) where
 
-import General.Code
 import Hoogle.DataBase.All
 
 

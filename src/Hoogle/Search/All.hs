@@ -4,7 +4,6 @@ module Hoogle.Search.All(
     searchAll, searchRange
     ) where
 
-import Data.Maybe
 import Data.Range
 
 import Hoogle.DataBase.All

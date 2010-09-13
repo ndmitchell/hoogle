@@ -4,11 +4,9 @@ module Hoogle.DataBase.Suggest where
 import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Trie as Trie
-import Data.Binary.Defer.Index
 import qualified Data.Map as Map
 import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
-import Hoogle.Item.All
 import Data.Generics.Uniplate
 
 

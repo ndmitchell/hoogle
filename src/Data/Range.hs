@@ -16,7 +16,6 @@ module Data.Range(
     listRange, mergeRanges
     ) where
 
-import Data.List
 import General.Code
 
 

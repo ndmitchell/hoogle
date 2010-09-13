@@ -3,7 +3,6 @@ module Hoogle.TextBase.Type where
 
 import Hoogle.TypeSig.All
 import Data.Binary.Defer
-import General.Code
 
 
 -- (the item, any haddock documentation)

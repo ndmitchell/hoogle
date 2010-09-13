@@ -9,7 +9,6 @@ module Data.Heap(
 
 import Prelude
 import qualified Data.Map as Map
-import Data.Maybe
 
 
 -- (k,v) pairs are stored in reverse order

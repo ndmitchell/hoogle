@@ -2,7 +2,6 @@
 module Hoogle.Query.Type where
 
 import Data.Maybe
-import Data.Char
 import Data.Generics.UniplateOn
 
 import General.Code

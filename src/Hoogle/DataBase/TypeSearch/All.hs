@@ -13,7 +13,6 @@ import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Hoogle.Item.All
 

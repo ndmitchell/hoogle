@@ -12,7 +12,6 @@ import qualified Data.Map as Map
 import Data.Range
 import General.Code
 import Hoogle.Item.All
-import Hoogle.TextBase.All
 
 
 ---------------------------------------------------------------------

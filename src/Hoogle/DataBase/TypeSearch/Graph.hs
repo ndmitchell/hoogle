@@ -10,20 +10,14 @@ module Hoogle.DataBase.TypeSearch.Graph(
     graphSearch
     ) where
 
-import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.Result
-import Hoogle.DataBase.Aliases
-import Hoogle.Item.All
 import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import qualified Data.IntMap as IntMap
 import qualified Data.Map as Map
-import qualified Data.Heap as Heap
 import General.Code
-import Data.Key
 
 
 

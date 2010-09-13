@@ -8,9 +8,7 @@ import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
-import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Hoogle.TypeSig.All
 import Hoogle.Item.All
 import General.Code
 import qualified Data.IntSet as IntSet

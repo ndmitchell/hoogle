@@ -6,7 +6,6 @@ import Hoogle.All
 import Hoogle.Query.All
 import Hoogle.Item.All
 import Hoogle.Search.All
-import Numeric
 import General.Code
 import System.IO.Unsafe(unsafeInterleaveIO)
 import Web.Page
