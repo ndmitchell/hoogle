@@ -1,0 +1,3 @@
+Changelog for Hoogle
+
+    Start of changelog
