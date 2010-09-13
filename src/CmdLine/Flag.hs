@@ -127,9 +127,9 @@ flagsCmdLine = parseFlags PCmdLine
 flagsHelp :: String
 flagsHelp = unlines . map concat . tabulate $ map f res
     where
-        f (a,b,c) = ["  ", "--" <+ a, " --" ++ b, "  " ++ c]
+        f (a,b,c) = ["  ", if null a then "" else "--" ++ a, " --" ++ b, "  " ++ c]
 
-        res = [ (shortOpt (names i) +> typ (argument i), longOpt (names i) ++ typ (argument i), description i)
+        res = [ (shortOpt (names i), longOpt (names i) ++ typ (argument i), description i)
               | i <- flagInfo, PCmdLine `elem` permissions i]
 
         shortOpt ([x]:_) = [x]
@@ -140,9 +140,6 @@ flagsHelp = unlines . map concat . tabulate $ map f res
 
         typ x = ['='|s/=""] ++ s
             where s = show x
-        
-        x +> y = if null x then "" else x ++ y
-        x <+ y = if null y then "" else x ++ y
 
 
 tabulate :: [[String]]                -- rectangular matrix per lines
