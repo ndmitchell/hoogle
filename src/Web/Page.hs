@@ -42,7 +42,7 @@ search query =
 
 
 footer =
-    ["    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2009</p>"
+    ["    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2010</p>"
     ,"  </body>"
     ,"</html>"
     ]

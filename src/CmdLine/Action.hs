@@ -30,7 +30,7 @@ actionCmdLine q | not $ null $ queryBadFlags q =
 
 
 actionCmdLine q | Version `elem` queryFlags q = putStr $ unlines
-    ["Hoogle - (C) Neil Mitchell 2004-2008, University of York, UK"
+    ["Hoogle - (C) Neil Mitchell 2004-2010"
     ,"Version " ++ showVersion version]
 
 
