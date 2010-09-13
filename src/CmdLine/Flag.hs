@@ -104,8 +104,6 @@ cmdFlagPermission flag = "Flag not allowed when running in this mode, flag " ++ 
 
 cmdFlagUnknown flag = "Unknown flag " ++ flag
 
-cmdFlagDuplicate flag = "The flag " ++ flag ++ " may only occur once, but occured multiple times"
-
 
 ---------------------------------------------------------------------
 -- Operations on Flags

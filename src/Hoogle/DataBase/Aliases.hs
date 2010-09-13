@@ -23,7 +23,7 @@ instance Show Aliases where
 
 
 data Alias = Alias
-    {args :: [String] -- the free variables
+    {_args :: [String] -- the free variables
     ,rhs :: Type -- the resulting type
     }
 

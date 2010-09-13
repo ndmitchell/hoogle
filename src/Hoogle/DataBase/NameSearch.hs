@@ -193,7 +193,6 @@ completionsNameSearch (NameSearch items _) str =
         map ((!) items) [start .. arraySize items - 1]
     where
         lstr = map toLower str
-        nstr = length str
 
         (exact,prefix) = startPos items lstr
         start = fromMaybe prefix exact

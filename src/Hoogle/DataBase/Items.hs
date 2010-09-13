@@ -93,14 +93,14 @@ mergeItems xs = Items
         (newIndex $ concat $ reverse ms)
         (newIndex $ sortOn entryScore $ concat $ reverse es)
     where
-        (pi,ps,mi,ms,ei,es) = foldl' f (0,[],0,[],0,[]) xs
+        (_,ps,_,ms,_,es) = foldl' f (0,[],0,[],0,[]) xs
 
         f (pi,ps,mi,ms,ei,es) (Items p m e) =
                 (pi+length p3,p3:ps, mi+length m3,m3:ms, ei+length e3,e3:es)
             where
                 (p2,p3) = add pi p id
                 (m2,m3) = add mi m id
-                (e2,e3) = add ei e $ \x -> x{entryModule = liftM (\x -> m2 !! linkKey x) $ entryModule x
+                (_ ,e3) = add ei e $ \x -> x{entryModule = liftM (\x -> m2 !! linkKey x) $ entryModule x
                                             ,entryPackage = p2 !! linkKey (entryPackage x)}
 
                 add i xs f = (zipWith newLink [i..] xs2, xs2)

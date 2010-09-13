@@ -21,12 +21,6 @@ mergeDataBaseResults = map fromKey . fold [] merge . map (map $ toKey f)
     where f r = (resultScore r, entryScore $ fromLink $ resultEntry r)
 
 
-entryScoreModule :: Maybe Module -> Entry -> EntryScore
-entryScoreModule mod e = EntryScore
-    (length m) (map toLower $ entryName e) (entryName e) m
-    where m = maybe [] moduleName mod
-
-
 ---------------------------------------------------------------------
 -- MERGE QUERY
 

@@ -36,11 +36,6 @@ parseTextItems file = join . f [] . zip [1..] . lines
             where (err,items) = unzipEithers xs
 
 
-isTextItem :: String -> Bool
-isTextItem x = not $ null x2 || "--" `isPrefixOf` x2
-    where x2 = dropWhile isSpace x
-
-
 parsecTextItem :: Parser TextItem
 parsecTextItem = attribute <|> item
     where
