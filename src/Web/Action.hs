@@ -1,5 +1,5 @@
 
-module Web.Action(actionWeb) where
+module Web.Action(action) where
 
 import CmdLine.All
 import Hoogle.All
@@ -25,8 +25,8 @@ import Paths_hoogle
 logFile = "log.txt"
 
 
-actionWeb :: CmdQuery -> IO ()
-actionWeb q = do
+action :: CmdQuery -> IO ()
+action q = do
     logMessage q
     res <-
         if Mode "suggest" `elem` queryFlags q then do

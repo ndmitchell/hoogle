@@ -1,8 +1,8 @@
 
-module CmdLine.Search(actionSearch) where
+module Console.Search(actionSearch) where
 
-import CmdLine.Flag
-import CmdLine.Files
+import CmdLine.All
+import Console.Files
 import Data.Range
 import Data.TagStr
 import General.Code

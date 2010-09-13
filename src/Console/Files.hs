@@ -1,7 +1,7 @@
 
-module CmdLine.Files(getDataBaseFiles, getDataBaseFilesNoDefault) where
+module Console.Files(getDataBaseFiles, getDataBaseFilesNoDefault) where
 
-import CmdLine.Flag
+import CmdLine.All
 import General.Glob
 import General.Code
 import Hoogle.Query.All

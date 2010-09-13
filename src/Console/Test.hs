@@ -1,5 +1,5 @@
 
-module CmdLine.Test(testFile) where
+module Console.Test(testFile) where
 
 import Hoogle.All
 import Hoogle.Item.All
