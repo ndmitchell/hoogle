@@ -3,3 +3,16 @@
 :load src\Main.hs src\Paths.hs
 
 :def test const $ return ":main --test"
+
+:{
+:def hlint const $ return $ unlines
+    [":!hlint src --report"
+    ,":!start report.html"]
+:}
+
+:{
+:def extra const $
+    let msg = [":test  - run the test suit"
+              ,":hlint - run HLint on the code"]
+    in putStr (unlines msg) >> return []
+:}
