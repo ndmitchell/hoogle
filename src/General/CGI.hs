@@ -4,7 +4,7 @@
 -}
 
 
-module General.CGI(cgiArgs, escape, escapeUpper, escapeLower, asCgi, escapeHTML, escapeAttrib) where
+module General.CGI(cgiArgs, escape, asCgi, escapeHTML, escapeAttrib) where
 
 import General.TextUtil
 import System.Environment
@@ -67,21 +67,11 @@ unescapeChar a b = chr $ (f a * 16) + f b
 
 -- | Decide how you want to encode individual characters
 --   i.e. upper or lower case
-escapeWith :: (Char -> Char) -> String -> String
-escapeWith f (x:xs) | isAlphaNum x = x : escapeWith f xs
-                    | otherwise    = '%' : escapeCharWith f x ++ escapeWith f xs
-escapeWith f [] = []
-
-
-escapeCharWith :: (Char -> Char) -> Char -> String
-escapeCharWith f x = case map f $ showHex (ord x) "" of
-                          [x] -> ['0',x]
-                          x   -> x
-
-escapeUpper = escapeWith toUpper
-escapeLower = escapeWith toLower
-escape = escapeLower
-
+escape :: String -> String
+escape (x:xs) | isAlphaNum x = x : escape xs
+              | otherwise = '%' : f (showHex (ord x) "") ++ escape xs
+    where f x = ['0' | length x == 1] ++ x
+escape [] = []
 
 
 -- | Take a piece of text and escape all the HTML special bits
