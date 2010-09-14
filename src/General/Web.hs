@@ -4,7 +4,7 @@
 -}
 
 
-module General.CGI(cgiArgs, escape, asCgi, escapeHTML, escapeAttrib) where
+module General.Web(cgiArgs, escape, asCgi, escapeHTML, escapeAttrib) where
 
 import General.TextUtil
 import System.Environment

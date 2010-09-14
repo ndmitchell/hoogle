@@ -18,7 +18,7 @@ import General.Code
 import Text.ParserCombinators.Parsec
 
 import CmdLine.Flag
-import General.CGI
+import General.Web
 import Hoogle.Query.All
 
 

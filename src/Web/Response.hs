@@ -18,7 +18,7 @@ import Data.Generics.Uniplate
 
 import Data.Time.Clock
 import Data.Time.Calendar
-import General.CGI(cgiArgs)
+import General.Web(cgiArgs)
 import Paths_hoogle
 
 
