@@ -36,6 +36,7 @@ data CmdFlag = Version           -- ^ Version information
              | Rank FilePath     -- ^ Generate rankings
              | Combine FilePath  -- ^ Merge a set of databases
              | Mode String       -- ^ Web modes
+             | Server            -- ^ Server
                deriving (Show,Eq {-! Enum !-} )
 
 
@@ -92,6 +93,7 @@ flagInfo =
     ,f (ArgFileIn Rank ["txt"]) ["rank"] [PCmdLine,PMultiple] "Generate ranking scores"
     ,f (ArgFileIn Combine ["hoo"]) ["combine"] [PCmdLine,PMultiple] "Combine multiple databases"
     ,f (ArgStr Mode) ["mode"] [PCmdLine,PWebArgs] "Web mode"
+    ,f (ArgNone Server) ["server"] [PCmdLine] "Start a server"
     ]
     where f = FlagInfo
 
@@ -214,7 +216,6 @@ parseBool v | v2 `elem` ["","on","yes","1","true","meep"] = [True]
 --------------------------------------------------------
 -- DERIVES GENERATED CODE
 -- DO NOT MODIFY BELOW THIS LINE
--- CHECKSUM: 1401092643
 
 instance Enum CmdFlag
     where toEnum 0 = Version{}
@@ -235,6 +236,8 @@ instance Enum CmdFlag
           toEnum 15 = TestFile{}
           toEnum 16 = Rank{}
           toEnum 17 = Combine{}
+          toEnum 18 = Mode{}
+          toEnum 19 = Server{}
           toEnum n = error ((++) "toEnum " ((++) (show n) ", not defined for CmdFlag"))
           fromEnum (Version {}) = 0
           fromEnum (Web {}) = 1
@@ -254,3 +257,5 @@ instance Enum CmdFlag
           fromEnum (TestFile {}) = 15
           fromEnum (Rank {}) = 16
           fromEnum (Combine {}) = 17
+          fromEnum (Mode {}) = 18
+          fromEnum (Server {}) = 19
