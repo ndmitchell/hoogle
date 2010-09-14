@@ -4,7 +4,10 @@
 -}
 
 
-module General.Web(cgiArgs, escape, asCgi, escapeHTML, escapeAttrib) where
+module General.Web(
+    cgiArgs, escape, asCgi, escapeHTML, escapeAttrib,
+    httpRequest, httpResponse
+    ) where
 
 import General.TextUtil
 import System.Environment
@@ -13,6 +16,7 @@ import Data.Maybe
 import Data.Char
 import Numeric
 import Data.List
+import System.IO
 
 
 -- The BOA server does not set QUERY_STRING if it would be blank.
@@ -89,3 +93,17 @@ escapeAttrib = concatMap f . escapeHTML
     where
         f '\"' = "&quot;"
         f x = [x]
+
+
+---------------------------------------------------------------------
+-- HTTP STUFF
+
+httpRequest :: Handle -> IO [String]
+httpRequest h = do
+    x <- hGetLine h
+    if all isSpace x then return [] else do
+        xs <- httpRequest h
+        return $ x : xs
+
+httpResponse :: Handle -> String -> IO ()
+httpResponse h xs = hPutStr h $ "HTTP/1.1 200 OK\r\n\r\n" ++ xs

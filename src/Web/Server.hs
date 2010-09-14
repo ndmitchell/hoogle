@@ -2,6 +2,7 @@
 module Web.Server(server) where
 
 import General.Code
+import General.Web
 import Control.Concurrent
 import Control.Exception
 import Network
@@ -15,11 +16,11 @@ server = withSocketsDo $ do
         (forkIO $ forever $ do
             (h,_,_) <- accept sock
             forkIO $ do
-                s <- getRequest h
+                s <- httpRequest h
                 let url = words (head s) !! 1
                 print url
                 res <- talk url
-                hPutStr h $ intercalate "\r\n" $ "HTTP/1.1 200 OK" : ["",res]
+                httpResponse h res
                 hClose h
         )
         (\t -> do killThread t ; putStrLn "killThread")
@@ -29,19 +30,5 @@ server = withSocketsDo $ do
             return ())
 
 
----------------------------------------------------------------------
--- PAGE HANDLER
-
 talk :: String -> IO String
 talk x = return $ show x
-
-
----------------------------------------------------------------------
--- HTTP METHODS
-
-getRequest :: Handle -> IO [String]
-getRequest h = do
-    x <- hGetLine h
-    if all isSpace x then return [] else do
-        xs <- getRequest h
-        return $ x : xs
