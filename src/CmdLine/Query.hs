@@ -12,7 +12,7 @@
     * Which flags were specified, and which were erroneous.
 -}
 
-module CmdLine.Query(cmdQuery, CmdQuery(..)) where
+module CmdLine.Query(cmdQuery, cmdQueryCGI, CmdQuery(..)) where
 
 import General.Code
 import Text.ParserCombinators.Parsec

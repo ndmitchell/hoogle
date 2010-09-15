@@ -1,6 +1,6 @@
 
 module CmdLine.All(
-    cmdQuery, CmdQuery(..), CmdFlag(..), flagsHelp
+    cmdQuery, cmdQueryCGI, CmdQuery(..), CmdFlag(..), flagsHelp
     ) where
 
 import CmdLine.Query

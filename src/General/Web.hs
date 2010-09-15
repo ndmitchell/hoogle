@@ -1,23 +1,68 @@
+{-# LANGUAGE PatternGuards #-}
 
 {- |
-    Parse the CGI arguments
+    General web utility functions.
 -}
 
-
 module General.Web(
-    cgiArgs, escape, asCgi, escapeHTML, escapeAttrib,
-    httpRequest, httpResponse
+    Header, headerContentType,
+    escapeURL, unescapeURL,
+    escapeHTML,
+    cgiArgs, cgiResponse,
+    httpRequest, httpGetArgs, httpResponse
     ) where
 
 import General.TextUtil
 import System.Environment
 import Control.Monad
-import Data.Maybe
 import Data.Char
-import Numeric
 import Data.List
+import Data.Maybe
+import Numeric
 import System.IO
 
+
+data Header = Header String String
+
+instance Show Header where
+    show (Header x y) = x ++ ": " ++ y
+
+headerContentType x = Header "Content-type" x
+
+
+---------------------------------------------------------------------
+-- HTML STUFF
+
+-- | Take a piece of text and escape all the HTML special bits
+escapeHTML :: String -> String
+escapeHTML = concatMap f
+    where
+        f '<' = "&lt;"
+        f '>' = "&gt;"
+        f '&' = "&amp;"
+        f  x  = [x]
+
+
+---------------------------------------------------------------------
+-- URL STUFF
+
+-- | Take an escape encoded string, and return the original
+unescapeURL :: String -> String
+unescapeURL ('+':xs) = ' ' : unescapeURL xs
+unescapeURL ('%':a:b:xs) | [(v,"")] <- readHex [a,b] = chr v : unescapeURL xs
+unescapeURL (x:xs) = x : unescapeURL xs
+unescapeURL [] = []
+
+
+escapeURL :: String -> String
+escapeURL (x:xs) | isAlphaNum x = x : escapeURL xs
+                 | otherwise = '%' : f (showHex (ord x) "") ++ escapeURL xs
+    where f x = ['0' | length x == 1] ++ x
+escapeURL [] = []
+
+
+---------------------------------------------------------------------
+-- CGI STUFF
 
 -- The BOA server does not set QUERY_STRING if it would be blank.
 -- However, it does always set REQUEST_URI.
@@ -34,65 +79,21 @@ envVariable x = catch (liftM Just $ getEnv x) (const $ return Nothing)
 
 
 cgiArgs :: IO (Maybe [(String, String)])
-cgiArgs = do x <- cgiVariable
-             return $ case x of
-                Nothing -> Nothing
-                Just y -> Just $ parseArgs $ ['=' | '=' `notElem` y] ++ y
-
-
-asCgi :: [(String, String)] -> String
-asCgi x = concat $ intersperse "&" $ map f x
-    where
-        f (a,b) = a ++ "=" ++ escape b
+cgiArgs = do
+    x <- cgiVariable
+    return $ case x of
+        Nothing -> Nothing
+        Just y -> Just $ parseArgs $ ['=' | '=' `notElem` y] ++ y
 
 
 parseArgs :: String -> [(String, String)]
-parseArgs xs = mapMaybe (parseArg . splitPair "=") $ splitList "&" xs
-
-parseArg Nothing = Nothing
-parseArg (Just (a,b)) = Just (unescape a, unescape b)
-
-
--- | Take an escape encoded string, and return the original
-unescape :: String -> String
-unescape ('+':xs) = ' ' : unescape xs
-unescape ('%':a:b:xs) = unescapeChar a b : unescape xs
-unescape (x:xs) = x : unescape xs
-unescape [] = []
+parseArgs xs = mapMaybe (f . splitPair "=") $ splitList "&" xs
+    where f Nothing = Nothing
+          f (Just (a,b)) = Just (unescapeURL a, unescapeURL b)
 
 
--- | Takes two hex digits and returns the char
-unescapeChar :: Char -> Char -> Char
-unescapeChar a b = chr $ (f a * 16) + f b
-    where
-        f x | isDigit x = ord x - ord '0'
-            | otherwise = ord (toLower x) - ord 'a' + 10
-
-
--- | Decide how you want to encode individual characters
---   i.e. upper or lower case
-escape :: String -> String
-escape (x:xs) | isAlphaNum x = x : escape xs
-              | otherwise = '%' : f (showHex (ord x) "") ++ escape xs
-    where f x = ['0' | length x == 1] ++ x
-escape [] = []
-
-
--- | Take a piece of text and escape all the HTML special bits
-escapeHTML :: String -> String
-escapeHTML = concatMap f
-    where
-        f '<' = "&lt;"
-        f '>' = "&gt;"
-        f '&' = "&amp;"
-        f  x  = [x]
-
-
-escapeAttrib :: String -> String
-escapeAttrib = concatMap f . escapeHTML
-    where
-        f '\"' = "&quot;"
-        f x = [x]
+cgiResponse :: [Header] -> String -> IO ()
+cgiResponse xs x = putStrLn $ intercalate "\n" $ map show xs ++ ["",x]
 
 
 ---------------------------------------------------------------------
@@ -105,5 +106,14 @@ httpRequest h = do
         xs <- httpRequest h
         return $ x : xs
 
-httpResponse :: Handle -> String -> IO ()
-httpResponse h xs = hPutStr h $ "HTTP/1.1 200 OK\r\n\r\n" ++ xs
+
+httpGetArgs :: Handle -> IO (String,[(String,String)])
+httpGetArgs h = do
+    xs <- httpRequest h
+    let url = words (head xs) !! 1
+    let (page,args) = fromMaybe (url,"") $ splitPair "?" url
+    return (page, parseArgs args)
+
+
+httpResponse :: Handle -> [Header] -> String -> IO ()
+httpResponse h xs x = hPutStr h $ intercalate "\r\n" $ "HTTP/1.1 200 OK" : map show xs ++ ["",x]

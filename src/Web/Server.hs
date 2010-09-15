@@ -3,6 +3,8 @@ module Web.Server(server) where
 
 import General.Code
 import General.Web
+import CmdLine.All
+import Web.Response
 import Control.Concurrent
 import Control.Exception
 import Network
@@ -16,11 +18,10 @@ server = withSocketsDo $ do
         (forkIO $ forever $ do
             (h,_,_) <- accept sock
             forkIO $ do
-                s <- httpRequest h
-                let url = words (head s) !! 1
-                print url
-                res <- talk url
-                httpResponse h res
+                (page,args) <- httpGetArgs h
+                print (page,args)
+                (heads,body) <- talk page args
+                httpResponse h heads body
                 hClose h
         )
         (\t -> do killThread t ; putStrLn "killThread")
@@ -30,5 +31,10 @@ server = withSocketsDo $ do
             return ())
 
 
-talk :: String -> IO String
-talk x = return $ show x
+talk :: String -> [(String,String)] -> IO ([Header], String)
+talk page args | page `elem` ["/","/hoogle"] = response =<< cmdQueryCGI args
+talk page args | takeDirectory page == "/res" = do
+    h <- openBinaryFile ("src/res/" ++ takeFileName page) ReadMode
+    src <- hGetContents h
+    return ([], src)
+talk page args = return ([], "unknown")

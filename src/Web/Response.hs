@@ -18,27 +18,26 @@ import Data.Generics.Uniplate
 
 import Data.Time.Clock
 import Data.Time.Calendar
-import General.Web(cgiArgs)
+import General.Web hiding (escapeHTML)
 import Paths_hoogle
 
 
 logFile = "log.txt"
 
 
-response :: CmdQuery -> IO String
+response :: CmdQuery -> IO ([Header], String)
 response q = do
     logMessage q
     (typ,res) <-
         if Mode "suggest" `elem` queryFlags q then do
             fmap ((,) "application/json") $ runSuggest q
         else do
-            putStr "Content-type: text/html\n\n"
             (skipped,dbs) <- loadDataBases q
             return $ (,) "text/html" $ unlines $ header (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
     when (Debug `elem` queryFlags q) $
         writeFile "temp.htm" res
     sequence_ [writeFile x res | Output x <- queryFlags q]
-    return $ "Content-type: " ++ typ ++ "\n\n" ++ res
+    return ([headerContentType typ], res)
 
 
 logMessage :: CmdQuery -> IO ()
