@@ -9,7 +9,7 @@ import Hoogle.TypeSig.All
 
 
 renderQuery :: Query -> TagStr
-renderQuery x = Tags $ namesig ++ scp ++ itms ++ flgs
+renderQuery x = Tags $ namesig ++ scp ++ itms
     where
         namesig = case (null (names x), isNothing (typeSig x)) of
                       (True, True) -> []
@@ -31,9 +31,3 @@ renderQuery x = Tags $ namesig ++ scp ++ itms ++ flgs
         
         scp = []
         itms = []
-        
-        
-        flgs = concatMap (\x -> [Str " ", Str (f x)]) (flags x)
-            where
-                f (Flag name extra) = "/" ++ name ++ ['='|not $ null extra] ++ q ++ extra ++ q
-                    where q = ['\"' | any isSpace extra]

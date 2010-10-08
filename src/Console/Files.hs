@@ -1,8 +1,8 @@
 
-module Console.Files(getDataBaseFiles, getDataBaseFilesNoDefault) where
+module Console.Files(getDataBaseFiles) where
 
 import CmdLine.All
-import General.Glob
+import CmdLine.Find
 import General.Code
 import Hoogle.Query.All
 import Paths_hoogle(getDataDir)
@@ -10,7 +10,7 @@ import Paths_hoogle(getDataDir)
 
 -- pick "default" if there are not ones specified
 -- otherwise use the CmdFlag and any +package query flags
-getDataBaseFiles :: [CmdFlag] -> Query -> IO [FilePath]
+getDataBaseFiles :: CmdLine -> Query -> IO [FilePath]
 getDataBaseFiles flags q = do
     xs <- getDataBaseFilesNoDefault flags q
     if null xs
@@ -18,17 +18,16 @@ getDataBaseFiles flags q = do
         else return xs
 
 
-getDataBaseFilesNoDefault :: [CmdFlag] -> Query -> IO [FilePath]
+getDataBaseFilesNoDefault :: CmdLine -> Query -> IO [FilePath]
 getDataBaseFilesNoDefault flags q = do
-    let dataFil = [x | DataFile x <- flags]
-        plusPkg = [x | PlusPackage x <- scope q]
+    let plusPkg = [x | PlusPackage x <- scope q]
     rs <- mapM (resolve flags) plusPkg
-    return $ dataFil ++ rs
+    return rs
 
 
-resolve :: [CmdFlag] -> String -> IO FilePath
+resolve :: CmdLine -> String -> IO FilePath
 resolve flags x = do
-    let inc = [x | Include x <- flags]
+    let inc = databaseDir flags
     dataDir <- getDataDir
-    [x] <- globFile (inc++[dataDir]) ["hoo"] x
+    [x] <- findFile (inc++[dataDir]) ["hoo"] x
     return x

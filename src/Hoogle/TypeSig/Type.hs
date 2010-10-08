@@ -1,8 +1,10 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Hoogle.TypeSig.Type where
 
 import Data.Binary.Defer
 import Data.List
+import Data.Data
 import Data.Generics.UniplateOn
 
 
@@ -12,7 +14,7 @@ import Data.Generics.UniplateOn
 
 -- FULL TYPE
 data TypeSig = TypeSig Constraint Type
-               deriving (Eq,Ord)
+               deriving (Eq,Ord,Data,Typeable)
 
 type Constraint = [Type]
 
@@ -21,7 +23,7 @@ type Constraint = [Type]
 -- first argument is a list of contexts, (Context,Variable)
 type TypeContext = [(String,String)]
 data TypeSimp = TypeSimp TypeContext Type
-                deriving (Eq,Ord)
+                deriving (Eq,Ord,Data,Typeable)
 
 instance Show TypeSimp where
     show (TypeSimp c t) = show $ TypeSig [TApp (TLit a) [TVar b] | (a,b) <- c] t
@@ -36,7 +38,7 @@ data Type = TApp Type [Type] -- a list of types, first one being the constructor
           | TLit String -- bound variables, Maybe, ":", "(,)", "(,,)" (tuple)
           | TVar String -- unbound variables, "a"
           | TFun [Type]
-          deriving (Eq,Ord)
+          deriving (Eq,Ord,Data,Typeable)
 
 
 tApp :: Type -> [Type] -> Type

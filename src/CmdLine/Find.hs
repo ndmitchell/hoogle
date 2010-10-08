@@ -1,13 +1,14 @@
 
-module General.Glob(globFile, globDir) where
+-- | Find files/directories given paths that might contain wildcards
+module CmdLine.Find(findFile, findDir) where
 
 import General.Code
 
 
--- Find the file given directories, extensions, search
--- supports * glob key
-globFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]
-globFile dirs exts file = f poss
+-- | Find the file given directories, extensions, search
+--   supports * glob key
+findFile :: [FilePath] -> [String] -> FilePath -> IO [FilePath]
+findFile dirs exts file = f poss
     where
         f [] = exitMessage $ ["Could not find file:"
                              , "    " ++ file
@@ -52,9 +53,9 @@ globMatch glob s | null glob = False
                     | otherwise = f (m:ms) (tail s)
 
 
--- check for existence and crash if not
-globDir :: FilePath -> IO FilePath
-globDir x = do
+-- | Check for existence and crash if not
+findDir :: FilePath -> IO FilePath
+findDir x = do
     x <- canonicalizePath x
     b <- doesDirectoryExist x
     if b then return x else

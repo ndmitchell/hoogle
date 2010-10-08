@@ -13,7 +13,7 @@ import Hoogle.Item.All
 import Data.Binary.Defer.Index
 
 
-actionSearch :: [CmdFlag] -> Query -> IO ()
+actionSearch :: CmdLine -> Query -> IO ()
 actionSearch flags q = do
     db <- getDataBaseFiles flags q
     when verbose $
@@ -25,7 +25,7 @@ actionSearch flags q = do
         putStrLn $ showTag $ fromJust sug
     when verbose $ putStrLn "= ANSWERS ="
 
-    when (isJust (typeSig q) && color) $ do
+    when (isJust (typeSig q) && color flags) $ do
         let view = [ArgPosNum i i | i <- [0..10]]
             tags = renderEntryText view $ renderTypeSig $ fromJust $ typeSig q
         putStrLn $ "Searching for: " ++ showTag tags
@@ -33,7 +33,7 @@ actionSearch flags q = do
     let res = search dbs q
     if null res then
         putStrLn "No results found"
-     else if Info `elemEnum` flags then do
+     else if info flags then do
         let ent = fromLink $ resultEntry $ head res
             pkg = fromLink $ entryPackage ent
         putStrLns 2 $ f $ renderResult $ head res
@@ -43,14 +43,13 @@ actionSearch flags q = do
      else
         putStr $ unlines $ map (f . renderResult) res
     where
-        search | start == 0 && count == maxBound = searchAll
-               | otherwise = searchRange (rangeStartCount start count)
-            where start = headDef 0 [i-1 | Start i <- flags]
-                  count = headDef maxBound [i | Count i <- flags]
+        search | start2 == 0 && count2 == maxBound = searchAll
+               | otherwise = searchRange (rangeStartCount start2 count2)
+            where start2 = maybe 0 (subtract 1) $ start flags
+                  count2 = fromMaybe maxBound $ count flags
 
-        verbose = Verbose `elem` flags
-        color = Color True `elem` flags
-        showTag = if color then showTagConsole else showTagText
+        showTag = if color flags then showTagConsole else showTagText
+        verbose = False
 
         f (m,r,v) = maybe "" (\m -> showModule m ++ " ") m ++
                     showTag r ++ (if verbose then "  -- " ++ v else "")

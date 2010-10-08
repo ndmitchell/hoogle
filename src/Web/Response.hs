@@ -10,7 +10,7 @@ import General.Code
 import System.IO.Unsafe(unsafeInterleaveIO)
 import Web.Page
 import Web.Text
-import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec hiding (count)
 import Data.TagStr
 import Data.Range
 import Data.Binary.Defer.Index
@@ -25,22 +25,24 @@ import Paths_hoogle
 logFile = "log.txt"
 
 
-response :: CmdQuery -> IO ([Header], String)
+response :: CmdLine -> IO ([Header], String)
 response q = do
     logMessage q
     (typ,res) <-
-        if Mode "suggest" `elem` queryFlags q then do
+        if webmode q == Just "suggest" then do
             fmap ((,) "application/json") $ runSuggest q
         else do
             (skipped,dbs) <- loadDataBases q
             return $ (,) "text/html" $ unlines $ header (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
+    {-
     when (Debug `elem` queryFlags q) $
         writeFile "temp.htm" res
     sequence_ [writeFile x res | Output x <- queryFlags q]
+    -}
     return ([headerContentType typ], res)
 
 
-logMessage :: CmdQuery -> IO ()
+logMessage :: CmdLine -> IO ()
 logMessage q = do
     time <- getCurrentTime
     cgi <- liftM (fromMaybe []) cgiArgs
@@ -50,8 +52,8 @@ logMessage q = do
         ["?" ++ a ++ "=" ++ c ++ b ++ c | (a,b) <- cgi, let c = ['\"' | any isSpace b]]
 
 
-runSuggest :: CmdQuery -> IO String
-runSuggest CmdQuery{query=Right Query{scope=[], names=[x], typeSig=Nothing}} = do
+runSuggest :: CmdLine -> IO String
+runSuggest Search{queryParsed=Right Query{scope=[], names=[x], typeSig=Nothing}} = do
     root <- getDataDir
     db <- loadDataBase $ root </> "default.hoo"
     let res = take 8 $ completions db x
@@ -67,8 +69,8 @@ safePackage = all $ \x -> isAlphaNum x || x `elem` "-_"
 -- return the databases you loaded, and those you can't
 -- guarantees not to actually load the databases unless necessary
 -- TODO: Should say which databases are ignored
-loadDataBases :: CmdQuery -> IO ([String], [DataBase])
-loadDataBases CmdQuery{query=Right q} = do
+loadDataBases :: CmdLine -> IO ([String], [DataBase])
+loadDataBases Search{queryParsed=Right q} = do
     let pkgs = nub [x | PlusPackage x <- scope q, safePackage x]
         files = if null pkgs then ["default"] else pkgs
     root <- getDataDir
@@ -79,27 +81,27 @@ loadDataBases _ = return ([], [])
 
 
 -- TODO: Should escape the query text
-runQuery :: [DataBase] -> CmdQuery -> [String]
-runQuery dbs CmdQuery{queryText = text, query = Left err} =
+runQuery :: [DataBase] -> CmdLine -> [String]
+runQuery dbs Search{queryText = text, queryParsed = Left (pos,txt)} =
     ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
     ,"  Query: <tt>" +& pre ++ "<span id='error'>" +& post2 ++ "</span></tt><br/>"
     ,"</p><p>"
-    ,"  Error: " +& drop 1 (dropWhile (/= ':') $ show err) ++ "<br/>"
+    ,"  Error: " +& txt ++ "<br/>"
     ,"</p><p>"
     ,"  For information on what queries should look like, see the"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>user manual</a>."
     ,"</p>"
     ]
     where
-        (pre,post) = splitAt (sourceColumn (errorPos err) - 1) text
+        (pre,post) = splitAt pos text
         post2 = if null post then concat (replicate 3 "&nbsp;") else post
 
 
-runQuery dbs q | not $ usefulQuery $ fromRight $ query q = welcome
+runQuery dbs q | not $ usefulQuery $ fromRight $ queryParsed q = welcome
 
 
-runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
+runQuery dbs cq@Search{queryParsed = Right q} =
     ["<h1>Searching for " ++ qstr ++ "</h1>"] ++
     ["<p>" ++ showTagHTML (transform qurl sug) ++ "</p>" | Just sug <- [suggestQuery dbs q]] ++
     if null res then
@@ -111,14 +113,14 @@ runQuery dbs cq@CmdQuery{query = Right q, queryFlags = flags} =
         [moreResults | not $ null post] ++
         ["</table>"]
     where
-        start = headDef 0 [i-1 | Start i <- flags]
-        count = headDef 20 [n | Count n <- flags]
-        res = zip [0..] $ searchRange (rangeStartCount 0 (start+count+1)) dbs q
-        (pre,res2) = splitAt start res
-        (now,post) = splitAt count res2
+        start2 = maybe 0 (subtract 1 . max 0) $ start cq
+        count2 = maybe 20 (max 1) $ count cq
+        res = zip [0..] $ searchRange (rangeStartCount 0 (start2+count2+1)) dbs q
+        (pre,res2) = splitAt start2 res
+        (now,post) = splitAt count2 res2
 
         moreResults = "<tr><td></td><td><a href=\"" +& urlMore ++ "\" class='more'>Show more results</a></td></tr>"
-        urlMore = "?hoogle=" +% queryText cq ++ "&start=" ++ show (start+count+1) ++ "#more"
+        urlMore = "?hoogle=" +% queryText cq ++ "&start=" ++ show (start2+count2+1) ++ "#more"
 
         qstr = unwords $ ["<b>" +& n ++ "</b>" | n <- names q] ++
                ["::" | names q /= [] && isJust (typeSig q)] ++

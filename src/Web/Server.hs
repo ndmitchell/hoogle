@@ -32,7 +32,7 @@ server = withSocketsDo $ do
 
 
 talk :: String -> [(String,String)] -> IO ([Header], String)
-talk page args | page `elem` ["/","/hoogle"] = response =<< cmdQueryCGI args
+talk page args | page `elem` ["/","/hoogle"] = response =<< cmdLineWeb args
 talk page args | takeDirectory page == "/res" = do
     h <- openBinaryFile ("src/res/" ++ takeFileName page) ReadMode
     src <- hGetContents h
