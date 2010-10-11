@@ -52,9 +52,8 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
                    c <- flags
                    return $ mconcat [a,mempty{typeSig=Just b},c]
 
-        flag = do x <- parseFlagScope ; spaces ; return x
+        flag = try $ do x <- parseFlagScope ; spaces ; return x
         flags = many flag >>= return . mconcat
-                   
 
 
 -- deal with the parsing of:
