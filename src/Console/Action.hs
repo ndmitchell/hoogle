@@ -26,7 +26,10 @@ action (Test files) = do
 action (Rank file) = rank file
 
 
-action (Convert from to) = error "todo - convert" -- actionConvert from to
+action (Convert from to) = do
+    putStrLn $ "Converting " ++ from
+    convert False [] from to
+    putStrLn $ "Written " ++ to
 
 
 action Combine{} = error "todo - combine" {- | Combine{} `elemEnum` queryFlags q = do

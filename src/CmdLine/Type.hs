@@ -69,7 +69,10 @@ rank = Rank def
 
 combine = Combine def
 
-convert = Convert def def
+convert = Convert
+    {srcfile = def &= argPos 0 &= typ "TEXTBASE"
+    ,outfile = def &= argPos 1 &= typ "DATABASE"
+    } &= help "Convert a textbase to a database"
 
 
 {-
