@@ -10,7 +10,6 @@ import General.Code
 import System.IO.Unsafe(unsafeInterleaveIO)
 import Web.Page
 import Web.Text
-import Text.ParserCombinators.Parsec hiding (count)
 import Data.TagStr
 import Data.Range
 import Data.Binary.Defer.Index

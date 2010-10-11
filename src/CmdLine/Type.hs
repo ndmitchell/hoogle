@@ -35,7 +35,7 @@ data CmdLine
     | Rank FilePath
     | Combine FilePath
     | Convert {srcfile :: String, outfile :: String}
-      deriving (Data,Typeable)
+      deriving (Data,Typeable,Show)
 
 blankSearch = Search False Nothing Nothing Nothing False False [] [] (Right mempty) ""
 

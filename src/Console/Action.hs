@@ -18,7 +18,9 @@ action Search{queryText = text, queryParsed = Left (pos,err)} =
                 ,err]
 
 
-action (Test files) = test >> mapM_ (error "todo - test") files
+action (Test files) = do
+    test
+    mapM_ (error "todo - test") files
 
 
 action (Rank file) = rank file
