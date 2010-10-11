@@ -33,7 +33,7 @@ data CmdLine
     | Server
     | Dump {database :: String, section :: [String]}
     | Rank FilePath
-    | Combine FilePath
+    | Combine {srcfiles :: FilePath, outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
       deriving (Data,Typeable,Show)
 
@@ -67,7 +67,10 @@ dump = Dump
 
 rank = Rank def
 
-combine = Combine def
+combine = Combine
+    {srcfiles = def &= args &= typ "INPUT"
+    ,outfile = def &= argPos 0 &= typ "OUTPUT"
+    } &= help "Combine multiple inputs to produce one output"
 
 convert = Convert
     {srcfile = def &= argPos 0 &= typ "TEXTBASE"
