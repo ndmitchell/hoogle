@@ -41,9 +41,10 @@ action Combine{} = error "todo - combine" {- | Combine{} `elemEnum` queryFlags q
         actionDump q outfile
 -}
 
-action Dump{} = error "todo - dump" {- do
-    dbs <- getDataBaseFiles (queryFlags q) (fromRight $ query q)
-    mapM_ (actionDump q) dbs -}
+action (Dump file sections) = do
+    d <- loadDataBase file
+    putStrLn $ "File: " ++ file
+    putStr $ unlines $ map (`showDataBase` d) $ [""|null sections] ++ sections
 
 
 action q@Search{} | not $ usefulQuery $ fromRight $ queryParsed q =
@@ -58,13 +59,6 @@ action q = actionSearch q (fromRight $ queryParsed q)
 -- SPECIFIC ACTIONS
 
 {-
-actionDump :: CmdLine -> FilePath -> IO ()
-actionDump q file = do
-    let part = head [x | Dump x <- queryFlags q]
-    d <- loadDataBase file
-    putStrLn $ "File: " ++ file
-    putStr $ showDataBase part d
-
 actionConvert :: FilePath -> FilePath -> IO ()
 actionConvert infile outfile = do
     let outfile = headDef (replaceExtension infile "hoo") [x | Output x <- queryFlags q]

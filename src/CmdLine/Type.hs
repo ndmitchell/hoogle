@@ -31,7 +31,7 @@ data CmdLine
         }
     | Test {testFiles :: [String]}
     | Server
-    | Dump {database :: String, section :: String}
+    | Dump {database :: String, section :: [String]}
     | Rank FilePath
     | Combine FilePath
     | Convert {srcfile :: String, outfile :: String}
@@ -60,7 +60,10 @@ test = Test {testFiles = def &= args}
 
 server = Server
 
-dump = Dump def def
+dump = Dump
+    {database = def &= argPos 0 &= typ "DATABASE"
+    ,section = def &= args &= typ "SECTION"
+    } &= help "Dump sections of the database to stdout"
 
 rank = Rank def
 
