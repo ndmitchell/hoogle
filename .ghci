@@ -2,7 +2,7 @@
 :set -isrc
 :load src\Main.hs src\Paths.hs
 
-:def test const $ return ":main --test"
+:def test const $ return ":main test"
 
 :{
 :def hlint const $ return $ unlines
