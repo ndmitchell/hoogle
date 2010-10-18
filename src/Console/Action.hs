@@ -56,7 +56,7 @@ action q@Search{} | not $ usefulQuery $ fromRight $ queryParsed q =
                 ,"Try --help for command line options"]
 
 
-action q = actionSearch q (fromRight $ queryParsed q)
+action q@Search{} = actionSearch q (fromRight $ queryParsed q)
 
 
 ---------------------------------------------------------------------

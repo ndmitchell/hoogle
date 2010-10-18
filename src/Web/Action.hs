@@ -7,5 +7,5 @@ import Web.Response
 import General.Web
 
 action :: CmdLine -> IO ()
-action Server{} = server
+action (Server port) = server port
 action q = uncurry cgiResponse =<< response q

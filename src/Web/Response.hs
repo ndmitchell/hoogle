@@ -26,6 +26,7 @@ logFile = "log.txt"
 
 response :: CmdLine -> IO ([Header], String)
 response q = do
+    print q
     logMessage q
     (typ,res) <-
         if webmode q == Just "suggest" then do

@@ -12,6 +12,7 @@ import Data.Monoid
 
 
 isWebCmdLine Search{web=True} = True
+isWebCmdLine Server{} = True
 isWebCmdLine _ = False
 
 
@@ -30,7 +31,7 @@ data CmdLine
         ,queryText :: String
         }
     | Test {testFiles :: [String]}
-    | Server
+    | Server {port :: Int}
     | Dump {database :: String, section :: [String]}
     | Rank {srcfile :: FilePath}
     | Combine {srcfiles :: FilePath, outfile :: String}
@@ -59,6 +60,8 @@ search = Search
 test = Test {testFiles = def &= args}
 
 server = Server
+    {port = 80 &= typ "INT" &= help "Port number"
+    } &= help "Start a Hoogle server"
 
 dump = Dump
     {database = def &= argPos 0 &= typ "DATABASE"
@@ -66,7 +69,8 @@ dump = Dump
     } &= help "Dump sections of the database to stdout"
 
 rank = Rank
-    {srcfile = def &= argPos 0 &= typ "RANKFILE" &= opt "rank.txt"}
+    {srcfile = def &= argPos 0 &= typ "RANKFILE" &= opt "rank.txt"
+    } &= help "Generate ranking information"
 
 combine = Combine
     {srcfiles = def &= args &= typ "INPUT"

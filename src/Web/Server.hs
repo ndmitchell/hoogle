@@ -10,10 +10,9 @@ import Control.Exception
 import Network
 
 
-server :: IO ()
-server = withSocketsDo $ do
-    let port = 4000
-    sock <- listenOn $ PortNumber port
+server :: Int -> IO ()
+server port = withSocketsDo $ do
+    sock <- listenOn $ PortNumber $ fromIntegral port
     bracket
         (forkIO $ forever $ do
             (h,_,_) <- accept sock
