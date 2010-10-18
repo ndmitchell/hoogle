@@ -1,7 +1,7 @@
 cabal-version:      >= 1.2
 build-type:         Simple
 name:               hoogle
-version:            4.0.7
+version:            4.1
 license:            GPL
 license-file:       docs/LICENSE
 category:           Development
@@ -44,48 +44,23 @@ data-files:
     time.hoo
     xhtml.hoo
 
-flag splitBase
-    Description: Choose the new smaller, split-up base package.
-
-executable hoogle
-    build-depends: parsec, filepath, safe, uniplate, mtl, time
-    if flag(splitBase)
-        build-depends: base >= 3 && < 4, directory, process, containers, array, bytestring
-    else
-        build-depends: base >= 2 && < 3
-
-    main-is:            Main.hs
+library
     hs-source-dirs:     src
-    other-modules:
-        CmdLine.Action
-        CmdLine.All
-        CmdLine.Files
-        CmdLine.Flag
-        CmdLine.Query
-        CmdLine.Search
-        CmdLine.Test
-        Data.Binary.Defer
-        Data.Binary.Defer.Array
-        Data.Binary.Defer.Class
-        Data.Binary.Defer.Index
-        Data.Binary.Defer.Map
-        Data.Binary.Defer.Monad
-        Data.Binary.Defer.Trie
-        Data.Binary.Defer.Vector
-        Data.Binary.Raw
-        Data.Heap
-        Data.Key
-        Data.Range
-        Data.TagStr
-        Data.TypeMap
-        General.CGI
-        General.Code
-        General.Glob
-        General.TextUtil
-        General.Util
+    build-depends: base > 4 && < 4.3, directory, process, containers, array,
+                   bytestring, parsec, filepath, safe, uniplate, mtl, time
+
+    exposed-modules:
         Hoogle.All
-        Hoogle.DataBase.Aliases
         Hoogle.DataBase.All
+        Hoogle.Item.All
+        Hoogle.Operations.All
+        Hoogle.Query.All
+        Hoogle.Search.All
+        Hoogle.TextBase.All
+        Hoogle.TypeSig.All
+
+    other-modules:
+        Hoogle.DataBase.Aliases
         Hoogle.DataBase.Instances
         Hoogle.DataBase.Items
         Hoogle.DataBase.NameSearch
@@ -100,35 +75,65 @@ executable hoogle
         Hoogle.DataBase.TypeSearch.Graphs
         Hoogle.DataBase.TypeSearch.Result
         Hoogle.DataBase.TypeSearch.TypeScore
-        Hoogle.Item.All
         Hoogle.Item.Haddock
         Hoogle.Item.Item
         Hoogle.Item.URL
-        Hoogle.Operations.All
         Hoogle.Operations.Combine
         Hoogle.Operations.Convert
         Hoogle.Operations.Rank
         Hoogle.Operations.RankSolve
-        Hoogle.Query.All
         Hoogle.Query.Parser
         Hoogle.Query.Render
         Hoogle.Query.Suggest
         Hoogle.Query.Type
-        Hoogle.Search.All
         Hoogle.Search.Result
         Hoogle.Search.Results
-        Hoogle.TextBase.All
         Hoogle.TextBase.Parser
         Hoogle.TextBase.Type
-        Hoogle.TypeSig.All
         Hoogle.TypeSig.Parser
         Hoogle.TypeSig.Type
+
+executable hoogle
+    main-is:            Main.hs
+    hs-source-dirs:     src
+
+    build-depends: base > 4 && < 4.3, cmdargs, directory, process, containers, array,
+                   bytestring, parsec, filepath, safe, uniplate, mtl, network, time
+
+    other-modules:
+        Console.Action
+        CmdLine.All
+        CmdLine.Find
+        Console.Files
+        CmdLine.Type
+        CmdLine.All
+        Console.Search
+        Console.Test
+        Data.Binary.Defer
+        Data.Binary.Defer.Array
+        Data.Binary.Defer.Class
+        Data.Binary.Defer.Index
+        Data.Binary.Defer.Map
+        Data.Binary.Defer.Monad
+        Data.Binary.Defer.Trie
+        Data.Binary.Defer.Vector
+        Data.Binary.Raw
+        Data.Heap
+        Data.Key
+        Data.Range
+        Data.TagStr
+        Data.TypeMap
+        General.Web
+        General.Code
+        General.TextUtil
+        General.Util
         Test.All
         Test.General
         Test.Parse_Query
         Test.Parse_TextBase
         Test.Parse_TypeSig
         Web.Action
-        Web.All
+        Web.Server
+        Web.Response
         Web.Page
         Web.Text
