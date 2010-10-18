@@ -74,5 +74,5 @@ combine = Combine
 
 convert = Convert
     {srcfile = def &= argPos 0 &= typ "TEXTBASE"
-    ,outfile = def &= argPos 1 &= typ "DATABASE"
+    ,outfile = def &= argPos 1 &= typ "DATABASE" &= opt ""
     } &= help "Convert a textbase to a database"

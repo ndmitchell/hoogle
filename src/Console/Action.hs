@@ -27,6 +27,7 @@ action (Rank file) = rank file
 
 
 action (Convert from to) = do
+    to <- return $ if null to then replaceExtension from "hoo" else to
     putStrLn $ "Converting " ++ from
     convert False [] from to
     putStrLn $ "Written " ++ to
