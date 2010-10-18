@@ -32,7 +32,7 @@ data CmdLine
     | Test {testFiles :: [String]}
     | Server
     | Dump {database :: String, section :: [String]}
-    | Rank FilePath
+    | Rank {srcfile :: FilePath}
     | Combine {srcfiles :: FilePath, outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
       deriving (Data,Typeable,Show)
@@ -65,7 +65,8 @@ dump = Dump
     ,section = def &= args &= typ "SECTION"
     } &= help "Dump sections of the database to stdout"
 
-rank = Rank def
+rank = Rank
+    {srcfile = def &= argPos 0 &= typ "RANKFILE" &= opt "rank.txt"}
 
 combine = Combine
     {srcfiles = def &= args &= typ "INPUT"
