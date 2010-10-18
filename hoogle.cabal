@@ -101,12 +101,11 @@ executable hoogle
                    bytestring, parsec, filepath, safe, uniplate, mtl, network, time
 
     other-modules:
-        Console.Action
         CmdLine.All
         CmdLine.Find
-        Console.Files
         CmdLine.Type
-        CmdLine.All
+        Console.Action
+        Console.Files
         Console.Search
         Console.Test
         Data.Binary.Defer
@@ -123,17 +122,17 @@ executable hoogle
         Data.Range
         Data.TagStr
         Data.TypeMap
-        General.Web
         General.Code
         General.TextUtil
         General.Util
+        General.Web
         Test.All
         Test.General
         Test.Parse_Query
         Test.Parse_TextBase
         Test.Parse_TypeSig
         Web.Action
-        Web.Server
-        Web.Response
         Web.Page
+        Web.Response
+        Web.Server
         Web.Text
