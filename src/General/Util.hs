@@ -267,3 +267,5 @@ splitAtLength n xs = f n xs
         f i (x:xs) = (a,x:b,c)
             where (a,b,c) = f (i-1) xs
 
+
+isRight Right{} = True; isRight _ = False

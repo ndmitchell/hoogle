@@ -3,7 +3,6 @@ module Console.Action(action) where
 
 import CmdLine.All
 import Console.Search
-import Console.Files
 import Console.Test
 import General.Code
 import Hoogle.All

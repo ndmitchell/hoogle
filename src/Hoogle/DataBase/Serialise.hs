@@ -8,7 +8,6 @@ import Data.Binary.Raw
 import General.Code
 
 import Hoogle.DataBase.Type
-import Paths_hoogle
 import Data.Version
 
 
@@ -42,7 +41,7 @@ loadDataBase file = do
 
     let showVer = showVersion . flip Version []
     ver <- replicateM 4 (hGetByte h)
-    when (ver /= hooVersion && "hugs" `notElem` versionTags version) $
+    when (ver /= hooVersion) $
         error $ "Wrong hoogle database version: " ++ showVer ver ++
                 " found, expected " ++ showVer hooVersion
 

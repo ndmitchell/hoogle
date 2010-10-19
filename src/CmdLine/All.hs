@@ -21,18 +21,31 @@ import CmdLine.Type
 import General.Web
 import System.Console.CmdArgs
 import Hoogle.Query.All
+import Paths_hoogle
 
 
 ---------------------------------------------------------------------
 -- CMDLINE EXPANSION
 
 cmdLineExpand :: CmdLine -> IO CmdLine
-cmdLineExpand x@Search{} = return $ x{queryText = s, queryParsed = f $ parseQuery s}
+cmdLineExpand x@Search{} = do
+    db <- expandDatabases $ databases x
+    return $ x{queryText = s, queryParsed = f $ parseQuery s, databases = db}
     where s = unwords $ queryChunks x
           f (Left x) = Left (sourceColumn (errorPos x) - 1, show x)
           f (Right x) = Right x
 
+cmdLineExpand x@Server{} = do
+    db <- expandDatabases $ databases x
+    res <- if null $ resources x then fmap (</> "resources") getDataDir else return $ resources x
+    return $ x{databases=db, resources=res}
+
 cmdLineExpand x = return x
+
+
+expandDatabases x = do
+    d <- getDataDir
+    return $ x ++ [d </> "databases"]
 
 
 ---------------------------------------------------------------------

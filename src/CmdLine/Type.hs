@@ -24,14 +24,14 @@ data CmdLine
         ,webmode :: Maybe String
         ,info :: Bool
         ,color :: Bool
-        ,databaseDir :: [FilePath]
+        ,databases :: [FilePath]
         ,queryChunks :: [String]
         
         ,queryParsed :: Either (Int,String) Query
         ,queryText :: String
         }
     | Test {testFiles :: [String]}
-    | Server {port :: Int}
+    | Server {port :: Int, databases :: [FilePath], resources :: FilePath}
     | Dump {database :: String, section :: [String]}
     | Rank {srcfile :: FilePath}
     | Combine {srcfiles :: FilePath, outfile :: String}
@@ -52,7 +52,7 @@ search = Search
     ,queryChunks = def &= args
     ,info = def
     ,color = def
-    ,databaseDir = def
+    ,databases = ["."] &= typDir &= help "Which directories to find databases"
     ,queryParsed = Right mempty &= ignore
     ,queryText = "" &= ignore
     }
@@ -61,6 +61,7 @@ test = Test {testFiles = def &= args}
 
 server = Server
     {port = 80 &= typ "INT" &= help "Port number"
+    ,resources = ""
     } &= help "Start a Hoogle server"
 
 dump = Dump

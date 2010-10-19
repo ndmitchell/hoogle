@@ -50,6 +50,8 @@ library
                    bytestring, parsec, filepath, safe, uniplate, mtl, time
 
     exposed-modules:
+        Data.Range
+        Data.TagStr
         Hoogle.All
         Hoogle.DataBase.All
         Hoogle.Item.All
@@ -80,6 +82,7 @@ library
         Hoogle.Item.URL
         Hoogle.Operations.Combine
         Hoogle.Operations.Convert
+        Hoogle.Operations.Databases
         Hoogle.Operations.Rank
         Hoogle.Operations.RankSolve
         Hoogle.Query.Parser
@@ -92,22 +95,6 @@ library
         Hoogle.TextBase.Type
         Hoogle.TypeSig.Parser
         Hoogle.TypeSig.Type
-
-executable hoogle
-    main-is:            Main.hs
-    hs-source-dirs:     src
-
-    build-depends: base > 4 && < 4.3, cmdargs, directory, process, containers, array,
-                   bytestring, parsec, filepath, safe, uniplate, mtl, network, time
-
-    other-modules:
-        CmdLine.All
-        CmdLine.Find
-        CmdLine.Type
-        Console.Action
-        Console.Files
-        Console.Search
-        Console.Test
         Data.Binary.Defer
         Data.Binary.Defer.Array
         Data.Binary.Defer.Class
@@ -119,13 +106,25 @@ executable hoogle
         Data.Binary.Raw
         Data.Heap
         Data.Key
-        Data.Range
-        Data.TagStr
         Data.TypeMap
         General.Code
         General.TextUtil
         General.Util
         General.Web
+
+executable hoogle
+    main-is:            Main.hs
+    hs-source-dirs:     src
+
+    build-depends: base > 4 && < 4.3, cmdargs, directory, process, containers, array,
+                   bytestring, parsec, filepath, safe, uniplate, mtl, network, time
+
+    other-modules:
+        CmdLine.All
+        CmdLine.Type
+        Console.Action
+        Console.Search
+        Console.Test
         Test.All
         Test.General
         Test.Parse_Query

@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module Web.Server(server) where
 
@@ -10,8 +11,8 @@ import Control.Exception
 import Network
 
 
-server :: Int -> IO ()
-server port = withSocketsDo $ do
+server :: CmdLine -> IO ()
+server q@Server{..} = withSocketsDo $ do
     sock <- listenOn $ PortNumber $ fromIntegral port
     bracket
         (forkIO $ forever $ do
@@ -19,7 +20,7 @@ server port = withSocketsDo $ do
             forkIO $ do
                 (page,args) <- httpGetArgs h
                 print (page,args)
-                (heads,body) <- talk page args
+                (heads,body) <- talk q page args
                 httpResponse h heads body
                 hClose h
         )
@@ -30,10 +31,12 @@ server port = withSocketsDo $ do
             return ())
 
 
-talk :: String -> [(String,String)] -> IO ([Header], String)
-talk page args | page `elem` ["/","/hoogle"] = response =<< cmdLineWeb args
-talk page args | takeDirectory page == "/res" = do
-    h <- openBinaryFile ("src/res/" ++ takeFileName page) ReadMode
+talk :: CmdLine -> String -> [(String,String)] -> IO ([Header], String)
+talk Server{..} page args | page `elem` ["/","/hoogle"] = do
+    args <- cmdLineWeb args
+    response "/res" args{databases=databases}
+talk Server{..} page args | takeDirectory page == "/res" = do
+    h <- openBinaryFile (resources </> takeFileName page) ReadMode
     src <- hGetContents h
     return ([], src)
-talk page args = return ([], "unknown")
+talk _ page args = return ([], "unknown")

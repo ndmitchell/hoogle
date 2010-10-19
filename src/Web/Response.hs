@@ -3,6 +3,7 @@ module Web.Response(response) where
 
 import CmdLine.All
 import Hoogle.All
+import Hoogle.Operations.All
 import Hoogle.Query.All
 import Hoogle.Item.All
 import Hoogle.Search.All
@@ -24,16 +25,18 @@ import Paths_hoogle
 logFile = "log.txt"
 
 
-response :: CmdLine -> IO ([Header], String)
-response q = do
+response :: FilePath -> CmdLine -> IO ([Header], String)
+response resources q = do
     print q
     logMessage q
     (typ,res) <-
         if webmode q == Just "suggest" then do
             fmap ((,) "application/json") $ runSuggest q
         else do
-            (skipped,dbs) <- loadDataBases q
-            return $ (,) "text/html" $ unlines $ header (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
+            dbs <- if isRight $ queryParsed q
+                   then fmap snd $ loadDatabases (databases q) (fromRight $ queryParsed q)
+                   else return []
+            return $ (,) "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
     {-
     when (Debug `elem` queryFlags q) $
         writeFile "temp.htm" res
@@ -65,19 +68,6 @@ runSuggest _ = return ""
 safePackage :: String -> Bool
 safePackage = all $ \x -> isAlphaNum x || x `elem` "-_"
 
-
--- return the databases you loaded, and those you can't
--- guarantees not to actually load the databases unless necessary
--- TODO: Should say which databases are ignored
-loadDataBases :: CmdLine -> IO ([String], [DataBase])
-loadDataBases Search{queryParsed=Right q} = do
-    let pkgs = nub [x | PlusPackage x <- scope q, safePackage x]
-        files = if null pkgs then ["default"] else pkgs
-    root <- getDataDir
-    files <- filterM doesFileExist $ map (\x -> root </> x <.> "hoo") files
-    dbs <- unsafeInterleaveIO $ mapM loadDataBase files
-    return ([], dbs)
-loadDataBases _ = return ([], [])
 
 
 -- TODO: Should escape the query text

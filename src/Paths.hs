@@ -7,4 +7,4 @@ version :: Version
 version = Version {versionBranch = [4,0], versionTags = ["dev"]}
 
 getDataDir :: IO FilePath
-getDataDir = return "database"
+getDataDir = return "datadir"

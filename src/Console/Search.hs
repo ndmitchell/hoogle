@@ -2,10 +2,10 @@
 module Console.Search(actionSearch) where
 
 import CmdLine.All
-import Console.Files
 import Data.Range
 import Data.TagStr
 import General.Code
+import Hoogle.Operations.All
 import Hoogle.Query.All
 import Hoogle.Search.All
 import Hoogle.DataBase.All
@@ -15,11 +15,10 @@ import Data.Binary.Defer.Index
 
 actionSearch :: CmdLine -> Query -> IO ()
 actionSearch flags q = do
-    db <- getDataBaseFiles flags q
-    when verbose $
-        putStr $ unlines $ "= DATABASES =" : map ("  "++) db
+    (missing,dbs) <- loadDatabases (databases flags) q
+    unless (null missing) $
+        error $ "Could not find some databases: " ++ unwords missing
 
-    dbs <- mapM loadDataBase db
     let sug = suggestQuery dbs q
     when (isJust sug) $
         putStrLn $ showTag $ fromJust sug
