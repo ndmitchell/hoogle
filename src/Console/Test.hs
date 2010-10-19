@@ -7,9 +7,11 @@ import General.Code
 import Data.Binary.Defer.Index
 
 
-testFile :: FilePath -> FilePath -> IO ()
-testFile srcfile dbfile = do
+testFile :: FilePath -> IO ()
+testFile srcfile = do
     putStrLn $ "Testing " ++ srcfile
+    let dbfile = srcfile <.> "hoo"
+    convert True [] srcfile dbfile
     db <- loadDataBase dbfile
     src <- readFile srcfile
     let bad = filter (not . runTest db) $ catMaybes $ zipWith parseTest [1..] $ lines src

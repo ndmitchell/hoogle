@@ -19,7 +19,7 @@ action Search{queryText = text, queryParsed = Left (pos,err)} =
 
 action (Test files) = do
     test
-    mapM_ (error "todo - test") files
+    mapM_ testFile files
 
 
 action (Rank file) = rank file

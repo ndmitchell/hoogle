@@ -58,7 +58,9 @@ search = Search
     ,queryText = "" &= ignore
     }
 
-test = Test {testFiles = def &= args}
+test = Test
+    {testFiles = def &= typFile &= args
+    } &= help "Run tests over a list of files"
 
 server = Server
     {port = 80 &= typ "INT" &= help "Port number"
@@ -71,7 +73,7 @@ dump = Dump
     } &= help "Dump sections of the database to stdout"
 
 rank = Rank
-    {srcfile = def &= argPos 0 &= typ "RANKFILE" &= opt "rank.txt"
+    {srcfile = def &= argPos 0 &= typ "RANKFILE" &= opt ""
     } &= help "Generate ranking information"
 
 combine = Combine

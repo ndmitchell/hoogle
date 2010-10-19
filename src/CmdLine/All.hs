@@ -40,6 +40,14 @@ cmdLineExpand x@Server{} = do
     res <- if null $ resources x then fmap (</> "resources") getDataDir else return $ resources x
     return $ x{databases=db, resources=res}
 
+cmdLineExpand x@Test{} = do
+    files <- if null $ testFiles x then fmap (return . (</> "tests.txt")) getDataDir else return $ testFiles x
+    return x{testFiles = files}
+
+cmdLineExpand x@Rank{} = do
+    file <- if null $ srcfile x then fmap (</> "rank.txt") getDataDir else return $ srcfile x
+    return x{srcfile=file}
+
 cmdLineExpand x = return x
 
 
