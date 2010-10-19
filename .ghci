@@ -11,8 +11,16 @@
 :}
 
 :{
+:def docs const $ return $ unlines
+    [":!cabal configure"
+    ,":!cabal haddock"
+    ,":!start dist\\doc\\html\\hoogle\\Hoogle-All.html"]
+:}
+
+:{
 :def extra const $
     let msg = [":test  - run the test suit"
-              ,":hlint - run HLint on the code"]
+              ,":hlint - run HLint on the code"
+              ,":docs  - generate haddock documentation"]
     in putStr (unlines msg) >> return []
 :}
