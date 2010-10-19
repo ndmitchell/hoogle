@@ -8,7 +8,6 @@ import Hoogle.Query.All
 import Hoogle.Item.All
 import Hoogle.Search.All
 import General.Code
-import System.IO.Unsafe(unsafeInterleaveIO)
 import Web.Page
 import Web.Text
 import Data.TagStr
@@ -62,12 +61,6 @@ runSuggest Search{queryParsed=Right Query{scope=[], names=[x], typeSig=Nothing}}
     let res = take 8 $ completions db x
     return $ "[" ++ show x ++ "," ++ show res ++ "]"
 runSuggest _ = return ""
-
-
--- is the package not something that might go wrong
-safePackage :: String -> Bool
-safePackage = all $ \x -> isAlphaNum x || x `elem` "-_"
-
 
 
 -- TODO: Should escape the query text
