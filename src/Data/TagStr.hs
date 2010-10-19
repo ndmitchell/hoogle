@@ -1,4 +1,5 @@
 
+-- | A module representing strings with formatting.
 module Data.TagStr where
 
 import Data.Char
@@ -6,12 +7,12 @@ import Data.List
 import Data.Generics.Uniplate
 
 
-data TagStr = Str String
-            | Tags [TagStr]
-            | TagBold TagStr
-            | TagUnderline TagStr
-            | TagHyperlink String TagStr
-            | TagColor Int TagStr
+data TagStr = Str String -- ^ Plain text.
+            | Tags [TagStr] -- ^ A list of tags one after another.
+            | TagBold TagStr -- ^ Bold text.
+            | TagUnderline TagStr -- ^ Underlined text.
+            | TagHyperlink String TagStr -- ^ A hyperlink to a URL.
+            | TagColor Int TagStr -- ^ Colored text.
               deriving Show
 
 
@@ -24,10 +25,12 @@ instance Uniplate TagStr where
     uniplate x = ([], const x)
 
 
+-- | Show a 'TagStr' as a string, without any formatting.
 showTagText :: TagStr -> String
 showTagText x = concat [y | Str y <- universe x]
 
 
+-- | Show a 'TagStr' on a console with ANSI escape sequences.
 showTagConsole :: TagStr -> String
 showTagConsole x = f [] x
     where
