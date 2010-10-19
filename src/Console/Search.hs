@@ -8,14 +8,13 @@ import General.Code
 import Hoogle.Operations.All
 import Hoogle.Query.All
 import Hoogle.Search.All
-import Hoogle.DataBase.All
 import Hoogle.Item.All
 import Data.Binary.Defer.Index
 
 
 actionSearch :: CmdLine -> Query -> IO ()
 actionSearch flags q = do
-    (missing,dbs) <- loadDatabases (databases flags) q
+    (missing,dbs) <- loadDataBases (databases flags) q
     unless (null missing) $
         error $ "Could not find some databases: " ++ unwords missing
 

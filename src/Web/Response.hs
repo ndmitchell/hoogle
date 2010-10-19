@@ -33,7 +33,7 @@ response resources q = do
             fmap ((,) "application/json") $ runSuggest q
         else do
             dbs <- if isRight $ queryParsed q
-                   then fmap snd $ loadDatabases (databases q) (fromRight $ queryParsed q)
+                   then fmap snd $ loadDataBases (databases q) (fromRight $ queryParsed q)
                    else return []
             return $ (,) "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
     {-
