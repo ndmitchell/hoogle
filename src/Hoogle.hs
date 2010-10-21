@@ -1,5 +1,6 @@
 
--- The plan, over time, is to make this module simply reexport things
+-- The plan, over time, is to make this module simply reexport things, integrating the wrapper
+-- layer back into Hoogle proper
 
 -- | The Hoogle API.
 module Hoogle(
