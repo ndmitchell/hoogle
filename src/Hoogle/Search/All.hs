@@ -1,6 +1,6 @@
 
 module Hoogle.Search.All(
-    Result(..), renderResult,
+    Score, Result(..), renderResult,
     searchAll, searchRange
     ) where
 
