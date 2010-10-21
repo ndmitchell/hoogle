@@ -2,9 +2,9 @@
 module Web.Response(response) where
 
 import CmdLine.All
-import Hoogle.All
-import Hoogle.Operations.All
 import Hoogle.Query.All
+import Hoogle.DataBase.All
+import Hoogle.Operations.All
 import Hoogle.Item.All
 import Hoogle.Search.All
 import General.Code

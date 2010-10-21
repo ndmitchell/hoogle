@@ -5,8 +5,10 @@ import CmdLine.All
 import Console.Search
 import Console.Test
 import General.Code
-import Hoogle.All
 import Test.All
+import Hoogle.Query.All
+import Hoogle.DataBase.All
+import Hoogle.Operations.All
 
 
 action :: CmdLine -> IO ()

@@ -1,8 +1,11 @@
 
 module Console.Test(testFile) where
 
-import Hoogle.All
 import Hoogle.Item.All
+import Hoogle.Query.All
+import Hoogle.DataBase.All
+import Hoogle.Search.All
+import Hoogle.Operations.All
 import General.Code
 import Data.Binary.Defer.Index
 
