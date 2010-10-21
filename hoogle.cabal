@@ -50,19 +50,29 @@ library
                    bytestring, parsec, filepath, safe, uniplate, mtl, time
 
     exposed-modules:
-        Data.Range
-        Data.TagStr
-        Hoogle.All
-        Hoogle.DataBase.All
-        Hoogle.Item.All
-        Hoogle.Operations.All
-        Hoogle.Query.All
-        Hoogle.Search.All
-        Hoogle.TextBase.All
-        Hoogle.TypeSig.All
+        Hoogle
 
     other-modules:
+        Data.Binary.Defer
+        Data.Binary.Defer.Array
+        Data.Binary.Defer.Class
+        Data.Binary.Defer.Index
+        Data.Binary.Defer.Map
+        Data.Binary.Defer.Monad
+        Data.Binary.Defer.Trie
+        Data.Binary.Defer.Vector
+        Data.Binary.Raw
+        Data.Heap
+        Data.Key
+        Data.Range
+        Data.TagStr
+        Data.TypeMap
+        General.Code
+        General.TextUtil
+        General.Util
+        General.Web
         Hoogle.DataBase.Aliases
+        Hoogle.DataBase.All
         Hoogle.DataBase.Instances
         Hoogle.DataBase.Items
         Hoogle.DataBase.NameSearch
@@ -77,40 +87,30 @@ library
         Hoogle.DataBase.TypeSearch.Graphs
         Hoogle.DataBase.TypeSearch.Result
         Hoogle.DataBase.TypeSearch.TypeScore
+        Hoogle.Item.All
         Hoogle.Item.Haddock
         Hoogle.Item.Item
         Hoogle.Item.URL
+        Hoogle.Operations.All
         Hoogle.Operations.Combine
         Hoogle.Operations.Convert
-        Hoogle.Operations.Databases
+        Hoogle.Operations.DataBases
         Hoogle.Operations.Rank
         Hoogle.Operations.RankSolve
+        Hoogle.Query.All
         Hoogle.Query.Parser
         Hoogle.Query.Render
         Hoogle.Query.Suggest
         Hoogle.Query.Type
+        Hoogle.Search.All
         Hoogle.Search.Result
         Hoogle.Search.Results
+        Hoogle.TextBase.All
         Hoogle.TextBase.Parser
         Hoogle.TextBase.Type
+        Hoogle.TypeSig.All
         Hoogle.TypeSig.Parser
         Hoogle.TypeSig.Type
-        Data.Binary.Defer
-        Data.Binary.Defer.Array
-        Data.Binary.Defer.Class
-        Data.Binary.Defer.Index
-        Data.Binary.Defer.Map
-        Data.Binary.Defer.Monad
-        Data.Binary.Defer.Trie
-        Data.Binary.Defer.Vector
-        Data.Binary.Raw
-        Data.Heap
-        Data.Key
-        Data.TypeMap
-        General.Code
-        General.TextUtil
-        General.Util
-        General.Web
 
 executable hoogle
     main-is:            Main.hs

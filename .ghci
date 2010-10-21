@@ -14,7 +14,7 @@
 :def docs const $ return $ unlines
     [":!cabal configure"
     ,":!cabal haddock"
-    ,":!start dist\\doc\\html\\hoogle\\Hoogle-All.html"]
+    ,":!start dist\\doc\\html\\hoogle\\Hoogle.html"]
 :}
 
 :{
