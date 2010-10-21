@@ -1,9 +1,11 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 -- | A module representing strings with formatting.
 module Data.TagStr where
 
 import Data.Char
 import Data.List
+import Data.Data
 import Data.Generics.Uniplate
 
 
@@ -13,7 +15,7 @@ data TagStr = Str String -- ^ Plain text.
             | TagUnderline TagStr -- ^ Underlined text.
             | TagHyperlink String TagStr -- ^ A hyperlink to a URL.
             | TagColor Int TagStr -- ^ Colored text.
-              deriving Show
+              deriving (Data,Typeable,Ord,Show,Eq)
 
 
 instance Uniplate TagStr where
