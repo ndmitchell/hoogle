@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 -- The plan, over time, is to make this module simply reexport things, integrating the wrapper
 -- layer back into Hoogle proper
@@ -14,7 +15,7 @@ module Hoogle(
     Query, parseQuery, renderQuery, isBlankQuery,
     queryDatabases, querySuggestions, queryCompletions,
     -- * Score
-    Score, rank,
+    Score, scoring,
     -- * Search
     Result(..), searchAll, searchRange
     ) where
@@ -22,6 +23,7 @@ module Hoogle(
 import Data.Binary.Defer.Index
 import Data.Monoid
 import Data.Range
+import Data.Data
 import Data.TagStr
 import Text.ParserCombinators.Parsec(sourceColumn, sourceLine, errorPos)
 
@@ -38,7 +40,7 @@ type URL = String
 
 -- | 1 based
 data ParseError = ParseError {lineNo :: Int, columnNo :: Int, parseError :: String}
-                  deriving (Ord,Eq)
+                  deriving (Ord,Eq,Data,Typeable)
 
 instance Show ParseError where
     show (ParseError line col err) = "Parse error: " ++ err ++ ":" ++ show line ++ ":" ++ show col
@@ -81,11 +83,24 @@ saveDatabase file = H.saveDataBase file . toDataBase
 
 -- Hoogle.Query
 
+-- FIXME: temporary to make integration easier
+type Query = H.Query
+fromQuery = id
+toQuery = id
+
+
+{- FIXME: should use newtype once everyone converts
 -- wrapper just to supress instances from Haddock
 newtype Query = Query {fromQuery :: H.Query}
+    deriving (Data,Typeable,Show)
+
+instance Monoid Query where
+    mempty = Query mempty
+    mappend (Query x) (Query y) = Query $ mappend x y
+-}
 
 parseQuery :: String -> Either ParseError Query
-parseQuery = either (Left . toParseError) (Right . Query) . H.parseQuery
+parseQuery = either (Left . toParseError) (Right . toQuery) . H.parseQuery
 
 renderQuery :: Query -> TagStr
 renderQuery = H.renderQuery . fromQuery
@@ -98,7 +113,7 @@ queryDatabases x = if null ps then ["default"] else ps
     where ps = [p | H.PlusPackage p <- H.scope $ fromQuery x]
 
 querySuggestions :: Database -> Query -> Maybe TagStr
-querySuggestions (Database dbs) (Query q) = H.suggestQuery dbs q
+querySuggestions (Database dbs) q = H.suggestQuery dbs $ fromQuery q
 
 queryCompletions :: Database -> String -> [String]
 queryCompletions x = H.completions (toDataBase x)
@@ -113,8 +128,9 @@ instance Monoid Score where
     mempty = Score []
     mappend (Score xs) (Score ys) = Score $ xs ++ ys
 
-rank :: [[Score]] -> String
-rank _ = error "rank not yet implemented"
+-- | A list of scores where one is lower than the other
+scoring :: [(Score,Score)] -> String
+scoring _ = error "scoring not yet implemented"
 
 -- Hoogle.Search
 
@@ -138,10 +154,10 @@ toResult r@(H.Result entry view score) = (Score score, Result package modul self
 
 
 searchAll :: Database -> Query -> [(Score,Result)]
-searchAll (Database xs) (Query q) = map toResult $ H.searchAll xs q
+searchAll (Database xs) q = map toResult $ H.searchAll xs $ fromQuery q
 
 
 -- | A pair of bounds. These bounds are the lowest and highest indices in the array, in that order.
 --   For example, the first 10 elements are (0,9) and the next 10 are (10,19)
 searchRange :: (Int,Int) -> Database -> Query -> [(Score,Result)]
-searchRange (a,b) (Database xs) (Query q) = map toResult $ H.searchRange (rangeStartEnd a b) xs q
+searchRange (a,b) (Database xs) q = map toResult $ H.searchRange (rangeStartEnd a b) xs $ fromQuery q
