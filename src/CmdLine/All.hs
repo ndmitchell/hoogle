@@ -16,11 +16,10 @@ module CmdLine.All(
     ) where
 
 import General.Code
-import Text.ParserCombinators.Parsec(sourceColumn, errorPos)
 import CmdLine.Type
 import General.Web
 import System.Console.CmdArgs
-import Hoogle.Query.All
+import Hoogle
 import Paths_hoogle
 
 
@@ -30,10 +29,9 @@ import Paths_hoogle
 cmdLineExpand :: CmdLine -> IO CmdLine
 cmdLineExpand x@Search{} = do
     db <- expandDatabases $ databases x
-    return $ x{queryText = s, queryParsed = f $ parseQuery s, databases = db}
+    return $ x{queryText = s, queryParsed = parseQuery s, databases = db}
     where s = unwords $ queryChunks x
-          f (Left x) = Left (sourceColumn (errorPos x) - 1, show x)
-          f (Right x) = Right x
+
 
 cmdLineExpand x@Server{} = do
     db <- expandDatabases $ databases x

@@ -8,7 +8,7 @@ module CmdLine.Type(
 import System.Console.CmdArgs
 import Paths_hoogle(version)
 import Data.Version(showVersion)
-import Hoogle.Query.All(Query)
+import Hoogle
 import Data.Monoid
 
 
@@ -28,7 +28,7 @@ data CmdLine
         ,databases :: [FilePath]
         ,queryChunks :: [String]
         
-        ,queryParsed :: Either (Int,String) Query
+        ,queryParsed :: Either ParseError Query
         ,queryText :: String
         }
     | Test {testFiles :: [String]}

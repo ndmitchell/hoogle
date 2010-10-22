@@ -9,11 +9,12 @@ import Test.All
 import Hoogle.Query.All
 import Hoogle.DataBase.All
 import Hoogle.Operations.All
+import Hoogle(ParseError(..))
 
 
 action :: CmdLine -> IO ()
 
-action Search{queryText = text, queryParsed = Left (pos,err)} =
+action Search{queryText = text, queryParsed = Left (ParseError _ pos err)} =
     exitMessage ["Parse error:", "  " ++ text
                 ,replicate pos ' ' ++ "^"
                 ,err]

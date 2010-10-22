@@ -7,6 +7,7 @@ import Hoogle.DataBase.All
 import Hoogle.Operations.All
 import Hoogle.Item.All
 import Hoogle.Search.All
+import Hoogle(ParseError(..))
 import General.Code
 import Web.Page
 import Web.Text
@@ -65,7 +66,7 @@ runSuggest _ = return ""
 
 -- TODO: Should escape the query text
 runQuery :: [DataBase] -> CmdLine -> [String]
-runQuery dbs Search{queryText = text, queryParsed = Left (pos,txt)} =
+runQuery dbs Search{queryText = text, queryParsed = Left (ParseError _ pos txt)} =
     ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
     ,"  Query: <tt>" +& pre ++ "<span id='error'>" +& post2 ++ "</span></tt><br/>"
