@@ -6,10 +6,7 @@ import Console.Search
 import Console.Test
 import General.Code
 import Test.All
-import Hoogle.Query.All
-import Hoogle.DataBase.All
-import Hoogle.Operations.All
-import Hoogle(ParseError(..))
+import Hoogle
 
 
 action :: CmdLine -> IO ()
@@ -25,13 +22,17 @@ action (Test files) = do
     mapM_ testFile files
 
 
-action (Rank file) = rank file
+action (Rank file) = error "to rank, using scoring function" -- rank file
 
 
 action (Convert from to) = do
     to <- return $ if null to then replaceExtension from "hoo" else to
     putStrLn $ "Converting " ++ from
-    convert False [] from to
+    src <- readFile from
+    let db = case createDatabase [] src of
+            Left x -> error $ "Parse error with " ++ from ++ "\n" ++ show x
+            Right x -> x
+    saveDatabase to db
     putStrLn $ "Written " ++ to
 
 
@@ -48,12 +49,12 @@ action Combine{} = error "todo - combine" {- | Combine{} `elemEnum` queryFlags q
 -}
 
 action (Dump file sections) = do
-    d <- loadDataBase file
+    d <- loadDatabase file
     putStrLn $ "File: " ++ file
-    putStr $ unlines $ map (`showDataBase` d) $ [""|null sections] ++ sections
+    putStr $ showDatabase d $ if null sections then Nothing else Just sections
 
 
-action q@Search{} | not $ usefulQuery $ fromRight $ queryParsed q =
+action q@Search{} | isBlankQuery $ fromRight $ queryParsed q =
     exitMessage ["No query entered"
                 ,"Try --help for command line options"]
 

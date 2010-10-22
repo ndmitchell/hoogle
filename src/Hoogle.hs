@@ -24,6 +24,7 @@ import Data.Binary.Defer.Index
 import Data.Monoid
 import Data.Range
 import Data.Data
+import Data.Maybe
 import Data.TagStr
 import Text.ParserCombinators.Parsec(sourceColumn, sourceLine, errorPos)
 
@@ -67,8 +68,8 @@ loadDatabase :: FilePath -> IO Database
 loadDatabase = fmap fromDataBase . H.loadDataBase
 
 
-showDatabase :: Database -> [String] -> String
-showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) sects
+showDatabase :: Database -> Maybe [String] -> String
+showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""] sects
 
 
 -- | From a textbase lines we have currently
