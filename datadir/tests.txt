@@ -29,8 +29,8 @@ chars :: [Char]
 @test "a -> b" unsafeCoerce
 @test "(c,d) -> d" snd fst
 @test "(c,d) -> c" fst snd
-@test "Bool -> Bool -> Bool" ==
-@test "Bool -> Bool" not ==
+@test "Bool -> Bool -> Bool" (==)
+@test "Bool -> Bool" not (==)
 @test ":: String" string chars
 @test "[Char]" chars string
 @test "Functor m => (a -> b) -> m a -> m b" fmap unfmap eq

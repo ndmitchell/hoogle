@@ -1,22 +1,20 @@
 
 module Console.Test(testFile) where
 
-import Hoogle.Item.All
-import Hoogle.Query.All
-import Hoogle.DataBase.All
-import Hoogle.Search.All
-import Hoogle.Operations.All
+import Hoogle
 import General.Code
-import Data.Binary.Defer.Index
 
 
 testFile :: FilePath -> IO ()
 testFile srcfile = do
     putStrLn $ "Testing " ++ srcfile
     let dbfile = srcfile <.> "hoo"
-    convert True [] srcfile dbfile
-    db <- loadDataBase dbfile
     src <- readFile srcfile
+    let dbOld = either (error . show) id $ createDatabase [] src
+    saveDatabase dbfile dbOld
+    db <- loadDatabase dbfile
+    when (show dbOld /= show db) $ error "Database did not save properly"
+
     let bad = filter (not . runTest db) $ catMaybes $ zipWith parseTest [1..] $ lines src
     if null bad then
         putStrLn "All tests passed"
@@ -45,19 +43,20 @@ parseTest line str | "@test " `isPrefixOf` str =
 parseTest line str = Nothing
 
 
-runTest :: DataBase -> Test -> Bool
+runTest :: Database -> Test -> Bool
 runTest db (Test _ _ q bad ans) =
-        ordered (group $ map resultScore res) &&         -- all results are in order
+        ordered (group $ map snd items) &&               -- all results are in order
         all (`elem` map fst items) (concat ans) &&       -- all items are present
         ordered (map (map (`lookupJust` items)) ans) &&  -- all items are in order
         all (`notElem` map fst items) bad                -- all the bad items are absent
     where
-        res = searchAll [db] q
-        items = map (entryName . fromLink . resultEntry &&& resultScore) res
+        items = map (name .  showTagText . snd . self . snd &&& fst) $ searchAll db q
 
         ordered ((x:xs):(y:ys):zs) = x < y && all (== x) xs && ordered ((y:ys):zs)
         ordered [x:xs] = all (== x) xs
         ordered [] = True
+
+        name = head . dropWhile (`elem` words "package") . words
 
 
 failedTest :: Test -> String
