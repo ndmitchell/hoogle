@@ -5,7 +5,6 @@ import CmdLine.All
 import Data.Range
 import Data.TagStr
 import General.Code
-import Hoogle.Operations.All
 import Hoogle.Query.All
 import Hoogle.Search.All
 import Hoogle.Item.All
@@ -14,7 +13,7 @@ import Data.Binary.Defer.Index
 
 actionSearch :: CmdLine -> Query -> IO ()
 actionSearch flags q = do
-    (missing,dbs) <- loadDataBases (databases flags) q
+    (missing,dbs) <- loadQueryDatabases (databases flags) q
     unless (null missing) $
         error $ "Could not find some databases: " ++ unwords missing
 

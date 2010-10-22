@@ -1,5 +1,5 @@
 
-module Hoogle.Operations.DataBases(loadDataBases) where
+module CmdLine.Load(loadQueryDatabases) where
 
 import Hoogle.DataBase.All
 import Hoogle.Query.All
@@ -11,8 +11,8 @@ import Data.Either
 
 -- | Given a list of search directories, and a query, load the databases you
 --   need, and return a list of those that you couldn't find
-loadDataBases :: [FilePath] -> Query -> IO ([String],[DataBase])
-loadDataBases paths q = do
+loadQueryDatabases :: [FilePath] -> Query -> IO ([String],[DataBase])
+loadQueryDatabases paths q = do
     let xs = [x | PlusPackage x <- scope q]
     fmap partitionEithers $ forM (if null xs then ["default"] else xs) $ \x -> do
         r <- findFile [p </> x <.> "hoo" | p <- paths]

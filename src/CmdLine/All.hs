@@ -12,11 +12,12 @@
     * Which flags were specified, and which were erroneous.
 -}
 module CmdLine.All(
-    cmdLine, cmdLineWeb, CmdLine(..), isWebCmdLine
+    cmdLine, cmdLineWeb, CmdLine(..), isWebCmdLine, loadQueryDatabases
     ) where
 
 import General.Code
 import CmdLine.Type
+import CmdLine.Load
 import General.Web
 import System.Console.CmdArgs
 import Hoogle

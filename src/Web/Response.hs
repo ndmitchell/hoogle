@@ -4,7 +4,6 @@ module Web.Response(response) where
 import CmdLine.All
 import Hoogle.Query.All
 import Hoogle.DataBase.All
-import Hoogle.Operations.All
 import Hoogle.Item.All
 import Hoogle.Search.All
 import Hoogle(ParseError(..))
@@ -34,7 +33,7 @@ response resources q = do
             fmap ((,) "application/json") $ runSuggest q
         else do
             dbs <- if isRight $ queryParsed q
-                   then fmap snd $ loadDataBases (databases q) (fromRight $ queryParsed q)
+                   then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
                    else return []
             return $ (,) "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
     {-
