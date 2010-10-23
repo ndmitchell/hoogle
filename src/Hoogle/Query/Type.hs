@@ -11,7 +11,8 @@ import General.Code
 import Hoogle.TypeSig.All
 
 
-usefulQuery query = not (null (names query)) || isJust (typeSig query)
+isBlankQuery :: Query -> Bool
+isBlankQuery query = null (names query) && isNothing (typeSig query)
 
 
 data Query = Query {

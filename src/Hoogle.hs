@@ -12,7 +12,7 @@ module Hoogle(
     -- * Database
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
-    H.Query, parseQuery, H.renderQuery, isBlankQuery,
+    H.Query, parseQuery, H.renderQuery, H.isBlankQuery,
     queryDatabases, querySuggestions, queryCompletions,
     -- * Score
     Score, scoring,
@@ -88,9 +88,6 @@ type Query = H.Query
 
 parseQuery :: String -> Either ParseError Query
 parseQuery = either (Left . toParseError) Right . H.parseQuery
-
-isBlankQuery :: Query -> Bool
-isBlankQuery = not . H.usefulQuery
 
 queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps
