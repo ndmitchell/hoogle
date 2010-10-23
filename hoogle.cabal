@@ -16,33 +16,44 @@ description:
 homepage:           http://www.haskell.org/hoogle/
 stability:          Beta
 extra-source-files: README.txt
-data-dir:           database
+
+data-dir:
+    datadir
 data-files:
-    array.hoo
-    base.hoo
-    bytestring.hoo
-    cabal.hoo
-    containers.hoo
-    default.hoo
-    directory.hoo
-    filepath.hoo
-    ghc.hoo
-    hackage.hoo
-    haskell-src.hoo
-    hunit.hoo
-    keyword.hoo
-    mtl.hoo
-    parallel.hoo
-    parsec.hoo
-    pretty.hoo
-    process.hoo
-    quickcheck.hoo
-    random.hoo
-    stm.hoo
-    syb.hoo
-    template-haskell.hoo
-    time.hoo
-    xhtml.hoo
+    if flag(install-with-databases)
+        databases/array.hoo
+        databases/base.hoo
+        databases/bytestring.hoo
+        databases/cabal.hoo
+        databases/containers.hoo
+        databases/default.hoo
+        databases/directory.hoo
+        databases/filepath.hoo
+        databases/ghc.hoo
+        databases/hackage.hoo
+        databases/haskell-src.hoo
+        databases/hunit.hoo
+        databases/keyword.hoo
+        databases/mtl.hoo
+        databases/parallel.hoo
+        databases/parsec.hoo
+        databases/pretty.hoo
+        databases/process.hoo
+        databases/quickcheck.hoo
+        databases/random.hoo
+        databases/stm.hoo
+        databases/syb.hoo
+        databases/template-haskell.hoo
+        databases/time.hoo
+        databases/xhtml.hoo
+
+flag install-with-databases
+    default: True
+    description: Install a default set of databases with the library
+
+flag extended-library
+    default: False
+    description: Install with support for internal library documentation (intended for developers only)
 
 library
     hs-source-dirs:     src
@@ -51,13 +62,25 @@ library
 
     exposed-modules:
         Hoogle
-        Hoogle.DataBase.All
-        Hoogle.Item.All
-        Hoogle.Operations.All
-        Hoogle.Query.All
-        Hoogle.Search.All
-        Hoogle.TextBase.All
-        Hoogle.TypeSig.All
+
+    if flag(extended-library)
+        exposed-modules:
+            Hoogle.DataBase.All
+            Hoogle.Item.All
+            Hoogle.Operations.All
+            Hoogle.Query.All
+            Hoogle.Search.All
+            Hoogle.TextBase.All
+            Hoogle.TypeSig.All
+    else
+        other-modules:
+            Hoogle.DataBase.All
+            Hoogle.Item.All
+            Hoogle.Operations.All
+            Hoogle.Query.All
+            Hoogle.Search.All
+            Hoogle.TextBase.All
+            Hoogle.TypeSig.All
 
     other-modules:
         Data.Binary.Defer
@@ -98,7 +121,6 @@ library
         Hoogle.Item.URL
         Hoogle.Operations.Combine
         Hoogle.Operations.Convert
-        Hoogle.Operations.DataBases
         Hoogle.Operations.Rank
         Hoogle.Operations.RankSolve
         Hoogle.Query.Parser
