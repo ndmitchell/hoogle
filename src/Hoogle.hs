@@ -129,9 +129,19 @@ instance Monoid Score where
     mempty = Score []
     mappend (Score xs) (Score ys) = Score $ xs ++ ys
 
--- | A list of scores where one is lower than the other
-scoring :: [(Score,Score)] -> String
+-- | A list of scores where one is lower than the other, returns the score result.
+--   In the 'IO' monad since it may require randomness, and it may output status messages while solving,
+--   particularly if in Verbose mode.
+scoring :: [(Score,Score)] -> IO String
 scoring _ = error "scoring not yet implemented"
+{-
+    where
+        -- generate initial bounds
+        -- refine the bounds iteratively while still consistent
+        generate = [(x,[1..5]) | x <- ['a'..'z']]
+        refine :: Eq a => [(a,[b])] -> ((a -> [b]) -> [(a,[b])]) -> [(a,[b])]
+        refine initial step = undefined
+-}
 
 -- Hoogle.Search
 
