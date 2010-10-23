@@ -37,6 +37,7 @@ escapeCGI = concatMap f
             where s = showHex (ord x) ""
 
 
+-- FIXME: should be somewhere else
 showTagHTML = showTagHTMLWith (const Nothing)
 
 
