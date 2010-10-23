@@ -126,7 +126,7 @@ renderRes i Result{..} =
 
         docs2 = ("<div id='d" ++ show i ++ "' class='shut'>" ++
                    "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" +& selfUrl ++ "'></a>") +?
-                   (showTagHTML selfText) +?
+                   (showTagHTML docs) +?
                "</div>"
 
         url (TagHyperlink _ x)
