@@ -12,7 +12,7 @@ module Hoogle(
     -- * Database
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
-    Query, parseQuery, renderQuery, isBlankQuery,
+    H.Query, parseQuery, renderQuery, isBlankQuery,
     queryDatabases, querySuggestions, queryCompletions,
     -- * Score
     Score, scoring,
@@ -84,37 +84,23 @@ saveDatabase file = H.saveDataBase file . toDataBase
 
 -- Hoogle.Query
 
--- FIXME: temporary to make integration easier
 type Query = H.Query
-fromQuery = id
-toQuery = id
-
-
-{- FIXME: should use newtype once everyone converts
--- wrapper just to supress instances from Haddock
-newtype Query = Query {fromQuery :: H.Query}
-    deriving (Data,Typeable,Show)
-
-instance Monoid Query where
-    mempty = Query mempty
-    mappend (Query x) (Query y) = Query $ mappend x y
--}
 
 parseQuery :: String -> Either ParseError Query
-parseQuery = either (Left . toParseError) (Right . toQuery) . H.parseQuery
+parseQuery = either (Left . toParseError) Right . H.parseQuery
 
 renderQuery :: Query -> TagStr
-renderQuery = H.renderQuery . fromQuery
+renderQuery = H.renderQuery
 
 isBlankQuery :: Query -> Bool
-isBlankQuery = H.usefulQuery . fromQuery
+isBlankQuery = H.usefulQuery
 
 queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps
-    where ps = [p | H.PlusPackage p <- H.scope $ fromQuery x]
+    where ps = [p | H.PlusPackage p <- H.scope x]
 
 querySuggestions :: Database -> Query -> Maybe TagStr
-querySuggestions (Database dbs) q = H.suggestQuery dbs $ fromQuery q
+querySuggestions (Database dbs) q = H.suggestQuery dbs q
 
 queryCompletions :: Database -> String -> [String]
 queryCompletions x = H.completions (toDataBase x)
@@ -165,10 +151,10 @@ toResult r@(H.Result entry view score) = (Score score, Result package modul self
 
 
 searchAll :: Database -> Query -> [(Score,Result)]
-searchAll (Database xs) q = map toResult $ H.searchAll xs $ fromQuery q
+searchAll (Database xs) q = map toResult $ H.searchAll xs q
 
 
 -- | A pair of bounds. These bounds are the lowest and highest indices in the array, in that order.
 --   For example, the first 10 elements are (0,9) and the next 10 are (10,19)
 searchRange :: (Int,Int) -> Database -> Query -> [(Score,Result)]
-searchRange (a,b) (Database xs) q = map toResult $ H.searchRange (rangeStartEnd a b) xs $ fromQuery q
+searchRange (a,b) (Database xs) q = map toResult $ H.searchRange (rangeStartEnd a b) xs q
