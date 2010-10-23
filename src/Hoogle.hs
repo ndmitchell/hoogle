@@ -93,7 +93,7 @@ renderQuery :: Query -> TagStr
 renderQuery = H.renderQuery
 
 isBlankQuery :: Query -> Bool
-isBlankQuery = H.usefulQuery
+isBlankQuery = not . H.usefulQuery
 
 queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps
