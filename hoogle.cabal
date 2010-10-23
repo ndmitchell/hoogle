@@ -51,6 +51,13 @@ library
 
     exposed-modules:
         Hoogle
+        Hoogle.DataBase.All
+        Hoogle.Item.All
+        Hoogle.Operations.All
+        Hoogle.Query.All
+        Hoogle.Search.All
+        Hoogle.TextBase.All
+        Hoogle.TypeSig.All
 
     other-modules:
         Data.Binary.Defer
@@ -72,14 +79,12 @@ library
         General.Util
         General.Web
         Hoogle.DataBase.Aliases
-        Hoogle.DataBase.All
         Hoogle.DataBase.Instances
         Hoogle.DataBase.Items
         Hoogle.DataBase.NameSearch
         Hoogle.DataBase.Serialise
         Hoogle.DataBase.Suggest
         Hoogle.DataBase.Type
-        Hoogle.DataBase.TypeSearch.All
         Hoogle.DataBase.TypeSearch.Binding
         Hoogle.DataBase.TypeSearch.Cost
         Hoogle.DataBase.TypeSearch.EntryInfo
@@ -87,28 +92,23 @@ library
         Hoogle.DataBase.TypeSearch.Graphs
         Hoogle.DataBase.TypeSearch.Result
         Hoogle.DataBase.TypeSearch.TypeScore
-        Hoogle.Item.All
+        Hoogle.DataBase.TypeSearch.All
         Hoogle.Item.Haddock
         Hoogle.Item.Item
         Hoogle.Item.URL
-        Hoogle.Operations.All
         Hoogle.Operations.Combine
         Hoogle.Operations.Convert
         Hoogle.Operations.DataBases
         Hoogle.Operations.Rank
         Hoogle.Operations.RankSolve
-        Hoogle.Query.All
         Hoogle.Query.Parser
         Hoogle.Query.Render
         Hoogle.Query.Suggest
         Hoogle.Query.Type
-        Hoogle.Search.All
         Hoogle.Search.Result
         Hoogle.Search.Results
-        Hoogle.TextBase.All
         Hoogle.TextBase.Parser
         Hoogle.TextBase.Type
-        Hoogle.TypeSig.All
         Hoogle.TypeSig.Parser
         Hoogle.TypeSig.Type
 
