@@ -12,7 +12,7 @@
 
 :{
 :def docs const $ return $ unlines
-    [":!cabal configure"
+    [":!cabal configure --flags=extended-library"
     ,":!cabal haddock"
     ,":!start dist\\doc\\html\\hoogle\\Hoogle.html"]
 :}
