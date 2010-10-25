@@ -109,7 +109,7 @@ costsBindingLocal (Binding _ box l r) = do
         f var restrict = concatMapM g . Map.elems
             where
                 g (Just "", _) = Nothing
-                g (l, vs) = Just $ [restrict|isJust l] ++ var *+ (max 0 $ Set.size vs - 1)
+                g (l, vs) = Just $ [restrict|isJust l] ++ replicate (max 0 $ Set.size vs - 1) var
 
 
 costsBinding :: Binding -> [Cost]

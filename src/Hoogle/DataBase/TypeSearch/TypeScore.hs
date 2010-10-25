@@ -71,6 +71,7 @@ costsTypeScoreLocal t =
     CostAliasBwd *+ length (snd $ badAlias t) ++
     CostInstanceAdd *+ length (fst $ badInstance t) ++
     CostInstanceDel *+ length (snd $ badInstance t)
+    where (*+) = flip replicate
 
 
 costsTypeScore :: TypeScore -> [Cost]

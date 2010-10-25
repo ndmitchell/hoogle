@@ -1,13 +1,7 @@
 
 module Hoogle.DataBase.TypeSearch.Cost(
-    Cost(..), cost, score, (*+)
+    Cost(..), cost, score
     ) where
-
-
-infixl 7  *+ -- same as *
-
-(*+) :: Cost -> Int -> [Cost]
-(*+) = flip replicate
 
 
 data Cost = CostAliasFwd
