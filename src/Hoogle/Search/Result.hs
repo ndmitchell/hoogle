@@ -3,7 +3,6 @@ module Hoogle.Search.Result where
 
 import General.Code
 import Data.TagStr
-import Hoogle.DataBase.All
 import Hoogle.Item.All
 import Hoogle.Score.All
 import Data.Binary.Defer.Index
