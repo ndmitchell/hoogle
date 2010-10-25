@@ -269,3 +269,8 @@ splitAtLength n xs = f n xs
 
 
 isRight Right{} = True; isRight _ = False
+
+
+readFile' x = do
+    src <- readFile x
+    length src `seq` return src
