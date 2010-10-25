@@ -1,14 +1,33 @@
 
 module Console.Rank(rank) where
 
-import CmdLine.All
-import Console.Search
-import Console.Test
 import General.Code
-import Data.Monoid
-import Test.All
 import Hoogle
 
 
 rank :: FilePath -> IO ()
-rank = error "todo: rank"
+rank file = do
+    src <- readFile' file
+    res <- scoring $ scores $ parse $ lines src
+    putStrLn res
+
+
+scores :: ([String], [(String,[String])]) -> [(Score,Score)]
+scores (pre,xs) = concatMap trans
+    [
+        [ fst $ head $ searchAll db q ++ [error $ "Did not find in " ++ query ++ ", " ++ y]
+        | y <- ys , let db = right ("Could not parse database line: " ++ y) $ createDatabase [] $ unlines $ pre ++ ["a::" ++ y]
+        ]
+    | (query,ys) <- xs, let q = right ("Could not parse query: " ++ query) $ parseQuery query]
+    where right msg = either (\e -> error $ msg ++ "\n" ++ show e) id
+
+trans (x:xs) = map ((,) x) xs ++ trans xs
+trans [] = []
+
+
+parse :: [String] -> ([String], [(String,[String])])
+parse src = (db, [(drop 6 x, filter isReal $ takeWhile (not . isRank) xs) | x:xs <- tails rest, isRank x])
+    where
+        isReal x = not $ all isSpace x || "--" `isPrefixOf` x
+        isRank = isPrefixOf "@rank "
+        (db,rest) = break isRank src

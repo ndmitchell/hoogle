@@ -9,7 +9,7 @@ import Hoogle.Score.Type
 --   In the 'IO' monad since it may require randomness, and it may output status messages while solving,
 --   particularly if in Verbose mode.
 scoring :: [(Score,Score)] -> IO String
-scoring _ = error "todo: scoring" {- do
+scoring xs = error $ "todo: scoring\n" ++ show xs {- do
     res <- return $ solve undefined (error "scoring: todo")
     print res
     return "" -}
