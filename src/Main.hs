@@ -2,8 +2,8 @@
 module Main where
 
 import CmdLine.All
-import Console.Action as Console
-import Web.Action as Web
+import Console.All as Console
+import Web.All as Web
 
 
 main :: IO ()

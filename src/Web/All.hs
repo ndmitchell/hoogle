@@ -1,5 +1,5 @@
 
-module Web.Action(action) where
+module Web.All(action) where
 
 import CmdLine.All
 import Web.Server

@@ -1,5 +1,5 @@
 
-module Console.Action(action) where
+module Console.All(action) where
 
 import CmdLine.All
 import Console.Search
