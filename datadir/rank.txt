@@ -1,6 +1,8 @@
 -- a list of examples
 -- used to generate a scoring system
 
+@package rank
+module Rank
 type String = [Char]
 type FilePath = String
 
