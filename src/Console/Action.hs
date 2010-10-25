@@ -5,6 +5,7 @@ import CmdLine.All
 import Console.Search
 import Console.Test
 import General.Code
+import Data.Monoid
 import Test.All
 import Hoogle
 
@@ -36,17 +37,11 @@ action (Convert from to) = do
     putStrLn $ "Written " ++ to
 
 
-action Combine{} = error "todo - combine" {- | Combine{} `elemEnum` queryFlags q = do
-    -- TODO: Work around a bug in CmdLine.Flags, try /merge=t1;t2
-    --       and you get [t1,t1,t2,t2]
-    let files = nub [x | Combine x <- queryFlags q]
-        outfile = headDef "default.hoo" [x | Output x <- queryFlags q]
-    putStrLn $ "Combining " ++ show (length files) ++ " databases"
-    combine files outfile
-    when (Dump{} `elemEnum` queryFlags q) $ do
-        putStrLn ""
-        actionDump q outfile
--}
+action (Combine from to) = do
+    putStrLn $ "Combining " ++ show (length from) ++ " databases"
+    xs <- mapM loadDatabase from
+    saveDatabase to $ mconcat xs
+
 
 action (Dump file sections) = do
     d <- loadDatabase file

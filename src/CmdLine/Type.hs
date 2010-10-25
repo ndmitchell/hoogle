@@ -35,7 +35,7 @@ data CmdLine
     | Server {port :: Int, databases :: [FilePath], resources :: FilePath}
     | Dump {database :: String, section :: [String]}
     | Rank {srcfile :: FilePath}
-    | Combine {srcfiles :: FilePath, outfile :: String}
+    | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
       deriving (Data,Typeable,Show)
 
@@ -77,8 +77,8 @@ rank = Rank
     } &= help "Generate ranking information"
 
 combine = Combine
-    {srcfiles = def &= args &= typ "INPUT"
-    ,outfile = def &= argPos 0 &= typ "OUTPUT"
+    {srcfiles = def &= args &= typ "DATABASE"
+    ,outfile = "default.hoo" &= typFile &= help "Output file (defaults to default.hoo)"
     } &= help "Combine multiple inputs to produce one output"
 
 convert = Convert
