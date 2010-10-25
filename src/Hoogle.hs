@@ -12,10 +12,10 @@ module Hoogle(
     -- * Database
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
-    H.Query, parseQuery, H.renderQuery, H.isBlankQuery,
+    Query, parseQuery, H.renderQuery, H.isBlankQuery,
     queryDatabases, querySuggestions, queryCompletions,
     -- * Score
-    H.Score, H.scoring,
+    Score, H.scoring,
     -- * Search
     Result(..), searchAll, searchRange
     ) where
@@ -34,6 +34,9 @@ import qualified Hoogle.Score.All as H
 import qualified Hoogle.Search.All as H
 import qualified Hoogle.Item.All as H
 import qualified Hoogle.TextBase.All as H
+
+import Hoogle.Query.All(Query)
+import Hoogle.Score.All(Score)
 
 
 -- * Utility types
@@ -85,8 +88,6 @@ saveDatabase file = H.saveDataBase file . toDataBase
 
 -- Hoogle.Query
 
-type Query = H.Query
-
 parseQuery :: String -> Either ParseError Query
 parseQuery = either (Left . toParseError) Right . H.parseQuery
 
@@ -102,8 +103,6 @@ queryCompletions x = H.completions (toDataBase x)
 
 
 -- Hoogle.Search
-
-type Score = H.Score
 
 data Result = Result
     {package :: Maybe (URL, String)
