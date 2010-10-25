@@ -5,6 +5,7 @@ module Hoogle.Search.Results(
 
 import General.Code
 import Data.Key
+import Data.Monoid
 import qualified Data.IntMap as IntMap
 import Data.Binary.Defer.Index
 
@@ -39,7 +40,7 @@ joinResults xs = sortWith scr $ IntMap.elems $
     where
         asSet = IntMap.fromList . map (linkKey . resultEntry &&& id)
 
-        join r1 r2 = r1{resultScore = sort $ resultScore r1 ++ resultScore r2
+        join r1 r2 = r1{resultScore = mappend (resultScore r1) (resultScore r2)
                        ,resultView = resultView r1 ++ resultView r2}
 
         scr = resultScore &&& linkKey . resultEntry

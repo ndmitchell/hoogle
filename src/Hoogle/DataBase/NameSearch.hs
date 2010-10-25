@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.NameSearch
     (NameSearch, createNameSearch
-    ,TextScore, searchNameSearch
+    ,searchNameSearch
     ,completionsNameSearch
     ) where
 
@@ -12,6 +12,7 @@ import qualified Data.Map as Map
 import Data.Range
 import General.Code
 import Hoogle.Item.All
+import Hoogle.Score.All
 
 
 ---------------------------------------------------------------------
@@ -91,24 +92,14 @@ buildItems = Map.map norm . foldl' add Map.empty
 ---------------------------------------------------------------------
 -- SEARCHING
 
--- lower is better
-data TextScore = TSExact | TSStart | TSNone
-                 deriving (Eq,Ord)
-
-instance Show TextScore where
-    show TSExact = "exact"
-    show TSStart = "start"
-    show TSNone = "_"
-
-
 {-
 Step 1: Binary search for find the exact match
 Step 2: Follow from that item finding ones which start
 Step 3: Use the hint set to merge into a list of results
 -}
 
-searchNameSearch :: NameSearch -> String -> [(Link Entry,EntryView,TextScore)]
-searchNameSearch (NameSearch items shortcuts) str = step1 ++ step2 ++ step3
+searchNameSearch :: NameSearch -> String -> [(Link Entry,EntryView,Score)]
+searchNameSearch (NameSearch items shortcuts) str = [(a,b, textScore c) | (a,b,c) <- step1 ++ step2 ++ step3]
     where
         lstr = map toLower str
         nstr = length str
@@ -118,15 +109,15 @@ searchNameSearch (NameSearch items shortcuts) str = step1 ++ step2 ++ step3
         (prefixes,lastpre) = followPrefixes items lstr prefix
 
 
-        step1 = if isJust exact then f TSExact yes ++ f TSStart no else []
+        step1 = if isJust exact then f MatchExact yes ++ f MatchPrefix no else []
             where
                 (yes,no) = partition ((==) str . fst) $ fromDefer $ rest $ items ! fromJust exact
                 f scr xs = [(x, rangePrefix, scr) | x <- concatMap snd xs]
 
-        step2 = [(x, rangePrefix, TSStart) | x <- prefixes]
+        step2 = [(x, rangePrefix, MatchPrefix) | x <- prefixes]
 
         seen i = fromMaybe prefix exact <= i && i <= lastpre
-        step3 = [(e,view,TSNone) | i <- xs, let x = items ! i
+        step3 = [(e,view,MatchSubstr) | i <- xs, let x = items ! i
                 , Just p <- [testMatch lstr $ key x]
                 , let view = FocusOn $ rangeStartCount p nstr
                 , e <- concatMap snd $ fromDefer $ rest x]

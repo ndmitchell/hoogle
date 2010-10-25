@@ -15,7 +15,7 @@ module Hoogle(
     H.Query, parseQuery, H.renderQuery, H.isBlankQuery,
     queryDatabases, querySuggestions, queryCompletions,
     -- * Score
-    Score, scoring,
+    H.Score, H.scoring,
     -- * Search
     Result(..), searchAll, searchRange
     ) where
@@ -30,6 +30,7 @@ import Text.ParserCombinators.Parsec(sourceColumn, sourceLine, errorPos)
 
 import qualified Hoogle.DataBase.All as H
 import qualified Hoogle.Query.All as H
+import qualified Hoogle.Score.All as H
 import qualified Hoogle.Search.All as H
 import qualified Hoogle.Item.All as H
 import qualified Hoogle.TextBase.All as H
@@ -100,30 +101,9 @@ queryCompletions :: Database -> String -> [String]
 queryCompletions x = H.completions (toDataBase x)
 
 
--- Hoogle.Score
-
-newtype Score = Score [H.Score]
-                deriving (Eq,Ord,Show)
-
-instance Monoid Score where
-    mempty = Score []
-    mappend (Score xs) (Score ys) = Score $ xs ++ ys
-
--- | A list of scores where one is lower than the other, returns the score result.
---   In the 'IO' monad since it may require randomness, and it may output status messages while solving,
---   particularly if in Verbose mode.
-scoring :: [(Score,Score)] -> IO String
-scoring _ = error "scoring not yet implemented"
-{-
-    where
-        -- generate initial bounds
-        -- refine the bounds iteratively while still consistent
-        generate = [(x,[1..5]) | x <- ['a'..'z']]
-        refine :: Eq a => [(a,[b])] -> ((a -> [b]) -> [(a,[b])]) -> [(a,[b])]
-        refine initial step = undefined
--}
-
 -- Hoogle.Search
+
+type Score = H.Score
 
 data Result = Result
     {package :: Maybe (URL, String)
@@ -133,7 +113,7 @@ data Result = Result
     }
 
 toResult :: H.Result -> (Score,Result)
-toResult r@(H.Result entry view score) = (Score score, Result package modul self docs)
+toResult r@(H.Result entry view score) = (score, Result package modul self docs)
     where
         ent = fromLink entry
         (modu,text,_) = H.renderResult r

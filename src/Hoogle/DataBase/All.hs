@@ -1,7 +1,6 @@
 
 module Hoogle.DataBase.All
     (DataBase, showDataBase
-    ,TextScore, TypeScore
     ,module Hoogle.DataBase.All
     ,module Hoogle.DataBase.Serialise
     ) where
@@ -11,6 +10,7 @@ import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Hoogle.DataBase.Type
 import Hoogle.Item.All
+import Hoogle.Score.All
 import Hoogle.DataBase.Serialise
 
 
@@ -38,11 +38,11 @@ combineDataBase dbs = DataBase items_
         is = mergeInstances $ map instances dbs
 
 
-searchName :: DataBase -> String -> [(Link Entry,EntryView,TextScore)]
+searchName :: DataBase -> String -> [(Link Entry,EntryView,Score)]
 searchName db = searchNameSearch (nameSearch db)
 
 
-searchType :: DataBase -> TypeSig -> [(Link Entry,[EntryView],TypeScore)]
+searchType :: DataBase -> TypeSig -> [(Link Entry,[EntryView],Score)]
 -- although aliases and instances are given, they are usually not used
 searchType db = searchTypeSearch (aliases db) (instances db) (typeSearch db)
 

@@ -11,8 +11,8 @@ module Hoogle.DataBase.TypeSearch.Binding(
     ) where
 
 import Hoogle.TypeSig.All
+import Hoogle.Score.All
 import General.Code
-import Hoogle.DataBase.TypeSearch.Cost
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -92,14 +92,14 @@ mergeBindings bs = do
         (bl,br) = (Map.unionsWith f ls, Map.unionsWith f rs)
         res i = Binding i (concat box) bl br
     s <- costsBindingLocal (res 0)
-    return $ res (score s)
+    return $ res (sum $ map cost s)
     where
         f (l1,vs1) (l2,vs2)
             | l1 /= l2 && isJust l1 && isJust l2 = (Just "", vs1)
             | otherwise = (l1 `mplus` l2, Set.union vs1 vs2)
 
 
-costsBindingLocal :: Binding -> Maybe [Cost]
+costsBindingLocal :: Binding -> Maybe [TypeCost]
 costsBindingLocal (Binding _ box l r) = do
     let cb = [if b == Unbox then CostUnbox else CostRebox | b <- box]
     cl <- f CostDupVarQuery  CostRestrict   l
@@ -112,7 +112,7 @@ costsBindingLocal (Binding _ box l r) = do
                 g (l, vs) = Just $ [restrict|isJust l] ++ replicate (max 0 $ Set.size vs - 1) var
 
 
-costsBinding :: Binding -> [Cost]
+costsBinding :: Binding -> [TypeCost]
 costsBinding = fromJust . costsBindingLocal
 
 

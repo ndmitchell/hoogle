@@ -5,7 +5,7 @@ module Hoogle.DataBase.TypeSearch.TypeScore(
     ) where
 
 import General.Code
-import Hoogle.DataBase.TypeSearch.Cost
+import Hoogle.Score.All
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
@@ -60,10 +60,10 @@ newTypeScore is query result inorder bs = t{costTypeScore = calcScore t}
 
 
 calcScore :: TypeScore -> Int
-calcScore t = costBinding (bind t) + score (costsTypeScoreLocal t)
+calcScore t = costBinding (bind t) + sum (map cost $ costsTypeScoreLocal t)
 
 
-costsTypeScoreLocal :: TypeScore -> [Cost]
+costsTypeScoreLocal :: TypeScore -> [TypeCost]
 costsTypeScoreLocal t =
     CostDeadArg *+ badargs t ++
     [CostArgReorder | badorder t] ++
@@ -74,5 +74,5 @@ costsTypeScoreLocal t =
     where (*+) = flip replicate
 
 
-costsTypeScore :: TypeScore -> [Cost]
+costsTypeScore :: TypeScore -> [TypeCost]
 costsTypeScore t = costsBinding (bind t) ++ costsTypeScoreLocal t

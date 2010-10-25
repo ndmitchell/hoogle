@@ -5,26 +5,16 @@ import General.Code
 import Data.TagStr
 import Hoogle.DataBase.All
 import Hoogle.Item.All
+import Hoogle.Score.All
 import Data.Binary.Defer.Index
 
 
 data Result = Result
     {resultEntry :: Link Entry
     ,resultView :: [EntryView]
-    ,resultScore :: [Score]
+    ,resultScore :: Score
     }
     deriving Show
-
--- TypeScore must be less than TextScore
--- so that when name :: type is searched, type takes preference
-data Score = TypeScore TypeScore
-           | TextScore TextScore
-             deriving (Eq,Ord)
-
-instance Show Score where
-    showList xs = showString $ concat $ intersperse " & " $ map show xs
-    show (TypeScore x) = show x
-    show (TextScore x) = show x
 
 
 -- return (module it is in, the text to go beside it, verbose scoring info)

@@ -15,6 +15,7 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.TypeSig.All
 import Hoogle.Item.All
+import Hoogle.Score.All
 
 
 newtype TypeSearch = TypeSearch Graphs
@@ -38,6 +39,6 @@ createTypeSearch aliases instances xs = TypeSearch $ newGraphs aliases instances
 ---------------------------------------------------------------------
 -- SEARCHING
 
-searchTypeSearch :: Aliases -> Instances -> TypeSearch -> TypeSig -> [(Link Entry,[EntryView],TypeScore)]
+searchTypeSearch :: Aliases -> Instances -> TypeSearch -> TypeSig -> [(Link Entry,[EntryView],Score)]
 searchTypeSearch as is (TypeSearch g) t =
-    [(a, b, c) | (a,b,c) <- graphsSearch as is g t]
+    [(a, b, typeScore $ costsTypeScore c) | (a,b,c) <- graphsSearch as is g t]
