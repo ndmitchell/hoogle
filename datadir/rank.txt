@@ -5,53 +5,53 @@ type String = [Char]
 type FilePath = String
 
 
-@ Ord a => [a] -> [a]
+@rank Ord a => [a] -> [a]
 Ord a => a -> [a] -> [a]
 [a] -> [a]
 a -> [a] -> [a]
 
-@ Ord a => [a] -> [a]
+@rank Ord a => [a] -> [a]
 [a] -> [a]
 Int -> [a] -> [a]
 String -> String
 Int -> [Char] -> [Char]
 
-@ Ord a => [a] -> [a]
+@rank Ord a => [a] -> [a]
 [a] -> [a]
 Ord a => a -> [a]
 
-@ [a] -> [b]
+@rank [a] -> [b]
 (a -> b) -> [a] -> [b]
 [a] -> [a]
 Eq a => [a] -> [a]
 
-@ Int -> Bool
+@rank Int -> Bool
 a -> Int -> Bool
 a -> Bool
 
-@ a -> a
+@rank a -> a
 Int -> a -> a
 a -> m a
 a -> b
 
-@ a -> b
+@rank a -> b
 a -> b
 a -> b -> a
 a -> a
 Int -> a
 
-@ [a] -> a
+@rank [a] -> a
 [a] -> Int -> a
 Ord a => [a] -> a
 [a] -> Bool
 
-@ a -> b -> c
+@rank a -> b -> c
 a -> b -> c -> d
 Int -> b -> c
 a -> a -> a
 Ord a => a -> a -> a
 
-@ String
+@rank String
 [Char]
 FilePath
 a -> String
