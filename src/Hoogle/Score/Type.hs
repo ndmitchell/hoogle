@@ -1,5 +1,9 @@
 
-module Hoogle.Score.Type(Score, TypeCost(..), TextMatch(..), textScore, typeScore, typeCosts) where
+module Hoogle.Score.Type(
+    Score, TypeCost(..), TextMatch(..),
+    textScore, typeScore,
+    scoreCosts, cost
+    ) where
 
 import Data.List
 import Data.Monoid
@@ -54,8 +58,8 @@ textScore x = Score 0 [] [x]
 typeScore :: [TypeCost] -> Score
 typeScore xs = Score (sum $ map cost xs) (sort xs) []
 
-typeCosts :: Score -> [TypeCost]
-typeCosts (Score _ x _) = x
+scoreCosts :: Score -> [TypeCost]
+scoreCosts (Score _ x _) = x
 
 
 instance Show Score where
