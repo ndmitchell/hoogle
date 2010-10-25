@@ -69,6 +69,7 @@ library
             Hoogle.Item.All
             Hoogle.Operations.All
             Hoogle.Query.All
+            Hoogle.Score.All
             Hoogle.Search.All
             Hoogle.TextBase.All
             Hoogle.TypeSig.All
@@ -78,6 +79,7 @@ library
             Hoogle.Item.All
             Hoogle.Operations.All
             Hoogle.Query.All
+            Hoogle.Score.All
             Hoogle.Search.All
             Hoogle.TextBase.All
             Hoogle.TypeSig.All
@@ -127,6 +129,9 @@ library
         Hoogle.Query.Render
         Hoogle.Query.Suggest
         Hoogle.Query.Type
+        Hoogle.Score.Scoring
+        Hoogle.Score.Solve
+        Hoogle.Score.Type
         Hoogle.Search.Result
         Hoogle.Search.Results
         Hoogle.TextBase.Parser
