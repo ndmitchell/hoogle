@@ -58,3 +58,9 @@ Ord a => a -> a -> a
 FilePath
 a -> String
 
+@rank [(a,b)] -> a -> b
+[(a,b)] -> a -> b
+a -> [(a,b)] -> b
+Eq a => [(a,b)] -> a -> b
+[(a,b)] -> a -> Maybe b
+Eq a => a -> [(a,b)] -> Maybe b
