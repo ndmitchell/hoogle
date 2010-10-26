@@ -69,6 +69,7 @@ showTagHTMLWith f x = g x
         g (Tags xs) = concatMap g xs
         g (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
         g (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
+        -- FIXME: this is overly specific!
         g (TagHyperlink "" x) = g (TagHyperlink url x)
             where str = showTagText x
                   url = if "http:" `isPrefixOf` str then str else "?hoogle=" +% str
