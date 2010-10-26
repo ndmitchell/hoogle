@@ -63,7 +63,7 @@ scoreCosts (Score _ x _) = x
 
 
 instance Show Score where
-    show (Score _ a b) = intercalate "," $ map (drop 4 . show) a ++ map (drop 5 . show) b
+    show (Score _ a b) = intercalate "+" $ map (drop 4 . show) a ++ map (drop 5 . show) b
 
 instance Eq Score where
     Score x1 x2 x3 == Score y1 y2 y3 = x1 == y1 && x3 == y3
