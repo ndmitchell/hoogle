@@ -111,7 +111,6 @@ library
         Hoogle.DataBase.Suggest
         Hoogle.DataBase.Type
         Hoogle.DataBase.TypeSearch.Binding
-        Hoogle.DataBase.TypeSearch.Cost
         Hoogle.DataBase.TypeSearch.EntryInfo
         Hoogle.DataBase.TypeSearch.Graph
         Hoogle.DataBase.TypeSearch.Graphs
