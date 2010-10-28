@@ -58,7 +58,7 @@ flag extended-library
 library
     hs-source-dirs:     src
     build-depends: base > 4 && < 4.3, directory, process, containers, array,
-                   bytestring, parsec, filepath, safe, uniplate, mtl, time
+                   bytestring, parsec, filepath, safe, uniplate, mtl, time, random
 
     exposed-modules:
         Hoogle
@@ -67,7 +67,6 @@ library
         exposed-modules:
             Hoogle.DataBase.All
             Hoogle.Item.All
-            Hoogle.Operations.All
             Hoogle.Query.All
             Hoogle.Score.All
             Hoogle.Search.All
@@ -77,7 +76,6 @@ library
         other-modules:
             Hoogle.DataBase.All
             Hoogle.Item.All
-            Hoogle.Operations.All
             Hoogle.Query.All
             Hoogle.Score.All
             Hoogle.Search.All
@@ -120,16 +118,11 @@ library
         Hoogle.Item.Haddock
         Hoogle.Item.Item
         Hoogle.Item.URL
-        Hoogle.Operations.Combine
-        Hoogle.Operations.Convert
-        Hoogle.Operations.Rank
-        Hoogle.Operations.RankSolve
         Hoogle.Query.Parser
         Hoogle.Query.Render
         Hoogle.Query.Suggest
         Hoogle.Query.Type
         Hoogle.Score.Scoring
-        Hoogle.Score.Solve
         Hoogle.Score.Type
         Hoogle.Search.Result
         Hoogle.Search.Results
@@ -148,7 +141,7 @@ executable hoogle
     other-modules:
         CmdLine.All
         CmdLine.Type
-        Console.Action
+        Console.All
         Console.Search
         Console.Test
         Test.All
@@ -156,7 +149,7 @@ executable hoogle
         Test.Parse_Query
         Test.Parse_TextBase
         Test.Parse_TypeSig
-        Web.Action
+        Web.All
         Web.Page
         Web.Response
         Web.Server
