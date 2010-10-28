@@ -17,9 +17,9 @@ data Result = Result
 
 
 -- return (module it is in, the text to go beside it, verbose scoring info)
-renderResult :: Result -> (Maybe [String], TagStr, String)
+renderResult :: Result -> (Maybe Module, TagStr, String)
 renderResult r = (if entryType e == EntryModule then Nothing
-                  else liftM (moduleName . fromLink) $ entryModule e
+                  else liftM fromLink $ entryModule e
                  ,renderEntryText (resultView r) $ entryText e
                  ,show $ resultScore r)
     where e = fromLink $ resultEntry r

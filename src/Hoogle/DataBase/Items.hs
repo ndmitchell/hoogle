@@ -62,13 +62,13 @@ addTextItem ((ti,doc):rest) = case ti of
         add False EntryKeyword [Keyword "keyword",Text " ",Focus name]
 
     ItemAttribute "package" name -> do
-        modify $ \(ps,ms) -> (addS (addPkg (Package name "" "" "") rest) ps, ms)
+        modify $ \(ps,ms) -> (addS (defaultPackageURL $ addPkg (Package name "") rest) ps, ms)
         add False EntryPackage [Keyword "package",Text " ",Focus name]
 
     ItemAttribute _ _ -> return []
 
     ItemModule xs -> do
-        modify $ \(ps,ms) -> (ps, addS (Module xs) ms)
+        modify $ \(ps,ms) -> (ps, addS (defaultModuleURL $ Module xs (getS ps) "") ms)
         add True EntryModule [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 
     _ -> add True EntryOther (renderTextItem ti)
@@ -76,13 +76,12 @@ addTextItem ((ti,doc):rest) = case ti of
         add modu typ txt = do
             (ps,ms) <- get
             let sig = case ti of ItemFunc _ s -> Just (Defer s); _ -> Nothing
-            return [Entry (if modu then Just $ getS ms else Nothing) (getS ps)
+            return [defaultEntryURL $ Entry
+                          (if modu then Just $ getS ms else Nothing) (getS ps)
                           (headDef "" [i | Focus i <- txt])
-                          txt typ (newHaddock doc) sig]
+                          txt typ (newHaddock doc) sig ""]
 
-        addPkg pkg ((ItemAttribute "version" x,_) : xs) = addPkg pkg{packageVersion=x} xs
-        addPkg pkg ((ItemAttribute "haddock" x,_) : xs) = addPkg pkg{haddockURL    =x} xs
-        addPkg pkg ((ItemAttribute "hackage" x,_) : xs) = addPkg pkg{hackageURL    =x} xs
+        addPkg pkg ((ItemAttribute "url" x,_) : xs) = addPkg pkg{packageURL=x} xs
         addPkg pkg _ = pkg
 
 

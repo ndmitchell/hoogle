@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Hoogle.Item.Item where
 
@@ -14,21 +15,17 @@ import Data.Typeable
 
 data Package = Package
     {packageName :: String
-    ,packageVersion :: String
-    ,haddockURL :: String
-    ,hackageURL :: String
+    ,packageURL :: URL
     }
-
-typename_Package = mkTyCon "Hoogle.DataBase.Item.Package"
-instance Typeable Package where typeOf _ = mkTyConApp typename_Package []
+    deriving Typeable
 
 
 data Module = Module
     {moduleName :: [String]
+    ,modulePackage :: Link Package
+    ,moduleURL :: URL
     }
-
-typename_Module = mkTyCon "Hoogle.DataBase.Item.Module"
-instance Typeable Module where typeOf _ = mkTyConApp typename_Module []
+    deriving Typeable
 
 
 -- TODO: Is entryName every used? Can it make use of the invariant?
@@ -43,6 +40,7 @@ data Entry = Entry
     ,entryType :: EntryType
     ,entryDocs :: Haddock
     ,entryTypesig :: Maybe (Defer TypeSig)
+    ,entryURL :: URL
     }
 
 
@@ -135,10 +133,10 @@ renderTypeSig (TypeSig con sig) = Text (showConstraint con) :
 showModule = concat . intersperse "."
 
 instance Show Package where
-    show (Package a b c d) = unwords $ filter (/= "") [a,b,c,d]
+    show (Package a b) = unwords $ filter (/= "") [a,b]
 
 instance Show Module where
-    show (Module a) = showModule a
+    show = showModule . moduleName
 
 instance Show Entry where
     show e = unwords [concatMap f $ entryText e, m]
@@ -155,16 +153,16 @@ instance Show Entry where
 
 
 instance BinaryDefer Package where
-    put (Package a b c d) = put4 a b c d
-    get = get4 Package
+    put (Package a b) = put2 a b
+    get = get2 Package
 
 instance BinaryDefer Module where
-    put (Module a) = put1 a
-    get = get1 Module
+    put (Module a b c) = put3 a b c
+    get = get3 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e f g) = put7 a b c d e f g
-    get = get7 Entry
+    put (Entry a b c d e f g h) = put8 a b c d e f g h
+    get = get8 Entry
 
 instance BinaryDefer EntryText where
     put (Keyword a)  = putByte 0 >> put1 a
