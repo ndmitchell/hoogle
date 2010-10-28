@@ -6,7 +6,6 @@ import Data.List
 import Control.Arrow
 import Data.Ord
 import Data.Maybe
-import Debug.Trace
 import Control.Monad
 import System.Random
 
