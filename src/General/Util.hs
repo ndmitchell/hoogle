@@ -14,6 +14,8 @@ import System.IO.Unsafe
 
 infixl 0 `on`
 
+type URL = String
+
 fst3 (a,b,c) = a
 snd3 (a,b,c) = b
 thd3 (a,b,c) = c

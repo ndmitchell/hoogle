@@ -26,6 +26,7 @@ import Data.Range
 import Data.Data
 import Data.Maybe
 import Data.TagStr
+import General.Util(URL)
 import Text.ParserCombinators.Parsec(sourceColumn, sourceLine, errorPos)
 
 import qualified Hoogle.DataBase.All as H
@@ -40,8 +41,6 @@ import Hoogle.Score.All(Score)
 
 
 -- * Utility types
-
-type URL = String
 
 -- | 1 based
 data ParseError = ParseError {lineNo :: Int, columnNo :: Int, parseError :: String}
