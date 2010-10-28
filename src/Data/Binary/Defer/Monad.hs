@@ -26,6 +26,7 @@ import Foreign
 -- and removes hGetPos as being a bottleneck
 -- possibly still not worth it though
 
+-- FIXME: Should be a newtype
 type DeferPut a = ReaderT (Buffer, IORef [DeferPending], IORef [DeferPatchup]) IO a
 data DeferPending = DeferPending !Int (DeferPut ())
 data DeferPatchup = DeferPatchup !Int !Int -- a b = at position a, write out b
