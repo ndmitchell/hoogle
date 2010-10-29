@@ -283,3 +283,8 @@ isRight Right{} = True; isRight _ = False
 readFile' x = do
     src <- readFile x
     length src `seq` return src
+
+
+ltrim = dropWhile isSpace
+rtrim = reverse . ltrim . reverse
+trim = ltrim . rtrim
