@@ -11,6 +11,8 @@ import qualified Data.IntSet as IntSet
 import qualified Data.Map as Map
 import Control.Arrow
 import System.IO.Unsafe
+import qualified Control.Exception as E
+
 
 infixl 0 `on`
 
@@ -29,6 +31,11 @@ fix :: Eq a => (a -> a) -> a -> a
 fix f x = if x == x2 then x else fix f x2
     where x2 = f x
 
+
+withDirectory dir cmd = E.bracket
+    (do x <- getCurrentDirectory; setCurrentDirectory dir; return x)
+    setCurrentDirectory
+    (const cmd)
 
 
 -- | If anyone of them returns Nothing, the whole thing does
