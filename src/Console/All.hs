@@ -2,6 +2,7 @@
 module Console.All(action) where
 
 import CmdLine.All
+import Recipe.All
 import Console.Search
 import Console.Test
 import Console.Rank
@@ -23,6 +24,8 @@ action (Test files) = do
     mapM_ testFile files
 
 action (Rank file) = rank file
+
+action (Data datadir threads redownload rebuild xs) = recipes (RecipeOptions datadir threads redownload rebuild) xs
 
 action (Convert from to) = do
     to <- return $ if null to then replaceExtension from "hoo" else to
