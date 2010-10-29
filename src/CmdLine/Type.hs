@@ -41,8 +41,8 @@ data CmdLine
 
 blankSearch = Search False Nothing Nothing Nothing False False [] [] (Right mempty) ""
 
-cmdLineMode = cmdArgsMode $ modes [search &= auto,test,server,dump,rank,combine,convert]
-    &= verbosity
+cmdLineMode = cmdArgsMode $ modes [search &= auto,test,server,dump,rank,combine,convert,dataa]
+    &= verbosity &= program "hoogle"
     &= summary ("Hoogle v" ++ showVersion version ++ ", (C) Neil Mitchell 2004-2010\nhttp://haskell.org/hoogle")
 
 search = Search
