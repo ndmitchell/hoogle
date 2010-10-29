@@ -1,10 +1,9 @@
 {-# LANGUAGE RecordWildCards #-}
-module Recipe.General(convert, combine) where
+module Recipe.General(convert, multiple) where
 
 import Recipe.Type
 import Hoogle
 import General.Code
-import Data.Monoid
 
 
 convert :: RecipeDetails -> String -> IO ()
@@ -20,11 +19,12 @@ convert RecipeDetails{..} _ = do
         putStrLn $ "Written " ++ to
 
 
-combine :: RecipeDetails -> String -> IO ()
-combine RecipeDetails{..} _ = do
-    let to = "default.hoo"
-    from <- ls $ \x -> takeExtension x == ".hoo" && x /= to
-    process from [to] $ do
-        putStrLn $ "Combining " ++ show (length from) ++ " databases"
-        xs <- mapM loadDatabase from
-        saveDatabase to $ mconcat xs
+-- database that were combined from multiple databases
+composite = words "hackage platform default all"
+
+multiple :: String -> RecipeDetails -> String -> IO ()
+multiple to RecipeDetails{..} xs = do
+    from <- if null xs
+        then ls $ \x -> takeExtension x == ".hoo" && dropExtension x `notElem` composite
+        else return $ map (<.> "hoo") $ words $ map (\x -> if x == ',' then ' ' else x) xs
+    combine (to <.> "hoo") from 

@@ -13,7 +13,7 @@ import Recipe.Hackage
 recipes :: RecipeOptions -> [String] -> IO ()
 recipes opt xs | not $ null es = error $ unlines es
                | otherwise = sequence_ ys
-    where (es,ys) = unzipEithers $ map (recipe opt) xs
+    where (es,ys) = unzipEithers $ map (recipe opt) $ if null xs then words defaultRecipe else xs
 
 
 recipe :: RecipeOptions -> String -> Either String (IO ())
@@ -26,14 +26,17 @@ recipe opt x = case lookup a list of
     where (a,b) = break (== '=') x
 
 
+defaultRecipe = "keyword package convert hackage platform default=keyword,platform all=keyword,hackage"
 
 list = let f a b c = (a,(b,c)) in
     [f "help" "Display this help message" help
-    ,f "keyword" "Create a keyword list from the Haskell Wiki" keyword
-    ,f "convert" "Convert all databases to .hoo format" convert
-    ,f "combine" "Combine all databases to produce default.hoo" combine
-    ,f "hackage" "Download hackage databases" hackage
-    ,f "platform" "Create a platform database" hackage
+    ,f "keyword" "Create textbase for keywords, from the Haskell Wiki" keyword
+    ,f "package" "Create textbases for all packages on Hackage" package
+    ,f "convert" "Create databases for all textbases" convert
+    ,f "hackage" "Create hackage.hoo for all of Hackage" hackage
+    ,f "platform" "Create platform.hoo for the Haskell Platform" platform
+    ,f "default" "Create default.hoo from all databases (or a given subset)" (multiple "default")
+    ,f "all" "Create all.hoo from all databases (or a given subset)" (multiple "all")
     ]
 
 
@@ -41,6 +44,9 @@ help :: RecipeDetails -> String -> IO ()
 help opts args = putStr $ unlines $
         "Download and generate data files" :
         "" :
-        ["  " ++ a ++ replicate (n + 2 - length a) ' ' ++ b | (a,(b,_)) <- list]
+        ["  " ++ a ++ replicate (n + 2 - length a) ' ' ++ b | (a,(b,_)) <- list] ++
+        [""
+        ,"The default recipe is:"
+        ,"  " ++ defaultRecipe]
     where
         n = maximum $ map (length . fst) list

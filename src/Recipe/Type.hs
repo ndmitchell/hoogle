@@ -3,6 +3,8 @@
 module Recipe.Type(RecipeOptions(..), RecipeDetails(..), recipeDetails, ls) where
 
 import General.Code
+import Hoogle
+import Data.Monoid
 
 
 data RecipeOptions = RecipeOptions
@@ -16,6 +18,7 @@ data RecipeOptions = RecipeOptions
 data RecipeDetails = RecipeDetails
     {recipeOptions :: RecipeOptions
     ,download :: FilePath -> URL -> IO ()
+    ,combine :: FilePath -> [FilePath] -> IO ()
     ,tryDownload :: FilePath -> URL -> IO Bool
     ,process :: [FilePath] -> [FilePath] -> IO () -> IO ()
     ,parallel_ :: [IO ()] -> IO ()
@@ -26,6 +29,11 @@ recipeDetails :: RecipeOptions -> RecipeDetails
 recipeDetails recipeOptions@RecipeOptions{..} = RecipeDetails{..}
     where
         parallel_ = sequence_
+
+        combine to from = process from [to] $ do
+            putStrLn $ "Combining " ++ show (length from) ++ " databases"
+            xs <- mapM loadDatabase from
+            saveDatabase to $ mconcat xs
 
         tryDownload to url = do
             exists <- doesFileExist to
