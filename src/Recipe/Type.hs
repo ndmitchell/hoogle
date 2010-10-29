@@ -16,6 +16,7 @@ data RecipeOptions = RecipeOptions
 data RecipeDetails = RecipeDetails
     {recipeOptions :: RecipeOptions
     ,download :: FilePath -> URL -> IO ()
+    ,tryDownload :: FilePath -> URL -> IO Bool
     ,process :: [FilePath] -> [FilePath] -> IO () -> IO ()
     ,parallel_ :: [IO ()] -> IO ()
     }
@@ -26,11 +27,15 @@ recipeDetails recipeOptions@RecipeOptions{..} = RecipeDetails{..}
     where
         parallel_ = sequence_
 
-        download to url = do
+        tryDownload to url = do
             exists <- doesFileExist to
-            when (not exists || recipeRedownload) $ do
+            if exists && not recipeRedownload then return True else do
                 res <- system $ "wget " ++ url ++ " -O " ++ to
-                when (res /= ExitSuccess) $ error $ "Failed to download " ++ url
+                return $ res == ExitSuccess
+
+        download to url = do
+            b <- tryDownload to url
+            unless b $ error $ "Failed to download " ++ url
 
         process from to act = do
             exists <- fmap and $ mapM doesFileExist to

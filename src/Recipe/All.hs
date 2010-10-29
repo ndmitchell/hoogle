@@ -7,6 +7,7 @@ import Recipe.Type
 
 import Recipe.Keyword
 import Recipe.General
+import Recipe.Hackage
 
 
 recipes :: RecipeOptions -> [String] -> IO ()
@@ -31,6 +32,8 @@ list = let f a b c = (a,(b,c)) in
     ,f "keyword" "Create a keyword list from the Haskell Wiki" keyword
     ,f "convert" "Convert all databases to .hoo format" convert
     ,f "combine" "Combine all databases to produce default.hoo" combine
+    ,f "hackage" "Download hackage databases" hackage
+    ,f "platform" "Create a platform database" hackage
     ]
 
 
