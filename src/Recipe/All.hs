@@ -6,8 +6,7 @@ import General.Code
 import Recipe.Type
 
 import Recipe.Keyword
-import Recipe.Combine
-import Recipe.Convert
+import Recipe.General
 
 
 recipes :: RecipeOptions -> [String] -> IO ()
