@@ -12,6 +12,7 @@ import Hoogle.DataBase.Type
 import Hoogle.Item.All
 import Hoogle.Score.All
 import Hoogle.DataBase.Serialise
+import General.Code
 
 
 createDataBase :: [DataBase] -> TextBase -> DataBase
@@ -21,7 +22,7 @@ createDataBase deps xs = DataBase items
     where
         items = createItems xs
         ys = entriesItems items
-        zs = map fst xs
+        zs = map thd3 xs
         as = createAliases (map aliases deps) zs
         is = createInstances (map instances deps) zs
 

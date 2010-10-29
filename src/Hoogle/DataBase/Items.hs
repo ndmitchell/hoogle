@@ -46,29 +46,29 @@ entriesItems :: Items -> [Link Entry]
 entriesItems = indexLinks . entries
 
 
-createItems :: [(TextItem,String)] -> Items
+createItems :: [(String,URL,TextItem)] -> Items
 createItems xs = Items (newIndexS pkgs) (newIndexS mods)
                        (newIndex $ sortOn entryScore ents)
     where
-        (ents, (pkgs,mods)) = flip runState (newS,newS) $ concatMapM addTextItem $ init $ tails xs
+        (ents, (pkgs,mods)) = flip runState (newS,newS) $ concatMapM addTextItem xs
 
 
 -- add a TextItem to the state S
-addTextItem :: [(TextItem,String)] -> State (S Package, S Module) [Entry]
-addTextItem ((ti,doc):rest) = case ti of
+addTextItem :: (String,URL,TextItem) -> State (S Package, S Module) [Entry]
+addTextItem (doc,url,ti) = case ti of
     ItemInstance{} -> return []
 
     ItemAttribute "keyword" name ->
         add False EntryKeyword [Keyword "keyword",Text " ",Focus name]
 
     ItemAttribute "package" name -> do
-        modify $ \(ps,ms) -> (addS (defaultPackageURL $ addPkg (Package name "") rest) ps, ms)
+        modify $ \(ps,ms) -> (addS (defaultPackageURL $ Package name url) ps, ms)
         add False EntryPackage [Keyword "package",Text " ",Focus name]
 
     ItemAttribute _ _ -> return []
 
     ItemModule xs -> do
-        modify $ \(ps,ms) -> (ps, addS (defaultModuleURL $ Module xs (getS ps) "") ms)
+        modify $ \(ps,ms) -> (ps, addS (defaultModuleURL $ Module xs (getS ps) url) ms)
         add True EntryModule [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
 
     _ -> add True EntryOther (renderTextItem ti)
@@ -79,10 +79,7 @@ addTextItem ((ti,doc):rest) = case ti of
             return [defaultEntryURL $ Entry
                           (if modu then Just $ getS ms else Nothing) (getS ps)
                           (headDef "" [i | Focus i <- txt])
-                          txt typ (newHaddock doc) sig ""]
-
-        addPkg pkg ((ItemAttribute "url" x,_) : xs) = addPkg pkg{packageURL=x} xs
-        addPkg pkg _ = pkg
+                          txt typ (newHaddock doc) sig url]
 
 
 mergeItems :: [Items] -> Items

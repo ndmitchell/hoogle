@@ -19,17 +19,18 @@ parseTextBaseString = parseTextItems ""
 
 
 parseTextItems :: FilePath -> String -> Either ParseError TextBase
-parseTextItems file = join . f [] . zip [1..] . lines
+parseTextItems file = join . f [] "" . zip [1..] . lines
     where
-        f com [] = []
-        f com ((i,s):is)
-            | "-- | " `isPrefixOf` s = f [drop 5 s] is
-            | "--" `isPrefixOf` s = f ([drop 5 s | com /= []] ++ com) is
-            | all isSpace s = f [] is
+        f com url [] = []
+        f com url ((i,s):is)
+            | "-- | " `isPrefixOf` s = f [drop 5 s] url is
+            | "--" `isPrefixOf` s = f ([drop 5 s | com /= []] ++ com) url is
+            | "@url " `isPrefixOf` s = f com (drop 5 s) is
+            | all isSpace s = f [] "" is
             | otherwise = (case parse parsecTextItem file s of
                                Left y -> Left $ setErrorPos (setSourceLine (errorPos y) i) y
-                               Right y -> Right [(y, unlines $ reverse com)])
-                          : f [] is
+                               Right y -> Right [(unlines $ reverse com, url, y)])
+                          : f [] "" is
 
         join xs | null err = Right $ concat items
                 | otherwise = Left $ head err

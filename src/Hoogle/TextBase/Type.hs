@@ -3,10 +3,11 @@ module Hoogle.TextBase.Type where
 
 import Hoogle.TypeSig.All
 import Data.Binary.Defer
+import General.Util
 
 
 -- (the item, any haddock documentation)
-type TextBase = [(TextItem,String)]
+type TextBase = [(String,URL,TextItem)]
 
 data TextItem = ItemModule [String]
               | ItemClass TypeSig
