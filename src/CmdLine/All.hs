@@ -47,6 +47,10 @@ cmdLineExpand x@Rank{} = do
     file <- if null $ srcfile x then fmap (</> "rank.txt") getDataDir else return $ srcfile x
     return x{srcfile=file}
 
+cmdLineExpand x@Data{} = do
+    dir <- if null $ datadir x then fmap (</> "databases") getDataDir else return $ datadir x
+    return x{datadir=dir}
+
 cmdLineExpand x = return x
 
 

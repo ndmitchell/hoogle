@@ -3,8 +3,11 @@
 module Recipe.All(recipes, RecipeOptions(..)) where
 
 import General.Code
-import Recipe.Keywords
 import Recipe.Type
+
+import Recipe.Keyword
+import Recipe.Combine
+import Recipe.Convert
 
 
 recipes :: RecipeOptions -> [String] -> IO ()
@@ -16,20 +19,23 @@ recipes opt xs | not $ null es = error $ unlines es
 recipe :: RecipeOptions -> String -> Either String (IO ())
 recipe opt x = case lookup a list of
         Nothing -> Left $ "Unknown recipe: " ++ a
-        Just (_,act) -> Right $ putStrLn ("Running recipe: " ++ x) >> act opt (drop 1 b)
+        Just (_,act) -> Right $ do
+            putStrLn $ "Running recipe: " ++ x
+            withDirectory (recipeDir opt) $ act (recipeDetails opt) (drop 1 b)
+            putStrLn $ "Finished recipe"
     where (a,b) = break (== '=') x
 
 
 
 list = let f a b c = (a,(b,c)) in
     [f "help" "Display this help message" help
-    ,f "keywords" "Create a keyword list from the Haskell Wiki" keywords
---    ,"convert" * convert
---    ,"combine" * combine
+    ,f "keyword" "Create a keyword list from the Haskell Wiki" keyword
+    ,f "convert" "Convert all databases to .hoo format" convert
+    ,f "combine" "Combine all databases to produce default.hoo" combine
     ]
 
 
-help :: RecipeOptions -> String -> IO ()
+help :: RecipeDetails -> String -> IO ()
 help opts args = putStr $ unlines $
         "Download and generate data files" :
         "" :
