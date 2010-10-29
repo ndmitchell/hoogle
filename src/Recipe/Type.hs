@@ -3,6 +3,7 @@
 module Recipe.Type(RecipeOptions(..), RecipeDetails(..), recipeDetails, ls) where
 
 import General.Code
+import General.Parallel
 import Hoogle
 import Data.Monoid
 
@@ -21,14 +22,14 @@ data RecipeDetails = RecipeDetails
     ,combine :: FilePath -> [FilePath] -> IO ()
     ,tryDownload :: FilePath -> URL -> IO Bool
     ,process :: [FilePath] -> [FilePath] -> IO () -> IO ()
-    ,parallel_ :: [IO ()] -> IO ()
+    ,par :: [IO ()] -> IO ()
     }
 
     
 recipeDetails :: RecipeOptions -> RecipeDetails
 recipeDetails recipeOptions@RecipeOptions{..} = RecipeDetails{..}
     where
-        parallel_ = sequence_
+        par = parallelN_ recipeThreads
 
         combine to from = process from [to] $ do
             putStrLn $ "Combining " ++ show (length from) ++ " databases"

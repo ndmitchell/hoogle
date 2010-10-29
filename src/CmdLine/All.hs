@@ -21,6 +21,7 @@ import CmdLine.Load
 import General.Web
 import System.Console.CmdArgs
 import Hoogle
+import GHC.Conc(numCapabilities)
 import Paths_hoogle
 
 
@@ -49,7 +50,8 @@ cmdLineExpand x@Rank{} = do
 
 cmdLineExpand x@Data{} = do
     dir <- if null $ datadir x then fmap (</> "databases") getDataDir else return $ datadir x
-    return x{datadir=dir}
+    let thrd = if threads x == 0 then numCapabilities else threads x
+    return x{datadir=dir, threads=thrd}
 
 cmdLineExpand x = return x
 

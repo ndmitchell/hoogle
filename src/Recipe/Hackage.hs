@@ -9,7 +9,7 @@ package :: RecipeDetails -> String -> IO ()
 package RecipeDetails{..} _ = do
     download "-hackage.web" "http://hackage.haskell.org/cgi-bin/hackage-scripts/search"
     pkgs <- readHackage
-    parallel_ $ flip map pkgs $ \(name,ver) -> do
+    par $ flip map pkgs $ \(name,ver) -> do
         let url = "http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ ver
         b <- tryDownload (name ++ "-haddock.web") $ url ++ "/doc/html/" ++ name ++ ".txt"
         if not b then putStrLn $ "Warning: Could not download Hackage database for " ++ name else do

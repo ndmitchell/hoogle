@@ -9,7 +9,7 @@ import General.Code
 convert :: RecipeDetails -> String -> IO ()
 convert RecipeDetails{..} _ = do
     xs <- ls $ \x -> takeExtension x == ".txt"
-    parallel_ $ flip map xs $ \from -> let to = replaceExtension from "hoo" in process [from] [to] $ do
+    par $ flip map xs $ \from -> let to = replaceExtension from "hoo" in process [from] [to] $ do
         putStrLn $ "Converting " ++ from
         src <- readFile from
         let db = case createDatabase [] src of
