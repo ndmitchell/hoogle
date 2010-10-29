@@ -39,7 +39,9 @@ recipeDetails recipeOptions@RecipeOptions{..} = RecipeDetails{..}
             exists <- doesFileExist to
             if exists && not recipeRedownload then return True else do
                 res <- system $ "wget " ++ url ++ " -O " ++ to
-                return $ res == ExitSuccess
+                let b = res == ExitSuccess
+                unless b $ removeFile to
+                return b
 
         download to url = do
             b <- tryDownload to url

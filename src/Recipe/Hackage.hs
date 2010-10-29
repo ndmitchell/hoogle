@@ -29,8 +29,11 @@ hackage RecipeDetails{..} _ = do
 
 
 readHackage :: IO [(String,String)]
-readHackage = return [("uniplate","1.5.1")
-                     ,("haskell-src","1.0.1.3")]
+readHackage = do
+    src <- readFile "-hackage.web"
+    let pre = "><a href=\"/package/"
+    return $ map (second (drop 1) . rbreak (== '-') . init . drop (length pre)) $
+            filter (isPrefixOf pre) $ map trim $ lines src
 
 
 platform :: RecipeDetails -> String -> IO ()
