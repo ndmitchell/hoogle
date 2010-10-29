@@ -118,8 +118,8 @@ insertMore (x:xs) = f x : xs
 
 renderRes :: Int -> Result -> [String]
 renderRes i Result{..} =
-        [tr $ td "mod" (f package) ++ td "ans" (href selfUrl $ showTagHTMLWith url selfText)
-        ,tr $ td "pkg" (f modul) ++ td "doc" docs2]
+        [tr $ td "mod" (f modul) ++ td "ans" (href selfUrl $ showTagHTMLWith url selfText)
+        ,tr $ td "pkg" (f package) ++ td "doc" docs2]
     where
         (selfUrl,selfText) = self
         f = maybe "" (uncurry href)
