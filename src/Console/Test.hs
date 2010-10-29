@@ -8,7 +8,8 @@ import General.Code
 testFile :: FilePath -> IO ()
 testFile srcfile = do
     putStrLn $ "Testing " ++ srcfile
-    let dbfile = srcfile <.> "hoo"
+    (dbfile,h) <- openTempFile "." (srcfile <.> "hoo")
+    hClose h
     src <- readFile srcfile
     let dbOld = either (error . show) id $ createDatabase [] src
     saveDatabase dbfile dbOld
