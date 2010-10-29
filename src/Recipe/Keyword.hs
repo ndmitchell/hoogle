@@ -27,18 +27,22 @@ keywordPrefix =
     ,"-- See Hoogle, http://www.haskell.org/hoogle/"
     ,""
     ,"-- | Haskell keywords, always available"
-    ,"@package keyword"
     ,"@url http://haskell.org/haskellwiki/Keywords"
+    ,"@package keyword"
     ]
 
 
-keywordFormat x = concat ["" : docs ++ ["@keyword " ++ n] | n <- name]
+keywordFormat x = concat ["" : docs ++ ["@url #" ++ concatMap g n, "@keyword " ++ n] | n <- name]
     where
         name = words $ f $ fromAttrib "name" (head x)
         docs = zipWith (++) ("-- | " : repeat "--   ") $
                concat $ intersperse [""] $
                map (docFormat . takeWhile (~/= "<div class=editsection>")) $
                partitions isBlock x
+
+        g x | isAlpha x || x `elem` "_-:" = [x]
+            | otherwise = '.' : map toUpper (showHex (ord x) "")
+
 
         isBlock (TagOpen x _) = x `elem` ["p","pre"]
         isBlock _ = False

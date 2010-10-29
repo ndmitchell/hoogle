@@ -5,7 +5,6 @@ module Hoogle.Item.URL(defaultPackageURL, defaultModuleURL, defaultEntryURL) whe
 
 import General.Code
 import Hoogle.Item.Item
-import Numeric
 import Data.Binary.Defer.Index
 
 
@@ -34,8 +33,4 @@ defaultEntryURL x = x{entryURL = res}
             EntryPackage -> url "" (packageURL $ fromLink $ entryPackage x) y
             EntryModule | Just m <- entryModule x -> url "" (moduleURL $ fromLink m) y
             EntryOther | Just m <- entryModule x -> url (moduleURL $ fromLink m) ("#v:" ++ entryName x) y
-            EntryKeyword -> url "" ("http://www.haskell.org/haskellwiki/Keywords#" ++ concatMap f (entryName x)) y
             _ -> ""
-
-        f x | isAlpha x || x `elem` "_-:" = [x]
-            | otherwise = '.' : map toUpper (showHex (ord x) "")
