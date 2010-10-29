@@ -288,3 +288,8 @@ readFile' x = do
 ltrim = dropWhile isSpace
 rtrim = reverse . ltrim . reverse
 trim = ltrim . rtrim
+
+
+rbreak f xs = case break f $ reverse xs of
+    (_, []) -> (xs, [])
+    (as, b:bs) -> (reverse bs, b:reverse as)
