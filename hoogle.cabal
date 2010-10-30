@@ -17,39 +17,39 @@ homepage:           http://www.haskell.org/hoogle/
 stability:          Beta
 extra-source-files: README.txt
 
-data-dir:
-    datadir
-data-files:
-    if flag(install-with-databases)
-        databases/array.hoo
-        databases/base.hoo
-        databases/bytestring.hoo
-        databases/cabal.hoo
-        databases/containers.hoo
-        databases/default.hoo
-        databases/directory.hoo
-        databases/filepath.hoo
-        databases/ghc.hoo
-        databases/hackage.hoo
-        databases/haskell-src.hoo
-        databases/hunit.hoo
-        databases/keyword.hoo
-        databases/mtl.hoo
-        databases/parallel.hoo
-        databases/parsec.hoo
-        databases/pretty.hoo
-        databases/process.hoo
-        databases/quickcheck.hoo
-        databases/random.hoo
-        databases/stm.hoo
-        databases/syb.hoo
-        databases/template-haskell.hoo
-        databases/time.hoo
-        databases/xhtml.hoo
-
-flag install-with-databases
-    default: True
-    description: Install a default set of databases with the library
+-- data-dir:
+--     datadir
+-- data-files:
+--     if flag(install-with-databases)
+--         databases/array.hoo
+--         databases/base.hoo
+--         databases/bytestring.hoo
+--         databases/cabal.hoo
+--         databases/containers.hoo
+--         databases/default.hoo
+--         databases/directory.hoo
+--         databases/filepath.hoo
+--         databases/ghc.hoo
+--         databases/hackage.hoo
+--         databases/haskell-src.hoo
+--         databases/hunit.hoo
+--         databases/keyword.hoo
+--         databases/mtl.hoo
+--         databases/parallel.hoo
+--         databases/parsec.hoo
+--         databases/pretty.hoo
+--         databases/process.hoo
+--         databases/quickcheck.hoo
+--         databases/random.hoo
+--         databases/stm.hoo
+--         databases/syb.hoo
+--         databases/template-haskell.hoo
+--         databases/time.hoo
+--         databases/xhtml.hoo
+-- 
+-- flag install-with-databases
+--     default: False
+--     description: Install a default set of databases with the library
 
 flag extended-library
     default: False
@@ -136,7 +136,8 @@ executable hoogle
     hs-source-dirs:     src
 
     build-depends: base > 4 && < 4.3, cmdargs, directory, process, containers, array,
-                   bytestring, parsec, filepath, safe, uniplate, mtl, network, time
+                   bytestring, parsec, filepath, safe, uniplate, mtl, network, time,
+                   tagsoup == 0.11.*
 
     other-modules:
         CmdLine.All
