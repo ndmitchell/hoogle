@@ -11,14 +11,16 @@ package RecipeDetails{..} _ = do
     pkgs <- readHackage
     par $ flip map pkgs $ \(name,ver) -> do
         let url = "http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ ver
-        b <- tryDownload (name ++ "-haddock.web") $ url ++ "/doc/html/" ++ name ++ ".txt"
+            had = name ++ "-" ++ ver ++ "-haddock.web"
+            cab = name ++ "-" ++ ver ++ "-cabal.web"
+        b <- tryDownload had $ url ++ "/doc/html/" ++ name ++ ".txt"
         if not b then putStrLn $ "Warning: Could not download Hackage database for " ++ name else do
-            download (name ++ "-cabal.web") $ url ++ "/" ++ name ++ ".cabal"
-            process [name ++ "-cabal.web", name ++ "-haddock.web"] [name ++ ".txt"] $ packageTextbase name
+            download cab $ url ++ "/" ++ name ++ ".cabal"
+            process [cab,had] [name ++ ".txt"] $ packageTextbase (name,ver)
 
 
-packageTextbase :: String -> IO ()
-packageTextbase name = copyFile (name ++ "-haddock.web") (name ++ ".txt")
+packageTextbase :: (String,String) -> IO ()
+packageTextbase (name,ver) = copyFile (name ++ "-" ++ ver ++ "-haddock.web") (name ++ ".txt")
 
 
 
