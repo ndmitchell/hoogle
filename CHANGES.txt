@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #51, test mode now does what test and testfile did
     #66, turn Hoogle into a library
     Add --server flag, to run as a server
 4.0.7
