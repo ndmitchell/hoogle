@@ -31,6 +31,6 @@ defaultEntryURL x = x{entryURL = res}
         y = entryURL x
         res = case entryType x of
             EntryPackage -> url "" (packageURL $ fromLink $ entryPackage x) y
-            EntryModule | Just m <- entryModule x -> url "" (moduleURL $ fromLink m) y
+            EntryModule | Just m <- entryModule x -> url (packageURL $ fromLink $ entryPackage x) (moduleURL $ fromLink m) y
             EntryOther | Just m <- entryModule x -> url (moduleURL $ fromLink m) ("#v:" ++ entryName x) y
             _ -> ""
