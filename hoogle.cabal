@@ -135,7 +135,7 @@ executable hoogle
     main-is:            Main.hs
     hs-source-dirs:     src
 
-    build-depends: base > 4 && < 4.3, cmdargs, directory, process, containers, array,
+    build-depends: base > 4 && < 4.3, cmdargs == 0.6.*, directory, process, containers, array,
                    bytestring, parsec, filepath, safe, uniplate, mtl, network, time,
                    tagsoup == 0.11.*
 
