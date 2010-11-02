@@ -11,7 +11,8 @@ testFile srcfile = do
     (dbfile,h) <- openTempFile "." (srcfile <.> "hoo")
     hClose h
     src <- readFile srcfile
-    let dbOld = either (error . show) id $ createDatabase [] src
+    let (errs, dbOld) = createDatabase [] src
+    unless (null errs) $ error $ unlines $ "Couldn't convert database:" : map show errs
     saveDatabase dbfile dbOld
     db <- loadDatabase dbfile
     when (show dbOld /= show db) $ error "Database did not save properly"

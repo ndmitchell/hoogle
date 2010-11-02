@@ -31,9 +31,8 @@ action (Convert from to) = do
     to <- return $ if null to then replaceExtension from "hoo" else to
     putStrLn $ "Converting " ++ from
     src <- readFile from
-    let db = case createDatabase [] src of
-            Left x -> error $ "Parse error with " ++ from ++ "\n" ++ show x
-            Right x -> x
+    let (err,db) = createDatabase [] src
+    unless (null err) $ putStr $ unlines $ "Warning: parse errors" : map show err
     saveDatabase to db
     putStrLn $ "Written " ++ to
 

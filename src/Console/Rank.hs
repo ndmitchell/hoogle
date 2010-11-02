@@ -16,7 +16,8 @@ scores :: ([String], [(String,[String])]) -> [(Score,Score)]
 scores (pre,xs) = concatMap trans
     [
         [ fst $ head $ searchAll db q ++ [error $ "Did not find in " ++ query ++ ", " ++ y]
-        | y <- ys , let db = right ("Could not parse database line: " ++ y) $ createDatabase [] $ unlines $ pre ++ ["a::" ++ y]
+        | y <- ys , let (err,db) = createDatabase [] $ unlines $ pre ++ ["a::" ++ y]
+        , null err || error "Errors while converting rank database"
         ]
     | (query,ys) <- xs, let q = right ("Could not parse query: " ++ query) $ parseQuery query]
     where right msg = either (\e -> error $ msg ++ "\n" ++ show e) id

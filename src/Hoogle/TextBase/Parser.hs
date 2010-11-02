@@ -8,17 +8,17 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Error
 
 
-parseTextBase :: FilePath -> IO (Either ParseError TextBase)
+parseTextBase :: FilePath -> IO ([ParseError], TextBase)
 parseTextBase file = do
     src <- readFile file
     return $ parseTextItems file src
 
 
-parseTextBaseString :: String -> Either ParseError TextBase
+parseTextBaseString :: String -> ([ParseError], TextBase)
 parseTextBaseString = parseTextItems ""
 
 
-parseTextItems :: FilePath -> String -> Either ParseError TextBase
+parseTextItems :: FilePath -> String -> ([ParseError], TextBase)
 parseTextItems file = join . f [] "" . zip [1..] . lines
     where
         f com url [] = []
@@ -32,8 +32,7 @@ parseTextItems file = join . f [] "" . zip [1..] . lines
                                Right y -> Right [(unlines $ reverse com, url, y)])
                           : f [] "" is
 
-        join xs | null err = Right $ concat items
-                | otherwise = Left $ head err
+        join xs = (err, concat items)
             where (err,items) = unzipEithers xs
 
 

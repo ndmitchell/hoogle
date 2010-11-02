@@ -12,9 +12,8 @@ convert RecipeDetails{..} _ = do
     par $ flip map xs $ \from -> let to = replaceExtension from "hoo" in process [from] [to] $ do
         putStrLn $ "Converting " ++ from
         src <- readFile from
-        let db = case createDatabase [] src of
-                Left x -> error $ "Parse error with " ++ from ++ "\n" ++ show x
-                Right x -> x
+        let (err,db) = createDatabase [] src
+        unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " errors in " ++ from
         saveDatabase to db
         putStrLn $ "Written " ++ to
 
