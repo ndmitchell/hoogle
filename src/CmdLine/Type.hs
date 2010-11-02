@@ -37,7 +37,7 @@ data CmdLine
     | Rank {srcfile :: FilePath}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
-    | Data {datadir :: FilePath, threads :: Int, redownload :: Bool, rebuild :: Bool, actions :: [String]}
+    | Data {datadir :: FilePath, threads :: Int, nodownload :: Bool, redownload :: Bool, rebuild :: Bool, actions :: [String]}
       deriving (Data,Typeable,Show)
 
 blankSearch = Search False Nothing Nothing Nothing False False [] [] (Right mempty) ""
@@ -90,6 +90,7 @@ convert = Convert
 dataa = Data
     {datadir = def &= typDir &= help "Database directory"
     ,threads = def &= typ "INT" &= name "j" &= help "Number of threads to use"
+    ,nodownload = def &= help "Never download a file from the web"
     ,redownload = def &= help "Always redownload files from the web"
     ,rebuild = def &= help "Always rebuild files"
     ,actions = def &= args &= typ "RECIPE"

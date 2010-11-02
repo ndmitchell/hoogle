@@ -11,6 +11,7 @@ import Data.Monoid
 data RecipeOptions = RecipeOptions
     {recipeDir :: FilePath -- ^ Directory to use
     ,recipeThreads :: Int -- ^ Number of threads to use
+    ,recipeNodownload :: Bool -- ^ Don't download anything
     ,recipeRedownload :: Bool -- ^ Download everything from the web
     ,recipeRebuild :: Bool -- ^ Rebuild all local files
     }
@@ -38,7 +39,8 @@ recipeDetails recipeOptions@RecipeOptions{..} = RecipeDetails{..}
 
         tryDownload to url = do
             exists <- doesFileExist to
-            if exists && not recipeRedownload then return True else do
+            if exists && not recipeRedownload then return True
+             else if recipeNodownload then return False else do
                 res <- system $ "wget " ++ url ++ " -O " ++ to
                 let b = res == ExitSuccess
                 unless b $ removeFile to

@@ -26,7 +26,9 @@ recipe opt x = case lookup a list of
     where (a,b) = break (== '=') x
 
 
-defaultRecipe = "keyword package convert hackage platform default=keyword,platform all=keyword,hackage"
+defaultRecipe = "keyword package convert hackage platform default=keyword,platform"
+    -- do not generate an all database yet, just stressing the system for no good reason
+    -- all=keyword,hackage
 
 -- FIXME: Need recipes for stm and base
 list = let f a b c = (a,(b,c)) in
