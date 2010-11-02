@@ -18,9 +18,17 @@
 :}
 
 :{
+:def local \args -> return $ unlines
+    [":!mkdir obj"
+    ,":!ghc --make src/Main.hs src/Paths.hs -isrc -odir obj -hidir obj -o obj/hoogle.exe"
+    ,":!obj\\hoogle " ++ args]
+:}
+
+:{
 :def extra const $
     let msg = [":test  - run the test suit"
               ,":hlint - run HLint on the code"
-              ,":docs  - generate haddock documentation"]
+              ,":docs  - generate haddock documentation"
+              ,":local - compile and run locally"]
     in putStr (unlines msg) >> return []
 :}
