@@ -51,5 +51,6 @@ readPlatform = do
     let xs = takeWhile (not . isPrefixOf "build-tools:" . ltrim) $
              dropWhile (not . isPrefixOf "build-depends:" . ltrim) $
              lines src
-    return [(trim $ filter (/= '-') a, takeWhile (\x -> x == '.' || isDigit x) $ drop 1 b)
-           | x <- xs, (a,_:b) <- [break (== '=') x]]
+    return [(name, takeWhile (\x -> x == '.' || isDigit x) $ drop 1 b)
+           | x <- xs, (a,_:b) <- [break (== '=') x], let name = trim $ dropWhile (== '-') $ trim a
+           , name `notElem` words "Cabal hpc Win32"]

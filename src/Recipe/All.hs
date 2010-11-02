@@ -28,6 +28,7 @@ recipe opt x = case lookup a list of
 
 defaultRecipe = "keyword package convert hackage platform default=keyword,platform all=keyword,hackage"
 
+-- FIXME: Need recipes for stm and base
 list = let f a b c = (a,(b,c)) in
     [f "help" "Display this help message" help
     ,f "keyword" "Create textbase for keywords, from the Haskell Wiki" keyword
