@@ -34,7 +34,8 @@ parsePackage = second (drop 1) . rbreak (== '-')
 
 readHackage :: RecipeDetails -> IO [(String,String)]
 readHackage RecipeDetails{..} = do
-    download "-hackage.web" "http://hackage.haskell.org/cgi-bin/hackage-scripts/search"
+    download "-hackage.web" $ "http://hackage.haskell.org/cgi-bin/hackage-scripts/search " ++
+                              "--post-data=search=has-library:yes"
     src <- readFile "-hackage.web"
     let pre = "><a href=\"/package/"
     return $ map (parsePackage . init . drop (length pre)) $
