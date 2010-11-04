@@ -8,7 +8,7 @@ import General.Code
 import Numeric
 
 
-keyword :: RecipeDetails -> String -> IO ()
+keyword :: RecipeDetails -> [String] -> IO ()
 keyword RecipeDetails{..} _ = do
     download "-keyword.web" "http://haskell.org/haskellwiki/Keywords"
     process ["-keyword.web"] ["keyword.txt"] $ do

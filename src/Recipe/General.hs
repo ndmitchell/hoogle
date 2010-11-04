@@ -6,14 +6,11 @@ import Hoogle
 import General.Code
 
 
-uncommas = words . map (\x -> if x == ',' then ' ' else x)
-
-
-convert :: RecipeDetails -> String -> IO ()
+convert :: RecipeDetails -> [String] -> IO ()
 convert RecipeDetails{..} xs = do
     xs <- if null xs
         then ls $ \x -> takeExtension x == ".txt"
-        else return $ map (<.> "txt") $ uncommas xs
+        else return $ map (<.> "txt") xs
     par $ flip map xs $ \from -> let to = replaceExtension from "hoo" in process [from] [to] $ do
         putStrLn $ "Converting " ++ from
         src <- readFile from
@@ -26,9 +23,9 @@ convert RecipeDetails{..} xs = do
 -- database that were combined from multiple databases
 composite = words "hackage platform default all"
 
-multiple :: String -> RecipeDetails -> String -> IO ()
+multiple :: String -> RecipeDetails -> [String] -> IO ()
 multiple to RecipeDetails{..} xs = do
     from <- if null xs
         then ls $ \x -> takeExtension x == ".hoo" && dropExtension x `notElem` composite
-        else return $ map (<.> "hoo") $ uncommas xs
+        else return $ map (<.> "hoo") xs
     combine (to <.> "hoo") from 

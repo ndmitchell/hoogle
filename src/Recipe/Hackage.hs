@@ -5,10 +5,9 @@ import Recipe.Type
 import General.Code
 
 
-package :: RecipeDetails -> String -> IO ()
-package RecipeDetails{..} _ = do
-    download "-hackage.web" "http://hackage.haskell.org/cgi-bin/hackage-scripts/search"
-    pkgs <- readHackage
+package :: RecipeDetails -> [String] -> IO ()
+package r@RecipeDetails{..} args = do
+    pkgs <- if null args then readHackage r else return $ map parsePackage args
     par $ flip map pkgs $ \(name,ver) -> do
         let url = "http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ ver
             had = name ++ "-" ++ ver ++ "-haddock.web"
@@ -23,30 +22,34 @@ packageTextbase :: (String,String) -> IO ()
 packageTextbase (name,ver) = copyFile (name ++ "-" ++ ver ++ "-haddock.web") (name ++ ".txt")
 
 
-
-hackage :: RecipeDetails -> String -> IO ()
-hackage RecipeDetails{..} _ = do
-    pkgs <- readHackage
+hackage :: RecipeDetails -> [String]  -> IO ()
+hackage r@RecipeDetails{..} _ = do
+    pkgs <- readHackage r
     combine "hackage.hoo" [a <.> "hoo" | (a,b) <- pkgs]
 
 
-readHackage :: IO [(String,String)]
-readHackage = do
+parsePackage :: String -> (String,String)
+parsePackage = second (drop 1) . rbreak (== '-')
+
+
+readHackage :: RecipeDetails -> IO [(String,String)]
+readHackage RecipeDetails{..} = do
+    download "-hackage.web" "http://hackage.haskell.org/cgi-bin/hackage-scripts/search"
     src <- readFile "-hackage.web"
     let pre = "><a href=\"/package/"
-    return $ map (second (drop 1) . rbreak (== '-') . init . drop (length pre)) $
+    return $ map (parsePackage . init . drop (length pre)) $
             filter (isPrefixOf pre) $ map trim $ lines src
 
 
-platform :: RecipeDetails -> String -> IO ()
-platform RecipeDetails{..} _ = do
-    download "-platform.web" "http://code.haskell.org/haskell-platform/haskell-platform.cabal"
-    pkgs <- readPlatform
+platform :: RecipeDetails -> [String] -> IO ()
+platform r@RecipeDetails{..} _ = do
+    pkgs <- readPlatform r
     combine "platform.hoo" [a <.> "hoo" | (a,b) <- pkgs]
 
 
-readPlatform :: IO [(String,String)]
-readPlatform = do
+readPlatform :: RecipeDetails -> IO [(String,String)]
+readPlatform RecipeDetails{..} = do
+    download "-platform.web" "http://code.haskell.org/haskell-platform/haskell-platform.cabal"
     src <- readFile "-platform.web"
     let xs = takeWhile (not . isPrefixOf "build-tools:" . ltrim) $
              dropWhile (not . isPrefixOf "build-depends:" . ltrim) $

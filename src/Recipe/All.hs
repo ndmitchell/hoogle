@@ -21,9 +21,10 @@ recipe opt x = case lookup a list of
         Nothing -> Left $ "Unknown recipe: " ++ a
         Just (_,act) -> Right $ do
             putStrLn $ "Running recipe: " ++ x
-            withDirectory (recipeDir opt) $ act (recipeDetails opt) (drop 1 b)
+            withDirectory (recipeDir opt) $ act (recipeDetails opt) (uncommas $ drop 1 b)
             putStrLn $ "Finished recipe"
     where (a,b) = break (== '=') x
+          uncommas = words . map (\x -> if x == ',' then ' ' else x)
 
 
 defaultRecipe = "keyword package convert hackage platform default=keyword,platform"
@@ -43,8 +44,8 @@ list = let f a b c = (a,(b,c)) in
     ]
 
 
-help :: RecipeDetails -> String -> IO ()
-help opts args = putStr $ unlines $
+help :: RecipeDetails -> [String] -> IO ()
+help opts _ = putStr $ unlines $
         "Download and generate data files" :
         "" :
         ["  " ++ a ++ replicate (n + 2 - length a) ' ' ++ b | (a,(b,_)) <- list] ++
