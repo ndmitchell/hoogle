@@ -20,7 +20,7 @@
 :{
 :def local \args -> return $ unlines
     [":!mkdir obj"
-    ,":!ghc --make src/Main.hs src/Paths.hs -isrc -odir obj -hidir obj -o obj/hoogle.exe"
+    ,":!ghc --make src/Main.hs src/Paths.hs -isrc -odir obj -hidir obj -o obj/hoogle.exe -threaded"
     ,":!obj\\hoogle " ++ args]
 :}
 
