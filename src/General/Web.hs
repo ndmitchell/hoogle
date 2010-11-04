@@ -9,7 +9,8 @@ module General.Web(
     escapeURL, unescapeURL,
     escapeHTML,
     cgiArgs, cgiResponse,
-    httpRequest, httpGetArgs, httpResponse
+    httpRequest, httpGetArgs, httpResponse,
+    parseHttpQueryArgs
     ) where
 
 import General.TextUtil
@@ -98,6 +99,8 @@ cgiResponse xs x = putStrLn $ intercalate "\n" $ map show xs ++ ["",x]
 
 ---------------------------------------------------------------------
 -- HTTP STUFF
+
+parseHttpQueryArgs = parseArgs
 
 httpRequest :: Handle -> IO [String]
 httpRequest h = do
