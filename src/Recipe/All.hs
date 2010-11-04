@@ -5,9 +5,10 @@ module Recipe.All(recipes, RecipeOptions(..)) where
 import General.Code
 import Recipe.Type
 
-import Recipe.Keyword
+import Recipe.Base
 import Recipe.General
 import Recipe.Hackage
+import Recipe.Keyword
 
 
 recipes :: RecipeOptions -> [String] -> IO ()
@@ -27,13 +28,14 @@ recipe opt x = case lookup a list of
           uncommas = words . map (\x -> if x == ',' then ' ' else x)
 
 
-defaultRecipe = "keyword package convert hackage platform default=keyword,platform"
+defaultRecipe = "keyword base package convert platform default=keyword,platform"
     -- do not generate an all database yet, just stressing the system for no good reason
     -- all=keyword,hackage
 
 -- FIXME: Need recipes for stm and base
 list = let f a b c = (a,(b,c)) in
     [f "help" "Display this help message" help
+    ,f "base" "Create a textbase for the base package" base
     ,f "keyword" "Create textbase for keywords, from the Haskell Wiki" keyword
     ,f "package" "Create textbases for all packages on Hackage" package
     ,f "convert" "Create databases for all textbases" convert
