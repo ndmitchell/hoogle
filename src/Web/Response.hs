@@ -13,13 +13,14 @@ import Data.Monoid
 import Data.Time.Clock
 import Data.Time.Calendar
 import General.Web hiding (escapeHTML)
+import Network.HTTP
 import Paths_hoogle
 
 
 logFile = "log.txt"
 
 
-response :: FilePath -> CmdLine -> IO ([Header], String)
+response :: FilePath -> CmdLine -> IO (Response String)
 response resources q = do
     print q
     logMessage q
@@ -36,7 +37,7 @@ response resources q = do
         writeFile "temp.htm" res
     sequence_ [writeFile x res | Output x <- queryFlags q]
     -}
-    return ([headerContentType typ], res)
+    return $ Response (2,0,0) "OK" [Header HdrContentType typ] res
 
 
 logMessage :: CmdLine -> IO ()
