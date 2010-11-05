@@ -137,7 +137,7 @@ executable hoogle
 
     build-depends: base > 4 && < 4.3, cmdargs == 0.6.*, directory, process, containers, array,
                    bytestring, parsec, filepath, safe, uniplate, mtl, network, time,
-                   tagsoup == 0.11.*
+                   tagsoup == 0.11.*, HTTP
 
     other-modules:
         CmdLine.All
