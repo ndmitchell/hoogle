@@ -18,7 +18,8 @@ server :: CmdLine -> IO ()
 server q@Server{..} = withSocketsDo $ do
     stop <- httpServer port (talk q)
     putStrLn $ "Started Hoogle Server on port " ++ show port
-    (getChar >> return ()) `finally` stop
+    b <- hIsClosed stdin
+    (if b then forever $ threadDelay maxBound else getChar >> return ()) `finally` stop
 
 
 -- | Given a port and a handler, return an action to shutdown the server
