@@ -11,7 +11,7 @@ testFile srcfile = do
     (dbfile,h) <- openTempFile "." (srcfile <.> "hoo")
     hClose h
     src <- readFile srcfile
-    let (errs, dbOld) = createDatabase [] src
+    let (errs, dbOld) = createDatabase Haskell [] src
     unless (null errs) $ error $ unlines $ "Couldn't convert database:" : map show errs
     saveDatabase dbfile dbOld
     db <- loadDatabase dbfile
@@ -36,7 +36,7 @@ data Test = Test Int String Query [String] [[String]]
 parseTest :: Int -> String -> Maybe Test
 parseTest line str | "@test " `isPrefixOf` str =
     case reads $ drop 5 str of
-        [(x,rest)] -> case parseQuery x of
+        [(x,rest)] -> case parseQuery Haskell x of
             Right q -> let (no,yes) = partition ("!" `isPrefixOf`) $ words rest
                        in Just $ Test line x q (map tail no) (map (split ',') yes)
             _ -> err

@@ -14,7 +14,7 @@ convert RecipeDetails{..} xs = do
     par $ flip map xs $ \from -> let to = replaceExtension from "hoo" in process [from] [to] $ do
         putStrLn $ "Converting " ++ from
         src <- readFile from
-        let (err,db) = createDatabase [] src
+        let (err,db) = createDatabase Haskell [] src
         unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " errors in " ++ from
         saveDatabase to db
         putStrLn $ "Written " ++ to

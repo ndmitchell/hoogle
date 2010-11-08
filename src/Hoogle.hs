@@ -9,6 +9,7 @@ module Hoogle(
     module Data.TagStr,
     ParseError(..),
     URL,
+    Language(..),
     -- * Database
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
@@ -51,6 +52,10 @@ instance Show ParseError where
 
 toParseError x = ParseError (sourceLine $ errorPos x) (sourceColumn $ errorPos x) (show x)
 
+-- * Language switch
+
+data Language = Haskell
+    deriving (Enum,Read,Show,Eq,Ord,Bounded,Data,Typeable)
 
 -- * Database
 
@@ -76,8 +81,8 @@ showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""
 
 
 -- | From a textbase lines we have currently
-createDatabase :: [Database] -> String -> ([ParseError], Database)
-createDatabase dbs src = (map toParseError err, fromDataBase $ H.createDataBase xs res)
+createDatabase :: Language -> [Database] -> String -> ([ParseError], Database)
+createDatabase _ dbs src = (map toParseError err, fromDataBase $ H.createDataBase xs res)
     where
         (err,res) = H.parseTextBaseString src
         xs = concat [x | Database x <- dbs]
@@ -88,9 +93,8 @@ saveDatabase file = H.saveDataBase file . toDataBase
 
 
 -- Hoogle.Query
-
-parseQuery :: String -> Either ParseError Query
-parseQuery = either (Left . toParseError) Right . H.parseQuery
+parseQuery :: Language -> String -> Either ParseError Query
+parseQuery _ = either (Left . toParseError) Right . H.parseQuery
 
 queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps

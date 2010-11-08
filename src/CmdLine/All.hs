@@ -31,7 +31,7 @@ import Paths_hoogle
 cmdLineExpand :: CmdLine -> IO CmdLine
 cmdLineExpand x@Search{} = do
     db <- expandDatabases $ databases x
-    return $ x{queryText = s, queryParsed = parseQuery s, databases = db}
+    return $ x{queryText = s, queryParsed = parseQuery Haskell s, databases = db}
     where s = unwords $ queryChunks x
 
 
