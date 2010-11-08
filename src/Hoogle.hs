@@ -83,7 +83,7 @@ saveDatabase file = H.saveDataBase file . toDataBase
 
 -- Hoogle.Query
 parseQuery :: Language -> String -> Either ParseError Query
-parseQuery _ = either (Left . parsecParseError) Right . H.parseQuery
+parseQuery _ = H.parseQuery
 
 queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps

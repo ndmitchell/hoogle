@@ -5,13 +5,14 @@ import Data.Monoid
 import General.Code
 import Hoogle.Query.Type
 import Hoogle.TypeSig.All
+import qualified Hoogle.Util as U
 import Text.ParserCombinators.Parsec
 
 
 ascSymbols = "!#$%&*+./<=>?@\\^|-~:"
 
-parseQuery :: String -> Either ParseError Query
-parseQuery = parse parsecQuery ""
+parseQuery :: String -> Either U.ParseError Query
+parseQuery = either (Left . U.parsecParseError) Right . parse parsecQuery ""
 
 
 parsecQuery :: Parser Query
