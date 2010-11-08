@@ -28,7 +28,7 @@ import Data.Data
 import Data.Maybe
 import Data.TagStr
 import General.Util(URL)
-import Text.ParserCombinators.Parsec(sourceColumn, sourceLine, errorPos)
+import Hoogle.Util
 
 import qualified Hoogle.DataBase.All as H
 import qualified Hoogle.Query.All as H
@@ -42,17 +42,6 @@ import Hoogle.Score.All(Score)
 
 
 -- * Utility types
-
--- | 1 based
-data ParseError = ParseError {lineNo :: Int, columnNo :: Int, parseError :: String}
-                  deriving (Ord,Eq,Data,Typeable)
-
-instance Show ParseError where
-    show (ParseError line col err) = "Parse error: " ++ err ++ ":" ++ show line ++ ":" ++ show col
-
-toParseError x = ParseError (sourceLine $ errorPos x) (sourceColumn $ errorPos x) (show x)
-
--- * Language switch
 
 data Language = Haskell
     deriving (Enum,Read,Show,Eq,Ord,Bounded,Data,Typeable)
@@ -82,7 +71,7 @@ showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""
 
 -- | From a textbase lines we have currently
 createDatabase :: Language -> [Database] -> String -> ([ParseError], Database)
-createDatabase _ dbs src = (map toParseError err, fromDataBase $ H.createDataBase xs res)
+createDatabase _ dbs src = (map parsecParseError err, fromDataBase $ H.createDataBase xs res)
     where
         (err,res) = H.parseTextBase src
         xs = concat [x | Database x <- dbs]
@@ -94,7 +83,7 @@ saveDatabase file = H.saveDataBase file . toDataBase
 
 -- Hoogle.Query
 parseQuery :: Language -> String -> Either ParseError Query
-parseQuery _ = either (Left . toParseError) Right . H.parseQuery
+parseQuery _ = either (Left . parsecParseError) Right . H.parseQuery
 
 queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps

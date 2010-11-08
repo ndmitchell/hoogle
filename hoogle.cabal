@@ -130,6 +130,7 @@ library
         Hoogle.TextBase.Type
         Hoogle.TypeSig.Parser
         Hoogle.TypeSig.Type
+        Hoogle.Util
 
 executable hoogle
     main-is:            Main.hs
