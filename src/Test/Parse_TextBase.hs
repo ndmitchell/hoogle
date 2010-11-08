@@ -24,16 +24,10 @@ parse_TextBase = do
 
     "foo :: Bool" === [ItemFunc "foo" $ typ "Bool"]
     "(++) :: Int" === [ItemFunc "++" $ typ "Int"]
-    "++ :: Int" === [ItemFunc "++" $ typ "Int"]
-    "@@ :: Int" === [ItemFunc "@@" $ typ "Int"]
+    "(@@) :: Int" === [ItemFunc "@@" $ typ "Int"]
 
     "type Bar a = Foo [a]" === [ItemAlias (typ "Bar a") (typ "Foo [a]")]
 
-    "data [] a" === [ItemData DataKeyword $ typ "[a]"]
-    "[] :: [] a" === [ItemFunc "[]" $ typ "[a]"]
-    ": :: a -> [a] -> [] a" === [ItemFunc ":" $ typ "a -> [a] -> [a]"]
-    "(:) :: a -> [a] -> [] a" === [ItemFunc ":" $ typ "a -> [a] -> [a]"]
-    "() :: ()" === [ItemFunc "()" $ typ "()"]
     "data (:+:) a b" === [ItemData DataKeyword $ typ "(:+:) a b"]
 
     "data Foo a" === [ItemData DataKeyword $ typ "Foo a"]

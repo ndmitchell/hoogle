@@ -58,7 +58,8 @@ flag extended-library
 library
     hs-source-dirs:     src
     build-depends: base > 4 && < 4.3, directory, process, containers, array,
-                   bytestring, parsec, filepath, safe, uniplate, mtl, time, random
+                   bytestring, parsec, filepath, safe, uniplate, mtl, time, random,
+                   haskell-src-exts
 
     exposed-modules:
         Hoogle
