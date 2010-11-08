@@ -6,13 +6,14 @@ import Hoogle.TextBase.Type
 import Hoogle.TypeSig.All
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Error
+import qualified Hoogle.Util as U
 
 
-parseTextBase :: String -> ([ParseError], TextBase)
+parseTextBase :: String -> ([U.ParseError], TextBase)
 parseTextBase = parseTextItems ""
 
 
-parseTextItems :: FilePath -> String -> ([ParseError], TextBase)
+parseTextItems :: FilePath -> String -> ([U.ParseError], TextBase)
 parseTextItems file = join . f [] "" . zip [1..] . lines
     where
         f com url [] = []
@@ -22,7 +23,7 @@ parseTextItems file = join . f [] "" . zip [1..] . lines
             | "@url " `isPrefixOf` s = f com (drop 5 s) is
             | all isSpace s = f [] "" is
             | otherwise = (case parse parsecTextItem file s of
-                               Left y -> Left $ setErrorPos (setSourceLine (errorPos y) i) y
+                               Left y -> Left $ U.parsecParseError $ setErrorPos (setSourceLine (errorPos y) i) y
                                Right y -> Right [(unlines $ reverse com, url, y)])
                           : f [] "" is
 
