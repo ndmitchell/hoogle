@@ -11,7 +11,7 @@ typ x = case parseTypeSig x of
             Right y -> y
 
 parse_TextBase = do
-    let (===) a b = parseTest2 parseTextBaseString a (map (\x -> ("","",x)) b)
+    let (===) a b = parseTest2 parseTextBase a (map (\x -> ("","",x)) b)
 
     "" === []
     "-- foo" === []

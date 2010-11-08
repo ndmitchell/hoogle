@@ -84,7 +84,7 @@ showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""
 createDatabase :: Language -> [Database] -> String -> ([ParseError], Database)
 createDatabase _ dbs src = (map toParseError err, fromDataBase $ H.createDataBase xs res)
     where
-        (err,res) = H.parseTextBaseString src
+        (err,res) = H.parseTextBase src
         xs = concat [x | Database x <- dbs]
 
 

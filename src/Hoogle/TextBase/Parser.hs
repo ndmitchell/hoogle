@@ -1,5 +1,5 @@
 
-module Hoogle.TextBase.Parser(parseTextBaseString) where
+module Hoogle.TextBase.Parser(parseTextBase) where
 
 import General.Code
 import Hoogle.TextBase.Type
@@ -8,8 +8,8 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Error
 
 
-parseTextBaseString :: String -> ([ParseError], TextBase)
-parseTextBaseString = parseTextItems ""
+parseTextBase :: String -> ([ParseError], TextBase)
+parseTextBase = parseTextItems ""
 
 
 parseTextItems :: FilePath -> String -> ([ParseError], TextBase)
