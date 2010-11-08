@@ -31,3 +31,5 @@ parse_Query = do
     "++" === q{names = ["++"]}
     "(++)" === q{names = ["++"]}
     ":+:" === q{names = [":+:"]}
+    "bytestring-cvs +hackage" === q{scope=[PlusPackage "hackage"], names=["bytestring-cvs"]}
+

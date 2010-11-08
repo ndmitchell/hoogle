@@ -35,7 +35,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
         
         name = (do x <- operator ; spaces ; return mempty{names=[x]})
                <|>
-               (do xs <- keyword False `sepBy1` (char '.') ; spaces
+               (do xs <- keyword True `sepBy1` (char '.') ; spaces
                    return $ case xs of
                        [x] -> mempty{names=[x]}
                        xs -> mempty{names=[last xs],scope=[PlusModule (init xs)]}
