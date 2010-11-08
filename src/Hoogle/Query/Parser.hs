@@ -1,5 +1,5 @@
 
-module Hoogle.Query.Parser(parseQuery, parseCmdLineQuery, parsecQuery) where
+module Hoogle.Query.Parser(parseQuery, parsecQuery) where
 
 import Data.Monoid
 import General.Code
@@ -12,12 +12,6 @@ ascSymbols = "!#$%&*+./<=>?@\\^|-~:"
 
 parseQuery :: String -> Either ParseError Query
 parseQuery = parse parsecQuery ""
-
-
--- TODO: I don't think this handles spaces/quotes properly in the right
---       places.
-parseCmdLineQuery :: [String] -> Either ParseError Query
-parseCmdLineQuery = parseQuery . unwords
 
 
 parsecQuery :: Parser Query
