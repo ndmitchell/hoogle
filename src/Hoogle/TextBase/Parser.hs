@@ -1,17 +1,11 @@
 
-module Hoogle.TextBase.Parser(parseTextBase,parseTextBaseString) where
+module Hoogle.TextBase.Parser(parseTextBaseString) where
 
 import General.Code
 import Hoogle.TextBase.Type
 import Hoogle.TypeSig.All
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Error
-
-
-parseTextBase :: FilePath -> IO ([ParseError], TextBase)
-parseTextBase file = do
-    src <- readFile file
-    return $ parseTextItems file src
 
 
 parseTextBaseString :: String -> ([ParseError], TextBase)
