@@ -129,7 +129,6 @@ library
         Hoogle.Search.Results
         Hoogle.TextBase.Parser
         Hoogle.TextBase.Type
-        Hoogle.TypeSig.Parser
         Hoogle.TypeSig.Type
         Hoogle.Util
 
