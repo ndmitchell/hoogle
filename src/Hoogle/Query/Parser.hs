@@ -14,6 +14,8 @@ parseQuery = either (Left . U.parsecParseError) Right . parse parsecQuery ""
 
 ascSymbols = "->!#$%&*+./<=?@\\^|~:"
 
+
+optionBool :: Parser a -> Parser Bool
 optionBool p = (p >> return True) <|> return False
 
 
