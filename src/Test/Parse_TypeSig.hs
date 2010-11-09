@@ -2,9 +2,12 @@
 module Test.Parse_TypeSig(parse_TypeSig) where
 
 import Test.General
+import Data.Maybe
 import Hoogle.TypeSig.All
+import Hoogle.Query.All
 
 parse_TypeSig = do
+    let parseTypeSig x = either Left (Right . fromMaybe (error $ "Couldn't find type in: " ++ x) . typeSig) $ parseQuery (":: " ++ x)
     let (===) = parseTest parseTypeSig
 
     -- really basic stuff
