@@ -1,5 +1,5 @@
 
-module Hoogle.Query.Parser(parseQuery, parsecQuery) where
+module Hoogle.Query.Parser(parseQuery) where
 
 import Data.Monoid
 import General.Code
