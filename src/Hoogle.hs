@@ -23,7 +23,6 @@ module Hoogle(
 
 import Data.Binary.Defer.Index
 import Data.Monoid
-import Data.Range
 import Data.Data
 import Data.Maybe
 import Data.TagStr
@@ -124,4 +123,4 @@ searchAll (Database xs) q = map toResult $ H.searchAll xs q
 -- | A pair of bounds. These bounds are the lowest and highest indices in the array, in that order.
 --   For example, the first 10 elements are (0,9) and the next 10 are (10,19)
 searchRange :: (Int,Int) -> Database -> Query -> [(Score,Result)]
-searchRange (a,b) (Database xs) q = map toResult $ H.searchRange (rangeStartEnd a b) xs q
+searchRange (a,b) (Database xs) q = map toResult $ H.searchRange (a,b) xs q

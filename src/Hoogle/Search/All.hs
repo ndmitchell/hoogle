@@ -4,8 +4,6 @@ module Hoogle.Search.All(
     searchAll, searchRange
     ) where
 
-import Data.Range
-
 import Hoogle.DataBase.All
 import Hoogle.Query.All
 import Hoogle.Search.Result
@@ -19,8 +17,9 @@ searchAll databases query = getResults query databases
 
 
 -- should be possible to fast-path certain searches, currently not done
-searchRange :: Range -> [DataBase] -> Query -> [Result]
-searchRange r databases query = listRange r $ getResults query databases
+-- start index, end index
+searchRange :: (Int,Int) -> [DataBase] -> Query -> [Result]
+searchRange (from,to) databases query = take (to - from + 1) $ drop from $ getResults query databases
 
 
 getResults :: Query -> [DataBase] -> [Result]
