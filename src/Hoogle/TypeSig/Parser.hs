@@ -1,13 +1,9 @@
 
-module Hoogle.TypeSig.Parser(parsecTypeSig, parseTypeSig) where
+module Hoogle.TypeSig.Parser(parsecTypeSig) where
 
 import Hoogle.TypeSig.Type
 import Text.ParserCombinators.Parsec
 import General.Code
-
-
-parseTypeSig :: String -> Either ParseError TypeSig
-parseTypeSig = parse (do x <- parsecTypeSig ; eof ; return x) ""
 
 
 parsecTypeSig :: Parser TypeSig

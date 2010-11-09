@@ -3,12 +3,14 @@ module Test.Parse_TextBase(parse_TextBase) where
 
 import Test.General
 import Hoogle.TextBase.All
-import Hoogle.TypeSig.All
+import Hoogle.Query.All
+import Data.Maybe
 
 
-typ x = case parseTypeSig x of
+typ x = case parseQuery $ ":: " ++ x of
             Left err -> error $ "parse_TextBase, failed to parse type signature: " ++ show x
-            Right y -> y
+            Right y -> fromMaybe (error $ "No type found in parse_TextBase for: " ++ show x) $ typeSig y
+
 
 parse_TextBase = do
     let (===) a b = parseTest2 parseTextBase a (map (\x -> ("","",x)) b)
