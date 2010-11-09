@@ -30,7 +30,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
         
         name = (do x <- operator ; spaces ; return mempty{names=[x]})
                <|>
-               (do xs <- keyword True `sepBy1` (char '.') ; spaces
+               (do xs <- keyword `sepBy1` (char '.') ; spaces
                    return $ case xs of
                        [x] -> mempty{names=[x]}
                        xs -> mempty{names=[last xs],scope=[PlusModule (init xs)]}
@@ -59,14 +59,14 @@ parseFlagScope = do
     pm <- oneOf "+-"
     let aPackage = if pm == '+' then PlusPackage else MinusPackage
         aModule  = if pm == '+' then PlusModule  else MinusModule
-        modname  = keyword True `sepBy1` (char '.')
+        modname  = keyword `sepBy1` (char '.')
     modu <- modname
     case modu of
         [x] -> return $ mempty{scope=[if isLower (head x) then aPackage x else aModule [x]]}
         xs -> return $ mempty{scope=[aModule xs]}
 
 
-keyword hyphen = do
+keyword = do
     x <- letter
-    xs <- many $ satisfy (\x -> isAlphaNum x || x `elem` "_'#" || (hyphen && x == '-'))
-    return (x:xs)
+    xs <- many $ satisfy $ \x -> isAlphaNum x || x `elem` "_'#-"
+    return $ x:xs
