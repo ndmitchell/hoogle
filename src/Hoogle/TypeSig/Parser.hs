@@ -20,7 +20,7 @@ parsecTypeSig = do whites
         context = try acontext <|> return []
         
         acontext = do x <- conitems <|> fmap (:[]) conitem
-                      white $ char '=' >> oneOf "#>"
+                      white $ string "=>"
                       return x
         
         conitems = between (wchar '(') (wchar ')') $ conitem `sepBy1` wchar ','
@@ -98,11 +98,11 @@ parsecTypeSig = do whites
 
         keysymbol = try $ do
             x <- many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbol)
-            if x `elem` ["->","-#"] then return "->" -- fast shortcut for arrows
+            if x == "->" then return "->" -- fast shortcut for arrows
              else if x `elem` reservedSym then fail "Bad symbol"
              else return x
         ascSymbol = "->#!$%&*+./<=?@\\^|-~:"
-        reservedSym = ["::","=>","=#",".","=","#",":","-","+","/","--"]
+        reservedSym = ["::","=>",".","=","#",":","-","+","/","--"]
 
 
 optionBool p = (p >> return True) <|> return False
