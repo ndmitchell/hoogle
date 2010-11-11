@@ -130,11 +130,15 @@ renderRes i Result{..} =
                    (showTagHTML docs) +?
                "</div>"
 
-        url (TagHyperlink _ x)
-            | null selfUrl = Just $ "<span class='a'>" ++ showTagHTML x ++ "</span>"
-            | otherwise = Just $ "</a><a href='" +& selfUrl ++ "'>" ++ showTagHTML x ++
+        url (TagBold x)
+            | null selfUrl = Just $ "<span class='a'>no url" ++ showTagHTML (transform g x) ++ "</span>"
+            | otherwise = Just $ "</a><a class='a' href='" +& selfUrl ++ "'>" ++ showTagHTML (transform g x) ++
                                  "</a><a class='dull' href='" +& selfUrl ++ "'>"
         url _ = Nothing
+
+        g (TagUnderline x) = TagBold x
+        g x = x
+
 
 tr x = "<tr>" ++ x ++ "</tr>"
 td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"

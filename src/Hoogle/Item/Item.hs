@@ -47,16 +47,14 @@ data EntryView = FocusOn String -- characters in the range should be focused
 renderEntryText :: [EntryView] -> TagStr -> TagStr
 renderEntryText view = transform f
     where
-        cols = [(a,b) | ArgPosNum a b <- view]
+        cols = [(b+1,a+1) | ArgPosNum a b <- view]
         strs = [map toLower x | FocusOn x <- view]
 
-        f (TagColor i x) = maybe x (`TagColor` x) $ lookup i cols
-        f (TagBold (Str xs)) = Tags $ g xs
-        f (TagBold x) = x
+        f (TagColor i x) = maybe x (`TagColor` x) $ lookup i $ [(0,0)|cols/=[]] ++ cols
+        f (TagBold (Str xs)) = TagBold $ Tags $ g xs
         f x = x
 
-
-        g xs | ss /= [] = TagBold (Str a) : g b
+        g xs | ss /= [] = TagUnderline (Str a) : g b
             where ss = filter (`isPrefixOf` map toLower xs) strs
                   (a,b) = splitAt (maximum $ map length ss) xs
         g (x:xs) = Str [x] : g xs
