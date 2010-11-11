@@ -33,8 +33,6 @@ instance Show TypeSimp where
 ---------------------------------------------------------------------
 -- DATA TYPES
 
--- TODO: Add TForAll and treat it properly throughout
---       Add TBang to handle bangs properly
 data Type = TApp Type [Type] -- a list of types, first one being the constructor
           | TLit String -- bound variables, Maybe, ":", "(,)", "(,,)" (tuple)
           | TVar String -- unbound variables, "a"
