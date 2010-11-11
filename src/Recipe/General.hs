@@ -4,6 +4,7 @@ module Recipe.General(convert, multiple) where
 import Recipe.Type
 import Hoogle
 import General.Code
+import System.Console.CmdArgs.Verbosity
 
 
 convert :: RecipeDetails -> [String] -> IO ()
@@ -16,6 +17,7 @@ convert RecipeDetails{..} xs = do
         src <- readFile from
         let (err,db) = createDatabase Haskell [] src
         unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " errors in " ++ from
+        whenLoud $ putStr $ unlines $ map show err
         saveDatabase to db
         putStrLn $ "Written " ++ to
 

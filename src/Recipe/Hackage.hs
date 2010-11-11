@@ -19,7 +19,9 @@ package r@RecipeDetails{..} args = do
 
 
 packageTextbase :: (String,String) -> IO ()
-packageTextbase (name,ver) = copyFile (name ++ "-" ++ ver ++ "-haddock.web") (name ++ ".txt")
+packageTextbase (name,ver) = do
+    src <- readFile $ name ++ "-" ++ ver ++ "-haddock.web"
+    writeFile (name ++ ".txt") $ unlines $ filter (not . isPrefixOf "@version ") $ lines src
 
 
 hackage :: RecipeDetails -> [String]  -> IO ()
