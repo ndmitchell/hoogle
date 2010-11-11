@@ -36,7 +36,7 @@
 :{
 :def tagsoup const $ return $ unlines
     [":reload"
-    ,":main data convert=tagsoup --rebuild"
+    ,":main data package=tagsoup convert=tagsoup --rebuild --verbose"
     ,":main server"]
 :}
 
