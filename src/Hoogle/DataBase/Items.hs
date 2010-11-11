@@ -63,7 +63,7 @@ addTextItem TextItem{..} = do
         modify $ \(ps,ms) -> (ps, addS (defaultModuleURL $ Module itemName (getS ps) itemURL) ms)
     (ps,ms) <- get
     return [defaultEntryURL $ Entry
-        (if itemLevel == 1 then Just $ getS ms else Nothing)
+        (if itemLevel > 1 then Just $ getS ms else Nothing)
         (getS ps)
         (intercalate "." itemName)
         itemDisp
