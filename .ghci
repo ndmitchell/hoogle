@@ -32,3 +32,13 @@
               ,":local - compile and run locally"]
     in putStr (unlines msg) >> return []
 :}
+
+:{
+:def tagsoup const $ return $ unlines
+    [":reload"
+    ,":main data convert=tagsoup --rebuild"
+    ,":main server"]
+:}
+
+    
+    
