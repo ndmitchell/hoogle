@@ -174,8 +174,8 @@ renderTypeSig :: TypeSig -> TagStr
 renderTypeSig (TypeSig con args) = Tags $
     Str (showConstraint con) :
     intersperse (Str " -> ")
-       (zipWith TagColor [1..] (map (Str . show) finit) ++
-        [TagColor 0 $ Str $ show flast])
+       (zipWith TagColor [1..] (map (Str . showFun) finit) ++
+        [TagColor 0 $ Str $ showFun flast])
     where
         (finit, flast) = (init funcs, last funcs)
         funcs = splitFun args
