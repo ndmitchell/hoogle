@@ -9,6 +9,7 @@ import Hoogle.Item.Haddock
 import Hoogle.TypeSig.All
 import Data.TagStr
 import Data.Typeable
+import Data.Generics.Uniplate
 
 
 data Package = Package
@@ -44,7 +45,23 @@ data EntryView = FocusOn String -- characters in the range should be focused
 
 
 renderEntryText :: [EntryView] -> TagStr -> TagStr
-renderEntryText _ x = x -- FIXME: To implement
+renderEntryText view = transform f
+    where
+        cols = [(a,b) | ArgPosNum a b <- view]
+        strs = [map toLower x | FocusOn x <- view]
+
+        f (TagColor i x) = maybe x (`TagColor` x) $ lookup i cols
+        f (TagBold (Str xs)) = Tags $ g xs
+        f (TagBold x) = x
+        f x = x
+
+
+        g xs | ss /= [] = TagBold (Str a) : g b
+            where ss = filter (`isPrefixOf` map toLower xs) strs
+                  (a,b) = splitAt (maximum $ map length ss) xs
+        g (x:xs) = Str [x] : g xs
+        g [] = []
+
 
 
 {-
