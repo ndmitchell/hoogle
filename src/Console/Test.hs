@@ -11,7 +11,7 @@ testFile srcfile = do
     (dbfile,h) <- openTempFile "." (srcfile <.> "hoo")
     hClose h
     src <- readFile srcfile
-    let (errs, dbOld) = createDatabase Haskell [] src
+    let (errs, dbOld) = createDatabase Haskell [] $ unlines [if "@test " `isPrefixOf` x then "" else x | x <- lines src]
     unless (null errs) $ error $ unlines $ "Couldn't convert database:" : map show errs
     saveDatabase dbfile dbOld
     db <- loadDatabase dbfile
