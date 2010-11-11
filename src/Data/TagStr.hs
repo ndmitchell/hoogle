@@ -7,6 +7,7 @@ import Data.Char
 import Data.List
 import Data.Data
 import Data.Generics.Uniplate
+import Data.Binary.Defer
 import Data.Maybe
 import Numeric
 
@@ -27,6 +28,24 @@ instance Uniplate TagStr where
     uniplate (TagHyperlink i x) = ([x], \[x] -> TagHyperlink i x)
     uniplate (TagColor i x) = ([x], \[x] -> TagColor i x)
     uniplate x = ([], const x)
+
+
+instance BinaryDefer TagStr where
+    put (Str x)            = putByte 0 >> put1 x
+    put (Tags x)           = putByte 1 >> put1 x
+    put (TagBold x)        = putByte 2 >> put1 x
+    put (TagUnderline x)   = putByte 3 >> put1 x
+    put (TagHyperlink x y) = putByte 4 >> put2 x y
+    put (TagColor x y)     = putByte 5 >> put2 x y
+
+    get = do i <- getByte
+             case i of
+                0 -> get1 Str
+                1 -> get1 Tags
+                2 -> get1 TagBold
+                3 -> get1 TagUnderline
+                4 -> get2 TagHyperlink
+                5 -> get2 TagColor
 
 
 -- | Show a 'TagStr' as a string, without any formatting.
