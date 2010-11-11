@@ -20,31 +20,37 @@ parseTextBase = join . f [] "" . zip [1..] . lines
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i s of
                                Left y -> Left y
-                               Right y -> Right [(unlines $ reverse com, url, y)])
+                               Right (as,bs) -> Right (as,[b{itemURL=url, itemDocs=unlines $ reverse com} | b <- bs]))
                           : f [] "" is
 
-        join xs = (err, concat items)
+        join xs = (err, (concat as, concat bs))
             where (err,items) = unzipEithers xs
+                  (as,bs) = unzip items
 
 
-parseLine :: Int -> String -> Either ParseError TextItem
-parseLine line ('@':str) = Right $ ItemAttribute a $ dropWhile isSpace b
+parseLine :: Int -> String -> Either ParseError ([Fact],[TextItem])
+parseLine line ('@':str) = case a of
+        "keyword" -> Right $ itemKeyword $ dropWhile isSpace b
+        "package" -> Right $ itemPackage $ dropWhile isSpace b
+        _ -> Left $ ParseError line 2 $ "Unknown attribute: " ++ a
     where (a,b) = break isSpace str
-parseLine line x | a == "module" = Right $ ItemModule $ split '.' $ dropWhile isSpace b
+parseLine line x | a == "module" = Right $ itemModule $ split '.' $ dropWhile isSpace b
     where (a,b) = break isSpace x
 parseLine line x = case parseDeclWithMode defaultParseMode{extensions=[EmptyDataDecls,TypeOperators]} $ x ++ ex of
     ParseOk x -> maybe (Left $ ParseError line 1 "Can't translate") Right $ transDecl x
-    ParseFailed pos msg -> Left $ ParseError line (srcLine pos) msg
+    ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=[GADTs]} $ "data Data where " ++ x of
+        ParseOk x | Just x <- transDecl x -> Right x
+        _ -> Left $ ParseError line (srcLine pos) msg
     where ex = if "newtype " `isPrefixOf` x then " = Newtype" else ""
 
 
-transDecl :: Decl -> Maybe TextItem
-transDecl (ClassDecl _ ctxt name vars _ _) = Just $ ItemClass $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
-transDecl (HSE.TypeSig _ [name] ty) = Just $ ItemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
-transDecl (TypeDecl _ name vars ty) = Just $ ItemAlias (transTypeCon [] (prettyPrint name) (map transVar vars)) (transTypeSig ty)
-transDecl (DataDecl _ dat ctxt name vars _ _) = Just $ ItemData kw $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
-    where kw = if dat == DataType then DataKeyword else NewTypeKeyword
-transDecl (InstDecl _ ctxt name vars _) = Just $ ItemInstance $ transTypeCon ctxt (prettyPrint name) vars
+transDecl :: Decl -> Maybe ([Fact],[TextItem])
+transDecl (ClassDecl _ ctxt name vars _ _) = Just $ itemClass $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
+transDecl (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
+transDecl (TypeDecl _ name vars ty) = Just $ itemAlias (transTypeCon [] (prettyPrint name) (map transVar vars)) (transTypeSig ty)
+transDecl (DataDecl _ dat ctxt name vars _ _) = Just $ itemData (dat == DataType) $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
+transDecl (InstDecl _ ctxt name vars _) = Just $ itemInstance $ transTypeCon ctxt (prettyPrint name) vars
+transDecl (GDataDecl _ _ _ _ _ _ [GadtDecl _ name ty] _) = Just $ itemFunc (unbracket $ prettyPrint name) (transTypeSig ty)
 transDecl _ = Nothing
 
 unbracket ('(':xs) | ")" `isSuffixOf` xs = init xs

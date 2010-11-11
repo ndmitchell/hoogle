@@ -103,7 +103,7 @@ searchNameSearch (NameSearch items shortcuts) str = [(a,b, textScore c) | (a,b,c
     where
         lstr = map toLower str
         nstr = length str
-        rangePrefix = FocusOn $ rangeStartCount 0 nstr
+        rangePrefix = FocusOn str
 
         (exact,prefix) = startPos items lstr
         (prefixes,lastpre) = followPrefixes items lstr prefix
@@ -119,7 +119,7 @@ searchNameSearch (NameSearch items shortcuts) str = [(a,b, textScore c) | (a,b,c
         seen i = fromMaybe prefix exact <= i && i <= lastpre
         step3 = [(e,view,MatchSubstr) | i <- xs, let x = items ! i
                 , Just p <- [testMatch lstr $ key x]
-                , let view = FocusOn $ rangeStartCount p nstr
+                , let view = FocusOn str
                 , e <- concatMap snd $ fromDefer $ rest x]
             where xs = filter (not . seen) $ intersectOrds $
                        map (maybe [] fromIntList . flip lookup shortcuts) $ nub lstr

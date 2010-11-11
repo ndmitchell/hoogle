@@ -1,5 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 
+-- FIXME: Should be moved inside TextBase
 -- | Code to figure out default URL's based on Hackage/Haddock semantics
 module Hoogle.Item.URL(defaultPackageURL, defaultModuleURL, defaultEntryURL) where
 
@@ -26,7 +27,7 @@ defaultModuleURL x = x{moduleURL = url base def $ moduleURL x}
 
 
 defaultEntryURL :: Entry -> Entry
-defaultEntryURL x = x{entryURL = res}
+defaultEntryURL x = x {- x{entryURL = res}
     where
         y = entryURL x
         res = case entryType x of
@@ -34,3 +35,4 @@ defaultEntryURL x = x{entryURL = res}
             EntryModule | Just m <- entryModule x -> url (packageURL $ fromLink $ entryPackage x) (moduleURL $ fromLink m) y
             EntryOther | Just m <- entryModule x -> url (moduleURL $ fromLink m) ("#v:" ++ entryName x) y
             _ -> ""
+-}

@@ -20,14 +20,7 @@ renderQuery x = Tags $ namesig ++ scp ++ itms
                                                          , y:ys <- [dropWhile isSpace xs]]
         
         showName = intersperse (Str " ") $ map (TagBold . Str) (names x)
-        showType = Str (showConstraint con) :
-                   intersperse (Str " -> ") 
-                       (zipWith TagColor [0..] (map (Str . show) finit) ++
-                        [Str (show flast)])
-            where
-                Just (TypeSig con args) = typeSig x
-                (finit, flast) = (init funcs, last funcs)
-                funcs = splitFun args
-        
+        showType = [renderTypeSig $ fromJust $ typeSig x]
+
         scp = []
         itms = []

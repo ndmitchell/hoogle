@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module Hoogle.DataBase.Items where
 
@@ -46,7 +47,7 @@ entriesItems :: Items -> [Link Entry]
 entriesItems = indexLinks . entries
 
 
-createItems :: [(String,URL,TextItem)] -> Items
+createItems :: [TextItem] -> Items
 createItems xs = Items (newIndexS pkgs) (newIndexS mods)
                        (newIndex $ sortOn entryScore ents)
     where
@@ -54,32 +55,21 @@ createItems xs = Items (newIndexS pkgs) (newIndexS mods)
 
 
 -- add a TextItem to the state S
-addTextItem :: (String,URL,TextItem) -> State (S Package, S Module) [Entry]
-addTextItem (doc,url,ti) = case ti of
-    ItemInstance{} -> return []
-
-    ItemAttribute "keyword" name ->
-        add False EntryKeyword [Keyword "keyword",Text " ",Focus name]
-
-    ItemAttribute "package" name -> do
-        modify $ \(ps,ms) -> (addS (defaultPackageURL $ Package name url) ps, ms)
-        add False EntryPackage [Keyword "package",Text " ",Focus name]
-
-    ItemAttribute _ _ -> return []
-
-    ItemModule xs -> do
-        modify $ \(ps,ms) -> (ps, addS (defaultModuleURL $ Module xs (getS ps) url) ms)
-        add True EntryModule [Keyword "module", Text $ ' ' : concatMap (++ ".") (init xs), Focus (last xs)]
-
-    _ -> add True EntryOther (renderTextItem ti)
-    where
-        add modu typ txt = do
-            (ps,ms) <- get
-            let sig = case ti of ItemFunc _ s -> Just (Defer s); _ -> Nothing
-            return [defaultEntryURL $ Entry
-                          (if modu then Just $ getS ms else Nothing) (getS ps)
-                          (headDef "" [i | Focus i <- txt])
-                          txt typ (newHaddock doc) sig url]
+addTextItem :: TextItem -> State (S Package, S Module) [Entry]
+addTextItem TextItem{..} = do
+    when (itemLevel == 0) $
+        modify $ \(ps,ms) -> (addS (defaultPackageURL $ Package (head itemName) itemURL) ps, ms)
+    when (itemLevel == 1) $
+        modify $ \(ps,ms) -> (ps, addS (defaultModuleURL $ Module itemName (getS ps) itemURL) ms)
+    (ps,ms) <- get
+    return [defaultEntryURL $ Entry
+        (if itemLevel == 1 then Just $ getS ms else Nothing)
+        (getS ps)
+        (intercalate "." itemName)
+        itemDisp
+        (newHaddock itemDocs)
+        itemURL
+        itemType]
 
 
 mergeItems :: [Items] -> Items

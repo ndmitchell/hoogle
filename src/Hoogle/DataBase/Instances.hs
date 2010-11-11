@@ -24,11 +24,11 @@ instance BinaryDefer Instances where
     get = get1 Instances
 
 
-createInstances :: [Instances] -> [TextItem] -> Instances
+createInstances :: [Instances] -> [Fact] -> Instances
 createInstances deps xs = mergeInstances (i:deps)
     where
         i = Instances $ foldl f Map.empty ys
-        ys = [(v, c) | ItemInstance (TypeSig [] (TApp (TLit c) vs)) <- xs, TLit v <- vs]
+        ys = [(v, c) | FactInstance (TypeSig [] (TApp (TLit c) vs)) <- xs, TLit v <- vs]
         f mp (v,c) = Map.insertWith (++) v [c] mp
 
 

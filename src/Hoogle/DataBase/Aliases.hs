@@ -32,12 +32,12 @@ instance BinaryDefer Alias where
     get = get2 Alias
 
 
-createAliases :: [Aliases] -> [TextItem] -> Aliases
+createAliases :: [Aliases] -> [Fact] -> Aliases
 createAliases deps ti = mergeAliases (a:deps)
     where
         a = Aliases $ transitiveClosure $ Map.fromList
             [ (name, Alias [v | TVar v <- args] rhs)
-            | ItemAlias (TypeSig _ lhs) (TypeSig _ rhs) <- ti
+            |  FactAlias (TypeSig _ lhs) (TypeSig _ rhs) <- ti
             , let (TLit name, args) = fromTApp lhs]
 
 

@@ -1,7 +1,6 @@
 
 module Hoogle.Search.Result where
 
-import General.Code
 import Data.TagStr
 import Hoogle.Item.All
 import Hoogle.Score.All
@@ -18,8 +17,7 @@ data Result = Result
 
 -- return (module it is in, the text to go beside it, verbose scoring info)
 renderResult :: Result -> (Maybe Module, TagStr, String)
-renderResult r = (if entryType e == EntryModule then Nothing
-                  else liftM fromLink $ entryModule e
+renderResult r = (fmap fromLink $ entryModule e
                  ,renderEntryText (resultView r) $ entryText e
                  ,show $ resultScore r)
     where e = fromLink $ resultEntry r

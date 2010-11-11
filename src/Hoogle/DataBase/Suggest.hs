@@ -43,7 +43,7 @@ instance BinaryDefer SuggestItem where
 
 -- note: do not look inside class's for data type information
 --       as they may have higher-kinds and get it wrong
-createSuggest :: [Suggest] -> [TextItem] -> Suggest
+createSuggest :: [Suggest] -> [Fact] -> Suggest
 createSuggest deps xs = mergeSuggest (s:deps)
     where
         s = Suggest $ newTrie $ Map.toList res
@@ -53,27 +53,11 @@ createSuggest deps xs = mergeSuggest (s:deps)
         sData  c n = (c, SuggestItem Nothing [(c,n)] [])
         sClass c n = (c, SuggestItem Nothing [] [(c,n)])
 
-        getTextItem :: TextItem -> [(String,SuggestItem)]
-        getTextItem (ItemClass x   ) = getTypeSig True x
-        getTextItem (ItemFunc n x  ) = getTypeSig False x ++ getCtor n x
-        getTextItem (ItemAlias x y ) = getTypeSig False x ++ getTypeSig False y
-        getTextItem (ItemData _ x  ) = getTypeSig False x
-        getTextItem (ItemInstance x) = getTypeSig True x
+        getTextItem :: Fact -> [(String,SuggestItem)]
+        getTextItem (FactDataKind a b) = [sData a b]
+        getTextItem (FactClassKind a b) = [sClass a b]
+        getTextItem (FactCtorType a b) = [(a, SuggestItem (Just b) [] [])]
         getTextItem _ = []
-
-        getTypeSig cls (TypeSig x y) = concatMap (getType True) x ++ getType cls y
-
-        getType cls (TApp (TLit c) ys) = add cls c (length ys) ++
-                                         if cls then [] else concatMap (getType False) ys
-        getType cls (TLit c) = add cls c 0
-        getType cls x = if cls then [] else concatMap (getType False) $ children x
-
-        add cls c i = [(if cls then sClass else sData) c i | not (isTLitTuple c)]
-
-        getCtor name (TypeSig _ x) =
-            [ (name, SuggestItem (Just c) [] [])
-            | n:_ <- [name], isUpper n
-            , (TLit c,_) <- [fromTApp $ last $ fromTFun x]]
 
 
 mergeSuggest :: [Suggest] -> Suggest

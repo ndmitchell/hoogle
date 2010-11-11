@@ -5,6 +5,7 @@ module Hoogle.TypeSig.Type where
 import Data.Binary.Defer
 import Data.List
 import Data.Data
+import Data.TagStr
 import Data.Generics.UniplateOn
 
 
@@ -167,6 +168,17 @@ instance Show TypeSig where
 -- to get brackets right after splitFun
 showFun :: Type -> String
 showFun x = showsPrec 1 x ""
+
+
+renderTypeSig :: TypeSig -> TagStr
+renderTypeSig (TypeSig con args) = Tags $
+    Str (showConstraint con) :
+    intersperse (Str " -> ")
+       (zipWith TagColor [1..] (map (Str . show) finit) ++
+        [TagColor 0 $ Str $ show flast])
+    where
+        (finit, flast) = (init funcs, last funcs)
+        funcs = splitFun args
 
 
 ---------------------------------------------------------------------
