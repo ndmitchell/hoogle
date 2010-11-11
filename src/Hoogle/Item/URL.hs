@@ -27,7 +27,8 @@ defaultModuleURL x = x{moduleURL = url base def $ moduleURL x}
 
 
 defaultEntryURL :: Entry -> Entry
-defaultEntryURL x = x {- x{entryURL = res}
+defaultEntryURL x = x{entryURL = "FIXME"} -- url "" "FIXME" $ entryURL x}
+{-
     where
         y = entryURL x
         res = case entryType x of
