@@ -2,7 +2,6 @@
 
 module Hoogle.Util where
 
-import qualified Text.ParserCombinators.Parsec as P
 import Data.Data
 
 
@@ -12,7 +11,3 @@ data ParseError = ParseError {lineNo :: Int, columnNo :: Int, parseError :: Stri
 
 instance Show ParseError where
     show (ParseError line col err) = "Parse error " ++ show line ++ ":" ++ show col ++ ": " ++ err
-
-parsecParseError :: P.ParseError -> ParseError
-parsecParseError x = ParseError (P.sourceLine pos) (P.sourceColumn pos) (show x)
-    where pos = P.errorPos x

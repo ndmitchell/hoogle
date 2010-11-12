@@ -10,7 +10,12 @@ import Text.ParserCombinators.Parsec
 
 
 parseQuery :: String -> Either U.ParseError Query
-parseQuery = either (Left . U.parsecParseError) Right . parse parsecQuery ""
+parseQuery = either (Left . toParseError) Right . parse parsecQuery ""
+
+toParseError :: ParseError -> U.ParseError
+toParseError x = U.ParseError (sourceLine pos) (sourceColumn pos) (show x)
+    where pos = errorPos x
+
 
 ascSymbols = "->!#$%&*+./<=?@\\^|~:"
 
