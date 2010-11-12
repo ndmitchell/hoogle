@@ -8,7 +8,7 @@ import Hoogle.DataBase.All
 import Hoogle.Query.All
 import Hoogle.Search.Result
 import Hoogle.Search.Results
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 
 
 -- return all the results

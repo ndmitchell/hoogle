@@ -9,7 +9,7 @@ import Hoogle.Score.All
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 
 
 data TypeScore = TypeScore

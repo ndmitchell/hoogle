@@ -5,7 +5,7 @@ import General.Code
 import Data.TagStr
 import Data.Generics.Uniplate
 import Hoogle.Query.Type
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 
 
 renderQuery :: Query -> TagStr

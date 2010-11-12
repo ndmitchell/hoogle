@@ -6,7 +6,6 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Trie as Trie
 import qualified Data.Map as Map
 import Hoogle.Type.All
-import Hoogle.TypeSig.All
 import Data.Generics.Uniplate
 
 

@@ -3,11 +3,10 @@
 module Hoogle.Language.Haskell.Input(parseInputHaskell) where
 
 import General.Code
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 import Language.Haskell.Exts hiding (TypeSig,Type)
 import qualified Language.Haskell.Exts as HSE
 import Hoogle.Util
-import Hoogle.Type.All
 import Data.TagStr
 import Data.Generics.Uniplate
 

@@ -3,7 +3,7 @@ module Test.Parse_TypeSig(parse_TypeSig) where
 
 import Test.General
 import Data.Maybe
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 import Hoogle.Query.All
 
 parse_TypeSig = do

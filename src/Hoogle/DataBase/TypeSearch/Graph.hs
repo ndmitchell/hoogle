@@ -12,7 +12,7 @@ module Hoogle.DataBase.TypeSearch.Graph(
 
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.Result
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index

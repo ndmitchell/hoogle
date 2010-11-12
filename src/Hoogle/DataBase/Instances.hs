@@ -6,7 +6,6 @@ module Hoogle.DataBase.Instances(
 
 import General.Code
 import Hoogle.Type.All
-import Hoogle.TypeSig.All
 import Data.Binary.Defer
 import qualified Data.Binary.Defer.Map as Map
 

@@ -6,7 +6,7 @@ import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.Type.Haddock
-import Hoogle.TypeSig.All
+import Hoogle.Type.TypeSig
 import Data.TagStr
 import Data.Typeable
 import Data.Generics.Uniplate

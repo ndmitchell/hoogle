@@ -4,7 +4,7 @@ module Hoogle.Query.Parser(parseQuery) where
 import Data.Monoid
 import General.Code
 import Hoogle.Query.Type
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 import qualified Hoogle.Util as U
 import Text.ParserCombinators.Parsec
 

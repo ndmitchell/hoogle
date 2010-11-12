@@ -4,7 +4,6 @@ module Hoogle.DataBase.Aliases(
     ) where
 
 import Hoogle.Type.All
-import Hoogle.TypeSig.All
 import qualified Data.Binary.Defer.Map as Map
 import Data.Binary.Defer
 import Data.Generics.Uniplate

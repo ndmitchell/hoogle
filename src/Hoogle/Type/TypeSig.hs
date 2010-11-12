@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Hoogle.TypeSig.All where
+module Hoogle.Type.TypeSig where
 
 import Data.Binary.Defer
 import Data.List

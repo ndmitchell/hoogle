@@ -71,7 +71,6 @@ library
             Hoogle.Query.All
             Hoogle.Score.All
             Hoogle.Search.All
-            Hoogle.TypeSig.All
             Hoogle.Language.Haskell.Input
     else
         other-modules:
@@ -80,7 +79,6 @@ library
             Hoogle.Query.All
             Hoogle.Score.All
             Hoogle.Search.All
-            Hoogle.TypeSig.All
             Hoogle.Language.Haskell.Input
 
     other-modules:
@@ -117,6 +115,7 @@ library
         Hoogle.DataBase.TypeSearch.All
         Hoogle.Type.Haddock
         Hoogle.Type.Item
+        Hoogle.Type.TypeSig
         Hoogle.Query.Parser
         Hoogle.Query.Render
         Hoogle.Query.Suggest

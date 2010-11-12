@@ -8,7 +8,7 @@ import Data.Data
 import Data.Generics.UniplateOn
 
 import General.Code
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 
 
 isBlankQuery :: Query -> Bool

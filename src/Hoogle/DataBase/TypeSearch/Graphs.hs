@@ -8,7 +8,6 @@ import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.Type.All
-import Hoogle.TypeSig.All
 
 import Data.Binary.Defer
 import Data.Binary.Defer.Index

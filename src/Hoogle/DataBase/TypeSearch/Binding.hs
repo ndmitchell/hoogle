@@ -10,7 +10,7 @@ module Hoogle.DataBase.TypeSearch.Binding(
     addBinding, costBinding, costsBinding, mergeBindings, bindings
     ) where
 
-import Hoogle.TypeSig.All
+import Hoogle.Type.All
 import Hoogle.Score.All
 import General.Code
 import qualified Data.Map as Map
