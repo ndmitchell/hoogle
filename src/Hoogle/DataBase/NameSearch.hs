@@ -9,7 +9,6 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import Data.Binary.Defer.Index
 import qualified Data.Map as Map
-import Data.Range
 import General.Code
 import Hoogle.Item.All
 import Hoogle.Score.All
@@ -102,7 +101,6 @@ searchNameSearch :: NameSearch -> String -> [(Link Entry,EntryView,Score)]
 searchNameSearch (NameSearch items shortcuts) str = [(a,b, textScore c) | (a,b,c) <- step1 ++ step2 ++ step3]
     where
         lstr = map toLower str
-        nstr = length str
         rangePrefix = FocusOn str
 
         (exact,prefix) = startPos items lstr

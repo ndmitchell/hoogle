@@ -12,7 +12,6 @@ import Hoogle.DataBase.Type
 import Hoogle.Item.All
 import Hoogle.Score.All
 import Hoogle.DataBase.Serialise
-import General.Code
 
 
 createDataBase :: [DataBase] -> TextBase -> DataBase

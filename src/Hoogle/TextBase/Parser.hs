@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module Hoogle.TextBase.Parser(parseTextBase) where
 
