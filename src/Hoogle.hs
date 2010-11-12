@@ -113,7 +113,7 @@ toResult r@(H.Result entry view score) = (score, Result package modul self docs)
         package = let p = fromLink $ H.entryPackage ent in Just (H.packageURL p, H.packageName p)
         modul = fmap (\x -> (H.moduleURL x, show x)) modu
         self = (H.entryURL ent, text)
-        docs = H.renderHaddock $ H.entryDocs ent
+        docs = H.renderDocumentation $ H.entryDocs ent
 
 
 searchAll :: Database -> Query -> [(Score,Result)]

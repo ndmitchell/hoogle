@@ -1,6 +1,6 @@
 
-module Hoogle.Type.Haddock(
-    Haddock, newHaddock, renderHaddock
+module Hoogle.Type.Documentation(
+    Documentation, htmlDocumentation, renderDocumentation
     ) where
 
 import General.Code
@@ -9,19 +9,20 @@ import Data.Binary.Defer
 import Data.ByteString.Char8(ByteString,pack,unpack)
 
 
-newtype Haddock = Haddock ByteString
+newtype Documentation = Documentation ByteString
 
 
-instance BinaryDefer Haddock where
-    put (Haddock x) = put x
-    get = get1 Haddock
+instance BinaryDefer Documentation where
+    put (Documentation x) = put x
+    get = get1 Documentation
 
 
-newHaddock = Haddock . pack
+htmlDocumentation :: String -> Documentation
+htmlDocumentation = Documentation . pack
 
 
-renderHaddock :: Haddock -> TagStr
-renderHaddock (Haddock xs) = Tags $ f False $ parseHaddock $ unpack xs
+renderDocumentation :: Documentation -> TagStr
+renderDocumentation (Documentation xs) = Tags $ f False $ parseHTML $ unpack xs
     where
         nl = Char '\n'
 
@@ -53,12 +54,12 @@ type Tags = [Tag]
 data Tag = Char Char | Tag String Tags
            deriving (Eq,Show)
 
-parseHaddock :: String -> Tags
-parseHaddock = fst . readHaddock ">"
+parseHTML :: String -> Tags
+parseHTML = fst . readHTML ">"
 
 
-readHaddock :: String -> String -> (Tags, String)
-readHaddock name = f
+readHTML :: String -> String -> (Tags, String)
+readHTML name = f
     where
         f ('&':'a':'m':'p':';':xs) = g xs $ Char '&'
         f ('&':'g':'t':';':xs) = g xs $ Char '>'
@@ -67,7 +68,7 @@ readHaddock name = f
             where (a,b) = break (== '>') xs
         f ('<':xs) | not $ "/" `isPrefixOf` xs = g d $ Tag a c
             where (a,b) = break (== '>') xs
-                  (c,d) = readHaddock a $ drop 1 b
+                  (c,d) = readHTML a $ drop 1 b
         f (x:xs) = g xs $ Char x
         f [] = ([],[])
 

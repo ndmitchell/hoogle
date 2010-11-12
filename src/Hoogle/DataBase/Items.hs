@@ -70,7 +70,7 @@ addTextItem TextItem{..} = do
     return [Entry m p
         (intercalate "." itemName)
         itemDisp
-        (newHaddock itemDocs)
+        (htmlDocumentation itemDocs)
         url
         itemType]
 

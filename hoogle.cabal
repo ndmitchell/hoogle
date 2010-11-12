@@ -113,7 +113,7 @@ library
         Hoogle.DataBase.TypeSearch.Result
         Hoogle.DataBase.TypeSearch.TypeScore
         Hoogle.DataBase.TypeSearch.All
-        Hoogle.Type.Haddock
+        Hoogle.Type.Documentation
         Hoogle.Type.Item
         Hoogle.Type.TypeSig
         Hoogle.Query.Parser

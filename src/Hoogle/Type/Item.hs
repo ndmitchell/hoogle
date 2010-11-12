@@ -5,7 +5,7 @@ module Hoogle.Type.Item where
 import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Hoogle.Type.Haddock
+import Hoogle.Type.Documentation
 import Hoogle.Type.TypeSig
 import Data.TagStr
 import Data.Typeable
@@ -53,7 +53,7 @@ data Entry = Entry
     ,entryPackage :: Link Package
     ,entryName :: String -- entirely pointless, should be eliminated by here!
     ,entryText :: TagStr
-    ,entryDocs :: Haddock
+    ,entryDocs :: Documentation
     ,entryURL :: URL
     ,entryType :: Maybe TypeSig -- entirely pointless, should be eliminated by here!
     }
