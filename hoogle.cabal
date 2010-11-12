@@ -95,7 +95,6 @@ library
         Data.Binary.Raw
         Data.Heap
         Data.Key
-        Data.Range
         Data.TagStr
         Data.TypeMap
         General.Code
