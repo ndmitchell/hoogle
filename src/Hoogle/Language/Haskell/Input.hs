@@ -6,7 +6,6 @@ import General.Code
 import Hoogle.Type.All
 import Language.Haskell.Exts hiding (TypeSig,Type)
 import qualified Language.Haskell.Exts as HSE
-import Hoogle.Util
 import Data.TagStr
 import Data.Generics.Uniplate
 

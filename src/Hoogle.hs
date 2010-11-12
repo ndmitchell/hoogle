@@ -7,7 +7,7 @@
 module Hoogle(
     -- * Utility types
     module Data.TagStr,
-    ParseError(..),
+    H.ParseError(..),
     URL,
     Language(..),
     -- * Database
@@ -27,7 +27,6 @@ import Data.Data
 import Data.Maybe
 import Data.TagStr
 import General.Util(URL)
-import Hoogle.Util
 
 import qualified Hoogle.DataBase.All as H
 import qualified Hoogle.Query.All as H
@@ -69,7 +68,7 @@ showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""
 
 
 -- | From a textbase lines we have currently
-createDatabase :: Language -> [Database] -> String -> ([ParseError], Database)
+createDatabase :: Language -> [Database] -> String -> ([H.ParseError], Database)
 createDatabase _ dbs src = (err, fromDataBase $ H.createDataBase xs res)
     where
         (err,res) = H.parseInputHaskell src
@@ -81,7 +80,7 @@ saveDatabase file = H.saveDataBase file . toDataBase
 
 
 -- Hoogle.Query
-parseQuery :: Language -> String -> Either ParseError Query
+parseQuery :: Language -> String -> Either H.ParseError Query
 parseQuery _ = H.parseQuery
 
 queryDatabases :: Query -> [String]

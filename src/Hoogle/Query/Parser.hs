@@ -4,16 +4,15 @@ module Hoogle.Query.Parser(parseQuery) where
 import Data.Monoid
 import General.Code
 import Hoogle.Query.Type
-import Hoogle.Type.All
-import qualified Hoogle.Util as U
-import Text.ParserCombinators.Parsec
+import Hoogle.Type.All as Hoogle
+import Text.ParserCombinators.Parsec as Parsec
 
 
-parseQuery :: String -> Either U.ParseError Query
+parseQuery :: String -> Either Hoogle.ParseError Query
 parseQuery = either (Left . toParseError) Right . parse parsecQuery ""
 
-toParseError :: ParseError -> U.ParseError
-toParseError x = U.ParseError (sourceLine pos) (sourceColumn pos) (show x)
+toParseError :: Parsec.ParseError -> Hoogle.ParseError
+toParseError x = Hoogle.ParseError (sourceLine pos) (sourceColumn pos) (show x)
     where pos = errorPos x
 
 
