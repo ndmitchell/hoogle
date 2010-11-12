@@ -40,5 +40,11 @@
     ,":main server"]
 :}
 
-    
-    
+:{
+:def prof \x -> return $ unlines
+    [":!(if not exist .hpc mkdir .hpc) && " ++
+       "(if not exist .hpc\\prof mkdir .hpc\\prof) && " ++
+       "(ghc --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/prof -hidir .hpc/prof -o .hpc/prof/hoogle -prof -auto-all -caf-all) && " ++
+       "(.hpc\\prof\\hoogle " ++ x ++ " +RTS -p)"
+    ,":!start hoogle.prof"]
+:}
