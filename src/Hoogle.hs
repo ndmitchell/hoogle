@@ -34,7 +34,7 @@ import qualified Hoogle.Query.All as H
 import qualified Hoogle.Score.All as H
 import qualified Hoogle.Search.All as H
 import qualified Hoogle.Item.All as H
-import qualified Hoogle.TextBase.All as H
+import qualified Hoogle.Language.Haskell.Input as H
 
 import Hoogle.Query.All(Query)
 import Hoogle.Score.All(Score)
@@ -72,7 +72,7 @@ showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""
 createDatabase :: Language -> [Database] -> String -> ([ParseError], Database)
 createDatabase _ dbs src = (err, fromDataBase $ H.createDataBase xs res)
     where
-        (err,res) = H.parseTextBase src
+        (err,res) = H.parseInputHaskell src
         xs = concat [x | Database x <- dbs]
 
 

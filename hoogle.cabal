@@ -71,8 +71,8 @@ library
             Hoogle.Query.All
             Hoogle.Score.All
             Hoogle.Search.All
-            Hoogle.TextBase.All
             Hoogle.TypeSig.All
+            Hoogle.Language.Haskell.Input
     else
         other-modules:
             Hoogle.DataBase.All
@@ -80,8 +80,8 @@ library
             Hoogle.Query.All
             Hoogle.Score.All
             Hoogle.Search.All
-            Hoogle.TextBase.All
             Hoogle.TypeSig.All
+            Hoogle.Language.Haskell.Input
 
     other-modules:
         Data.Binary.Defer

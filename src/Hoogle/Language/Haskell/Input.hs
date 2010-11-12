@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 
-module Hoogle.TextBase.All(parseTextBase) where
+module Hoogle.Language.Haskell.Input(parseInputHaskell) where
 
 import General.Code
 import Hoogle.TypeSig.All
@@ -13,8 +13,8 @@ import Data.Generics.Uniplate
 
 
 
-parseTextBase :: String -> ([ParseError], TextBase)
-parseTextBase = join . f [] "" . zip [1..] . lines
+parseInputHaskell :: String -> ([ParseError], TextBase)
+parseInputHaskell = join . f [] "" . zip [1..] . lines
     where
         f com url [] = []
         f com url ((i,s):is)
