@@ -6,6 +6,7 @@ module Hoogle.TextBase.Type
 import Hoogle.TypeSig.All
 import Data.TagStr
 import Data.Char
+import Data.List
 import Data.Generics.Uniplate
 import Hoogle.Item.All
 
@@ -18,29 +19,35 @@ textItem = TextItem 2 [] Nothing (Str "") "" ""
 fact x y = (x,[y])
 
 itemPackage x = fact [] $ textItem{itemLevel=0, itemName=[x],
+    itemURL="http://hackage.haskell.org/packages/" ++ x ++ "/",
     itemDisp=Tags [under "package",space,bold x]}
 
 itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
+    itemURL="docs/" ++ intercalate "-" xs ++ ".html",
     itemDisp=Tags [under "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
 
 itemKeyword x = fact [] $ textItem{itemName=[x],
     itemDisp=Tags [under "keyword",space,bold x]}
 
 itemClass x = fact (kinds True x) $ textItem{itemName=[a],
+    itemURL="#v:" ++ a,
     itemDisp=Tags $ [under "class",space,b]}
     where (a,b) = typeHead x
 
 itemFunc nam typ@(TypeSig _ ty) = fact (ctr++kinds False typ) $ textItem{itemName=[nam],itemType=Just typ,
+    itemURL="#v:" ++ nam,
     itemDisp=Tags[bold (operator nam), Str " :: ",renderTypeSig typ]}
     where operator xs@(x:_) | not $ isAlpha x || x `elem` "#_'" = "(" ++ xs ++ ")"
           operator xs = xs
           ctr = [FactCtorType nam y | isUpper $ head nam, TLit y <- [fst $ fromTApp $ last $ fromTFun ty]]
 
 itemAlias from to = fact (FactAlias from to:kinds False from++kinds False to) $ textItem{itemName=[a],
+    itemURL="#v:" ++ a,
     itemDisp=Tags[under "type",space,b]}
     where (a,b) = typeHead from
 
 itemData d t = fact (kinds False t) $ textItem{itemName=[a],
+    itemURL="#v:" ++ a,
     itemDisp=Tags[under (if d then "data" else "newtype"),space,b]}
     where (a,b) = typeHead t
 

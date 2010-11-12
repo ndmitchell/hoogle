@@ -22,7 +22,7 @@ parseTextBase = join . f [] "" . zip [1..] . lines
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i s of
                                Left y -> Left y
-                               Right (as,bs) -> Right (as,[b{itemURL=url, itemDocs=unlines $ reverse com} | b <- bs]))
+                               Right (as,bs) -> Right (as,[b{itemURL=if null url then itemURL b else url, itemDocs=unlines $ reverse com} | b <- bs]))
                           : f [] "" is
 
         join xs = (err, (concat as, concat bs))

@@ -117,7 +117,6 @@ library
         Hoogle.DataBase.TypeSearch.All
         Hoogle.Item.Haddock
         Hoogle.Item.Item
-        Hoogle.Item.URL
         Hoogle.Query.Parser
         Hoogle.Query.Render
         Hoogle.Query.Suggest

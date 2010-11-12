@@ -5,6 +5,7 @@ module Hoogle.DataBase.Items where
 import Control.Monad.State
 import Data.Binary.Defer.Index
 import General.Code
+import General.Web
 import Hoogle.Item.All
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
@@ -57,17 +58,20 @@ createItems xs = Items (newIndexS pkgs) (newIndexS mods)
 addTextItem :: TextItem -> State (S Package, S Module) [Entry]
 addTextItem TextItem{..} = do
     when (itemLevel == 0) $
-        modify $ \(ps,ms) -> (addS (defaultPackageURL $ Package (head itemName) itemURL) ps, ms)
+        modify $ \(ps,ms) -> (addS (Package (head itemName) itemURL) ps, ms)
     when (itemLevel == 1) $
-        modify $ \(ps,ms) -> (ps, addS (defaultModuleURL $ Module itemName (getS ps) itemURL) ms)
+        modify $ \(ps,ms) -> let p = getS ps in (ps, addS (Module itemName p (packageURL (fromLink p) `combineURL` itemURL)) ms)
     (ps,ms) <- get
-    return [defaultEntryURL $ Entry
-        (if itemLevel > 1 then Just $ getS ms else Nothing)
-        (getS ps)
+    let p = getS ps
+        m = if itemLevel > 1 then Just $ getS ms else Nothing
+        url = if itemLevel == 1 then packageURL (fromLink p) `combineURL` itemURL
+              else if itemLevel > 1 then moduleURL (fromLink $ fromJust m) `combineURL` itemURL
+              else itemURL
+    return [Entry m p
         (intercalate "." itemName)
         itemDisp
         (newHaddock itemDocs)
-        itemURL
+        url
         itemType]
 
 
