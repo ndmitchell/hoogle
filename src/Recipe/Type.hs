@@ -62,4 +62,4 @@ recipeDetails recipeOptions@RecipeOptions{..} = RecipeDetails{..}
 ls :: (FilePath -> Bool) -> IO [FilePath]
 ls f = do
     xs <- getDirectoryContents "."
-    return $ filter f xs
+    return $ sort $ filter f xs
