@@ -1,10 +1,7 @@
 
-module Hoogle.Query.All (
-        module Hoogle.Query.Type, module Hoogle.Query.Parser,
-        module Hoogle.Query.Render, module Hoogle.Query.Suggest
-    ) where
+module Hoogle.Query.All(module X) where
 
-import Hoogle.Query.Type
-import Hoogle.Query.Parser
-import Hoogle.Query.Render
-import Hoogle.Query.Suggest
+import Hoogle.Query.Type     as X
+import Hoogle.Query.Parser   as X
+import Hoogle.Query.Render   as X
+import Hoogle.Query.Suggest  as X
