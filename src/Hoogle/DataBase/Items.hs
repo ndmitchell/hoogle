@@ -42,6 +42,9 @@ addS x (S i xs) = S (i+1) (x:xs)
 getS (S i (x:xs)) = newLink i x
 getS _ = error "DataBase.Items.getS, lacking a package/module?"
 
+getSMay (S i (x:xs)) = Just $ newLink i x
+getSMay _ = Nothing
+
 
 entriesItems :: Items -> [Link Entry]
 entriesItems = indexLinks . entries
@@ -63,9 +66,9 @@ addTextItem TextItem{..} = do
         modify $ \(ps,ms) -> let p = getS ps in (ps, addS (Module itemName p (packageURL (fromLink p) `combineURL` itemURL)) ms)
     (ps,ms) <- get
     let p = getS ps
-        m = if itemLevel > 1 then Just $ getS ms else Nothing
-        url = if itemLevel == 1 then packageURL (fromLink p) `combineURL` itemURL
-              else if itemLevel > 1 then moduleURL (fromLink $ fromJust m) `combineURL` itemURL
+        m = if itemLevel > 1 then getSMay ms else Nothing
+        url = if itemLevel == 1 || (itemLevel > 1 && isNothing m) then packageURL (fromLink p) `combineURL` itemURL
+              else if itemLevel > 1 && isJust m then moduleURL (fromLink $ fromJust m) `combineURL` itemURL
               else itemURL
     return [Entry m p
         (intercalate "." itemName)
