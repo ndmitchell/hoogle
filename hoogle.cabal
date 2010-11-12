@@ -125,7 +125,6 @@ library
         Hoogle.Score.Type
         Hoogle.Search.Result
         Hoogle.Search.Results
-        Hoogle.TextBase.Parser
         Hoogle.Util
 
 executable hoogle
