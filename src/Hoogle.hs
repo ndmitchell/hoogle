@@ -33,7 +33,7 @@ import qualified Hoogle.DataBase.All as H
 import qualified Hoogle.Query.All as H
 import qualified Hoogle.Score.All as H
 import qualified Hoogle.Search.All as H
-import qualified Hoogle.Item.All as H
+import qualified Hoogle.Type.All as H
 import qualified Hoogle.Language.Haskell.Input as H
 
 import Hoogle.Query.All(Query)

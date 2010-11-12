@@ -8,7 +8,7 @@ module Hoogle.DataBase.All
 import Data.Binary.Defer.Index
 import Hoogle.TypeSig.All
 import Hoogle.DataBase.Type
-import Hoogle.Item.All
+import Hoogle.Type.All
 import Hoogle.Score.All
 import Hoogle.DataBase.Serialise
 

@@ -1,11 +1,11 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Hoogle.Item.Item where
+module Hoogle.Type.Item where
 
 import General.Code
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
-import Hoogle.Item.Haddock
+import Hoogle.Type.Haddock
 import Hoogle.TypeSig.All
 import Data.TagStr
 import Data.Typeable

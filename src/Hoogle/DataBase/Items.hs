@@ -6,7 +6,7 @@ import Control.Monad.State
 import Data.Binary.Defer.Index
 import General.Code
 import General.Web
-import Hoogle.Item.All
+import Hoogle.Type.All
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
 

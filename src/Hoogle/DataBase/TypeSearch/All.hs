@@ -14,7 +14,7 @@ import Hoogle.DataBase.Aliases
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.TypeSig.All
-import Hoogle.Item.All
+import Hoogle.Type.All
 import Hoogle.Score.All
 
 

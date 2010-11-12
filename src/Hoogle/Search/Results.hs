@@ -9,7 +9,7 @@ import Data.Monoid
 import qualified Data.IntMap as IntMap
 import Data.Binary.Defer.Index
 
-import Hoogle.Item.All
+import Hoogle.Type.All
 import Hoogle.Query.All
 import Hoogle.Search.Result
 

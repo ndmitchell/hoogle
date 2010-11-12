@@ -67,7 +67,7 @@ library
     if flag(extended-library)
         exposed-modules:
             Hoogle.DataBase.All
-            Hoogle.Item.All
+            Hoogle.Type.All
             Hoogle.Query.All
             Hoogle.Score.All
             Hoogle.Search.All
@@ -76,7 +76,7 @@ library
     else
         other-modules:
             Hoogle.DataBase.All
-            Hoogle.Item.All
+            Hoogle.Type.All
             Hoogle.Query.All
             Hoogle.Score.All
             Hoogle.Search.All
@@ -115,8 +115,8 @@ library
         Hoogle.DataBase.TypeSearch.Result
         Hoogle.DataBase.TypeSearch.TypeScore
         Hoogle.DataBase.TypeSearch.All
-        Hoogle.Item.Haddock
-        Hoogle.Item.Item
+        Hoogle.Type.Haddock
+        Hoogle.Type.Item
         Hoogle.Query.Parser
         Hoogle.Query.Render
         Hoogle.Query.Suggest
