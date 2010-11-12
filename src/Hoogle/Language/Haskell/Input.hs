@@ -37,6 +37,7 @@ parseLine line ('@':str) = case a of
         "package" -> Right $ itemPackage $ dropWhile isSpace b
         _ -> Left $ ParseError line 2 $ "Unknown attribute: " ++ a
     where (a,b) = break isSpace str
+parseLine line x | "(##)" `isPrefixOf` x = Left $ ParseError line 1 "Skipping due to HSE bug #206"
 parseLine line x | a == "module" = Right $ itemModule $ split '.' $ dropWhile isSpace b
     where (a,b) = break isSpace x
 parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x ++ ex of
