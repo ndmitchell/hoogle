@@ -25,7 +25,7 @@ package r@RecipeDetails{..} args = do
 packageTextbase :: (String,String) -> IO ()
 packageTextbase (name,ver) = do
     src <- readFile $ name ++ "-" ++ ver ++ "-haddock.web"
-    writeFile (name ++ ".txt") $ unlines $ filter (not . isPrefixOf "@version ") $ lines src
+    writeFile (name ++ ".txt") $ haddockHacks src
 
 
 hackage :: RecipeDetails -> [String]  -> IO ()
@@ -64,3 +64,24 @@ readPlatform RecipeDetails{..} = do
     return [(name, takeWhile (\x -> x == '.' || isDigit x) $ drop 1 b)
            | x <- xs, (a,_:b) <- [break (== '=') x], let name = trim $ dropWhile (== '-') $ trim a
            , name `notElem` words "Cabal hpc Win32"]
+
+
+---------------------------------------------------------------------
+-- HADDOCK HACKS
+
+-- Eliminate @version
+-- Change :*: to (:*:), Haddock bug
+-- Change !!Int to !Int, Haddock bug
+-- Change instance [overlap ok] to instance, Haddock bug
+-- Change instance [incoherent] to instance, Haddock bug
+-- Change !Int to Int, HSE bug
+
+haddockHacks :: String -> String
+haddockHacks = unlines . map (unwords . map f . words) . filter (not . isPrefixOf "@version ") . lines
+    where
+        f "::" = "::"
+        f (':':xs) = "(:" ++ xs ++ ")"
+        f ('!':'!':x:xs) | isAlpha x = xs
+        f ('!':x:xs) | isAlpha x = xs
+        f x | x `elem` ["[overlap","ok]","[incoherent]"] = ""
+        f x = x
