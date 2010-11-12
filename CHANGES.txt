@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #59, operators look nicer, and have blue brackets round them
     #352, can now parse ( # ) as a function name in the input
     #280, searching for "~ +keyword" should find keyword
     #116, fix links for types/classes
