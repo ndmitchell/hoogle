@@ -3,12 +3,14 @@
 module Hoogle.TextBase.Parser(parseTextBase) where
 
 import General.Code
-import Hoogle.TextBase.Type
 import Hoogle.TypeSig.All
 import Language.Haskell.Exts hiding (TypeSig,Type)
 import qualified Language.Haskell.Exts as HSE
 import Hoogle.Util
 import Hoogle.Item.All
+import Data.TagStr
+import Data.Generics.Uniplate
+
 
 
 parseTextBase :: String -> ([ParseError], TextBase)
@@ -95,3 +97,67 @@ transTypeCon x y z = TypeSig (transContext x) $ TApp (TLit $ unbracket y) $ map 
 transVar :: TyVarBind -> HSE.Type
 transVar (KindedVar nam _) = TyVar nam
 transVar (UnkindedVar nam) = TyVar nam
+
+
+---------------------------------------------------------------------
+
+textItem = TextItem 2 [] Nothing (Str "") "" ""
+
+fact x y = (x,[y])
+
+itemPackage x = fact [] $ textItem{itemLevel=0, itemName=[x],
+    itemURL="http://hackage.haskell.org/packages/" ++ x ++ "/",
+    itemDisp=Tags [under "package",space,bold x]}
+
+itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
+    itemURL="docs/" ++ intercalate "-" xs ++ ".html",
+    itemDisp=Tags [under "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
+
+itemKeyword x = fact [] $ textItem{itemName=[x],
+    itemDisp=Tags [under "keyword",space,bold x]}
+
+itemClass x = fact (kinds True x) $ textItem{itemName=[a],
+    itemURL="#v:" ++ a,
+    itemDisp=Tags $ [under "class",space,b]}
+    where (a,b) = typeHead x
+
+itemFunc nam typ@(TypeSig _ ty) = fact (ctr++kinds False typ) $ textItem{itemName=[nam],itemType=Just typ,
+    itemURL="#v:" ++ nam,
+    itemDisp=Tags[bold (operator nam), Str " :: ",renderTypeSig typ]}
+    where operator xs@(x:_) | not $ isAlpha x || x `elem` "#_'" = "(" ++ xs ++ ")"
+          operator xs = xs
+          ctr = [FactCtorType nam y | isUpper $ head nam, TLit y <- [fst $ fromTApp $ last $ fromTFun ty]]
+
+itemAlias from to = fact (FactAlias from to:kinds False from++kinds False to) $ textItem{itemName=[a],
+    itemURL="#v:" ++ a,
+    itemDisp=Tags[under "type",space,b]}
+    where (a,b) = typeHead from
+
+itemData d t = fact (kinds False t) $ textItem{itemName=[a],
+    itemURL="#v:" ++ a,
+    itemDisp=Tags[under (if d then "data" else "newtype"),space,b]}
+    where (a,b) = typeHead t
+
+itemInstance t = (FactInstance t:kinds True t, [])
+
+
+under = TagUnderline . Str
+bold = TagBold . Str
+space = Str " "
+
+
+typeHead :: TypeSig -> (String, TagStr)
+typeHead (TypeSig con sig) = (a, Tags [Str $ showConstraint con, bold a, Str b])
+    where (a,b) = break (== ' ') $ show sig
+
+
+-- collect the kind facts, True for the outer fact is about a class
+kinds :: Bool -> TypeSig -> [Fact]
+kinds cls (TypeSig x y) = concatMap (f True) x ++ f cls y
+    where
+        f cls (TApp (TLit c) ys) = add cls c (length ys) ++
+                                   if cls then [] else concatMap (f False) ys
+        f cls (TLit c) = add cls c 0
+        f cls x = if cls then [] else concatMap (f False) $ children x
+
+        add cls c i = [(if cls then FactClassKind else FactDataKind) c i | not $ isTLitTuple c]
