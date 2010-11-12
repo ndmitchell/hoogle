@@ -7,7 +7,11 @@ import General.Code
 
 package :: RecipeDetails -> [String] -> IO ()
 package r@RecipeDetails{..} args = do
-    pkgs <- if null args then readHackage r else return $ map parsePackage args
+    pkgs <- if null args then readHackage r else do
+        let ps = map parsePackage args
+        if all (not . null . snd) ps then return ps else do
+            h <- readHackage r
+            return [(a, if null b then fromMaybe (error $ "No version for " ++ a) $ lookup a h else b) | (a,b) <- ps]
     par $ flip map pkgs $ \(name,ver) -> do
         let url = "http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ ver
             had = name ++ "-" ++ ver ++ "-haddock.web"
