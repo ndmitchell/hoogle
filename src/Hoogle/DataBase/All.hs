@@ -6,7 +6,6 @@ module Hoogle.DataBase.All
     ) where
 
 import Data.Binary.Defer.Index
-import Hoogle.TextBase.All
 import Hoogle.TypeSig.All
 import Hoogle.DataBase.Type
 import Hoogle.Item.All

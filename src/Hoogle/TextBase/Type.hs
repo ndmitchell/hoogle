@@ -1,35 +1,13 @@
 
 module Hoogle.TextBase.Type
-    (TextBase, TextItem(..), Fact(..)
-    ,itemPackage, itemModule, itemKeyword, itemClass, itemFunc, itemAlias, itemData, itemInstance
+    (itemPackage, itemModule, itemKeyword, itemClass, itemFunc, itemAlias, itemData, itemInstance
     ) where
 
 import Hoogle.TypeSig.All
-import General.Util
 import Data.TagStr
 import Data.Char
 import Data.Generics.Uniplate
-
-
-type TextBase = ([Fact], [TextItem])
-
--- FIXME: Should be moved inside Item.Type, probably
-data TextItem = TextItem
-    {itemLevel :: Int -- 0 = package, 1 = module, >2 = entry
-    ,itemName :: [String] -- for modules is the module name, for all others is a singleton
-    ,itemType :: Maybe TypeSig
-    ,itemDisp :: TagStr -- TagColor 0 for result type, TagColor 1.. for arg types, TagBold for name
-    ,itemURL :: URL
-    ,itemDocs :: String
-    }
-
-data Fact
-    = FactAlias TypeSig TypeSig
-    | FactInstance TypeSig
-    | FactDataKind String Int
-    | FactClassKind String Int
-    | FactCtorType String String -- Ctor, Data
-
+import Hoogle.Item.All
 
 
 ---------------------------------------------------------------------

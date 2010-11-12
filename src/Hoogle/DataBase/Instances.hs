@@ -5,7 +5,7 @@ module Hoogle.DataBase.Instances(
     ) where
 
 import General.Code
-import Hoogle.TextBase.All
+import Hoogle.Item.All
 import Hoogle.TypeSig.All
 import Data.Binary.Defer
 import qualified Data.Binary.Defer.Map as Map

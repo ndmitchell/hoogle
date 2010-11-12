@@ -3,7 +3,7 @@ module Hoogle.DataBase.Aliases(
     Aliases, createAliases, normAliases, mergeAliases
     ) where
 
-import Hoogle.TextBase.All
+import Hoogle.Item.All
 import Hoogle.TypeSig.All
 import qualified Data.Binary.Defer.Map as Map
 import Data.Binary.Defer

@@ -8,6 +8,7 @@ import Hoogle.TypeSig.All
 import Language.Haskell.Exts hiding (TypeSig,Type)
 import qualified Language.Haskell.Exts as HSE
 import Hoogle.Util
+import Hoogle.Item.All
 
 
 parseTextBase :: String -> ([ParseError], TextBase)

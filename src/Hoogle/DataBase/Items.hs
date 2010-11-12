@@ -5,7 +5,6 @@ module Hoogle.DataBase.Items where
 import Control.Monad.State
 import Data.Binary.Defer.Index
 import General.Code
-import Hoogle.TextBase.All
 import Hoogle.Item.All
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
