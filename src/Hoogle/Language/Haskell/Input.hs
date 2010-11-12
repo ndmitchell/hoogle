@@ -39,19 +39,22 @@ parseLine line ('@':str) = case a of
     where (a,b) = break isSpace str
 parseLine line x | a == "module" = Right $ itemModule $ split '.' $ dropWhile isSpace b
     where (a,b) = break isSpace x
-parseLine line x = case parseDeclWithMode defaultParseMode{extensions=[EmptyDataDecls,TypeOperators]} $ x ++ ex of
+parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x ++ ex of
     ParseOk x -> maybe (Left $ ParseError line 1 "Can't translate") Right $ transDecl x
-    ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=[GADTs]} $ "data Data where " ++ x of
+    ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x of
         ParseOk x | Just x <- transDecl x -> Right x
         _ -> Left $ ParseError line (srcLine pos) msg
     where ex = if "newtype " `isPrefixOf` x then " = Newtype" else ""
 
+
+exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures]
 
 transDecl :: Decl -> Maybe ([Fact],[TextItem])
 transDecl (ClassDecl _ ctxt name vars _ _) = Just $ itemClass $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
 transDecl (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
 transDecl (TypeDecl _ name vars ty) = Just $ itemAlias (transTypeCon [] (prettyPrint name) (map transVar vars)) (transTypeSig ty)
 transDecl (DataDecl _ dat ctxt name vars _ _) = Just $ itemData (dat == DataType) $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
+transDecl (GDataDecl s dat ctxt name vars _ [] _) = transDecl $ DataDecl s dat ctxt name vars [] []
 transDecl (InstDecl _ ctxt name vars _) = Just $ itemInstance $ transTypeCon ctxt (prettyPrint name) vars
 transDecl (GDataDecl _ _ _ _ _ _ [GadtDecl _ name ty] _) = Just $ itemFunc (unbracket $ prettyPrint name) (transTypeSig ty)
 transDecl _ = Nothing
