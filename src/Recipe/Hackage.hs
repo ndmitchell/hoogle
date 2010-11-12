@@ -82,6 +82,6 @@ haddockHacks = unlines . map (unwords . map f . words) . filter (not . isPrefixO
         f "::" = "::"
         f (':':xs) = "(:" ++ xs ++ ")"
         f ('!':'!':x:xs) | isAlpha x = xs
-        f ('!':x:xs) | isAlpha x = xs
+        f ('!':x:xs) | isAlpha x || x `elem` "[(" = xs
         f x | x `elem` ["[overlap","ok]","[incoherent]"] = ""
         f x = x
