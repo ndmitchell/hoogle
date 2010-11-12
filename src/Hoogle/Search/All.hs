@@ -1,12 +1,10 @@
 
 module Hoogle.Search.All(
-    Result(..), renderResult,
     searchAll, searchRange
     ) where
 
 import Hoogle.DataBase.All
 import Hoogle.Query.All
-import Hoogle.Search.Result
 import Hoogle.Search.Results
 import Hoogle.Type.All
 

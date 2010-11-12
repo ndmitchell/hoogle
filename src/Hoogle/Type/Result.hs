@@ -1,8 +1,8 @@
 
-module Hoogle.Search.Result where
+module Hoogle.Type.Result where
 
 import Data.TagStr
-import Hoogle.Type.All
+import Hoogle.Type.Item
 import Hoogle.Score.All
 import Data.Binary.Defer.Index
 

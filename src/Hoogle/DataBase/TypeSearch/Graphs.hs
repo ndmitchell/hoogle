@@ -7,7 +7,7 @@ import Hoogle.DataBase.TypeSearch.Result
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.TypeSearch.TypeScore
-import Hoogle.Type.All
+import Hoogle.Type.All hiding (Result)
 
 import Data.Binary.Defer
 import Data.Binary.Defer.Index

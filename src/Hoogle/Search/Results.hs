@@ -11,7 +11,6 @@ import Data.Binary.Defer.Index
 
 import Hoogle.Type.All
 import Hoogle.Query.All
-import Hoogle.Search.Result
 
 
 ---------------------------------------------------------------------

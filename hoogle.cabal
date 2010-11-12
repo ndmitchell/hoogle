@@ -116,13 +116,13 @@ library
         Hoogle.Type.Documentation
         Hoogle.Type.Item
         Hoogle.Type.TypeSig
+        Hoogle.Type.Result
         Hoogle.Query.Parser
         Hoogle.Query.Render
         Hoogle.Query.Suggest
         Hoogle.Query.Type
         Hoogle.Score.Scoring
         Hoogle.Score.Type
-        Hoogle.Search.Result
         Hoogle.Search.Results
         Hoogle.Util
 
