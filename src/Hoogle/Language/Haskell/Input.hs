@@ -44,11 +44,11 @@ parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x 
     ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x of
         ParseOk x | Just x <- transDecl x -> Right x
         _ -> Left $ ParseError line (srcLine pos) msg
-    where ex = if "newtype " `isPrefixOf` x then " = Newtype" else ""
+    where ex = if "newtype " `isPrefixOf` x then " = Newtype" else " " -- space to work around HSE bug #205
 
 
 exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures,MultiParamTypeClasses
-       ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams]
+       ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples]
 
 transDecl :: Decl -> Maybe ([Fact],[TextItem])
 transDecl (ClassDecl _ ctxt name vars _ _) = Just $ itemClass $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
