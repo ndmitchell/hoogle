@@ -13,7 +13,7 @@ import Hoogle.Score.All
 import Hoogle.DataBase.Serialise
 
 
-createDataBase :: [DataBase] -> TextBase -> DataBase
+createDataBase :: [DataBase] -> Input -> DataBase
 createDataBase deps (facts,xs) = DataBase items
         (createNameSearch ys) (createTypeSearch as is ys)
         (createSuggest (map suggest deps) facts) as is

@@ -12,7 +12,7 @@ import Data.Typeable
 import Data.Generics.Uniplate
 
 
-type TextBase = ([Fact], [TextItem])
+type Input = ([Fact], [TextItem])
 
 -- FIXME: Should be moved inside Item.Type, probably
 data TextItem = TextItem

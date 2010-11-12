@@ -13,7 +13,7 @@ import Data.Generics.Uniplate
 
 
 
-parseInputHaskell :: String -> ([ParseError], TextBase)
+parseInputHaskell :: String -> ([ParseError], Input)
 parseInputHaskell = join . f [] "" . zip [1..] . lines
     where
         f com url [] = []
