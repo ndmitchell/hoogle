@@ -47,7 +47,8 @@ parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x 
     where ex = if "newtype " `isPrefixOf` x then " = Newtype" else ""
 
 
-exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures]
+exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures,MultiParamTypeClasses
+       ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams]
 
 transDecl :: Decl -> Maybe ([Fact],[TextItem])
 transDecl (ClassDecl _ ctxt name vars _ _) = Just $ itemClass $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
