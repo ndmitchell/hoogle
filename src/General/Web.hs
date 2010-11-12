@@ -6,6 +6,7 @@
 
 module General.Web(
     Header, headerContentType,
+    combineURL,
     escapeURL, unescapeURL,
     escapeHTML,
     cgiArgs, cgiResponse,
@@ -29,6 +30,11 @@ instance Show Header where
     show (Header x y) = x ++ ": " ++ y
 
 headerContentType x = Header "Content-type" x
+
+
+combineURL a b
+    | any (`isPrefixOf` b) ["http:","https:"] = b
+    | otherwise = a ++ b
 
 
 ---------------------------------------------------------------------
