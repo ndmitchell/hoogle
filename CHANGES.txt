@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #116, fix links for types/classes
     #83, all searching for package-name
     #94, allow textbases to be used automatically
     #92, short flags are now handled by cmdargs, so work

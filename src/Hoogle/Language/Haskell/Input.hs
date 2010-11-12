@@ -26,7 +26,7 @@ parseInputHaskell = join . f [] "" . zip [1..] . lines
                                Right (as,bs) -> Right (as,[b{itemURL=if null url then itemURL b else url, itemDocs=unlines $ reverse com} | b <- bs]))
                           : f [] "" is
 
-        join xs = (err, (concat as, concat bs))
+        join xs = (err, (concat as, addModuleURLs $ concat bs))
             where (err,items) = unzipEithers xs
                   (as,bs) = unzip items
 
@@ -98,6 +98,16 @@ transVar (KindedVar nam _) = TyVar nam
 transVar (UnkindedVar nam) = TyVar nam
 
 
+addModuleURLs :: [TextItem] -> [TextItem]
+addModuleURLs = f ""
+    where
+        f pkg (x:xs) | itemLevel x == 0 = x : f (head $ itemName x) xs
+                     | itemLevel x == 1 = x{itemURL=url} : f pkg xs
+            where url = "http://hackage.haskell.org/packages/archive/" ++ pkg ++ "/latest/doc/html/" ++ intercalate "-" (itemName x) ++ ".html"
+        f pkg (x:xs) = x : f pkg xs
+        f pkg [] = []
+
+
 ---------------------------------------------------------------------
 
 textItem = TextItem 2 [] Nothing (Str "") "" ""
@@ -105,18 +115,18 @@ textItem = TextItem 2 [] Nothing (Str "") "" ""
 fact x y = (x,[y])
 
 itemPackage x = fact [] $ textItem{itemLevel=0, itemName=[x],
-    itemURL="http://hackage.haskell.org/packages/" ++ x ++ "/",
+    itemURL="http://hackage.haskell.org/package/" ++ x ++ "/",
     itemDisp=Tags [under "package",space,bold x]}
 
 itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
-    itemURL="docs/" ++ intercalate "-" xs ++ ".html",
+    itemURL="", -- filled in by addModuleURLs
     itemDisp=Tags [under "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
 
 itemKeyword x = fact [] $ textItem{itemName=[x],
     itemDisp=Tags [under "keyword",space,bold x]}
 
 itemClass x = fact (kinds True x) $ textItem{itemName=[a],
-    itemURL="#v:" ++ a,
+    itemURL="#t:" ++ a,
     itemDisp=Tags $ [under "class",space,b]}
     where (a,b) = typeHead x
 
@@ -128,12 +138,12 @@ itemFunc nam typ@(TypeSig _ ty) = fact (ctr++kinds False typ) $ textItem{itemNam
           ctr = [FactCtorType nam y | isUpper $ head nam, TLit y <- [fst $ fromTApp $ last $ fromTFun ty]]
 
 itemAlias from to = fact (FactAlias from to:kinds False from++kinds False to) $ textItem{itemName=[a],
-    itemURL="#v:" ++ a,
+    itemURL="#t:" ++ a,
     itemDisp=Tags[under "type",space,b]}
     where (a,b) = typeHead from
 
 itemData d t = fact (kinds False t) $ textItem{itemName=[a],
-    itemURL="#v:" ++ a,
+    itemURL="#t:" ++ a,
     itemDisp=Tags[under (if d then "data" else "newtype"),space,b]}
     where (a,b) = typeHead t
 
