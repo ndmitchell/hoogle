@@ -11,7 +11,7 @@ data ParseError = ParseError {lineNo :: Int, columnNo :: Int, parseError :: Stri
                   deriving (Ord,Eq,Data,Typeable)
 
 instance Show ParseError where
-    show (ParseError line col err) = "Parse error: " ++ err ++ ":" ++ show line ++ ":" ++ show col
+    show (ParseError line col err) = "Parse error " ++ show line ++ ":" ++ show col ++ ": " ++ err
 
 parsecParseError :: P.ParseError -> ParseError
 parsecParseError x = ParseError (P.sourceLine pos) (P.sourceColumn pos) (show x)
