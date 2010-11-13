@@ -43,8 +43,8 @@ parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x 
     ParseOk x -> maybe (Left $ ParseError line 1 "Can't translate") Right $ transDecl x
     ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x of
         ParseOk x | Just x <- transDecl x -> Right x
-        _ -> Left $ ParseError line (srcColumn pos) $ msg
-    where ex = if "newtype " `isPrefixOf` x then " = Newtype" else " " -- space to work around HSE bug #205
+        _ -> Left $ ParseError line (srcColumn pos) $ msg ++ " - " ++ x ++ ex
+    where ex = if "newtype " `isPrefixOf` x then " = N T" else " " -- space to work around HSE bug #205
 
 
 exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures,MultiParamTypeClasses
