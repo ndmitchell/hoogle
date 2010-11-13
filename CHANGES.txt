@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #186, switch to using haskell-src-exts to parse input files
     #249, make sure you find MonadWriter
     #235, make sure you find forall
     #309, make sure there are links for keywords
