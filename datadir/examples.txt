@@ -7,3 +7,7 @@ keyword ~
 -- check keywords are including in default
 ~
 keyword ~
+
+-- check that keyword links work, bug #309
+! --link
+keyword ! -- http://haskell.org/haskellwiki/Keywords#.21

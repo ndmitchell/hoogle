@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #309, make sure there are links for keywords
     #78, add --link flag
     #59, operators look nicer, and have blue brackets round them
     #352, can now parse ( # ) as a function name in the input
