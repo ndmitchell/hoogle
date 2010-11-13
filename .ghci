@@ -4,6 +4,8 @@
 
 :def test const $ return ":main test"
 
+:def testfull const $ return ":main test --example"
+
 :{
 :def hlint const $ return $ unlines
     [":!hlint src --report"
