@@ -134,9 +134,12 @@ executable hoogle
     main-is:            Main.hs
     hs-source-dirs:     src
 
-    build-depends: base > 4 && < 4.3, cmdargs == 0.6.*, directory, process, containers, array,
-                   bytestring, parsec, filepath, safe, uniplate, mtl, network, time,
-                   tagsoup == 0.11.*, HTTP
+    build-depends:
+        time,
+        cmdargs == 0.6.*,
+        tagsoup == 0.11.*,
+        network == 2.2.*,
+        HTTP == 4000.0.*
 
     other-modules:
         CmdLine.All
