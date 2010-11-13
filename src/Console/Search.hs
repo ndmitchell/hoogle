@@ -26,7 +26,7 @@ actionSearch flags q = do
     if null res then
         putStrLn "No results found"
      else if info flags then do
-        let Result{..} = snd $ head res
+        let Result{self=self,docs=docs,package=package} = snd $ head res
         putStrLns 2 $ f $ head res
         putStrLns 2 $ showTag docs
         when (isJust package) $ putStrLn $ "From package " ++ snd (fromJust package)
@@ -43,7 +43,9 @@ actionSearch flags q = do
         verbose = False
 
         f (s,Result{..}) = maybe "" (\m -> snd m ++ " ") modul ++
-                           showTag (snd self) ++ (if verbose then "  -- " ++ show s else "")
+                           showTag (snd self) ++
+                           (if verbose then "  -- " ++ show s else "") ++
+                           (if link flags then " -- " ++ fst self else "")
 
 
 -- Put out a string with some blank links following

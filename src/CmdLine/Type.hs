@@ -24,6 +24,7 @@ data CmdLine
         ,count :: Maybe Int
         ,webmode :: Maybe String
         ,info :: Bool
+        ,link :: Bool
         ,color :: Bool
         ,databases :: [FilePath]
         ,queryChunks :: [String]
@@ -40,7 +41,7 @@ data CmdLine
     | Data {datadir :: FilePath, threads :: Int, nodownload :: Bool, redownload :: Bool, rebuild :: Bool, actions :: [String]}
       deriving (Data,Typeable,Show)
 
-blankSearch = Search False Nothing Nothing Nothing False False [] [] (Right mempty) ""
+blankSearch = Search False Nothing Nothing Nothing False False False [] [] (Right mempty) ""
 
 cmdLineMode = cmdArgsMode $ modes [search &= auto,test,server,dump,rank,combine,convert,dataa]
     &= verbosity &= program "hoogle"
@@ -53,6 +54,7 @@ search = Search
     ,webmode = def
     ,queryChunks = def &= args
     ,info = def
+    ,link = def
     ,color = def
     ,databases = ["."] &= typDir &= help "Which directories to find databases"
     ,queryParsed = Right mempty &= ignore
