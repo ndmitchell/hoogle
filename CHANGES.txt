@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #249, make sure you find MonadWriter
     #235, make sure you find forall
     #309, make sure there are links for keywords
     #78, add --link flag

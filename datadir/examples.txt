@@ -15,3 +15,7 @@ keyword ! -- http://haskell.org/haskellwiki/Keywords#.21
 -- check you find forall, bug #235
 forall
 keyword forall
+
+-- check you find MonadWriter, bug #249
+MonadWriter +mtl
+class (Monoid w, Monad m) => MonadWriter w m
