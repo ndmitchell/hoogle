@@ -1,0 +1,68 @@
+-- these tests only rely on the testdata database
+
+id +testdata
+id
+
+map +testdata
+map
+fmap
+@reorder unfmap
+
+"(a -> b) -> [a] -> [b]" +testdata
+map
+fmap
+unfmap
+
+"(a -> b) -> [a] -> [b]" +testdata
+map
+flipmap
+
+"a -> b" +testdata
+unsafeCoerce
+
+"(c,d) -> d" +testdata
+snd
+fst
+
+"(c,d) -> c" +testdata
+fst
+snd
+
+"Bool -> Bool -> Bool" +testdata
+(==)
+
+"Bool -> Bool" +testdata
+not
+(==)
+
+:: String +testdata
+string
+chars
+
+[Char] +testdata
+chars
+string
+
+"Functor m => (a -> b) -> m a -> m b" +testdata
+fmap
+unfmap
+eq
+
+-- tests that arguments are not reused
+"Int -> Int -> Int" +testdata
+@not int2
+
+-- test that instances are applied properly
+"Bar -> Bar" +testdata
+ordId
+@reorder id
+nonId
+
+-- test that packages can be searched for
+pkg +testdata
+pkg1
+@reorder pkg2
+
+map --link +testdata
+Testdata map :: (a -> b) -> [a] -> [b] -- http://hackage.haskell.org/packages/archive/testdata/latest/doc/html/Testdata.html#v:map
+
