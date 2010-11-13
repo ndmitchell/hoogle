@@ -10,7 +10,9 @@ module Data.Binary.Defer.Monad(
 import System.IO
 import System.IO.Unsafe
 import Data.Binary.Raw
-import Control.Monad.Reader
+import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Reader
 import Data.IORef
 import qualified Data.ByteString as BS
 
@@ -34,7 +36,7 @@ data DeferPatchup = DeferPatchup !Int !Int -- a b = at position a, write out b
 putValue :: Storable a => a -> DeferPut ()
 putValue x = do
     (buf,_,_) <- ask
-    lift $ bufferAdd buf x
+    liftIO $ bufferAdd buf x
 
 putInt :: Int -> DeferPut ()
 putInt x = putValue (fromIntegral x :: Int32)
@@ -49,12 +51,12 @@ putByteString :: BS.ByteString -> DeferPut ()
 putByteString x = do
     (buf,_,_) <- ask
     putInt $ BS.length x
-    lift $ bufferAddByteString buf x
+    liftIO $ bufferAddByteString buf x
 
 putDefer :: DeferPut () -> DeferPut ()
 putDefer x = do
     (buf,ref,_) <- ask
-    lift $ do
+    liftIO $ do
         p <- bufferPos buf
         bufferAdd buf (0 :: Int32) -- to backpatch
         modifyIORef ref (DeferPending p x :)
@@ -73,15 +75,15 @@ runDeferPut h m = do
 runDeferPendings :: DeferPut ()
 runDeferPendings = do
     (_,ref,back) <- ask
-    todo <- lift $ readIORef ref
-    lift $ writeIORef ref []
+    todo <- liftIO $ readIORef ref
+    liftIO $ writeIORef ref []
     mapM_ runDeferPending todo
 
 
 runDeferPending :: DeferPending -> DeferPut ()
 runDeferPending (DeferPending pos act) = do
     (buf,_,back) <- ask
-    lift $ do
+    liftIO $ do
         p <- bufferPos buf
         b <- bufferPatch buf pos (fromIntegral p :: Int32)
         unless b $ modifyIORef back (DeferPatchup pos p :)
@@ -162,26 +164,26 @@ bufferPatch (Buffer h file ptr buf) p v = do
 type DeferGet a = ReaderT (Handle, IORef TypeMap.TypeMap) IO a
 
 getInt :: DeferGet Int
-getInt  = do h <- asks fst; lift $ hGetInt  h
+getInt  = do h <- asks fst; liftIO $ hGetInt  h
 
 getByte :: DeferGet Word8
-getByte = do h <- asks fst; lift $ liftM fromIntegral $ hGetByte h
+getByte = do h <- asks fst; liftIO $ liftM fromIntegral $ hGetByte h
 
 getChr :: DeferGet Char
-getChr  = do h <- asks fst; lift $ hGetChar h
+getChr  = do h <- asks fst; liftIO $ hGetChar h
 
 getByteString :: DeferGet BS.ByteString
 getByteString = do
     h <- asks fst
-    len <- lift $ hGetInt h
-    lift $ BS.hGet h len
+    len <- liftIO $ hGetInt h
+    liftIO $ BS.hGet h len
 
 getDefer :: DeferGet a -> DeferGet a
 getDefer x = do
     h <- asks fst
-    i <- lift $ hGetInt h
+    i <- liftIO $ hGetInt h
     s <- ask
-    lift $ unsafeInterleaveIO $ do
+    liftIO $ unsafeInterleaveIO $ do
         hSetPos h (toInteger i)
         runReaderT x s
 
@@ -194,10 +196,10 @@ runDeferGet h m = do
 getDeferGet :: Typeable a => DeferGet a
 getDeferGet = do
     ref <- asks snd
-    mp <- lift $ readIORef ref
+    mp <- liftIO $ readIORef ref
     return $ TypeMap.find mp
 
 getDeferPut :: Typeable a => a -> DeferGet ()
 getDeferPut x = do
     ref <- asks snd
-    lift $ modifyIORef ref $ TypeMap.insert x
+    liftIO $ modifyIORef ref $ TypeMap.insert x

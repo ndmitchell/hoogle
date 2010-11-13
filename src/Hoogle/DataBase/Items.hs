@@ -2,7 +2,7 @@
 
 module Hoogle.DataBase.Items where
 
-import Control.Monad.State
+import Control.Monad.Trans.State
 import Data.Binary.Defer.Index
 import General.Code
 import General.Web

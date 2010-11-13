@@ -8,7 +8,8 @@ import qualified Data.Array as A
 import Data.Binary.Defer
 import Data.Binary.Raw
 import System.IO.Unsafe
-import Control.Monad.Reader
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Reader
 
 
 newtype Array a = Array (A.Array Int a)
@@ -46,7 +47,7 @@ instance BinaryDefer a => BinaryDefer (Array a) where
                 n <- getInt
                 h <- asks fst
                 s <- ask
-                i <- lift $ hGetPos h
+                i <- liftIO $ hGetPos h
                 let f j = unsafePerformIO $ do
                              hSetPos h (i + toInteger (sz*j))
                              runReaderT getFixed s

@@ -14,7 +14,7 @@ import Data.Binary.Defer.Index
 import qualified Data.IntMap as IntMap
 import qualified Data.Heap as Heap
 import General.Code
-import Control.Monad.State
+import Control.Monad.Trans.State
 
 
 -- for resGraph, the associated ArgPos is the arity of the function
