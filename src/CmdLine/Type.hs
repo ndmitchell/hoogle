@@ -31,7 +31,7 @@ data CmdLine
         ,queryParsed :: Either ParseError Query
         ,queryText :: String
         }
-    | Test {testFiles :: [String]}
+    | Test {testFiles :: [String], example :: Bool}
     | Server {port :: Int, databases :: [FilePath], resources :: FilePath}
     | Dump {database :: String, section :: [String]}
     | Rank {srcfile :: FilePath}
@@ -61,6 +61,7 @@ search = Search
 
 test = Test
     {testFiles = def &= typFile &= args
+    ,example = def &= help "Test the full examples"
     } &= help "Run tests over a list of files"
 
 server = Server

@@ -1,0 +1,30 @@
+-- data for tests.txt
+
+@package testdata
+
+module Testdata
+
+type FilePath = String
+type String = [Char]
+id :: a -> a
+unsafeCoerce :: a -> b
+map :: (a -> b) -> [a] -> [b]
+flipmap :: [a] -> (a -> b) -> [b]
+fmap :: Functor m => (a -> b) -> m a -> m b
+unfmap :: (a -> b) -> m a -> m b
+eq :: Eq a => (a -> b) -> m a -> m b
+fst :: (a,b) -> a
+snd :: (a,b) -> b
+(==) :: Eq a => a -> a -> Bool
+instance Eq Bool
+instance Functor []
+not :: Bool -> Bool
+string :: String
+chars :: [Char]
+
+int2 :: Char -> Int -> Int
+instance Ord Bar
+ordId :: Ord a => a -> a
+nonId :: Non a => a -> a
+@package pkg1
+@package pkg2

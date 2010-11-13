@@ -1,1 +1,9 @@
-~ +keyword ==> keyword ~
+-- these tests use all the databases
+
+-- check ~ is found, bug #280
+~ +keyword
+keyword ~
+
+-- check keywords are including in default
+~
+keyword ~

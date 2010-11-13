@@ -36,13 +36,16 @@ cmdLineExpand x@Search{} = do
 
 
 cmdLineExpand x@Server{} = do
+    dat <- getDataDir
     db <- expandDatabases $ databases x
-    res <- if null $ resources x then fmap (</> "resources") getDataDir else return $ resources x
+    let res = if null $ resources x then dat </> "resources" else resources x
     return $ x{databases=db, resources=res}
 
 cmdLineExpand x@Test{} = do
-    files <- if null $ testFiles x then fmap (return . (</> "tests.txt")) getDataDir else return $ testFiles x
-    return x{testFiles = files}
+    dat <- getDataDir
+    let files1 = if null $ testFiles x then [dat </> "tests.txt"] else testFiles x
+        files2 = [dat </> "examples.txt" | example x]
+    return x{testFiles = files1 ++ files2}
 
 cmdLineExpand x@Rank{} = do
     file <- if null $ srcfile x then fmap (</> "rank.txt") getDataDir else return $ srcfile x

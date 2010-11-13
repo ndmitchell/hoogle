@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 
 module General.Util where
 
@@ -12,6 +13,13 @@ import qualified Data.Map as Map
 import Control.Arrow
 import System.IO.Unsafe
 import qualified Control.Exception as E
+import System.IO
+
+#if __GLASGOW_HASKELL__ >= 612
+import GHC.IO.Handle(hDuplicate,hDuplicateTo)
+#endif
+
+
 
 
 infixl 0 `on`
@@ -293,3 +301,25 @@ trim = ltrim . rtrim
 rbreak f xs = case break f $ reverse xs of
     (_, []) -> (xs, [])
     (as, b:bs) -> (reverse bs, b:reverse as)
+
+
+-- FIXME: This could use a lot more bracket calls!
+captureOutput :: IO () -> IO (Maybe String)
+#if __GLASGOW_HASKELL__ < 612
+captureOutput act = return Nothing
+#else
+captureOutput act = do
+    tmp <- getTemporaryDirectory
+    (f,h) <- openTempFile tmp "hlint"
+    sto <- hDuplicate stdout
+    ste <- hDuplicate stderr
+    hDuplicateTo h stdout
+    hDuplicateTo h stderr
+    hClose h
+    act
+    hDuplicateTo sto stdout
+    hDuplicateTo ste stderr
+    res <- readFile' f
+    removeFile f
+    return $ Just res
+#endif

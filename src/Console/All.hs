@@ -8,7 +8,6 @@ import Console.Test
 import Console.Rank
 import General.Code
 import Data.Monoid
-import Test.All
 import Hoogle
 
 
@@ -19,9 +18,12 @@ action Search{queryText = text, queryParsed = Left (ParseError _ pos err)} =
                 ,replicate pos ' ' ++ "^"
                 ,err]
 
-action (Test files) = do
-    test
-    mapM_ testFile files
+action (Test files _) = do
+    testPrepare
+    fails <- fmap sum $ mapM (testFile action) files
+    if fails == 0
+        then putStrLn "Tests passed"
+        else putStrLn $ "TEST FAILURES (" ++ show fails ++ ")"
 
 action (Rank file) = rank file
 

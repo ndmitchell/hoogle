@@ -1,66 +1,108 @@
+{-# LANGUAGE RecordWildCards,PatternGuards #-}
 
-module Console.Test(testFile) where
+-- | Standalone tests are dependent only on themselves, example tests
+--   require a fully build Hoogle database.
+module Console.Test(testPrepare, testFile) where
 
 import Hoogle
 import General.Code
+import Paths_hoogle
+import CmdLine.All
+import System.Mem
+import Test.All
 
 
-testFile :: FilePath -> IO ()
-testFile srcfile = do
-    putStrLn $ "Testing " ++ srcfile
-    (dbfile,h) <- openTempFile "." (srcfile <.> "hoo")
-    hClose h
-    src <- readFile srcfile
-    let (errs, dbOld) = createDatabase Haskell [] $ unlines [if "@test " `isPrefixOf` x then "" else x | x <- lines src]
-    unless (null errs) $ error $ unlines $ "Couldn't convert database:" : map show errs
+testPrepare :: IO ()
+testPrepare = do
+    putStrLn "Running static tests"
+    test
+
+    putStrLn "Converting testdata"
+    performGC -- clean up the databases
+    dat <- getDataDir
+    src <- readFile $ dat </> "testdata.txt"
+    let (errs, dbOld) = createDatabase Haskell [] src
+    unless (null errs) $ error $ unlines $ "Couldn't convert testdata database:" : map show errs
+    let dbfile = dat </> "databases/testdata.hoo"
     saveDatabase dbfile dbOld
     db <- loadDatabase dbfile
     when (show dbOld /= show db) $ error "Database did not save properly"
 
-    let bad = filter (not . runTest db) $ catMaybes $ zipWith parseTest [1..] $ lines src
-    if null bad then
-        putStrLn "All tests passed"
-     else do
-        putStr $ unlines $ map failedTest bad
-        putStrLn $ show (length bad) ++ " tests failed"
+
+testFile :: (CmdLine -> IO ()) -> FilePath -> IO Int
+testFile run srcfile = do
+    putStrLn $ "Testing " ++ srcfile
+    src <- readFile' srcfile
+    xs <- mapM (runTest run) $ parseTests src
+    return $ length $ filter not xs
 
 
--- LineNo Query NoResults YesResults
--- NoResults is a list of results that are not allowed to appear
--- YesResults are sets of results, which must be in order, and within a set must
---            have the same Score
-data Test = Test Int String Query [String] [[String]]
-            deriving Show
+data Testcase = Testcase
+    {testLine :: Int
+    ,testQuery :: String
+    ,testResults :: [String]
+    }
 
 
-parseTest :: Int -> String -> Maybe Test
-parseTest line str | "@test " `isPrefixOf` str =
-    case reads $ drop 5 str of
-        [(x,rest)] -> case parseQuery Haskell x of
-            Right q -> let (no,yes) = partition ("!" `isPrefixOf`) $ words rest
-                       in Just $ Test line x q (map tail no) (map (split ',') yes)
-            _ -> err
-        _ -> err
-    where err = error $ "Couldn't parse @test on line " ++ show line
-parseTest line str = Nothing
-
-
-runTest :: Database -> Test -> Bool
-runTest db (Test _ _ q bad ans) =
-        ordered (group $ map snd items) &&               -- all results are in order
-        all (`elem` map fst items) (concat ans) &&       -- all items are present
-        ordered (map (map (`lookupJust` items)) ans) &&  -- all items are in order
-        all (`notElem` map fst items) bad                -- all the bad items are absent
+parseTests :: String -> [Testcase]
+parseTests = f . zip [1..] . lines
     where
-        items = map (name .  showTagText . snd . self . snd &&& fst) $ searchAll db q
+        f ((i,x):xs)
+            | "--" `isPrefixOf` x = f xs
+            | all isSpace x = f xs
+            | otherwise = Testcase i x (map snd a) : f b
+            where (a,b) = break (all isSpace . snd) xs
+        f [] = []
 
-        ordered ((x:xs):(y:ys):zs) = x < y && all (== x) xs && ordered ((y:ys):zs)
-        ordered [x:xs] = all (== x) xs
-        ordered [] = True
 
-        name = head . dropWhile (`elem` words "package") . words
+parseArgs :: String -> [String]
+parseArgs "" = []
+parseArgs ('\"':xs) = a : parseArgs (drop 1 b)
+    where (a,b) = break (== '\"') xs
+parseArgs xs = a : parseArgs (dropWhile isSpace b)
+    where (a,b) = break isSpace xs
 
 
-failedTest :: Test -> String
-failedTest (Test line str _ _ _) = "Line " ++ show line ++ ", " ++ str
+runTest :: (CmdLine -> IO ()) -> Testcase -> IO Bool
+runTest run Testcase{..} = do
+    args <- withArgs (parseArgs testQuery) cmdLine
+    res <- captureOutput $ run args
+    case res of
+        Nothing -> putStrLn "Can't run tests on GHC < 6.12" >> return False
+        Just x -> case matchOutput testResults (lines x) of
+            Nothing -> return True
+            Just x -> do
+                putStrLn $ "Failed test on line " ++ show testLine ++ "\n" ++ x
+                return False
 
+
+-- support @reoder, @not, @exact
+matchOutput :: [String] -> [String] -> Maybe String -- Nothing is success
+matchOutput want got = f want ([],got)
+    where
+        f [] _ = Nothing
+        f (x:xs) a = case match (code x) a of
+            Nothing -> Just $ "Failed to match: " ++ x
+            Just a -> f xs a
+
+        code ('@':xs) = second (drop 1) $ break (== ' ') xs
+        code xs = ("",xs)
+
+        -- given (code,match) (past,future) return Nothing for failure or a new (past,future)
+        match :: (String,String) -> ([String],[String]) -> Maybe ([String],[String])
+        match ("not",x) (past,future)
+            | Just (a,b) <- find x future = Nothing
+            | otherwise = Just ([],future)
+        match ("reorder",x) (past,future)
+            | Just (a,b) <- find x past = Just (a++b, future)
+            | Just (a,b) <- find x future = Just (past++a, b)
+            | otherwise = Nothing
+        match ("",x) (past,future)
+            | Just (a,b) <- find x future = Just (a,b)
+            | otherwise = Nothing
+        match (code,x) _ = error $ "Unknown test code: " ++ code
+
+        -- given a needle, return Maybe the bits before and after
+        find :: String -> [String] -> Maybe ([String],[String])
+        find x ys = if null b then Nothing else Just (a,tail b)
+            where (a,b) = break (\y -> words x `isInfixOf` words y) ys
