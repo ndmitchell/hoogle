@@ -11,3 +11,7 @@ keyword ~
 -- check that keyword links work, bug #309
 ! --link
 keyword ! -- http://haskell.org/haskellwiki/Keywords#.21
+
+-- check you find forall, bug #235
+forall
+keyword forall
