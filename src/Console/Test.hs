@@ -71,9 +71,7 @@ runTest run Testcase{..} = do
     case res of
         Left (x :: SomeException) -> putStrLn ("Error, test crashed: " ++ testQuery ++ ", with " ++ show x) >> return False
         Right Nothing -> putStrLn "Can't run tests on GHC < 6.12" >> return False
-        Right (Just x) -> do
-          print $ (testResults, lines x)
-          case matchOutput testResults (lines x) of
+        Right (Just x) -> case matchOutput testResults (lines x) of
             Nothing -> return True
             Just x -> do
                 putStrLn $ "Failed test on line " ++ show testLine ++ "\n" ++ x
