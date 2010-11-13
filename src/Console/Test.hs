@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards,PatternGuards #-}
+{-# LANGUAGE RecordWildCards,PatternGuards,ScopedTypeVariables #-}
 
 -- | Standalone tests are dependent only on themselves, example tests
 --   require a fully build Hoogle database.
@@ -10,6 +10,7 @@ import Paths_hoogle
 import CmdLine.All
 import System.Mem
 import Test.All
+import Control.Exception
 
 
 testPrepare :: IO ()
@@ -66,10 +67,13 @@ parseArgs xs = a : parseArgs (dropWhile isSpace b)
 runTest :: (CmdLine -> IO ()) -> Testcase -> IO Bool
 runTest run Testcase{..} = do
     args <- withArgs (parseArgs testQuery) cmdLine
-    res <- captureOutput $ run args
+    res <- try $ captureOutput $ run args
     case res of
-        Nothing -> putStrLn "Can't run tests on GHC < 6.12" >> return False
-        Just x -> case matchOutput testResults (lines x) of
+        Left (x :: SomeException) -> putStrLn ("Error, test crashed: " ++ testQuery ++ ", with " ++ show x) >> return False
+        Right Nothing -> putStrLn "Can't run tests on GHC < 6.12" >> return False
+        Right (Just x) -> do
+          print $ (testResults, lines x)
+          case matchOutput testResults (lines x) of
             Nothing -> return True
             Just x -> do
                 putStrLn $ "Failed test on line " ++ show testLine ++ "\n" ++ x
