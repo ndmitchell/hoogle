@@ -19,3 +19,21 @@ keyword forall
 -- check you find MonadWriter, bug #249
 MonadWriter +mtl
 class (Monoid w, Monad m) => MonadWriter w m
+
+module
+keyword module
+
+Prelude
+Prelude
+
+even +base
+even
+
+tan +base
+tan
+
+log +base
+log
+
+seq +base
+seq
