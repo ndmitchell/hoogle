@@ -1,5 +1,5 @@
 
-module Hoogle.DataBase.Suggest where
+module Hoogle.DataBase.Suggest(Suggest, createSuggest, askSuggest) where
 
 import General.Code
 import Data.Binary.Defer
@@ -39,6 +39,10 @@ instance BinaryDefer SuggestItem where
     put (SuggestItem a b c) = put3 a b c
     get = get3 SuggestItem
 
+instance Monoid Suggest where
+    mempty = mergeSuggest []
+    mappend x y = mergeSuggest [x,y]
+    mconcat = mergeSuggest
 
 -- note: do not look inside class's for data type information
 --       as they may have higher-kinds and get it wrong

@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Hoogle.DataBase.Items where
+module Hoogle.DataBase.Items(Items(..), createItems, entriesItems) where
 
 import Control.Monad.Trans.State
 import Data.Binary.Defer.Index
@@ -33,8 +33,14 @@ instance Show Items where
         where f header x = "== " ++ header ++ " ==\n\n" ++ show x
 
 
+instance Monoid Items where
+    mempty = mergeItems []
+    mappend x y = mergeItems [x,y]
+    mconcat = mergeItems
+
+
 -- temporary state structure
-data S a = S {count :: Int, values :: [a]}
+data S a = S {_count :: Int, values :: [a]}
 
 newS = S (-1) []
 newIndexS = newIndex . reverse . values

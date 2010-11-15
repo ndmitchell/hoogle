@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.Instances(
-    Instances, createInstances, mergeInstances,
+    Instances, createInstances,
     normInstances, hasInstance
     ) where
 
@@ -30,6 +30,11 @@ createInstances deps xs = mergeInstances (i:deps)
         ys = [(v, c) | FactInstance (TypeSig [] (TApp (TLit c) vs)) <- xs, TLit v <- vs]
         f mp (v,c) = Map.insertWith (++) v [c] mp
 
+
+instance Monoid Instances where
+    mempty = mergeInstances []
+    mappend x y = mergeInstances [x,y]
+    mconcat = mergeInstances
 
 mergeInstances :: [Instances] -> Instances
 mergeInstances = Instances . Map.unionsWith (\x y -> nub $ x ++ y) . map fromInstances

@@ -10,7 +10,6 @@ module Recipe.Type(
 import General.Code
 import General.Parallel
 import Hoogle
-import Data.Monoid
 
 
 data RecipeOptions = RecipeOptions

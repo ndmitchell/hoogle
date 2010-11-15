@@ -5,7 +5,6 @@ module Hoogle.Search.Results(
 
 import General.Code
 import Data.Key
-import Data.Monoid
 import qualified Data.IntMap as IntMap
 import Data.Binary.Defer.Index
 

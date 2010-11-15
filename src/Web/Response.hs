@@ -9,7 +9,6 @@ import Web.Page
 import Web.Text
 import Data.Generics.Uniplate
 
-import Data.Monoid
 import Data.Time.Clock
 import Data.Time.Calendar
 import General.Web hiding (escapeHTML)

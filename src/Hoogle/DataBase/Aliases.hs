@@ -1,6 +1,6 @@
 
 module Hoogle.DataBase.Aliases(
-    Aliases, createAliases, normAliases, mergeAliases
+    Aliases, createAliases, normAliases
     ) where
 
 import Hoogle.Type.All
@@ -41,6 +41,12 @@ createAliases deps ti = mergeAliases (a:deps)
 
 
 -- the first is the most important
+instance Monoid Aliases where
+    mempty = mergeAliases []
+    mappend x y = mergeAliases [x,y]
+    mconcat = mergeAliases
+
+
 mergeAliases :: [Aliases] -> Aliases
 mergeAliases [x] = x
 mergeAliases xs = Aliases $ transitiveClosure $ Map.unions $ map fromAliases xs
