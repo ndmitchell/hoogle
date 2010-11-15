@@ -78,7 +78,7 @@ runTest run Testcase{..} = do
                 return False
 
 
--- support @reoder, @not, @exact
+-- support @reoder, @not, @exact, @now
 matchOutput :: [String] -> [String] -> Maybe String -- Nothing is success
 matchOutput want got = f want ([],got)
     where
@@ -98,6 +98,9 @@ matchOutput want got = f want ([],got)
         match ("reorder",x) (past,future)
             | Just (a,b) <- find x past = Just (a++b, future)
             | Just (a,b) <- find x future = Just (past++a, b)
+            | otherwise = Nothing
+        match ("now",x) (past,future)
+            | Just ([],b) <- find x future = Just ([],b)
             | otherwise = Nothing
         match ("",x) (past,future)
             | Just (a,b) <- find x future = Just (a,b)
