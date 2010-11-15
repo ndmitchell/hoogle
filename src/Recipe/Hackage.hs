@@ -25,7 +25,10 @@ package r@RecipeDetails{..} args = do
 packageTextbase :: (String,String) -> IO ()
 packageTextbase (name,ver) = do
     src <- readFile $ name ++ "-" ++ ver ++ "-haddock.web"
-    writeFile (name ++ ".txt") $ haddockHacks src
+    cab <- readCabal $ name ++ "-" ++ ver ++ "-cabal.web"
+    writeFile (name ++ ".txt") $
+        unlines ["@depends " ++ a | a <- cabalDepends cab] ++ "\n" ++
+        haddockHacks src
 
 
 hackage :: RecipeDetails -> [String]  -> IO ()
