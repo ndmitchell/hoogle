@@ -34,8 +34,14 @@ packageTextbase (name,ver) = do
 hackage :: RecipeDetails -> [String]  -> IO ()
 hackage r@RecipeDetails{..} _ = do
     xs <- readHackage r
-    writeFile "hackage.txt" $ unlines $ concat
-        [["","-- | " ++ ver,"@package " ++ name] | (name,ver) <- xs]
+    xs <- forM xs $ \(name,ver) -> do
+        let file = name ++ "-" ++ ver ++ "-cabal.web"
+        b <- doesFileExist file
+        if not b then return ["","-- | Version " ++ ver,"@package " ++ name] else do
+            src <- readCabal file
+            return $ [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
+                     ["--","-- Version " ++ ver, "@package " ++ name]
+    writeFile "hackage.txt" $ unlines $ concat xs
 
 
 parsePackage :: String -> (String,String)

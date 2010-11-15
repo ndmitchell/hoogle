@@ -71,12 +71,12 @@ ls f = do
 
 
 
-data Cabal = Cabal {cabalDepends :: [String]}
+data Cabal = Cabal {cabalDepends :: [String], cabalDescription :: [String]}
 
 readCabal :: FilePath -> IO Cabal
 readCabal file = do
-    src <- readFile file
-    return $ Cabal $ readCabalDepends $ lines src
+    src <- fmap lines $ readFile file
+    return $ Cabal (readCabalDepends src) (readCabalField src True "description")
 
 
 readCabalDepends :: [String] -> [String]
