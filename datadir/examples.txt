@@ -37,3 +37,7 @@ log
 
 seq +base
 seq
+
+-- test that the base type String=[Char] alias is known
+"[Char] -> a" +tagsoup
+@now fromString
