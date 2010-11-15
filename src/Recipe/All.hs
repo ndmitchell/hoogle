@@ -28,18 +28,17 @@ recipe opt x = case lookup a list of
           uncommas = words . map (\x -> if x == ',' then ' ' else x)
 
 
-defaultRecipe = "keyword base package convert platform default=keyword,platform"
+defaultRecipe = "keyword base package hackage convert platform default=hackage,keyword,platform"
     -- do not generate an all database yet, just stressing the system for no good reason
-    -- all=keyword,hackage
 
--- FIXME: Need recipes for stm and base
+
 list = let f a b c = (a,(b,c)) in
     [f "help" "Display this help message" help
     ,f "base" "Create a textbase for the base package" base
     ,f "keyword" "Create textbase for keywords, from the Haskell Wiki" keyword
     ,f "package" "Create textbases for all packages on Hackage" package
     ,f "convert" "Create databases for all textbases" convert
-    ,f "hackage" "Create hackage.hoo for all of Hackage" hackage
+    ,f "hackage" "Create hackage.hoo for all the packages on Hackage" hackage
     ,f "platform" "Create platform.hoo for the Haskell Platform" platform
     ,f "default" "Create default.hoo from all databases (or a given subset)" (multiple "default")
     ,f "all" "Create all.hoo from all databases (or a given subset)" (multiple "all")

@@ -30,8 +30,9 @@ packageTextbase (name,ver) = do
 
 hackage :: RecipeDetails -> [String]  -> IO ()
 hackage r@RecipeDetails{..} _ = do
-    pkgs <- readHackage r
-    combine "hackage.hoo" [a <.> "hoo" | (a,b) <- pkgs]
+    xs <- readHackage r
+    writeFile "hackage.txt" $ unlines $ concat
+        [["","-- | " ++ ver,"@package " ++ name] | (name,ver) <- xs]
 
 
 parsePackage :: String -> (String,String)
