@@ -27,6 +27,7 @@ import Data.Data
 import Data.Maybe
 import Data.TagStr
 import General.Util(URL)
+import System.Mem
 
 import qualified Hoogle.DataBase.All as H
 import qualified Hoogle.Query.All as H
@@ -76,7 +77,9 @@ createDatabase _ dbs src = (err, fromDataBase $ H.createDataBase xs res)
 
 
 saveDatabase :: FilePath -> Database -> IO ()
-saveDatabase file = H.saveDataBase file . toDataBase
+saveDatabase file x = do
+    performGC
+    H.saveDataBase file $ toDataBase x
 
 
 -- Hoogle.Query
