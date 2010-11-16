@@ -4,11 +4,13 @@ module Hoogle.Language.Haskell.Input(parseInputHaskell) where
 
 import General.Code
 import Hoogle.Type.All
-import Language.Haskell.Exts hiding (TypeSig,Type)
-import qualified Language.Haskell.Exts as HSE
+import Language.Haskell.Exts.Annotated hiding (TypeSig,Type)
+import qualified Language.Haskell.Exts.Annotated as HSE
 import Data.TagStr
 import Data.Generics.Uniplate
 
+
+type S = SrcSpanInfo
 
 
 parseInputHaskell :: String -> ([ParseError], Input)
@@ -50,56 +52,73 @@ parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x 
 exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures,MultiParamTypeClasses
        ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples]
 
-transDecl :: Decl -> Maybe ([Fact],[TextItem])
-transDecl (ClassDecl _ ctxt name vars _ _) = Just $ itemClass $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
+transDecl :: Decl S -> Maybe ([Fact],[TextItem])
 transDecl (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
-transDecl (TypeDecl _ name vars ty) = Just $ itemAlias (transTypeCon [] (prettyPrint name) (map transVar vars)) (transTypeSig ty)
-transDecl (DataDecl _ dat ctxt name vars _ _) = Just $ itemData (dat == DataType) $ transTypeCon ctxt (prettyPrint name) (map transVar vars)
-transDecl (GDataDecl s dat ctxt name vars _ [] _) = transDecl $ DataDecl s dat ctxt name vars [] []
-transDecl (InstDecl _ ctxt name vars _) = Just $ itemInstance $ transTypeCon ctxt (prettyPrint name) vars
-transDecl (GDataDecl _ _ _ _ _ _ [GadtDecl _ name ty] _) = Just $ itemFunc (unbracket $ prettyPrint name) (transTypeSig ty)
+transDecl (ClassDecl _ ctxt hd _ vars) = Just $ itemClass $ transDeclHead ctxt hd
+transDecl (TypeDecl _ hd ty) = Just $ itemAlias (transDeclHead Nothing hd) (transTypeSig ty)
+transDecl (DataDecl _ dat ctxt hd _ _) = Just $ itemData (isDataType dat) $ transDeclHead ctxt hd
+transDecl (GDataDecl s dat ctxt hd _ [] _) = transDecl $ DataDecl s dat ctxt hd [] Nothing
+transDecl (InstDecl _ ctxt hd _) = Just $ itemInstance $ transInstHead ctxt hd
+transDecl (GDataDecl _ _ _ _ _ [GadtDecl _ name ty] _) = Just $ itemFunc (unbracket $ prettyPrint name) (transTypeSig ty)
 transDecl _ = Nothing
+
+isDataType (DataType _) = True
+isDataType _ = False
 
 unbracket ('(':xs) | ")" `isSuffixOf` xs = init xs
 unbracket x = x
 
 
-transType :: HSE.Type -> Type
-transType (TyForall _ _ x) = transType x
-transType (TyFun x y) = TFun $ transType x : fromTFun (transType y)
-transType (TyTuple x xs) = tApp (TLit $ "(" ++ h ++ replicate (length xs - 1) ',' ++ h ++ ")") $ map transType xs
+transType :: HSE.Type S -> Type
+transType (TyForall _ _ _ x) = transType x
+transType (TyFun _ x y) = TFun $ transType x : fromTFun (transType y)
+transType (TyTuple _ x xs) = tApp (TLit $ "(" ++ h ++ replicate (length xs - 1) ',' ++ h ++ ")") $ map transType xs
     where h = ['#' | x == Unboxed]
-transType (TyList x) = TApp (TLit "[]") [transType x]
-transType (TyApp x y) = tApp a (b ++ [transType y])
+transType (TyList _ x) = TApp (TLit "[]") [transType x]
+transType (TyApp _ x y) = tApp a (b ++ [transType y])
     where (a,b) = fromTApp $ transType x
-transType (TyVar x) = TVar $ prettyPrint x
-transType (TyCon x) = TLit $ unbracket $ prettyPrint x
-transType (TyParen x) = transType x
-transType (TyInfix y1 x y2) = TApp (TLit $ unbracket $ prettyPrint x) [transType y1, transType y2]
-transType (TyKind x _) = transType x
+transType (TyVar _ x) = TVar $ prettyPrint x
+transType (TyCon _ x) = TLit $ unbracket $ prettyPrint x
+transType (TyParen _ x) = transType x
+transType (TyInfix _ y1 x y2) = TApp (TLit $ unbracket $ prettyPrint x) [transType y1, transType y2]
+transType (TyKind _ x _) = transType x
 
 
-transContext :: Context -> Constraint
-transContext = concatMap f
+transContext :: Maybe (Context S) -> Constraint
+transContext = maybe [] g
     where
-        f (ClassA x ys) = [TApp (TLit $ unbracket $ prettyPrint x) $ map transType ys]
-        f (InfixA y1 x y2) = f $ ClassA x [y1,y2]
+        g (CxSingle _ x) = f x
+        g (CxTuple _ xs) = concatMap f xs
+        g (CxParen _ x) = g x
+        g _ = []
+
+        f (ClassA _ x ys) = [TApp (TLit $ unbracket $ prettyPrint x) $ map transType ys]
+        f (InfixA s y1 x y2) = f $ ClassA s x [y1,y2]
         f _ = []
 
 
-transTypeSig :: HSE.Type -> TypeSig
-transTypeSig (TyParen x) = transTypeSig x
-transTypeSig (TyForall _ con ty) = TypeSig (transContext con) $ transType ty
+transTypeSig :: HSE.Type S -> TypeSig
+transTypeSig (TyParen _ x) = transTypeSig x
+transTypeSig (TyForall _ _ con ty) = TypeSig (transContext con) $ transType ty
 transTypeSig x = TypeSig [] $ transType x
 
 
-transTypeCon :: Context -> String -> [HSE.Type] -> TypeSig
-transTypeCon x y z = TypeSig (transContext x) $ TApp (TLit $ unbracket y) $ map transType z
+transDeclHead :: Maybe (Context S) -> DeclHead S -> TypeSig
+transDeclHead x y = TypeSig (transContext x) $ f y
+    where f (DHead _ name vars) = TApp (TLit $ unbracket $ prettyPrint name) $ map transVar vars
+          f (DHParen _ x) = f x
+          f (DHInfix s x y z) = f $ DHead s y [x,z]
+
+transInstHead :: Maybe (Context S) -> InstHead S -> TypeSig
+transInstHead x y = TypeSig (transContext x) $ f y
+    where f (IHead _ name vars) = TApp (TLit $ unbracket $ prettyPrint name) $ map transType vars
+          f (IHParen _ x) = f x
+          f (IHInfix s x y z) = f $ IHead s y [x,z]
 
 
-transVar :: TyVarBind -> HSE.Type
-transVar (KindedVar nam _) = TyVar nam
-transVar (UnkindedVar nam) = TyVar nam
+transVar :: TyVarBind S -> Type
+transVar (KindedVar _ nam _) = TVar $ prettyPrint nam
+transVar (UnkindedVar _ nam) = TVar $ prettyPrint nam
 
 
 addModuleURLs :: [TextItem] -> [TextItem]
