@@ -27,3 +27,14 @@ renderQuery x = Tags $ namesig ++ (if namesig /= [] && scp /= [] then [Str " "] 
         f (MinusPackage x) = "-" ++ x
         f (PlusModule xs) = "+" ++ intercalate "." xs
         f (MinusModule xs) = "-" ++ intercalate "." xs
+
+
+renderTypeSig :: TypeSig -> TagStr
+renderTypeSig (TypeSig con args) = Tags $
+    Str (showConstraint con) :
+    intersperse (Str " -> ")
+       (zipWith TagColor [1..] (map (Str . showFun) finit) ++
+        [TagColor 0 $ Str $ showFun flast])
+    where
+        (finit, flast) = (init funcs, last funcs)
+        funcs = splitFun args
