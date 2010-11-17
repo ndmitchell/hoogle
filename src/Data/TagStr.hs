@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
 -- | A module representing strings with formatting.
-module Data.TagStr(TagStr(..), showTagText, showTagConsole, showTagHTML, showTagHTMLWith) where
+module Data.TagStr(TagStr(..), formatTags, showTagText, showTagConsole, showTagHTML, showTagHTMLWith) where
 
 import Data.Char
 import Data.List
@@ -9,6 +9,7 @@ import Data.Data
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Maybe
+import Data.Function
 import Numeric
 
 
@@ -114,3 +115,20 @@ escapeCGI = concatMap f
             | otherwise = '%' : ['0'|length s == 1] ++ s
             where s = showHex (ord x) ""
 
+
+-- each position is a 0-based start and end index
+-- currently not allowed to overlap
+formatTags :: String -> [((Int,Int),TagStr -> TagStr)] -> TagStr
+formatTags o y = tags $ f o 0 $ sortBy (compare `on` fst . fst) y
+    where
+        f x i [] = str x
+        f x i (((from,to),op):ss)
+            | i > from = error $ "Data.TagStr.formatTags, not allowed overlapping formats on: " ++ o
+            | otherwise = str a ++ [op $ Str c] ++ f d to ss
+                where (a,b) = splitAt (from-i) x
+                      (c,d) = splitAt (to-from) b
+
+        tags [] = Str ""
+        tags [x] = x
+        tags xs = Tags xs
+        str x = [Str x | x /= ""]

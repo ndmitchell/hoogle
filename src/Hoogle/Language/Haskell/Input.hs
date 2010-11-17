@@ -91,7 +91,7 @@ transDecl x (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint
 transDecl x (ClassDecl s ctxt hd _ vars) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
     {itemName=[nam]
     ,itemURL="#t:" ++ nam
-    ,itemDisp=x `with` [(under,head $ srcInfoPoints s),(bold,snam)]}
+    ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagUnderline),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
 transDecl x (TypeDecl _ hd ty) = Just $ itemAlias (transDeclHead Nothing hd) (transTypeSig ty)
@@ -103,25 +103,13 @@ transDecl x (InstDecl _ ctxt hd _) = Just $ itemInstance $ transInstHead ctxt hd
 transDecl _ _ = Nothing
 
 
+cols :: SrcSpan -> (Int,Int)
+cols x = (srcSpanStartColumn x - 1, srcSpanEndColumn x - 1)
+
 findName :: Data a => a -> (SrcSpan,String)
 findName x = case universeBi x of
         Ident s x : _ -> (srcInfoSpan s,x)
         Symbol s x : _ -> (srcInfoSpan s,x)
-
-with :: String -> [(String -> TagStr, SrcSpan)] -> TagStr
-with o y = tags $ f o 1 $ sortBy (compare `on` srcSpanStartColumn . snd) y
-    where
-        f x i [] = str x
-        f x i ((op,SrcSpan{srcSpanStartColumn=from,srcSpanEndColumn=to}):ss)
-            | i > from = error $ "Trying to format using with, but got confused: " ++ o
-            | otherwise = str a ++ [op c] ++ f d to ss
-                where (a,b) = splitAt (from-i) x
-                      (c,d) = splitAt (to-from) b
-
-        tags [] = Str ""
-        tags [x] = x
-        tags xs = Tags xs
-        str x = [Str x | x /= ""]
 
 
 isDataType (DataType _) = True
