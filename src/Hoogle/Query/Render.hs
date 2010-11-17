@@ -9,7 +9,7 @@ import Hoogle.Type.All
 
 
 renderQuery :: Query -> TagStr
-renderQuery x = Tags $ namesig ++ scp ++ itms
+renderQuery x = Tags $ namesig ++ (if namesig /= [] && scp /= [] then [Str " "] else []) ++ scp
     where
         namesig = case (null (names x), isNothing (typeSig x)) of
                       (True, True) -> []
@@ -22,5 +22,8 @@ renderQuery x = Tags $ namesig ++ scp ++ itms
         showName = intersperse (Str " ") $ map (TagBold . Str) (names x)
         showType = [renderTypeSig $ fromJust $ typeSig x]
 
-        scp = []
-        itms = []
+        scp = [Str $ unwords $ map f $ scope x | scope x /= []]
+        f (PlusPackage x) = "+" ++ x
+        f (MinusPackage x) = "-" ++ x
+        f (PlusModule xs) = "+" ++ intercalate "." xs
+        f (MinusModule xs) = "-" ++ intercalate "." xs
