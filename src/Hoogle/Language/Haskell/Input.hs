@@ -88,7 +88,7 @@ transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = Just $ itemFunc (unbr
 
 transDecl x (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
 
-transDecl x (ClassDecl s ctxt hd _ vars) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
+transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
     {itemName=[nam]
     ,itemURL="#t:" ++ nam
     ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagUnderline),(cols snam,TagBold)]}
@@ -96,7 +96,11 @@ transDecl x (ClassDecl s ctxt hd _ vars) = Just $ fact (kinds True $ transDeclHe
 
 transDecl x (TypeDecl _ hd ty) = Just $ itemAlias (transDeclHead Nothing hd) (transTypeSig ty)
 
-transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ itemData (isDataType dat) $ transDeclHead ctxt hd
+transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ fact (kinds False $ transDeclHead ctxt hd) $ textItem
+    {itemName=[nam]
+    ,itemURL="#t:" ++ nam
+    ,itemDisp=x `formatTags` [(cols $ srcInfoSpan $ ann dat, TagUnderline),(cols snam,TagBold)]}
+    where (snam,nam) = findName hd
 
 transDecl x (InstDecl _ ctxt hd _) = Just $ itemInstance $ transInstHead ctxt hd
 
@@ -110,10 +114,6 @@ findName :: Data a => a -> (SrcSpan,String)
 findName x = case universeBi x of
         Ident s x : _ -> (srcInfoSpan s,x)
         Symbol s x : _ -> (srcInfoSpan s,x)
-
-
-isDataType (DataType _) = True
-isDataType _ = False
 
 unbracket ('(':xs) | ")" `isSuffixOf` xs = init xs
 unbracket x = x
@@ -187,11 +187,6 @@ itemAlias from to = fact (FactAlias from to:kinds False from++kinds False to) $ 
     itemURL="#t:" ++ a,
     itemDisp=Tags[under "type",space,b]}
     where (a,b) = typeHead from
-
-itemData d t = fact (kinds False t) $ textItem{itemName=[a],
-    itemURL="#t:" ++ a,
-    itemDisp=Tags[under (if d then "data" else "newtype"),space,b]}
-    where (a,b) = typeHead t
 
 itemInstance t = (FactInstance t:kinds True t, [])
 
