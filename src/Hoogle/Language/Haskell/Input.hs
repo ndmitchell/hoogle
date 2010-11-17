@@ -45,12 +45,17 @@ parseLine line x | a == "module" = Right $ itemModule $ split '.' $ dropWhile is
 parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x ++ ex of
     ParseOk y -> maybe (Left $ ParseError line 1 "Can't translate") Right $ transDecl x y
     ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x of
-        ParseOk y | Just z <- transDecl x y -> Right z
+        ParseOk y | Just z <- transDecl x $ fmap (subtractCols 16) y -> Right z
         _ -> Left $ ParseError line (srcColumn pos) $ msg ++ " - " ++ x ++ ex
     where ex = if "newtype " `isPrefixOf` x then " = N T" else " " -- space to work around HSE bug #205
 
 exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures,MultiParamTypeClasses
        ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples]
+
+
+subtractCols :: Int -> SrcSpanInfo -> SrcSpanInfo
+subtractCols n (SrcSpanInfo x xs) = SrcSpanInfo (f x) (map f xs)
+    where f x = x{srcSpanStartColumn=srcSpanStartColumn x - n, srcSpanEndColumn=srcSpanEndColumn x - n}
 
 
 textItem = TextItem 2 [] Nothing (Str "") "" ""
@@ -84,7 +89,7 @@ addModuleURLs = f ""
 
 transDecl :: String -> Decl S -> Maybe ([Fact],[TextItem])
 transDecl x (GDataDecl s dat ctxt hd _ [] _) = transDecl x $ DataDecl s dat ctxt hd [] Nothing
-transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = Just $ itemFunc (unbracket $ prettyPrint name) (transTypeSig ty)
+transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = transDecl x $ HSE.TypeSig s [name] ty
 
 transDecl x (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
 
