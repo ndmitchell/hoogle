@@ -150,7 +150,6 @@ executable hoogle
         Test.All
         Test.General
         Test.Parse_Query
-        Test.Parse_TextBase
         Test.Parse_TypeSig
         Web.All
         Web.Page
