@@ -5,7 +5,7 @@ import Recipe.Type
 import Hoogle
 import General.Code
 import System.Console.CmdArgs.Verbosity
-
+import System.Mem
 
 convert :: RecipeDetails -> [String] -> IO ()
 convert RecipeDetails{..} xs = do
@@ -13,6 +13,7 @@ convert RecipeDetails{..} xs = do
         then ls $ \x -> takeExtension x == ".txt"
         else return $ map (<.> "txt") xs
     xs <- order xs
+    performGC
     forM_ xs $ \from -> let to = replaceExtension from "hoo" in process [from] [to] $ do
         putStrLn $ "Converting " ++ from
         (deps,src) <- readInput from
