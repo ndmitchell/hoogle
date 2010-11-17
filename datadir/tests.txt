@@ -69,3 +69,9 @@ Testdata map :: (a -> b) -> [a] -> [b] -- http://hackage.haskell.org/packages/ar
 -- preservation of functional dependencies
 rd2 +testdata
 class Eq2 a b => Ord2 a b | a -> b
+
+:: Just a +testdata
+Did you mean: :: Maybe a +testdata
+
+:: Maybe +testdata
+Did you mean: :: Maybe a +testdata
