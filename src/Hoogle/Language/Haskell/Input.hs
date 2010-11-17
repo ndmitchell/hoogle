@@ -102,7 +102,8 @@ transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ fact (kinds False $ transDeclH
     ,itemDisp=x `formatTags` [(cols $ srcInfoSpan $ ann dat, TagUnderline),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
-transDecl x (InstDecl _ ctxt hd _) = Just $ itemInstance $ transInstHead ctxt hd
+transDecl x (InstDecl _ ctxt hd _) = Just (FactInstance t:kinds True t, [])
+    where t = transInstHead ctxt hd
 
 transDecl _ _ = Nothing
 
@@ -187,8 +188,6 @@ itemAlias from to = fact (FactAlias from to:kinds False from++kinds False to) $ 
     itemURL="#t:" ++ a,
     itemDisp=Tags[under "type",space,b]}
     where (a,b) = typeHead from
-
-itemInstance t = (FactInstance t:kinds True t, [])
 
 
 under = TagUnderline . Str
