@@ -7,7 +7,8 @@ import Hoogle.Type.All
 import Language.Haskell.Exts.Annotated hiding (TypeSig,Type)
 import qualified Language.Haskell.Exts.Annotated as HSE
 import Data.TagStr
-import Data.Generics.Uniplate
+import Data.Generics.Uniplate.Data
+import Data.Data
 
 
 type S = SrcSpanInfo
@@ -33,34 +34,95 @@ parseInputHaskell = join . f [] "" . zip [1..] . lines
 
 
 parseLine :: Int -> String -> Either ParseError ([Fact],[TextItem])
+parseLine line x | "(##)" `isPrefixOf` x = Left $ ParseError line 1 "Skipping due to HSE bug #206"
 parseLine line ('@':str) = case a of
         "keyword" -> Right $ itemKeyword $ dropWhile isSpace b
         "package" -> Right $ itemPackage $ dropWhile isSpace b
         _ -> Left $ ParseError line 2 $ "Unknown attribute: " ++ a
     where (a,b) = break isSpace str
-parseLine line x | "(##)" `isPrefixOf` x = Left $ ParseError line 1 "Skipping due to HSE bug #206"
 parseLine line x | a == "module" = Right $ itemModule $ split '.' $ dropWhile isSpace b
     where (a,b) = break isSpace x
 parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x ++ ex of
-    ParseOk x -> maybe (Left $ ParseError line 1 "Can't translate") Right $ transDecl x
+    ParseOk y -> maybe (Left $ ParseError line 1 "Can't translate") Right $ transDecl x y
     ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x of
-        ParseOk x | Just x <- transDecl x -> Right x
+        ParseOk y | Just z <- transDecl x y -> Right z
         _ -> Left $ ParseError line (srcColumn pos) $ msg ++ " - " ++ x ++ ex
     where ex = if "newtype " `isPrefixOf` x then " = N T" else " " -- space to work around HSE bug #205
-
 
 exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures,MultiParamTypeClasses
        ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples]
 
-transDecl :: Decl S -> Maybe ([Fact],[TextItem])
-transDecl (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
-transDecl (ClassDecl _ ctxt hd _ vars) = Just $ itemClass $ transDeclHead ctxt hd
-transDecl (TypeDecl _ hd ty) = Just $ itemAlias (transDeclHead Nothing hd) (transTypeSig ty)
-transDecl (DataDecl _ dat ctxt hd _ _) = Just $ itemData (isDataType dat) $ transDeclHead ctxt hd
-transDecl (GDataDecl s dat ctxt hd _ [] _) = transDecl $ DataDecl s dat ctxt hd [] Nothing
-transDecl (InstDecl _ ctxt hd _) = Just $ itemInstance $ transInstHead ctxt hd
-transDecl (GDataDecl _ _ _ _ _ [GadtDecl _ name ty] _) = Just $ itemFunc (unbracket $ prettyPrint name) (transTypeSig ty)
-transDecl _ = Nothing
+
+textItem = TextItem 2 [] Nothing (Str "") "" ""
+
+fact x y = (x,[y])
+
+itemPackage x = fact [] $ textItem{itemLevel=0, itemName=[x],
+    itemURL="http://hackage.haskell.org/package/" ++ x ++ "/",
+    itemDisp=Tags [under "package",space,bold x]}
+
+itemKeyword x = fact [] $ textItem{itemName=[x],
+    itemDisp=Tags [under "keyword",space,bold x]}
+
+itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
+    itemURL="", -- filled in by addModuleURLs
+    itemDisp=Tags [under "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
+
+addModuleURLs :: [TextItem] -> [TextItem]
+addModuleURLs = f ""
+    where
+        f pkg (x:xs) | itemLevel x == 0 = x : f (head $ itemName x) xs
+                     | itemLevel x == 1 = x{itemURL=url} : f pkg xs
+            where url = "http://hackage.haskell.org/packages/archive/" ++ pkg ++ "/latest/doc/html/" ++ intercalate "-" (itemName x) ++ ".html"
+        f pkg (x:xs) = x : f pkg xs
+        f pkg [] = []
+
+
+---------------------------------------------------------------------
+-- TRANSLATE THINGS
+
+
+transDecl :: String -> Decl S -> Maybe ([Fact],[TextItem])
+transDecl x (GDataDecl s dat ctxt hd _ [] _) = transDecl x $ DataDecl s dat ctxt hd [] Nothing
+transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = Just $ itemFunc (unbracket $ prettyPrint name) (transTypeSig ty)
+
+transDecl x (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
+
+transDecl x (ClassDecl s ctxt hd _ vars) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
+    {itemName=[nam]
+    ,itemURL="#t:" ++ nam
+    ,itemDisp=x `with` [(under,head $ srcInfoPoints s),(bold,snam)]}
+    where (snam,nam) = findName hd
+
+transDecl x (TypeDecl _ hd ty) = Just $ itemAlias (transDeclHead Nothing hd) (transTypeSig ty)
+
+transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ itemData (isDataType dat) $ transDeclHead ctxt hd
+
+transDecl x (InstDecl _ ctxt hd _) = Just $ itemInstance $ transInstHead ctxt hd
+
+transDecl _ _ = Nothing
+
+
+findName :: Data a => a -> (SrcSpan,String)
+findName x = case universeBi x of
+        Ident s x : _ -> (srcInfoSpan s,x)
+        Symbol s x : _ -> (srcInfoSpan s,x)
+
+with :: String -> [(String -> TagStr, SrcSpan)] -> TagStr
+with o y = tags $ f o 1 $ sortBy (compare `on` srcSpanStartColumn . snd) y
+    where
+        f x i [] = str x
+        f x i ((op,SrcSpan{srcSpanStartColumn=from,srcSpanEndColumn=to}):ss)
+            | i > from = error $ "Trying to format using with, but got confused: " ++ o
+            | otherwise = str a ++ [op c] ++ f d to ss
+                where (a,b) = splitAt (from-i) x
+                      (c,d) = splitAt (to-from) b
+
+        tags [] = Str ""
+        tags [x] = x
+        tags xs = Tags xs
+        str x = [Str x | x /= ""]
+
 
 isDataType (DataType _) = True
 isDataType _ = False
@@ -121,37 +183,10 @@ transVar (KindedVar _ nam _) = TVar $ prettyPrint nam
 transVar (UnkindedVar _ nam) = TVar $ prettyPrint nam
 
 
-addModuleURLs :: [TextItem] -> [TextItem]
-addModuleURLs = f ""
-    where
-        f pkg (x:xs) | itemLevel x == 0 = x : f (head $ itemName x) xs
-                     | itemLevel x == 1 = x{itemURL=url} : f pkg xs
-            where url = "http://hackage.haskell.org/packages/archive/" ++ pkg ++ "/latest/doc/html/" ++ intercalate "-" (itemName x) ++ ".html"
-        f pkg (x:xs) = x : f pkg xs
-        f pkg [] = []
+
 
 
 ---------------------------------------------------------------------
-
-textItem = TextItem 2 [] Nothing (Str "") "" ""
-
-fact x y = (x,[y])
-
-itemPackage x = fact [] $ textItem{itemLevel=0, itemName=[x],
-    itemURL="http://hackage.haskell.org/package/" ++ x ++ "/",
-    itemDisp=Tags [under "package",space,bold x]}
-
-itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
-    itemURL="", -- filled in by addModuleURLs
-    itemDisp=Tags [under "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
-
-itemKeyword x = fact [] $ textItem{itemName=[x],
-    itemDisp=Tags [under "keyword",space,bold x]}
-
-itemClass x = fact (kinds True x) $ textItem{itemName=[a],
-    itemURL="#t:" ++ a,
-    itemDisp=Tags $ [under "class",space,b]}
-    where (a,b) = typeHead x
 
 itemFunc nam typ@(TypeSig _ ty) = fact (ctr++kinds False typ) $ textItem{itemName=[nam],itemType=Just typ,
     itemURL="#v:" ++ nam,

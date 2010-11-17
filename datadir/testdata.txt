@@ -26,9 +26,14 @@ int2 :: Char -> Int -> Int
 instance Ord Bar
 ordId :: Ord a => a -> a
 nonId :: Non a => a -> a
+
+-- check bug # 352
+( # ) :: Int
+
+everywhere :: Data a => (forall local. Data local => local -> local) -> a -> a
+class Eq2 a b => Ord2 a b | a -> b
+
 @package pkg1
 @package pkg2
 
 
--- check bug # 352
-( # ) :: Int

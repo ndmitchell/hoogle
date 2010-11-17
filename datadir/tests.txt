@@ -66,3 +66,6 @@ pkg1
 map --link +testdata
 Testdata map :: (a -> b) -> [a] -> [b] -- http://hackage.haskell.org/packages/archive/testdata/latest/doc/html/Testdata.html#v:map
 
+-- preservation of functional dependencies
+rd2 +testdata
+class Eq2 a b => Ord2 a b | a -> b
