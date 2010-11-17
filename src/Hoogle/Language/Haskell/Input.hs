@@ -91,7 +91,13 @@ transDecl :: String -> Decl S -> Maybe ([Fact],[TextItem])
 transDecl x (GDataDecl s dat ctxt hd _ [] _) = transDecl x $ DataDecl s dat ctxt hd [] Nothing
 transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = transDecl x $ HSE.TypeSig s [name] ty
 
-transDecl x (HSE.TypeSig _ [name] ty) = Just $ itemFunc (unbracket $ prettyPrint name) $ transTypeSig ty
+transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ textItem{itemName=[nam],itemType=Just typ,
+    itemURL="#v:" ++ nam,
+    itemDisp=formatTags x $ (cols snam,TagBold) : zipWith (\i a -> (cols a,TagColor i)) [1..] as ++ [(cols b,TagColor 0)]}
+    where (snam,nam) = findName name
+          (as,b) = initLast $ typeArgsPos tyy
+          ctr = [FactCtorType nam y | isUpper $ head nam, TLit y <- [fst $ fromTApp $ last $ fromTFun ty]]
+          typ@(TypeSig _ ty) = transTypeSig tyy
 
 transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
     {itemName=[nam]
@@ -117,6 +123,15 @@ transDecl x (InstDecl _ ctxt hd _) = Just (FactInstance t:kinds True t, [])
     where t = transInstHead ctxt hd
 
 transDecl _ _ = Nothing
+
+
+typeArgsPos :: HSE.Type S -> [SrcSpan]
+typeArgsPos (TyForall _ _ _ x) = typeArgsPos x
+typeArgsPos (TyFun _ x y) = srcInfoSpan (ann x) : typeArgsPos y
+typeArgsPos (TyParen _ x) = typeArgsPos x
+typeArgsPos x = [srcInfoSpan $ ann x]
+
+
 
 
 cols :: SrcSpan -> (Int,Int)
@@ -187,13 +202,6 @@ transVar (UnkindedVar _ nam) = TVar $ prettyPrint nam
 
 
 ---------------------------------------------------------------------
-
-itemFunc nam typ@(TypeSig _ ty) = fact (ctr++kinds False typ) $ textItem{itemName=[nam],itemType=Just typ,
-    itemURL="#v:" ++ nam,
-    itemDisp=Tags[bold (operator nam), Str " :: ",renderTypeSig typ]}
-    where operator xs@(x:_) | not $ isAlpha x || x `elem` "#_'" = "(" ++ xs ++ ")"
-          operator xs = xs
-          ctr = [FactCtorType nam y | isUpper $ head nam, TLit y <- [fst $ fromTApp $ last $ fromTFun ty]]
 
 under = TagUnderline . Str
 bold = TagBold . Str
