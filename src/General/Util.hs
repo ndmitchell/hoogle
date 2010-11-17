@@ -5,6 +5,7 @@ module General.Util where
 import Control.Monad
 import Data.Char
 import Data.List
+import Data.Function(on)
 import Debug.Trace
 import System.Directory
 import System.Exit
@@ -22,15 +23,11 @@ import GHC.IO.Handle(hDuplicate,hDuplicateTo)
 
 
 
-infixl 0 `on`
-
 type URL = String
 
 fst3 (a,b,c) = a
 snd3 (a,b,c) = b
 thd3 (a,b,c) = c
-
-on f g x y = f (g x) (g y)
 
 swap (a,b) = (b,a)
 

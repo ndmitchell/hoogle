@@ -5,6 +5,7 @@ module Hoogle.DataBase.TypeSearch.TypeScore(
     ) where
 
 import General.Code
+import Data.Function
 import Hoogle.Score.All
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.EntryInfo

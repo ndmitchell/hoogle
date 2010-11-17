@@ -12,6 +12,7 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import qualified Data.Map as Map
 import Data.Maybe
+import Data.Function
 import Data.List
 import Data.Typeable
 

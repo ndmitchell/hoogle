@@ -138,9 +138,9 @@ startPos xs x = f 0 (arraySize xs - 1)
                 mid = (high + low) `div` 2
 
         g low high | low > high = (Nothing, low)
-        g low high = if k == x then (Just low, low+1)
-                     else if x `isPrefixOf` k then (Nothing, low)
-                     else g (low+1) high
+                   | k == x = (Just low, low+1)
+                   | x `isPrefixOf` k = (Nothing, low)
+                   | otherwise = g (low+1) high
             where k = key $ xs ! low
 
 
@@ -179,7 +179,7 @@ completionsNameSearch :: NameSearch -> String -> [String]
 completionsNameSearch (NameSearch items _) str =
         concatMap (map fst . fromDefer . rest) $
         takeWhile ((lstr `isPrefixOf`) . key) $
-        map ((!) items) [start .. arraySize items - 1]
+        map (items !) [start .. arraySize items - 1]
     where
         lstr = map toLower str
 

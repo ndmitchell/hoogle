@@ -6,7 +6,7 @@ module Data.Binary.Defer.Trie(
 import Data.Binary.Defer
 import Data.List
 import Data.Maybe
-import General.Code
+import Data.Function
 
 
 -- Keep simple first, can move to an Array later if necessary
