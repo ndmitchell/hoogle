@@ -94,7 +94,13 @@ transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead 
     ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagUnderline),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
-transDecl x (TypeDecl _ hd ty) = Just $ itemAlias (transDeclHead Nothing hd) (transTypeSig ty)
+transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from++kinds False to) $ textItem
+    {itemName=[nam]
+    ,itemURL="#t:" ++ nam
+    ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagUnderline),(cols snam,TagBold)]}
+    where (snam,nam) = findName hd
+          from = transDeclHead Nothing hd
+          to = transTypeSig ty
 
 transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ fact (kinds False $ transDeclHead ctxt hd) $ textItem
     {itemName=[nam]
@@ -184,20 +190,9 @@ itemFunc nam typ@(TypeSig _ ty) = fact (ctr++kinds False typ) $ textItem{itemNam
           operator xs = xs
           ctr = [FactCtorType nam y | isUpper $ head nam, TLit y <- [fst $ fromTApp $ last $ fromTFun ty]]
 
-itemAlias from to = fact (FactAlias from to:kinds False from++kinds False to) $ textItem{itemName=[a],
-    itemURL="#t:" ++ a,
-    itemDisp=Tags[under "type",space,b]}
-    where (a,b) = typeHead from
-
-
 under = TagUnderline . Str
 bold = TagBold . Str
 space = Str " "
-
-
-typeHead :: TypeSig -> (String, TagStr)
-typeHead (TypeSig con sig) = (a, Tags [Str $ showConstraint con, bold a, Str b])
-    where (a,b) = break (== ' ') $ show sig
 
 
 -- collect the kind facts, True for the outer fact is about a class
