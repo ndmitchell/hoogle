@@ -6,6 +6,11 @@ module Testdata
 
 type FilePath = String
 type String = [Char]
+data Unit
+Unit :: Unit
+data Maybe a
+Just :: a -> Maybe a
+Nothing :: Maybe a
 id :: a -> a
 unsafeCoerce :: a -> b
 map :: (a -> b) -> [a] -> [b]
