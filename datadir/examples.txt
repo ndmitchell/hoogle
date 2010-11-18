@@ -45,3 +45,7 @@ seq
 -- test that packages are included
 hlint
 package hlint
+
+-- #146, preserve foralls
+everywhere +syb
+everywhere :: (forall a. (Data a) => a -> a) -> (forall a. (Data a) => a -> a)
