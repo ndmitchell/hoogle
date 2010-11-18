@@ -7,7 +7,6 @@ module Data.Binary.Defer.Index(
     Index_, newIndex_, getLink, getLookup, indexFreeze
     ) where
 
-import General.Util
 import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import qualified Data.Map as Map

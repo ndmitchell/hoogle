@@ -53,3 +53,9 @@ action q@Search{} | isBlankQuery $ fromRight $ queryParsed q =
                 ,"Try --help for command line options"]
 
 action q@Search{} = actionSearch q (fromRight $ queryParsed q)
+
+
+-- useful command line auxiliary
+exitMessage :: [String] -> IO a
+exitMessage msg = putStr (unlines msg) >> exitFailure
+
