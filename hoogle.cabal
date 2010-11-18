@@ -101,7 +101,6 @@ library
         Data.TagStr
         Data.TypeMap
         General.Code
-        General.TextUtil
         General.Util
         General.Web
         Hoogle.DataBase.Aliases

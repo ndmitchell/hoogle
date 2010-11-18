@@ -11,7 +11,6 @@ module General.Web(
     parseHttpQueryArgs
     ) where
 
-import General.TextUtil
 import System.Environment
 import Control.Monad
 import Data.Char
@@ -89,3 +88,21 @@ parseHttpQueryArgs :: String -> [(String, String)]
 parseHttpQueryArgs xs = mapMaybe (f . splitPair "=") $ splitList "&" xs
     where f Nothing = Nothing
           f (Just (a,b)) = Just (unescapeURL a, unescapeURL b)
+
+
+splitList :: Eq a => [a] -> [a] -> [[a]]
+splitList find str = if isJust q then a : splitList find b else [str]
+    where
+        q = splitPair find str
+        Just (a, b) = q
+
+
+splitPair :: Eq a => [a] -> [a] -> Maybe ([a], [a])
+splitPair find str = f str
+    where
+        f [] = Nothing
+        f x  | isPrefixOf find x = Just ([], drop (length find) x)
+             | otherwise = if isJust q then Just (head x:a, b) else Nothing
+                where
+                    q = f (tail x)
+                    Just (a, b) = q
