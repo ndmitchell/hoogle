@@ -48,6 +48,29 @@ instance BinaryDefer TagStr where
                 4 -> get2 TagHyperlink
                 5 -> get2 TagColor
 
+{-
+instance BD.BinaryDefer TagStr where
+    put x = BD.putLazyByteString $ encode x
+    get = fmap decode BD.getLazyByteString
+
+instance Binary TagStr where
+    put (Str x)            = putWord8 0 >> put x
+    put (Tags x)           = putWord8 1 >> put x
+    put (TagBold x)        = putWord8 2 >> put x
+    put (TagUnderline x)   = putWord8 3 >> put x
+    put (TagHyperlink x y) = putWord8 4 >> put x >> put y
+    put (TagColor x y)     = putWord8 5 >> put x >> put y
+
+    get = do i <- getWord8
+             case i of
+                0 -> liftM Str get
+                1 -> liftM Tags get
+                2 -> liftM TagBold get
+                3 -> liftM TagUnderline get
+                4 -> liftM2 TagHyperlink get get
+                5 -> liftM2 TagColor get get
+-}
+
 
 -- | Show a 'TagStr' as a string, without any formatting.
 showTagText :: TagStr -> String
