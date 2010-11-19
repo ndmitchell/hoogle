@@ -1,9 +1,9 @@
 
 module Data.Binary.Defer.Monad(
     DeferPut, putDefer, runDeferPut,
-    putInt, putByte, putChr, putByteString,
+    putInt, putByte, putChr, putByteString, putLazyByteString,
     DeferGet, getDefer, runDeferGet,
-    getInt, getByte, getChr, getByteString,
+    getInt, getByte, getChr, getByteString, getLazyByteString,
     getDeferGet, getDeferPut
     ) where
 
@@ -15,6 +15,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Data.IORef
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as LBS
 
 import Data.Typeable
 import qualified Data.TypeMap as TypeMap
@@ -52,6 +53,12 @@ putByteString x = do
     (buf,_,_) <- ask
     putInt $ BS.length x
     liftIO $ bufferAddByteString buf x
+
+putLazyByteString :: LBS.ByteString -> DeferPut ()
+putLazyByteString x = do
+    (buf,_,_) <- ask
+    putInt $ fromIntegral $ LBS.length x
+    liftIO $ bufferAddLazyByteString buf x
 
 putDefer :: DeferPut () -> DeferPut ()
 putDefer x = do
@@ -134,6 +141,17 @@ bufferAddByteString (Buffer h file ptr buf) x = do
     BS.hPut h x
 
 
+bufferAddLazyByteString :: Buffer -> LBS.ByteString -> IO ()
+bufferAddLazyByteString (Buffer h file ptr buf) x = do
+    let sz = fromIntegral $ LBS.length x
+    buf2 <- readIORef buf
+    when (buf2 /= 0) $ do
+        hPutBuf h ptr buf2
+        writeIORef buf 0
+    modifyIORef file (+ (buf2+sz)) 
+    LBS.hPut h x
+
+
 bufferFlush :: Buffer -> IO ()
 bufferFlush (Buffer h file ptr buf) = do
     buf2 <- readIORef buf
@@ -177,6 +195,12 @@ getByteString = do
     h <- asks fst
     len <- liftIO $ hGetInt h
     liftIO $ BS.hGet h len
+
+getLazyByteString :: DeferGet LBS.ByteString
+getLazyByteString = do
+    h <- asks fst
+    len <- liftIO $ hGetInt h
+    liftIO $ LBS.hGet h $ fromIntegral len
 
 getDefer :: DeferGet a -> DeferGet a
 getDefer x = do
