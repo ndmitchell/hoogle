@@ -20,7 +20,6 @@ logFile = "log.txt"
 
 response :: FilePath -> CmdLine -> IO (Response String)
 response resources q = do
-    print q
     logMessage q
     let r200 x = Response (2,0,0) "OK" [Header HdrContentType x]
     case webmode q of

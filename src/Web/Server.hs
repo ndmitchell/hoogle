@@ -38,7 +38,7 @@ httpServer port handler = do
                         putStrLn $ "Bad connection: " ++ show x
                         respondHTTP strm $ Response (4,0,0) "Bad Request" [] ("400 Bad Request: " ++ show x)
                     Right x -> do
-                        putStrLn $ "Serving: " ++ show (rqURI x)
+                        putStrLn $ "Serving: " ++ unescapeURL (show $ rqURI x)
                         respondHTTP strm =<< handler x
             )
     return $ sClose s
