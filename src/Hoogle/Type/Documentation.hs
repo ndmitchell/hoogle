@@ -13,8 +13,8 @@ newtype Documentation = Documentation ByteString
 
 
 instance BinaryDefer Documentation where
-    put (Documentation x) = put x
-    get = get1 Documentation
+    put (Documentation x) = putByteString x
+    get = fmap Documentation getByteString
 
 
 htmlDocumentation :: String -> Documentation
