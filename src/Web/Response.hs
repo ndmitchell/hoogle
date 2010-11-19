@@ -22,20 +22,15 @@ response :: FilePath -> CmdLine -> IO (Response String)
 response resources q = do
     print q
     logMessage q
-    (typ,res) <-
-        if webmode q == Just "suggest" then do
-            fmap ((,) "application/json") $ runSuggest q
-        else do
+    let r200 x = Response (2,0,0) "OK" [Header HdrContentType x]
+    case webmode q of
+        Just "suggest" -> fmap (r200 "application/json") $ runSuggest q
+        Nothing -> do
             dbs <- if isRight $ queryParsed q
                    then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
                    else return mempty
-            return $ (,) "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
-    {-
-    when (Debug `elem` queryFlags q) $
-        writeFile "temp.htm" res
-    sequence_ [writeFile x res | Output x <- queryFlags q]
-    -}
-    return $ Response (2,0,0) "OK" [Header HdrContentType typ] res
+            return $ r200 "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
+        Just e -> return $ r200 "text/html" $ "Unknown webmode: " ++ show e
 
 
 logMessage :: CmdLine -> IO ()
