@@ -10,7 +10,7 @@ import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Maybe
 import Data.Function
-import Numeric
+import General.Web
 
 
 data TagStr = Str String -- ^ Plain text.
@@ -92,28 +92,9 @@ showTagHTMLWith f x = g x
         -- FIXME: this is overly specific!
         g (TagHyperlink "" x) = g (TagHyperlink url x)
             where str = showTagText x
-                  url = if "http:" `isPrefixOf` str then str else "?hoogle=" +% str
-        g (TagHyperlink url x) = "<a href=\"" +& url ++ "\">" ++ showTagHTML x ++ "</a>"
+                  url = if "http:" `isPrefixOf` str then str else "?hoogle=" ++% str
+        g (TagHyperlink url x) = "<a href=\"" ++& url ++ "\">" ++ showTagHTML x ++ "</a>"
         g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
-
-
--- FIXME: Should not be here!
-a +& b = a ++ escapeHTML b
-a +% b = a ++ escapeCGI b
-escapeHTML = concatMap f
-    where
-        f '\"' = "&quot;"
-        f '<' = "&lt;"
-        f '>' = "&gt;"
-        f '&' = "&amp;"
-        f '\n' = "<br/>"
-        f x = [x]
-escapeCGI = concatMap f
-    where
-        f x | isAlphaNum x || x `elem` "-" = [x]
-            | x == ' ' = "+"
-            | otherwise = '%' : ['0'|length s == 1] ++ s
-            where s = showHex (ord x) ""
 
 
 -- each position is a 0-based start and end index

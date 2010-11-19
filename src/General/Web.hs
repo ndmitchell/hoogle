@@ -5,8 +5,8 @@
 -}
 
 module General.Web(
-    combineURL, escapeURL, unescapeURL,
-    escapeHTML,
+    combineURL, escapeURL, (++%), unescapeURL,
+    escapeHTML, (++&),
     cgiArgs,
     parseHttpQueryArgs
     ) where
@@ -32,6 +32,11 @@ escapeHTML = concatMap f
         f  x  = [x]
 
 
+-- | Escape the second argument as HTML before appending
+(++&) :: String -> String -> String
+a ++& b = a ++ escapeHTML b
+
+
 ---------------------------------------------------------------------
 -- URL STUFF
 
@@ -50,11 +55,17 @@ unescapeURL [] = []
 
 
 escapeURL :: String -> String
-escapeURL (x:xs) | isAlphaNum x = x : escapeURL xs
-                 | otherwise = '%' : f (showHex (ord x) "") ++ escapeURL xs
-    where f x = ['0' | length x == 1] ++ x
-escapeURL [] = []
+escapeURL = concatMap f
+    where
+        f x | isAlphaNum x || x `elem` "-" = [x]
+            | x == ' ' = "+"
+            | otherwise = '%' : ['0'|length s == 1] ++ s
+            where s = showHex (ord x) ""
 
+
+-- | Escape the second argument as a CGI query string before appending
+(++%) :: String -> String -> String
+a ++% b = a ++ escapeURL b
 
 ---------------------------------------------------------------------
 -- CGI STUFF

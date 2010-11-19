@@ -17,6 +17,10 @@ import GHC.IO.Handle(hDuplicate,hDuplicateTo)
 
 
 
+-- | Only append strings if neither one is empty
+(++?) :: String -> String -> String
+a ++? b = if null a || null b then [] else a ++ b
+
 
 type URL = String
 

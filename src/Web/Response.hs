@@ -5,13 +5,12 @@ module Web.Response(response) where
 import CmdLine.All
 import Hoogle
 import General.Code
+import General.Web
 import Web.Page
-import Web.Text
 import Data.Generics.Uniplate
 
 import Data.Time.Clock
 import Data.Time.Calendar
-import General.Web hiding (escapeHTML)
 import Network.HTTP
 import Paths_hoogle
 
@@ -63,9 +62,9 @@ runQuery :: Database -> CmdLine -> [String]
 runQuery dbs Search{queryText = text, queryParsed = Left (ParseError _ pos txt)} =
     ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
-    ,"  Query: <tt>" +& pre ++ "<span id='error'>" +& post2 ++ "</span></tt><br/>"
+    ,"  Query: <tt>" ++& pre ++ "<span id='error'>" ++& post2 ++ "</span></tt><br/>"
     ,"</p><p>"
-    ,"  Error: " +& txt ++ "<br/>"
+    ,"  Error: " ++& txt ++ "<br/>"
     ,"</p><p>"
     ,"  For information on what queries should look like, see the"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>user manual</a>."
@@ -97,11 +96,11 @@ runQuery dbs cq@Search{queryParsed = Right q} =
         (pre,res2) = splitAt start2 res
         (now,post) = splitAt count2 res2
 
-        moreResults = "<tr><td></td><td><a href=\"" +& urlMore ++ "\" class='more'>Show more results</a></td></tr>"
-        urlMore = "?hoogle=" +% queryText cq ++ "&start=" ++ show (start2+count2+1) ++ "#more"
+        moreResults = "<tr><td></td><td><a href=\"" ++& urlMore ++ "\" class='more'>Show more results</a></td></tr>"
+        urlMore = "?hoogle=" ++% queryText cq ++ "&start=" ++ show (start2+count2+1) ++ "#more"
 
         qstr = showTagHTML (renderQuery q)
-        qurl (TagHyperlink url x) | "query:" `isPrefixOf` url = TagHyperlink ("?hoogle=" +% drop 6 url) x
+        qurl (TagHyperlink url x) | "query:" `isPrefixOf` url = TagHyperlink ("?hoogle=" ++% drop 6 url) x
         qurl x = x
 
 
@@ -125,14 +124,14 @@ renderRes i Result{..} =
         f = maybe "" (uncurry href)
 
         docs2 = ("<div id='d" ++ show i ++ "' class='shut'>" ++
-                   "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" +& selfUrl ++ "'></a>") +?
-                   (showTagHTML docs) +?
+                   "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++& selfUrl ++ "'></a>") ++?
+                   (showTagHTML docs) ++?
                "</div>"
 
         url (TagBold x)
             | null selfUrl = Just $ "<span class='a'>no url" ++ showTagHTML (transform g x) ++ "</span>"
-            | otherwise = Just $ "</a><a class='a' href='" +& selfUrl ++ "'>" ++ showTagHTML (transform g x) ++
-                                 "</a><a class='dull' href='" +& selfUrl ++ "'>"
+            | otherwise = Just $ "</a><a class='a' href='" ++& selfUrl ++ "'>" ++ showTagHTML (transform g x) ++
+                                 "</a><a class='dull' href='" ++& selfUrl ++ "'>"
         url _ = Nothing
 
         g (TagUnderline x) = TagBold x
@@ -141,4 +140,4 @@ renderRes i Result{..} =
 
 tr x = "<tr>" ++ x ++ "</tr>"
 td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
-href url x = if null url then x else "<a class='dull' href='" +& url ++ "'>" ++ x ++ "</a>"
+href url x = if null url then x else "<a class='dull' href='" ++& url ++ "'>" ++ x ++ "</a>"
