@@ -12,6 +12,7 @@ import Network
 import Network.HTTP
 import Network.URI
 import Network.Socket
+import Data.Time
 
 
 server :: CmdLine -> IO ()
@@ -32,14 +33,17 @@ httpServer port handler = do
             (socketConnection "" sock)
             close
             (\strm -> do
+                start <- getCurrentTime
                 res <- receiveHTTP strm
                 case res of
                     Left x -> do
-                        putStrLn $ "Bad connection: " ++ show x
+                        putStrLn $ "Bad request: " ++ show x
                         respondHTTP strm $ Response (4,0,0) "Bad Request" [] ("400 Bad Request: " ++ show x)
                     Right x -> do
-                        putStrLn $ "Serving: " ++ unescapeURL (show $ rqURI x)
                         respondHTTP strm =<< handler x
+                        end <- getCurrentTime
+                        let t = floor $ diffUTCTime end start * 1000
+                        putStrLn $ "Served in " ++ show t ++ "ms: " ++ unescapeURL (show $ rqURI x)
             )
     return $ sClose s
 
