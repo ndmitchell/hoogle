@@ -14,7 +14,6 @@ import Data.Generics.Uniplate
 
 type Input = ([Fact], [TextItem])
 
--- FIXME: Should be moved inside Item.Type, probably
 data TextItem = TextItem
     {itemLevel :: Int -- 0 = package, 1 = module, >2 = entry
     ,itemName :: [String] -- for modules is the module name, for all others is a singleton
