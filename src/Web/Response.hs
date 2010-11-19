@@ -52,12 +52,11 @@ runSuggest Search{queryText=q} = do
 runSuggest _ = return ""
 
 
--- TODO: Should escape the query text
 runQuery :: Database -> CmdLine -> [String]
 runQuery dbs Search{queryText = text, queryParsed = Left (ParseError _ pos txt)} =
     ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
-    ,"  Query: <tt>" ++& pre ++ "<span id='error'>" ++& post2 ++ "</span></tt><br/>"
+    ,"  Query: <tt>" ++& pre ++ "<span id='error'>" ++& post ++ post2 ++ "</span></tt><br/>"
     ,"</p><p>"
     ,"  Error: " ++& txt ++ "<br/>"
     ,"</p><p>"
@@ -67,7 +66,7 @@ runQuery dbs Search{queryText = text, queryParsed = Left (ParseError _ pos txt)}
     ]
     where
         (pre,post) = splitAt pos text
-        post2 = if null post then concat (replicate 3 "&nbsp;") else post
+        post2 = if null post then concat $ replicate 3 "&nbsp;" else []
 
 
 runQuery dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome
