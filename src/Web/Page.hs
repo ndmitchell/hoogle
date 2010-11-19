@@ -14,15 +14,17 @@ header resources query =
     ,"     <link type='text/css' rel='stylesheet' href='" ++ resources ++ "/hoogle.css' />"
     ,"     <link type='image/png' rel='icon' href='" ++ resources ++ "/favicon.png' />"
     ,"     <link type='application/opensearchdescription+xml' rel='search' href='" ++ resources ++ "/search.xml' title='Hoogle' />"
+    ,"     <script type='text/javascript' src='" ++ resources ++ "/jquery-1.4.2.js'> </script>"
     ,"     <script type='text/javascript' src='" ++ resources ++ "/hoogle.js'> </script>"
     ,"  </head>"
-    ,"  <body onload='on_load()'>"
-    ] ++ links ++ search resources query
+    ,"  <body>"
+    ] ++ links ++ search resources query ++
+    ["<div id='body'>"]
 
 
 links =
     ["<div id='links'>"
-    ,"  <span id='plugin' style='display:none;'><a href='javascript:add_search()'>Search plugin</a> |</span>"
+    ,"  <span id='plugin' style='display:none;'><a href='javascript:searchPlugin()'>Search plugin</a> |</span>"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>Manual</a> |"
     ,"  <a href='http://www.haskell.org/'>haskell.org</a>"
     ,"</div>"
@@ -34,7 +36,7 @@ search resources query =
     ,"    <a id='logo' href='http://haskell.org/hoogle/'>" ++
            "<img src='" ++ resources ++ "/hoogle.png' alt='Hoogle' />" ++
          "</a>"
-    ,"    <input name='hoogle' id='hoogle' type='text' value=\"" ++ query ++ "\" />"
+    ,"    <input name='hoogle' id='hoogle' type='text' autocomplete='false' value=\"" ++ query ++ "\" />"
     ,"    <input id='submit' type='submit' value='Search' />"
     ,"  </div>"
     ,"</form>"
@@ -42,7 +44,8 @@ search resources query =
 
 
 footer =
-    ["    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2010</p>"
+    ["</div>"
+    ,"    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2010</p>"
     ,"  </body>"
     ,"</html>"
     ]

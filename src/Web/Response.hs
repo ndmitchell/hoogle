@@ -24,6 +24,11 @@ response resources q = do
     let r200 x = Response (2,0,0) "OK" [Header HdrContentType x]
     case webmode q of
         Just "suggest" -> fmap (r200 "application/json") $ runSuggest q
+        Just "ajax" -> do
+            dbs <- if isRight $ queryParsed q
+                   then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
+                   else return mempty
+            return $ r200 "text/html" $ unlines $ runQuery dbs q
         Nothing -> do
             dbs <- if isRight $ queryParsed q
                    then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
@@ -49,6 +54,7 @@ runSuggest Search{queryText=q} = do
     let res = queryCompletions db q
     return $ "[" ++ show q ++ "," ++ show res ++ "]"
 runSuggest _ = return ""
+
 
 
 runQuery :: Database -> CmdLine -> [String]

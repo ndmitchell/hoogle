@@ -1,19 +1,27 @@
 
-// registered with the body onload event
-function on_load()
-{
-    document.getElementById("hoogle").focus();
+var useAjax = false;
 
-    if (document.location.hash != "")
-        document.location.hash = document.location.hash;
-
+$(function(){
     if (window.external && ("AddSearchProvider" in window.external))
         document.getElementById("plugin").style.display = "";
 
-    document.body.className = "loaded";
-}
+    $("#hoogle").focus();
+    if (useAjax)
+    {
+        $("#hoogle").keyup(function(){
+            $.ajax({
+                url: '?',
+                data: {mode:'ajax', 'hoogle':$("#hoogle").val()},
+                dataType: 'html',
+                complete: function(e){
+                    $("#body").html(e.responseText);
+                }
+            });
+        });
+    }
+});
 
-function add_search()
+function searchPlugin()
 {
     window.external.AddSearchProvider("http://haskell.org/hoogle/res/search.xml");
 }
