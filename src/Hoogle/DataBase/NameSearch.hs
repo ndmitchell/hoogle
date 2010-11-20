@@ -95,6 +95,9 @@ buildItems = Map.map norm . foldl' add Map.empty
 Step 1: Binary search for find the exact match
 Step 2: Follow from that item finding ones which start
 Step 3: Use the hint set to merge into a list of results
+
+Performance results show that Step 3 causes about 2000 disk seeks when looking for sort
+in the default library - so is the bottleneck.
 -}
 
 searchNameSearch :: NameSearch -> String -> [(Link Entry,EntryView,Score)]
