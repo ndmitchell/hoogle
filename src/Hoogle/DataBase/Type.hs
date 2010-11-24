@@ -5,8 +5,8 @@ module Hoogle.DataBase.Type
     ,module Hoogle.DataBase.Suggest
     ,module Hoogle.DataBase.Aliases
     ,module Hoogle.DataBase.Instances
+    ,module Hoogle.DataBase.SubstrSearch
     ,module Hoogle.DataBase.TypeSearch.All
-    ,module Hoogle.DataBase.NameSearch
     ) where
 
 import Hoogle.DataBase.Items
@@ -14,8 +14,10 @@ import Hoogle.DataBase.Suggest
 import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.TypeSearch.All
-import Hoogle.DataBase.NameSearch
+import Hoogle.DataBase.SubstrSearch
 import Data.Binary.Defer
+import Data.Binary.Defer.Index
+import Hoogle.Type.All
 import General.Code
 
 
@@ -23,7 +25,7 @@ import General.Code
 -- that depend on this database
 data DataBase = DataBase
     {items :: Items
-    ,nameSearch :: NameSearch
+    ,nameSearch :: SubstrSearch (Link Entry)
     ,typeSearch :: TypeSearch
     ,suggest :: Suggest
     ,aliases :: Aliases

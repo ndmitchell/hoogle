@@ -61,6 +61,7 @@ library
         base > 4 && < 4.3,
         array, bytestring, containers, directory, filepath, process, random,
         safe,
+        binary,
         parsec == 2.1.*,
         transformers == 0.2.*,
         uniplate == 1.6.*,
@@ -106,8 +107,8 @@ library
         Hoogle.DataBase.Aliases
         Hoogle.DataBase.Instances
         Hoogle.DataBase.Items
-        Hoogle.DataBase.NameSearch
         Hoogle.DataBase.Serialise
+        Hoogle.DataBase.SubstrSearch
         Hoogle.DataBase.Suggest
         Hoogle.DataBase.Type
         Hoogle.DataBase.TypeSearch.Binding
