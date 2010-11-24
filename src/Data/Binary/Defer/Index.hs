@@ -7,6 +7,9 @@ module Data.Binary.Defer.Index(
     Index_, newIndex_, getLink, getLookup, indexFreeze
     ) where
 
+import qualified Data.Binary as Bin
+import qualified Data.Binary.Get as Bin
+import qualified Data.Binary.Put as Bin
 import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import qualified Data.Map as Map
@@ -108,6 +111,17 @@ instance Typeable a => BinaryDefer (Link a) where
     putFixed = put
     getFixed = get
 
+
+instance Bin.Binary (Link a) where
+    put = Bin.putWord32host . fromIntegral . linkKey
+    get = error "Can't implement Data.Binary.Get on Link"
+
+instance Typeable a => BinaryDeferGet (Link a) where
+    binaryDeferGet = do
+        Index xs <- getDeferGet
+        return $ do
+            i <- fmap fromIntegral Bin.getWord32host
+            return $ Link i $ xs ! i
 
 indexLinks :: Index a -> [Link a]
 indexLinks (Index x) = zipWith newLink [0..] $ elems x
