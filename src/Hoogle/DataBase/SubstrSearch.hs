@@ -30,7 +30,7 @@ Data is stored flattened. For default we expect ~200Kb of disk usage.
 -}
 
 -- keys are sorted after being made lower case
-data SubstrSearch a = SubstrSearch [(BS.ByteString,a)]
+newtype SubstrSearch a = SubstrSearch [(BS.ByteString,a)]
 
 
 -- | Create a substring search index. Values are returned in order where possible.
