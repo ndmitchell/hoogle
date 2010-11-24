@@ -4,7 +4,8 @@ module Data.Binary.Defer.Monad(
     putInt, putByte, putChr, putByteString, putLazyByteString,
     DeferGet, getDefer, runDeferGet,
     getInt, getByte, getChr, getByteString, getLazyByteString,
-    getDeferGet, getDeferPut
+    getDeferGet, getDeferPut,
+    unwrapDeferGet
     ) where
 
 import System.IO
@@ -224,3 +225,9 @@ getDeferPut :: Typeable a => a -> DeferGet ()
 getDeferPut x = do
     ref <- asks snd
     liftIO $ modifyIORef ref $ TypeMap.insert x
+
+
+unwrapDeferGet :: DeferGet a -> DeferGet (IO a)
+unwrapDeferGet act = do
+    s <- ask
+    return $ runReaderT act s
