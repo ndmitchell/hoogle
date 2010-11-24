@@ -14,7 +14,6 @@ import General.Code
 import Hoogle.Type.All
 import Hoogle.Score.All
 import Data.Function
-import Data.Array
 
 
 {-
@@ -31,16 +30,16 @@ Data is stored flattened. For default we expect ~200Kb of disk usage.
 -}
 
 -- keys are sorted after being made lower case
-data SubstrSearch a = SubstrSearch (Array Int (BS.ByteString,a))
+data SubstrSearch a = SubstrSearch [(BS.ByteString,a)]
 
 
 -- | Create a substring search index. Values are returned in order where possible.
 createSubstrSearch :: [(String,a)] -> SubstrSearch a
-createSubstrSearch xs = SubstrSearch $ listArray (0,length xs-1) $ map (first BS.pack) . sortBy (compare `on` fst) $ map (first $ map toLower) xs
+createSubstrSearch xs = SubstrSearch $ map (first BS.pack) . sortBy (compare `on` fst) $ map (first $ map toLower) xs
 
 
-searchSubstrSearch :: SubstrSearch a -> String -> [(a, EntryView, Score)]
-searchSubstrSearch (SubstrSearch xs) y = map snd $
+searchSubstrSearch :: Eq a => SubstrSearch a -> String -> [(a, EntryView, Score)]
+searchSubstrSearch (SubstrSearch xs) y =
         find MatchExact (ly ==) $
         find MatchPrefix (ly `BS.isPrefixOf`) $
         find MatchSubstr (ly `BS.isInfixOf`) []
@@ -48,9 +47,8 @@ searchSubstrSearch (SubstrSearch xs) y = map snd $
         view = FocusOn y
         ly = BS.pack $ map toLower y
 
-        xs2 = assocs xs
-        find scr p rest = res ++ filter (flip notElem (map fst res) . fst) rest
-            where res = [(i,(x,view,textScore scr)) | (i,(s,x)) <- xs2, p s]
+        find scr p rest = res ++ filter (flip notElem (map fst3 res) . fst3) rest
+            where res = [(x,view,textScore scr) | (s,x) <- xs, p s]
 
 
 
@@ -72,8 +70,8 @@ instance (Bin.Binary a, BinaryDeferGet a) => BinaryDefer (SubstrSearch a) where
 
 putBinary :: (a -> Bin.Put) -> SubstrSearch a -> Bin.Put
 putBinary p (SubstrSearch x) = do
-    Bin.putWord32host $ fromIntegral $ snd (bounds x) + 1
-    forM_ (elems x) $ \(s,a) -> do
+    Bin.putWord32host $ fromIntegral $ length x
+    forM_ x $ \(s,a) -> do
         Bin.putWord8 $ fromIntegral $ BS.length s
         Bin.putByteString s
         p a
@@ -82,7 +80,7 @@ putBinary p (SubstrSearch x) = do
 getBinary :: Bin.Get a -> Bin.Get (SubstrSearch a)
 getBinary g = do
     i <- fmap fromIntegral Bin.getWord32host
-    fmap (SubstrSearch . listArray (0,i-1)) $ replicateM i $ do
+    fmap SubstrSearch $ replicateM i $ do
         n <- Bin.getWord8
         s <- Bin.getByteString (fromIntegral n)
         a <- g
