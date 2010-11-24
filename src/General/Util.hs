@@ -183,3 +183,23 @@ captureOutput act = do
     removeFile f
     return $ Just res
 #endif
+
+
+compareCaseless :: String -> String -> Ordering
+compareCaseless x = compare (map toLower x) . map toLower
+
+
+-- compare strings, but with an ordering that puts 'a' < 'A' < 'b' < 'B'
+compareString :: String -> String -> Ordering
+compareString (x:xs) (y:ys) = case compareChar x y of
+    EQ -> compareString xs ys
+    x -> x
+compareString [] [] = EQ
+compareString xs ys = if null xs then LT else GT
+
+
+compareChar :: Char -> Char -> Ordering
+compareChar x y = case (compare x y, compare (toLower x) (toLower y)) of
+    (EQ, _) -> EQ
+    (x, EQ) -> if x == GT then LT else GT
+    (_, x ) -> x
