@@ -12,6 +12,8 @@ import Hoogle
 
 action :: CmdLine -> IO ()
 
+action x@Search{repeat_=i} | i /= 1 = replicateM_ i $ action x{repeat_=1}
+
 action Search{queryText = text, queryParsed = Left (ParseError _ pos err)} =
     exitMessage ["Parse error:", "  " ++ text
                 ,replicate pos ' ' ++ "^"
