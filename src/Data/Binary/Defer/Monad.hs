@@ -197,10 +197,7 @@ getByteString = do
     liftIO $ BS.hGet h len
 
 getLazyByteString :: DeferGet LBS.ByteString
-getLazyByteString = do
-    h <- asks fst
-    len <- liftIO $ hGetInt h
-    liftIO $ LBS.hGet h $ fromIntegral len
+getLazyByteString = fmap (LBS.fromChunks . return) getByteString
 
 getDefer :: DeferGet a -> DeferGet a
 getDefer x = do
