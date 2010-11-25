@@ -2,7 +2,8 @@
 module Data.Binary.Defer(
     module Data.Binary.Defer.Monad,
     module Data.Binary.Defer.Class,
-    BinaryDeferGet(..)
+    BinaryDeferGet(..),
+    FixedBinary(..)
     ) where
 
 import Data.Binary.Defer.Monad
@@ -12,3 +13,6 @@ import Data.Binary
 
 class BinaryDeferGet a where
     binaryDeferGet :: DeferGet (Get a)
+
+class FixedBinary a where
+    fixedSize :: a -> Int

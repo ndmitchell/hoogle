@@ -123,6 +123,9 @@ instance Typeable a => BinaryDeferGet (Link a) where
             i <- fmap fromIntegral Bin.getWord32host
             return $ Link i $ xs ! i
 
+instance FixedBinary (Link a) where
+    fixedSize _ = 4
+
 indexLinks :: Index a -> [Link a]
 indexLinks (Index x) = zipWith newLink [0..] $ elems x
 
