@@ -70,22 +70,21 @@ data S a = S
     ,sInfix :: ![(a,EntryView,Score)] -- the infixes
     }
 
+
 searchSubstrSearch :: Eq a => SubstrSearch a -> String -> [(a, EntryView, Score)]
 searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
     where
         view = FocusOn y
-        ly = BSC.pack $ map toLower y
-        ny = length y
+        match = bsMatch (BSC.pack $ map toLower y)
         sN = BS.foldl f s0 $ lens x
         s0 = S 0 (text x) Nothing [] []
 
         f s 0 = addCount $ case sLast s of
             Nothing -> s
             Just x -> addMatch x s
-        f s ii = addCount $ moveFocus i $ case () of
-            _ | ly `BS.isPrefixOf` str -> addMatchLast (if ny == i then MatchExact else MatchPrefix) s
-              | ly `BS.isInfixOf` str -> addMatchLast MatchSubstr s
-              | otherwise -> s{sLast=Nothing}
+        f s ii = addCount $ moveFocus i $ case match i str of
+            Nothing -> s{sLast=Nothing}
+            Just t -> addMatchLast t s
             where str = BS.unsafeTake i $ sFocus s
                   i = fromIntegral ii
 
@@ -134,3 +133,27 @@ getBinary size g = do
 fromLBS = BS.concat . LBS.toChunks
 toLBS = LBS.fromChunks . return
 
+
+
+-- if first word is empty, always return Exact/Prefix
+-- if first word is a single letter, do elemIndex
+-- if first word is multiple, do isPrefixOf's but only up until n from the end
+-- partially apply on the first word
+
+-- FIXME: Should use elemIndex, and should ideally do on the entire string at once
+-- rather than splitting up
+bsMatch :: BS.ByteString -> Int -> BS.ByteString -> Maybe TextMatch
+bsMatch x
+    | nx == 0 = \ny _ -> Just $ if ny == 0 then MatchExact else MatchPrefix
+    | nx == 1 = let c = BS.head x in \ny y -> case BS.elemIndex c y of
+        Nothing -> Nothing
+        Just 0 -> Just $ if ny == 1 then MatchExact else MatchPrefix
+        Just _ -> Just MatchSubstr
+    | otherwise = \ny y -> if BS.isPrefixOf x y then Just (if nx == nx then MatchExact else MatchPrefix)
+                           else f (ny - nx) (BS.unsafeTail y)
+    where
+        nx = BS.length x
+
+        f i y | i <= 0 = Nothing
+              | x `BS.isPrefixOf` y = Just MatchSubstr
+              | otherwise = f (i-1) (BS.unsafeTail y)
