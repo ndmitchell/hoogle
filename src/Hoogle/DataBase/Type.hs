@@ -1,20 +1,12 @@
 
-module Hoogle.DataBase.Type
-    (module Hoogle.DataBase.Type
-    ,module Hoogle.DataBase.Items
-    ,module Hoogle.DataBase.Suggest
-    ,module Hoogle.DataBase.Aliases
-    ,module Hoogle.DataBase.Instances
-    ,module Hoogle.DataBase.SubstrSearch
-    ,module Hoogle.DataBase.TypeSearch.All
-    ) where
+module Hoogle.DataBase.Type(module Hoogle.DataBase.Type, module X) where
 
-import Hoogle.DataBase.Items
-import Hoogle.DataBase.Suggest
-import Hoogle.DataBase.Aliases
-import Hoogle.DataBase.Instances
-import Hoogle.DataBase.TypeSearch.All
-import Hoogle.DataBase.SubstrSearch
+import Hoogle.DataBase.Items           as X
+import Hoogle.DataBase.Suggest         as X
+import Hoogle.DataBase.Aliases         as X
+import Hoogle.DataBase.Instances       as X
+import Hoogle.DataBase.SubstrSearch    as X
+import Hoogle.DataBase.TypeSearch.All  as X
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.Type.All
