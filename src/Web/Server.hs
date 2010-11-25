@@ -56,6 +56,14 @@ talk Server{..} Request{rqURI=URI{uriPath=path,uriQuery=query}}
     | takeDirectory path == "/res" = do
         h <- openBinaryFile (resources </> takeFileName path) ReadMode
         src <- hGetContents h
-        return $ Response (2,0,0) "OK" [Header HdrCacheControl "max-age=604800" {- 1 week -}] src
+        return $ Response (2,0,0) "OK"
+            [Header HdrContentType $ contentExt $ takeExtension path
+            ,Header HdrCacheControl "max-age=604800" {- 1 week -}] src
     | otherwise
         = return $ Response (4,0,4) "Not Found" [] $ "404 Not Found: " ++ show path
+
+
+contentExt ".png" = "image/png"
+contentExt ".css" = "text/css"
+contentExt ".js" = "text/javascript"
+contentExt _ = "text/plain"
