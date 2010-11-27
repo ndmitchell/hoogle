@@ -20,7 +20,7 @@ parseInputHaskell = join . f [] "" . zip [1..] . lines
         f com url [] = []
         f com url ((i,s):is)
             | "-- | " `isPrefixOf` s = f [drop 5 s] url is
-            | "--" `isPrefixOf` s = f ([drop 5 s | com /= []] ++ com) url is
+            | "--" `isPrefixOf` s = f ([dropWhile isSpace $ drop 2 s | com /= []] ++ com) url is
             | "@url " `isPrefixOf` s = f com (drop 5 s) is
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i s of
