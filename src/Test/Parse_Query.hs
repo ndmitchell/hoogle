@@ -7,7 +7,7 @@ import Hoogle.Type.All
 
 parse_Query = do
     let (===) = parseTest parseQuery
-        q = emptyQuery
+        q = blankQuery
 
     "map" === q{names = ["map"]}
     "#" === q{names = ["#"]}
