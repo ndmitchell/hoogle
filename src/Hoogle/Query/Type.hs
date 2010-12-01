@@ -4,7 +4,6 @@ module Hoogle.Query.Type where
 
 import Data.Maybe
 import Data.Data
-
 import Hoogle.Type.All
 
 

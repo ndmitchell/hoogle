@@ -41,7 +41,7 @@ data CmdLine
     | Data {datadir :: FilePath, threads :: Int, nodownload :: Bool, redownload :: Bool, rebuild :: Bool, actions :: [String]}
       deriving (Data,Typeable,Show)
 
-blankSearch = Search False Nothing Nothing Nothing False False False 1 [] [] (Left $ ParseError 0 0 "") ""
+blankSearch = Search False Nothing Nothing Nothing False False False 1 [] [] (Left emptyParseError) ""
 
 cmdLineMode = cmdArgsMode $ modes [search &= auto,test,server,dump,rank,combine,convert,dataa]
     &= verbosity &= program "hoogle"
@@ -58,7 +58,7 @@ search = Search
     ,color = def
     ,databases = ["."] &= typDir &= help "Which directories to find databases"
     ,repeat_ = 1
-    ,queryParsed = Left (ParseError 0 0 "") &= ignore
+    ,queryParsed = Left emptyParseError &= ignore
     ,queryText = "" &= ignore
     }
 

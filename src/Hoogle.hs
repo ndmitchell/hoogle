@@ -7,7 +7,7 @@
 module Hoogle(
     -- * Utility types
     module Data.TagStr,
-    H.ParseError(..),
+    H.ParseError(..), H.emptyParseError,
     URL,
     Language(..),
     -- * Database
