@@ -123,8 +123,8 @@ showTagHTMLWith f x = g x
         g x | isJust (f x) = fromJust $ f x
         g (Str x) = nbsp $ escapeHTML x
         g (Tags xs) = concatMap g xs
-        g (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
-        g (TagEmph x) = "<i>" ++ showTagHTML x ++ "</i>"
+        g (TagBold x) = htmlTag "b" $ showTagHTML x
+        g (TagEmph x) = htmlTag "i" $ showTagHTML x
         -- FIXME: this is overly specific!
         g (TagLink "" x) = g (TagLink url x)
             where str = showTagText x
