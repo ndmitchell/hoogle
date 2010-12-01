@@ -108,7 +108,7 @@ showTagHTMLWith :: (TagStr -> Maybe String) -> TagStr -> String
 showTagHTMLWith f x = g x
     where
         g x | isJust (f x) = fromJust $ f x
-        g (Str x) = escapeHTML x
+        g (Str x) = nbsp $ escapeHTML x
         g (Tags xs) = concatMap g xs
         g (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
         g (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
@@ -118,6 +118,10 @@ showTagHTMLWith f x = g x
                   url = if "http:" `isPrefixOf` str then str else "?hoogle=" ++% str
         g (TagHyperlink url x) = "<a href=\"" ++& url ++ "\">" ++ showTagHTML x ++ "</a>"
         g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
+
+        nbsp (' ':' ':xs) = " &nbsp;" ++ nbsp xs
+        nbsp (x:xs) = x : nbsp xs
+        nbsp [] = []
 
 
 -- each position is a 0-based start and end index

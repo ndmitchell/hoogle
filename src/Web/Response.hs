@@ -58,20 +58,20 @@ runSuggest _ = return ""
 
 
 runQuery :: Database -> CmdLine -> [String]
-runQuery dbs Search{queryText = text, queryParsed = Left (ParseError _ pos txt)} =
+runQuery dbs Search{queryParsed = Left err} =
     ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
-    ,"  Query: <tt>" ++& pre ++ "<span id='error'>" ++& post ++ post2 ++ "</span></tt><br/>"
+    ,"  Query: <span id='error'>" ++ showTagHTMLWith f (parseInput err) ++ "</span><br/>"
     ,"</p><p>"
-    ,"  Error: " ++& txt ++ "<br/>"
+    ,"  Error: " ++& errorMessage err ++ "<br/>"
     ,"</p><p>"
     ,"  For information on what queries should look like, see the"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>user manual</a>."
     ,"</p>"
     ]
     where
-        (pre,post) = splitAt pos text
-        post2 = if null post then concat $ replicate 3 "&nbsp;" else []
+        f (TagUnderline x) = Just $ "<u>" ++ showTagHTMLWith f x ++ "</u>"
+        f _ = Nothing
 
 
 runQuery dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome

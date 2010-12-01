@@ -89,7 +89,11 @@ p, table {
 */
 
 #error {
+    font-family: monospace;
+}
+#error u {
     border-bottom: 2px dotted red;
+    text-decoration: none;
 }
 
 #example {

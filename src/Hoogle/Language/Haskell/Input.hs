@@ -33,19 +33,19 @@ parseInputHaskell = join . f [] "" . zip [1..] . lines
 
 
 parseLine :: Int -> String -> Either ParseError ([Fact],[TextItem])
-parseLine line x | "(##)" `isPrefixOf` x = Left $ ParseError line 1 "Skipping due to HSE bug #206"
+parseLine line x | "(##)" `isPrefixOf` x = Left $ parseErrorWith line 1 "Skipping due to HSE bug #206" "(##)"
 parseLine line ('@':str) = case a of
         "keyword" -> Right $ itemKeyword $ dropWhile isSpace b
         "package" -> Right $ itemPackage $ dropWhile isSpace b
-        _ -> Left $ ParseError line 2 $ "Unknown attribute: " ++ a
+        _ -> Left $ parseErrorWith line 2 ("Unknown attribute: " ++ a) $ '@':str
     where (a,b) = break isSpace str
 parseLine line x | a == "module" = Right $ itemModule $ split '.' $ dropWhile isSpace b
     where (a,b) = break isSpace x
 parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x ++ ex of
-    ParseOk y -> maybe (Left $ ParseError line 1 "Can't translate") Right $ transDecl x y
+    ParseOk y -> maybe (Left $ parseErrorWith line 1 "Can't translate" $ x ++ ex) Right $ transDecl x y
     ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x of
         ParseOk y | Just z <- transDecl x $ fmap (subtractCols 16) y -> Right z
-        _ -> Left $ ParseError line (srcColumn pos) $ msg ++ " - " ++ x ++ ex
+        _ -> Left $ parseErrorWith line (srcColumn pos) msg $ x ++ ex
     where ex = if "newtype " `isPrefixOf` x then " = N T" else " " -- space to work around HSE bug #205
 
 exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures,MultiParamTypeClasses

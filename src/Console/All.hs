@@ -14,10 +14,12 @@ action :: CmdLine -> IO ()
 
 action x@Search{repeat_=i} | i /= 1 = replicateM_ i $ action x{repeat_=1}
 
-action Search{queryText = text, queryParsed = Left (ParseError _ pos err)} =
-    exitMessage ["Parse error:", "  " ++ text
-                ,replicate pos ' ' ++ "^"
-                ,err]
+action x@Search{queryParsed = Left err} =
+    exitMessage ["Parse error:", "  " ++ showTag (parseInput err)
+                ,replicate (columnNo err) ' ' ++ "^"
+                ,errorMessage err]
+    where showTag = if color x then showTagConsole else showTagText
+
 
 action (Test files _) = do
     testPrepare

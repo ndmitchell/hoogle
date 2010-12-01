@@ -8,10 +8,10 @@ import Text.ParserCombinators.Parsec as Parsec
 
 
 parseQuery :: String -> Either Hoogle.ParseError Query
-parseQuery = either (Left . toParseError) Right . parse parsecQuery ""
+parseQuery x = either (Left . toParseError x) Right $ parse parsecQuery "" x
 
-toParseError :: Parsec.ParseError -> Hoogle.ParseError
-toParseError x = Hoogle.ParseError (sourceLine pos) (sourceColumn pos) (show x)
+toParseError :: String -> Parsec.ParseError -> Hoogle.ParseError
+toParseError src x = parseErrorWith (sourceLine pos) (sourceColumn pos) (show x) src
     where pos = errorPos x
 
 
