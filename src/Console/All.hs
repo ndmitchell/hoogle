@@ -18,7 +18,7 @@ action x@Search{queryParsed = Left err} =
     exitMessage ["Parse error:", "  " ++ showTag (parseInput err)
                 ,replicate (columnNo err) ' ' ++ "^"
                 ,errorMessage err]
-    where showTag = if color x then showTagConsole else showTagText
+    where showTag = if color x then showTagANSI else showTagText
 
 
 action (Test files _) = do

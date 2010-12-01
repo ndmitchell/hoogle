@@ -38,7 +38,7 @@ actionSearch flags q = do
             where start2 = maybe 0 (subtract 1) $ start flags
                   count2 = fromMaybe maxBound $ count flags
 
-        showTag = if color flags then showTagConsole else showTagText
+        showTag = if color flags then showTagANSI else showTagText
         verbose = False
 
         f (s,Result{..}) = maybe "" (\m -> snd m ++ " ") modul ++

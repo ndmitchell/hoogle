@@ -6,7 +6,7 @@
 
 module General.Web(
     combineURL, escapeURL, (++%), unescapeURL,
-    escapeHTML, (++&),
+    escapeHTML, (++&), htmlTag,
     cgiArgs,
     parseHttpQueryArgs
     ) where
@@ -35,6 +35,10 @@ escapeHTML = concatMap f
 -- | Escape the second argument as HTML before appending
 (++&) :: String -> String -> String
 a ++& b = a ++ escapeHTML b
+
+
+htmlTag :: String -> String -> String
+htmlTag x y = "<" ++ x ++ ">" ++ y ++ "</" ++ x ++ ">"
 
 
 ---------------------------------------------------------------------

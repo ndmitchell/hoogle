@@ -1,11 +1,17 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
 -- | A module representing strings with formatting.
-module Hoogle.Type.TagStr(TagStr(..), formatTags, showTagText, showTagConsole, showTagHTML, showTagHTMLWith) where
+module Hoogle.Type.TagStr(
+    TagStr(..),
+    showTagText, showTagANSI,
+    showTagHTML, showTagHTMLWith,
+    formatTags
+    ) where
 
 import Data.Char
 import Data.List
 import Data.Data
+import Data.Monoid
 import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Maybe
@@ -13,13 +19,20 @@ import Data.Function
 import General.Web
 
 
-data TagStr = Str String -- ^ Plain text.
-            | Tags [TagStr] -- ^ A list of tags one after another.
-            | TagBold TagStr -- ^ Bold text.
-            | TagEmph TagStr -- ^ Underlined/italic text.
-            | TagLink String TagStr -- ^ A hyperlink to a URL.
-            | TagColor Int TagStr -- ^ Colored text. Index into a 0-based palette.
-              deriving (Data,Typeable,Ord,Show,Eq)
+data TagStr
+    = Str String -- ^ Plain text.
+    | Tags [TagStr] -- ^ A list of tags one after another.
+    | TagBold TagStr -- ^ Bold text.
+    | TagEmph TagStr -- ^ Underlined/italic text.
+    | TagLink String TagStr -- ^ A hyperlink to a URL.
+    | TagColor Int TagStr -- ^ Colored text. Index into a 0-based palette.
+      deriving (Data,Typeable,Ord,Show,Eq)
+
+
+instance Monoid TagStr where
+    mempty = Str ""
+    mappend x y = Tags [x,y]
+    mconcat = Tags
 
 
 instance Uniplate TagStr where
@@ -78,8 +91,8 @@ showTagText x = concat [y | Str y <- universe x]
 
 
 -- | Show a 'TagStr' on a console with ANSI escape sequences.
-showTagConsole :: TagStr -> String
-showTagConsole x = f [] x
+showTagANSI :: TagStr -> String
+showTagANSI x = f [] x
     where
         f a (Str x) = x
 

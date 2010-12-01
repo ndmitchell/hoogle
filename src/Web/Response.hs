@@ -128,7 +128,7 @@ renderRes i Result{..} =
                "</div>"
 
         url (TagBold x)
-            | null selfUrl = Just $ "<span class='a'>no url" ++ showTagHTML (transform g x) ++ "</span>"
+            | null selfUrl = Just $ "<span class='a'>" ++ showTagHTML (transform g x) ++ "</span>"
             | otherwise = Just $ "</a><a class='a' href='" ++& selfUrl ++ "'>" ++ showTagHTML (transform g x) ++
                                  "</a><a class='dull' href='" ++& selfUrl ++ "'>"
         url _ = Nothing
