@@ -12,7 +12,7 @@ suggestQuery :: [DataBase] -> Query -> Maybe TagStr
 
 -- They searched for Google (pay homage)
 suggestQuery db q | "google" `elem` map (map toLower) (names q) =
-    Just $ Tags [TagHyperlink "http://www.google.com/" (Str "Google"), Str " rocks!"]
+    Just $ Tags [TagLink "http://www.google.com/" (Str "Google"), Str " rocks!"]
 
 -- They searched for ?oogle (mock)
 suggestQuery db q | any f (names q) = Just $ Str "Can't think of anything more interesting to search for?"
@@ -40,7 +40,7 @@ suggestQuery db q = Nothing
 
 
 didYouMean :: Query -> TagStr
-didYouMean q = Tags [TagBold $ Str "Did you mean: ", TagHyperlink ("query:" ++ s) $ Str s]
+didYouMean q = Tags [TagBold $ Str "Did you mean: ", TagLink ("query:" ++ s) $ Str s]
     where s = showTagText $ renderQuery q
 
 

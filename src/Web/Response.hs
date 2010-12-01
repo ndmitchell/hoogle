@@ -99,7 +99,7 @@ runQuery dbs cq@Search{queryParsed = Right q} =
         urlMore = "?hoogle=" ++% queryText cq ++ "&start=" ++ show (start2+count2+1) ++ "#more"
 
         qstr = showTagHTML (renderQuery q)
-        qurl (TagHyperlink url x) | "query:" `isPrefixOf` url = TagHyperlink ("?hoogle=" ++% drop 6 url) x
+        qurl (TagLink url x) | "query:" `isPrefixOf` url = TagLink ("?hoogle=" ++% drop 6 url) x
         qurl x = x
 
 

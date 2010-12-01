@@ -37,7 +37,7 @@ renderDocumentation (Documentation xs) = Tags $ f False $ parseHTML $ unpack xs
         f pre (Tag [t,'l'] x:xs) | t `elem` "ou" = tail $ f pre (filter (/= nl) x ++ xs)
         f pre (Tag "pre" x:xs) = init (init $ tail $ f True x) ++ f pre xs
         f pre (Tag "li" x:xs) = Str "\n" : Str "* " : f pre x ++ f pre xs
-        f pre (Tag "a" x:xs) = TagHyperlink "" (Tags $ f pre x) : f pre xs
+        f pre (Tag "a" x:xs) = TagLink "" (Tags $ f pre x) : f pre xs
         f pre (Tag "i" x:xs) = TagEmph (Tags $ f pre x) : f pre xs
         f pre (Tag "b" x:xs) = TagBold (Tags $ f pre x) : f pre xs
 
