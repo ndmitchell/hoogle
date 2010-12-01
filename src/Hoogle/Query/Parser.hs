@@ -1,7 +1,6 @@
 
 module Hoogle.Query.Parser(parseQuery) where
 
-import Data.Monoid
 import General.Code
 import Hoogle.Query.Type
 import Hoogle.Type.All as Hoogle
@@ -23,6 +22,10 @@ optionBool :: Parser a -> Parser Bool
 optionBool p = (p >> return True) <|> return False
 
 
+joinQuery (Query a1 b1 c1) (Query a2 b2 c2) = Query (a1++a2) (b1++b2) (c1 `mplus` c2)
+joinQueries = foldr joinQuery emptyQuery
+
+
 ---------------------------------------------------------------------
 -- QUERY PARSEC
 
@@ -32,19 +35,19 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
         end f = do x <- f; eof; return x
     
         names = do a <- many (flag <|> name)
-                   b <- option mempty (string "::" >> spaces >> types)
-                   let res@Query{names=names} = mappend (mconcat a) b
+                   b <- option emptyQuery (string "::" >> spaces >> types)
+                   let res@Query{names=names} = joinQuery (joinQueries a) b
                        (op,nop) = partition ((`elem` ascSymbols) . head) names
                    if op /= [] && nop /= []
                        then fail "Combination of operators and names"
                        else return res
         
-        name = (do x <- operator ; spaces ; return mempty{names=[x]})
+        name = (do x <- operator ; spaces ; return emptyQuery{names=[x]})
                <|>
                (do xs <- keyword `sepBy1` (char '.') ; spaces
                    return $ case xs of
-                       [x] -> mempty{names=[x]}
-                       xs -> mempty{names=[last xs],scope=[PlusModule (init xs)]}
+                       [x] -> emptyQuery{names=[x]}
+                       xs -> emptyQuery{names=[last xs],scope=[PlusModule (init xs)]}
                )
         
         operator = between (char '(') (char ')') op <|> op
@@ -56,10 +59,10 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
         types = do a <- flags
                    b <- parsecTypeSig
                    c <- flags
-                   return $ mconcat [a,mempty{typeSig=Just b},c]
+                   return $ joinQueries [a,emptyQuery{typeSig=Just b},c]
 
         flag = try $ do x <- parseFlagScope ; spaces ; return x
-        flags = many flag >>= return . mconcat
+        flags = many flag >>= return . joinQueries
 
 
 -- deal with the parsing of:
@@ -73,8 +76,8 @@ parseFlagScope = do
         modname  = keyword `sepBy1` (char '.')
     modu <- modname
     case modu of
-        [x] -> return $ mempty{scope=[if isLower (head x) then aPackage x else aModule [x]]}
-        xs -> return $ mempty{scope=[aModule xs]}
+        [x] -> return $ emptyQuery{scope=[if isLower (head x) then aPackage x else aModule [x]]}
+        xs -> return $ emptyQuery{scope=[aModule xs]}
 
 
 keyword = do

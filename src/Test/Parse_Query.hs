@@ -1,14 +1,13 @@
 
 module Test.Parse_Query(parse_Query) where
 
-import Data.Monoid
 import Test.General
 import Hoogle.Query.All
 import Hoogle.Type.All
 
 parse_Query = do
     let (===) = parseTest parseQuery
-        q = mempty
+        q = emptyQuery
 
     "map" === q{names = ["map"]}
     "#" === q{names = ["#"]}

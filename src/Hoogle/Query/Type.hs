@@ -3,7 +3,6 @@
 module Hoogle.Query.Type where
 
 import Data.Maybe
-import Data.Monoid
 import Data.Data
 import Data.Generics.UniplateOn
 
@@ -22,10 +21,8 @@ data Query = Query {
     }
     deriving (Data,Typeable,Show)
 
-instance Monoid Query where
-    mempty = Query [] [] Nothing
-    mappend (Query a1 b1 c1) (Query a2 b2 c2) =
-        Query (a1++a2) (b1++b2) (c1 `mplus` c2)
+
+emptyQuery = Query [] [] Nothing
 
 
 instance Eq Query where
