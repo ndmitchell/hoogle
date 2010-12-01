@@ -99,7 +99,6 @@ library
         Data.Binary.Raw
         Data.Heap
         Data.Key
-        Data.TagStr
         Data.TypeMap
         General.Code
         General.Util
@@ -120,7 +119,9 @@ library
         Hoogle.DataBase.TypeSearch.All
         Hoogle.Type.Documentation
         Hoogle.Type.Item
+        Hoogle.Type.TagStr
         Hoogle.Type.TypeSig
+        Hoogle.Type.ParseError
         Hoogle.Type.Result
         Hoogle.Query.Parser
         Hoogle.Query.Render
