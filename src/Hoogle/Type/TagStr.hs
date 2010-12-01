@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
 -- | A module representing strings with formatting.
-module Data.TagStr(TagStr(..), formatTags, showTagText, showTagConsole, showTagHTML, showTagHTMLWith) where
+module Hoogle.Type.TagStr(TagStr(..), formatTags, showTagText, showTagConsole, showTagHTML, showTagHTMLWith) where
 
 import Data.Char
 import Data.List
@@ -127,7 +127,7 @@ formatTags o y = tags $ f o 0 $ sortBy (compare `on` fst . fst) y
     where
         f x i [] = str x
         f x i (((from,to),op):ss)
-            | i > from = error $ "Data.TagStr.formatTags, not allowed overlapping formats on: " ++ o
+            | i > from = error $ "TagStr.formatTags, not allowed overlapping formats on: " ++ o
             | otherwise = str a ++ [op $ Str c] ++ f d to ss
                 where (a,b) = splitAt (from-i) x
                       (c,d) = splitAt (to-from) b

@@ -3,7 +3,6 @@
 module Console.Search(actionSearch) where
 
 import CmdLine.All
-import Data.TagStr
 import General.Code
 import Hoogle
 

@@ -4,7 +4,7 @@ module Hoogle.Type.Documentation(
     ) where
 
 import General.Code
-import Data.TagStr
+import Hoogle.Type.TagStr
 import Data.Binary.Defer
 import Data.ByteString.Char8(ByteString,pack,unpack)
 

@@ -6,7 +6,7 @@
 -- | The Hoogle API.
 module Hoogle(
     -- * Utility types
-    module Data.TagStr,
+    module Hoogle.Type.TagStr,
     H.ParseError(..), H.emptyParseError,
     URL,
     Language(..),
@@ -25,10 +25,10 @@ import Data.Binary.Defer.Index
 import Data.Monoid
 import Data.Data
 import Data.Maybe
-import Data.TagStr
 import General.Util(URL)
 import System.Mem
 
+import Hoogle.Type.TagStr
 import qualified Hoogle.DataBase.All as H
 import qualified Hoogle.Query.All as H
 import qualified Hoogle.Score.All as H
