@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Data.Binary.Defer.Index(
     Id,
@@ -25,11 +26,7 @@ type Id = Int
 -- INDEX
 
 newtype Index a = Index (Array a)
-
-
-typename_Index = mkTyCon "Data.Binary.Defer.Index.Index"
-instance Typeable1 Index where typeOf1 _ = mkTyConApp typename_Index []
-instance Typeable a => Typeable (Index a) where typeOf = typeOfDefault
+                  deriving Typeable
 
 
 -- | Items will obtain the Id's 0..length-1
