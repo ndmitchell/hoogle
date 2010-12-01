@@ -16,7 +16,7 @@ import General.Web
 data TagStr = Str String -- ^ Plain text.
             | Tags [TagStr] -- ^ A list of tags one after another.
             | TagBold TagStr -- ^ Bold text.
-            | TagUnderline TagStr -- ^ Underlined text.
+            | TagEmph TagStr -- ^ Underlined/italic text.
             | TagHyperlink String TagStr -- ^ A hyperlink to a URL.
             | TagColor Int TagStr -- ^ Colored text. Index into a 0-based palette.
               deriving (Data,Typeable,Ord,Show,Eq)
@@ -25,7 +25,7 @@ data TagStr = Str String -- ^ Plain text.
 instance Uniplate TagStr where
     uniplate (Tags xs) = (xs, Tags)
     uniplate (TagBold x) = ([x], \[x] -> TagBold x)
-    uniplate (TagUnderline x) = ([x], \[x] -> TagUnderline x)
+    uniplate (TagEmph x) = ([x], \[x] -> TagEmph x)
     uniplate (TagHyperlink i x) = ([x], \[x] -> TagHyperlink i x)
     uniplate (TagColor i x) = ([x], \[x] -> TagColor i x)
     uniplate x = ([], const x)
@@ -35,7 +35,7 @@ instance BinaryDefer TagStr where
     put (Str x)            = putByte 0 >> put1 x
     put (Tags x)           = putByte 1 >> put1 x
     put (TagBold x)        = putByte 2 >> put1 x
-    put (TagUnderline x)   = putByte 3 >> put1 x
+    put (TagEmph x)   = putByte 3 >> put1 x
     put (TagHyperlink x y) = putByte 4 >> put2 x y
     put (TagColor x y)     = putByte 5 >> put2 x y
 
@@ -44,7 +44,7 @@ instance BinaryDefer TagStr where
                 0 -> get1 Str
                 1 -> get1 Tags
                 2 -> get1 TagBold
-                3 -> get1 TagUnderline
+                3 -> get1 TagEmph
                 4 -> get2 TagHyperlink
                 5 -> get2 TagColor
 
@@ -57,7 +57,7 @@ instance Binary TagStr where
     put (Str x)            = putWord8 0 >> put x
     put (Tags x)           = putWord8 1 >> put x
     put (TagBold x)        = putWord8 2 >> put x
-    put (TagUnderline x)   = putWord8 3 >> put x
+    put (TagEmph x)   = putWord8 3 >> put x
     put (TagHyperlink x y) = putWord8 4 >> put x >> put y
     put (TagColor x y)     = putWord8 5 >> put x >> put y
 
@@ -66,7 +66,7 @@ instance Binary TagStr where
                 0 -> liftM Str get
                 1 -> liftM Tags get
                 2 -> liftM TagBold get
-                3 -> liftM TagUnderline get
+                3 -> liftM TagEmph get
                 4 -> liftM2 TagHyperlink get get
                 5 -> liftM2 TagColor get get
 -}
@@ -91,7 +91,7 @@ showTagConsole x = f [] x
         
         getCode (TagBold _) = Just "1"
         getCode (TagHyperlink url _) = if null url then Nothing else Just "4"
-        getCode (TagUnderline _) = Just "4"
+        getCode (TagEmph _) = Just "4"
         getCode (TagColor n _) | n <= 5 && n >= 0 = Just ['3', intToDigit (n + 1)]
         getCode _ = Nothing
 
@@ -111,7 +111,7 @@ showTagHTMLWith f x = g x
         g (Str x) = nbsp $ escapeHTML x
         g (Tags xs) = concatMap g xs
         g (TagBold x) = "<b>" ++ showTagHTML x ++ "</b>"
-        g (TagUnderline x) = "<i>" ++ showTagHTML x ++ "</i>"
+        g (TagEmph x) = "<i>" ++ showTagHTML x ++ "</i>"
         -- FIXME: this is overly specific!
         g (TagHyperlink "" x) = g (TagHyperlink url x)
             where str = showTagText x

@@ -22,7 +22,7 @@ emptyParseError = ParseError 0 0 "" $ Str ""
 
 
 parseErrorWith :: Int -> Int -> String -> String -> ParseError
-parseErrorWith line col err text = ParseError line col err $ Tags [Str pre, TagUnderline $ Str $ post ++ post2]
+parseErrorWith line col err text = ParseError line col err $ Tags [Str pre, TagEmph $ Str $ post ++ post2]
     where
         (pre,post) = splitAt (col-1) text
         post2 = if null post then "   " else ""

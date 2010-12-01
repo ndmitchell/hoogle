@@ -70,7 +70,7 @@ runQuery dbs Search{queryParsed = Left err} =
     ,"</p>"
     ]
     where
-        f (TagUnderline x) = Just $ "<u>" ++ showTagHTMLWith f x ++ "</u>"
+        f (TagEmph x) = Just $ "<u>" ++ showTagHTMLWith f x ++ "</u>"
         f _ = Nothing
 
 
@@ -133,7 +133,7 @@ renderRes i Result{..} =
                                  "</a><a class='dull' href='" ++& selfUrl ++ "'>"
         url _ = Nothing
 
-        g (TagUnderline x) = TagBold x
+        g (TagEmph x) = TagBold x
         g x = x
 
 

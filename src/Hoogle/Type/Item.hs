@@ -74,7 +74,7 @@ renderEntryText view = transform f
         f (TagBold (Str xs)) = TagBold $ Tags $ g xs
         f x = x
 
-        g xs | ss /= [] = TagUnderline (Str a) : g b
+        g xs | ss /= [] = TagEmph (Str a) : g b
             where ss = filter (`isPrefixOf` map toLower xs) strs
                   (a,b) = splitAt (maximum $ map length ss) xs
         g (x:xs) = Str [x] : g xs

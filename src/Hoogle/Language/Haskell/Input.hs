@@ -63,14 +63,14 @@ fact x y = (x,[y])
 
 itemPackage x = fact [] $ textItem{itemLevel=0, itemName=[x],
     itemURL="http://hackage.haskell.org/package/" ++ x ++ "/",
-    itemDisp=Tags [under "package",space,bold x]}
+    itemDisp=Tags [emph "package",space,bold x]}
 
 itemKeyword x = fact [] $ textItem{itemName=[x],
-    itemDisp=Tags [under "keyword",space,bold x]}
+    itemDisp=Tags [emph "keyword",space,bold x]}
 
 itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
     itemURL="", -- filled in by addModuleURLs
-    itemDisp=Tags [under "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
+    itemDisp=Tags [emph "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
 
 addModuleURLs :: [TextItem] -> [TextItem]
 addModuleURLs = f ""
@@ -101,13 +101,13 @@ transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ te
 transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
     {itemName=[nam]
     ,itemURL="#t:" ++ nam
-    ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagUnderline),(cols snam,TagBold)]}
+    ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
 transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from++kinds False to) $ textItem
     {itemName=[nam]
     ,itemURL="#t:" ++ nam
-    ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagUnderline),(cols snam,TagBold)]}
+    ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
           from = transDeclHead Nothing hd
           to = transTypeSig ty
@@ -115,7 +115,7 @@ transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from
 transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ fact (kinds False $ transDeclHead ctxt hd) $ textItem
     {itemName=[nam]
     ,itemURL="#t:" ++ nam
-    ,itemDisp=x `formatTags` [(cols $ srcInfoSpan $ ann dat, TagUnderline),(cols snam,TagBold)]}
+    ,itemDisp=x `formatTags` [(cols $ srcInfoSpan $ ann dat, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
 transDecl x (InstDecl _ ctxt hd _) = Just (FactInstance t:kinds True t, [])
@@ -202,7 +202,7 @@ transVar (UnkindedVar _ nam) = TVar $ prettyPrint nam
 
 ---------------------------------------------------------------------
 
-under = TagUnderline . Str
+emph = TagEmph . Str
 bold = TagBold . Str
 space = Str " "
 
