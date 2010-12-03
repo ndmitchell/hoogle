@@ -4,11 +4,17 @@ module Hoogle.Query.Parser(parseQuery) where
 import General.Code
 import Hoogle.Query.Type
 import Hoogle.Type.All as Hoogle
-import Text.ParserCombinators.Parsec as Parsec
+import Text.ParserCombinators.Parsec hiding (ParseError)
+import qualified Text.ParserCombinators.Parsec as Parsec
 
 
-parseQuery :: String -> Either Hoogle.ParseError Query
-parseQuery x = either (Left . toParseError x) Right $ parse parsecQuery "" x
+parseQuery :: String -> Either ParseError Query
+parseQuery x = case bracketer x of
+    Left err -> Left err
+    Right _ -> case parse parsecQuery "" x of
+        Left err -> Left $ toParseError x err
+        Right x -> Right x
+
 
 toParseError :: String -> Parsec.ParseError -> Hoogle.ParseError
 toParseError src x = parseErrorWith (sourceLine pos) (sourceColumn pos) (show x) src
@@ -179,3 +185,43 @@ parsecTypeSig = do whites
             x <- many1 $ satisfy (\x -> isSymbol x || x `elem` ascSymbols)
             if x `elem` reservedSym then fail "Bad symbol" else return x
         reservedSym = ["::","=>",".","=","#",":","-","+","/","--"]
+
+
+--------------------------------------------------------------------
+-- BRACKETER
+
+openBrackets = "(["
+shutBrackets = ")]"
+
+
+data Bracket = Bracket Char [Bracket] -- Char is one of '(' or '['
+             | NoBracket Char
+               deriving Show
+
+bracketer :: String -> Either ParseError [Bracket]
+bracketer xs = case readBracket (1,xs) of
+    Left (msg,from,to) -> f msg from to
+    Right (res,(i,_:_)) -> f "Unexpected closing bracket" i (length xs)
+    Right (res,_) -> Right res
+    where
+        f msg from to = Left $ ParseError 1 from msg $ formatTags xs [((from-1,to-1),TagEmph)]
+
+
+type StrPos = (Int,String)
+
+-- Given a list of pos/chars return either a failure (msg,start,end) or some bracket and the remaining chars
+readBracket :: StrPos -> Either (String,Int,Int) ([Bracket], StrPos)
+readBracket (i,"") = Right ([],(i,""))
+readBracket (i, x:xs)
+    | x `elem` shutBrackets = Right ([], (i,x:xs))
+    | x `elem` openBrackets = case readBracket (i+1,xs) of
+        Left e -> Left e
+        Right (_, (j,[])) -> Left ("Closing bracket expected", i, j)
+        Right (res, (j,y:ys))
+            | elemIndex x openBrackets /= elemIndex y shutBrackets -> Left ("Bracket mismatch", i, j+1)
+            | otherwise -> case readBracket (j+1,ys) of
+                Left e -> Left e
+                Right (a,b) -> Right (Bracket x res:a, b)
+    | otherwise = case readBracket (i+1,xs) of
+        Left e -> Left e
+        Right (a,b) -> Right (NoBracket x:a, b)
