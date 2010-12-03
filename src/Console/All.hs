@@ -16,7 +16,7 @@ action x@Search{repeat_=i} | i /= 1 = replicateM_ i $ action x{repeat_=1}
 
 action x@Search{queryParsed = Left err} =
     exitMessage ["Parse error:", "  " ++ showTag (parseInput err)
-                ,replicate (columnNo err) ' ' ++ "^"
+                ,replicate (columnNo err) ' ' ++ " ^"
                 ,errorMessage err]
     where showTag = if color x then showTagANSI else showTagText
 
