@@ -11,6 +11,7 @@ import CmdLine.All
 import System.Mem
 import Test.All
 import Control.Exception
+import System.Console.CmdArgs
 
 
 testPrepare :: IO ()
@@ -66,6 +67,7 @@ parseArgs xs = a : parseArgs (dropWhile isSpace b)
 
 runTest :: (CmdLine -> IO ()) -> Testcase -> IO Bool
 runTest run Testcase{..} = do
+    whenLoud $ putStrLn $ "Testing: " ++ testQuery
     args <- withArgs (parseArgs testQuery) cmdLine
     res <- try $ captureOutput $ run args
     case res of
