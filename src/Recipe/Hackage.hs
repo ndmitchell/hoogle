@@ -43,7 +43,7 @@ makeDefault make name = do
     b1 <- doesDirectoryExist $ cabals </> name
     b2 <- doesDirectoryExist $ haddocks </> name
     if not b1 || not b2 then
-        putError $ name ++ " couldn't find both Cabal and Haddock inputs"
+        putError $ "Error: " ++ name ++ " couldn't find both Cabal and Haddock inputs"
      else do
         vc <- version cabals name
         vh <- version haddocks name
