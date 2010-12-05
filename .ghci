@@ -60,3 +60,11 @@
        "(timer .hpc\\opt\\hoogle " ++ x ++ ")"]
 :}
 
+:{
+:def deploy const $ return $ unlines
+    [":!cabal clean"
+    ,":!cabal configure --datadir=/srv/web/haskell.org/hoogle --datasubdir=datadir -O2"
+    ,":!cabal build"
+    ,":!cp dist/build/hoogle/hoogle /srv/web/haskell.org/hoogle/index.cgi"
+    ]
+:}
