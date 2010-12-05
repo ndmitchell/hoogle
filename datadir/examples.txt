@@ -39,8 +39,8 @@ seq +base
 seq
 
 -- test that the base type String=[Char] alias is known
-"[Char] -> a" +tagsoup
-@now fromString
+"[Char] -> a -> a"
+@now trace
 
 -- test that packages are included
 hlint
@@ -48,7 +48,7 @@ package hlint
 
 -- #146, preserve foralls
 everywhere +syb
-everywhere :: (forall a. (Data a) => a -> a) -> (forall a. (Data a) => a -> a)
+everywhere :: (forall a. Data a => a -> a) -> (forall a. Data a => a -> a)
 
 -- #320, make sure it finds system
 system
