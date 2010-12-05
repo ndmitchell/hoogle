@@ -30,8 +30,7 @@ action (Test files _) = do
 
 action (Rank file) = rank file
 
-action (Data datadir threads nodownload redownload rebuild xs) =
-    recipes (RecipeOptions datadir threads nodownload redownload rebuild) xs
+action x@Data{} = recipes x
 
 action (Convert from to) = do
     to <- return $ if null to then replaceExtension from "hoo" else to

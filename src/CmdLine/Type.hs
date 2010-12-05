@@ -38,7 +38,7 @@ data CmdLine
     | Rank {srcfile :: FilePath}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
-    | Data {datadir :: FilePath, threads :: Int, nodownload :: Bool, redownload :: Bool, rebuild :: Bool, actions :: [String]}
+    | Data {datadir :: FilePath, threads :: Int, haddock :: Bool, redownload :: Bool, rebuild :: Bool, actions :: [String]}
       deriving (Data,Typeable,Show)
 
 blankSearch = Search False Nothing Nothing Nothing False False False 1 [] [] (Left emptyParseError) ""
@@ -94,8 +94,14 @@ convert = Convert
 dataa = Data
     {datadir = def &= typDir &= help "Database directory"
     ,threads = def &= typ "INT" &= name "j" &= help "Number of threads to use"
-    ,nodownload = def &= help "Never download a file from the web"
+    ,haddock = def &= help "Get haddock documentation directly from Hackage"
     ,redownload = def &= help "Always redownload files from the web"
     ,rebuild = def &= help "Always rebuild files"
-    ,actions = def &= args &= typ "RECIPE"
-    } &= help "Generate databases"
+    ,actions = def &= args &= typ "RULE"
+    } &= help "Generate Hoogle databases"
+      &= details ["Each argument should be the name of a database you want to generate"
+                 ,"optionally followed by which files to combine. Common options:"
+                 ,""
+                 ,"  data default -- equialent to no arguments"
+                 ,"  data all"
+                 ]

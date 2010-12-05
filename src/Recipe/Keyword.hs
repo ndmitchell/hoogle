@@ -1,18 +1,21 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Recipe.Keyword(keyword) where
+module Recipe.Keyword(makeKeyword) where
 
 import Recipe.Type
 import Text.HTML.TagSoup
 import General.Code
 import Numeric
+import Recipe.General
 
 
-keyword :: RecipeDetails -> [String] -> IO ()
-keyword RecipeDetails{..} _ = do
-    download "-keyword.web" "http://haskell.org/haskellwiki/Keywords"
-    process ["-keyword.web"] ["keyword.txt"] $ do
-        writeFile "keyword.txt" . translate =<< readFile "-keyword.web"
+makeKeyword :: CmdLine -> IO ()
+makeKeyword opt = do
+    let src = "download/keyword.txt"
+        out = "keyword.txt"
+    download opt src "http://haskell.org/haskellwiki/Keywords"
+    buildFrom opt out [src] $ writeFile out . translate =<< readFile' src
+    convert opt noDeps "keyword"
 
 
 translate :: String -> String
