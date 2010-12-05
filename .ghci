@@ -3,9 +3,9 @@
 :set -isrc
 :load src\Main.hs src\Paths.hs
 
-:def test const $ return ":main test"
+:def test \x -> return $ ":main test " ++ x
 
-:def testfull const $ return ":main test --example"
+:def testfull \x -> return $ ":main test --example " ++ x
 
 :{
 :def hlint const $ return $ unlines
