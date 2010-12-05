@@ -10,6 +10,8 @@ import System.Directory
 import Control.Arrow
 import qualified Control.Exception as E
 import System.IO
+import System.Cmd
+import System.Exit
 
 #if __GLASGOW_HASKELL__ >= 612
 import GHC.IO.Handle(hDuplicate,hDuplicateTo)
@@ -203,3 +205,9 @@ compareChar x y = case (compare x y, compare (toLower x) (toLower y)) of
     (EQ, _) -> EQ
     (x, EQ) -> if x == GT then LT else GT
     (_, x ) -> x
+
+
+system_ :: String -> IO ()
+system_ x = do
+    res <- system x
+    when (res /= ExitSuccess) $ error $ "System command failed: " ++ x

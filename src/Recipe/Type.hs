@@ -2,9 +2,8 @@
 
 module Recipe.Type(
     CmdLine(..), Name, hoo, noDeps,
-    resetBuilt, build,
+    keywords, platform, cabals, haddocks, listing, version,
     resetErrors, putError, recapErrors,
-    downloadMay, download, buildFrom, system_,
     Cabal(..), readCabal, readCabalDepends, readCabalField
     ) where
 
@@ -12,6 +11,7 @@ import CmdLine.All
 import Data.IORef
 import System.IO.Unsafe
 import General.Code
+import Data.Function
 
 
 type Name = String
@@ -25,29 +25,25 @@ noDeps = error "Internal error: package with no dependencies had dependencies"
 
 
 ---------------------------------------------------------------------
--- BUILT CACHE
+-- DOWNLOADED INFORMATION
 
-{-# NOINLINE built #-}
-built :: IORef [FilePath]
-built = unsafePerformIO $ newIORef []
+keywords = "download/keyword.txt"
+platform = "download/haskell-platform.cabal"
+cabals = "download/hackage-cabal"
+haddocks = "download/hackage-haddock"
 
+listing :: FilePath -> IO [Name]
+listing dir = do
+    xs <- getDirectoryContents dir
+    return $ sortBy (compare `on` map toLower) $ filter (`notElem` [".","..","preferred-versions"]) xs
 
-resetBuilt :: IO ()
-resetBuilt = writeIORef built []
+version :: FilePath -> Name -> IO String
+version dir x = do
+    ys <- getDirectoryContents $ dir </> x
+    when (null ys) $ error $ "Couldn't find version for " ++ x ++ " in " ++ dir
+    let f = map (read :: String -> Int) . words . map (\x -> if x == '.' then ' ' else x)
+    return $ maximumBy (compare `on` f) $ filter (all (not . isAlpha)) ys
 
-
-addBuilt :: FilePath -> IO ()
-addBuilt x = modifyIORef built (x:)
-
-
-isBuilt :: FilePath -> IO Bool
-isBuilt x = fmap (x `elem`) $ readIORef built
-
-
-build :: FilePath -> IO () -> IO ()
-build x act = do
-    b <- isBuilt x
-    unless b $ do addBuilt x; act
 
 ---------------------------------------------------------------------
 -- ERROR MESSAGES
@@ -68,44 +64,6 @@ recapErrors = do
 
 resetErrors :: IO ()
 resetErrors = writeIORef errors []
-
-
----------------------------------------------------------------------
--- OPERATIONS
-
-downloadMay :: CmdLine -> FilePath -> URL -> IO Bool
-downloadMay opt fil url = do
-    build fil $ do
-        b <- doesFileExist fil
-        when (not b || redownload opt) $ do
-            res <- system $ "wget " ++ url ++ " -O " ++ fil
-            let b = res == ExitSuccess
-            unless b $ removeFile fil
-    doesFileExist fil
-
-
-download :: CmdLine -> FilePath -> URL -> IO ()
-download opt fil url = do
-    b <- downloadMay opt fil url
-    unless b $ error $ "Failed to download " ++ url
-
-
--- warning: if the action takes less than a second to complete
--- next time round it may still invoke buildFrom
-buildFrom :: CmdLine -> FilePath -> [FilePath] -> IO () -> IO ()
-buildFrom opt out deps act = do
-    let act2 = do putStrLn $ "# " ++ out; act
-    b <- doesFileExist out
-    if not b || rebuild opt then act2 else do
-        old <- fmap maximum $ mapM getModificationTime deps
-        new <- getModificationTime out
-        when (old >= new) act2
-
-
-system_ :: String -> IO ()
-system_ x = do
-    res <- system x
-    when (res /= ExitSuccess) $ error $ "System command failed: " ++ x
 
 
 ---------------------------------------------------------------------

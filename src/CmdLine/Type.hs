@@ -38,7 +38,7 @@ data CmdLine
     | Rank {srcfile :: FilePath}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
-    | Data {datadir :: FilePath, threads :: Int, haddock :: Bool, redownload :: Bool, rebuild :: Bool, actions :: [String]}
+    | Data {datadir :: FilePath, threads :: Int, haddock :: Bool, redownload :: Bool, actions :: [String]}
       deriving (Data,Typeable,Show)
 
 blankSearch = Search False Nothing Nothing Nothing False False False 1 [] [] (Left emptyParseError) ""
@@ -96,7 +96,6 @@ dataa = Data
     ,threads = def &= typ "INT" &= name "j" &= help "Number of threads to use"
     ,haddock = def &= help "Get haddock documentation directly from Hackage"
     ,redownload = def &= help "Always redownload files from the web"
-    ,rebuild = def &= help "Always rebuild files"
     ,actions = def &= args &= typ "RULE"
     } &= help "Generate Hoogle databases"
       &= details ["Each argument should be the name of a database you want to generate"

@@ -9,13 +9,10 @@ import Numeric
 import Recipe.General
 
 
-makeKeyword :: CmdLine -> IO ()
-makeKeyword opt = do
-    let src = "download/keyword.txt"
-        out = "keyword.txt"
-    download opt src "http://haskell.org/haskellwiki/Keywords"
-    buildFrom opt out [src] $ writeFile out . translate =<< readFile' src
-    convert opt noDeps "keyword"
+makeKeyword :: IO ()
+makeKeyword = do
+    writeFile "keyword.txt" . translate =<< readFile' keywords
+    convert noDeps "keyword"
 
 
 translate :: String -> String
