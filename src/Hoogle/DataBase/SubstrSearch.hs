@@ -16,7 +16,6 @@ import qualified Data.Binary.Put as Bin
 import General.Code
 import Hoogle.Type.All
 import Hoogle.Score.All
-import Data.Function
 
 
 -- idea for speed improvement

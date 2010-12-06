@@ -1,27 +1,22 @@
 
-module General.Code(
-    module General.Util, module Safe,
-    module Control.Arrow, module Control.Monad,
-    module Data.Char, module Data.Maybe, module Data.Monoid, module Data.List,
-    module Debug.Trace, module Control.Exception,
-    module System.Cmd, module System.Directory, module System.Environment,
-    module System.Exit, module System.FilePath, module System.IO
-    ) where
+module General.Code(module X) where
 
-import General.Util
-import Safe
+import General.Util as X
+import Safe as X
 
-import Control.Arrow
-import Control.Monad
-import Data.Char
-import Data.Maybe
-import Data.Monoid
-import Data.List
-import Debug.Trace(trace)
-import Control.Exception(assert)
-import System.Cmd
-import System.Directory
-import System.Environment
-import System.Exit
-import System.FilePath hiding (FilePath,combine)
-import System.IO
+import Control.Arrow as X
+import Control.Monad as X
+import Data.Char as X
+import Data.Function as X
+import Data.List as X
+import Data.Maybe as X
+import Data.Monoid as X
+import Data.Ord as X
+import Debug.Trace as X (trace)
+import Control.Exception as X (assert)
+import System.Cmd as X
+import System.Directory as X
+import System.Environment as X
+import System.Exit as X
+import System.FilePath as X hiding (combine)
+import System.IO as X

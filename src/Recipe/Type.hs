@@ -10,7 +10,6 @@ import CmdLine.All
 import Data.IORef
 import System.IO.Unsafe
 import General.Code
-import Data.Function
 
 
 type Name = String
