@@ -14,7 +14,6 @@ import Hoogle.Type.All
 import Hoogle.Score.All
 import Data.Function
 import General.Base
-import General.Util
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 

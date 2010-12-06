@@ -25,7 +25,7 @@ import Data.Binary.Defer.Index
 import Data.Monoid
 import Data.Data
 import Data.Maybe
-import General.Util(URL)
+import General.Base(URL)
 import System.Mem
 
 import Hoogle.Type.TagStr

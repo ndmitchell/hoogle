@@ -2,12 +2,8 @@
 
 module General.Util where
 
-import Control.Monad
-import Data.Char
-import Data.List
-import Data.Function(on)
+import General.Base
 import System.Directory
-import Control.Arrow
 import qualified Control.Exception as E
 import System.IO
 import System.Cmd
@@ -24,27 +20,10 @@ import GHC.IO.Handle(hDuplicate,hDuplicateTo)
 a ++? b = if null a || null b then [] else a ++ b
 
 
-type URL = String
-
-fst3 (a,b,c) = a
-snd3 (a,b,c) = b
-thd3 (a,b,c) = c
-
-
 withDirectory dir cmd = E.bracket
     (do x <- getCurrentDirectory; setCurrentDirectory dir; return x)
     setCurrentDirectory
     (const cmd)
-
-
-fromLeft (Left x) = x
-fromRight (Right x) = x
-
-
-setEq :: Eq a => [a] -> [a] -> Bool
-setEq xs ys = all (`elem` ys) xs && all (`elem` xs) ys
-
-
 
 
 sortOn f = sortBy (compare `on` f)
@@ -103,30 +82,6 @@ mergesBy :: (a -> a -> Ordering) -> [[a]] -> [a]
 mergesBy f = fold [] (mergeBy f)
 
 
-concatMapM f = liftM concat . mapM f
-
-
-unzipEithers :: [Either a b] -> ([a],[b])
-unzipEithers [] = ([],[])
-unzipEithers (Left x:xs) = (x:a,b)
-    where (a,b) = unzipEithers xs
-unzipEithers (Right x:xs) = (a,x:b)
-    where (a,b) = unzipEithers xs
-
-
-
-initLast :: [a] -> ([a], a)
-initLast [] = error "initLast, empty list []"
-initLast [x] = ([], x)
-initLast (x:xs) = (x:a, b)
-    where (a,b) = initLast xs
-
-
-
-lower = map toLower
-upper = map toUpper
-
-
 split :: Eq a => a -> [a] -> [[a]]
 split x [] = []
 split x xs = if null b then [a] else a : split x (tail b)
@@ -145,19 +100,6 @@ splitAtLength n xs = f n xs
         f i [] = (n-i,[],[])
         f i (x:xs) = (a,x:b,c)
             where (a,b,c) = f (i-1) xs
-
-
-isRight Right{} = True; isRight _ = False
-
-
-readFile' x = do
-    src <- readFile x
-    length src `seq` return src
-
-
-ltrim = dropWhile isSpace
-rtrim = reverse . ltrim . reverse
-trim = ltrim . rtrim
 
 
 rbreak f xs = case break f $ reverse xs of

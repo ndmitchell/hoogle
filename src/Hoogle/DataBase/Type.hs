@@ -11,7 +11,6 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.Type.All
 import General.Base
-import General.Util
 
 
 -- suggest, aliases and instances are used for linking with packages
