@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 
 module Recipe.Type(
     CmdLine(..), Name, hoo, noDeps,

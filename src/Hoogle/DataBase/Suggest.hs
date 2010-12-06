@@ -25,7 +25,7 @@ instance Show Suggest where
     show (Suggest x) = show x
 
 instance Show SuggestItem where
-    show (SuggestItem a b c) = concat $ intersperse ", " $
+    show (SuggestItem a b c) = intercalate ", " $
         ["ctor " ++ x | Just x <- [a]] ++ f "data" b ++ f "class" c
         where
             f msg xs = [msg ++ " " ++ a ++ " " ++ show b | (a,b) <- xs]

@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+
 module Recipe.General(convert, combine) where
 
 import Recipe.Type

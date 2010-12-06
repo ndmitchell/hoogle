@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+
 module Recipe.Hackage(makePlatform, makeDefault, makePackage, makeAll) where
 
 import Recipe.Type
@@ -12,7 +12,7 @@ avoid = words "ghc-prim integer integer-simple integer-gmp rts ghc Win32"
 makePlatform :: (Name -> IO ()) -> IO ()
 makePlatform make = do
     xs <- listPlatform
-    forM xs $ \(name,ver) -> do
+    forM_ xs $ \(name,ver) -> do
         v2 <- version cabals name
         when (ver /= v2) $ putStrLn $ "Warning: Version mismatch for " ++ name ++ " (platform=" ++ ver ++ ", cabal=" ++ v2 ++ ")"
     combine make "platform" (map fst xs) False

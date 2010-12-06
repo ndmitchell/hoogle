@@ -68,7 +68,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
                    return $ joinQueries [a,blankQuery{typeSig=Just b},c]
 
         flag = try $ do x <- parseFlagScope ; spaces ; return x
-        flags = many flag >>= return . joinQueries
+        flags = fmap joinQueries $ many flag
 
 
 -- deal with the parsing of:

@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 
 module Recipe.Keyword(makeKeyword) where
 
@@ -39,7 +38,7 @@ keywordFormat x = concat ["" : docs ++ ["@url #" ++ concatMap g n, "@keyword " +
 
         name = words $ f $ fromAttrib "name" (head x)
         docs = zipWith (++) ("-- | " : repeat "--   ") $
-               concat $ intersperse [""] $
+               intercalate [""] $
                map (docFormat . takeWhile (~/= "<div class=editsection>")) $
                partitions isBlock x
 
@@ -65,7 +64,7 @@ docFormat (TagOpen "pre" _:xs) = ["<pre>"] ++ map (drop n) ys ++ ["</pre>"]
 
 docFormat (TagOpen "p" _:xs) = g 0 [] $ words $ f xs
     where
-        g n acc [] = [unwords $ reverse $ acc | acc /= []]
+        g n acc [] = [unwords $ reverse acc | acc /= []]
         g n acc (x:xs) | nx+1+n > 70 = g n acc [] ++ g nx [x] xs
                        | otherwise = g (n+nx+1) (x:acc) xs
             where nx = length x

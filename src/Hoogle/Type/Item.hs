@@ -100,7 +100,7 @@ entryScore e = EntryScore
 
 
 
-showModule = concat . intersperse "."
+showModule = intercalate "."
 
 instance Show Package where
     show (Package a b) = unwords $ filter (/= "") [a,b]

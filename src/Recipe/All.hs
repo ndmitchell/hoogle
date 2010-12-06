@@ -22,7 +22,7 @@ recipes opt = do
         download opt
         let ys = parseActions $ actions opt
         ref <- newIORef []
-        mapM_ (make ref ys) $ map fst ys
+        mapM_ (make ref ys . fst) ys
         recapErrors
 
 

@@ -8,7 +8,7 @@ import Hoogle.Type.All
 
 
 renderQuery :: Query -> TagStr
-renderQuery x = Tags $ namesig ++ (if namesig /= [] && scp /= [] then [Str " "] else []) ++ scp
+renderQuery x = Tags $ namesig ++ [Str " " | namesig /= [] && scp /= []] ++ scp
     where
         namesig = case (null (names x), isNothing (typeSig x)) of
                       (True, True) -> []

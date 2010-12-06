@@ -127,7 +127,7 @@ instance BinaryDefer Type where
 showConstraint :: Constraint -> String
 showConstraint [] = ""
 showConstraint [x] = show x ++ " => "
-showConstraint xs = "(" ++ concat (intersperse ", " $ map show xs) ++ ") => "
+showConstraint xs = "(" ++ intercalate ", " (map show xs) ++ ") => "
 
 
 -- TODO: show (TLit ":+:") should be "(:+:)"
@@ -138,20 +138,20 @@ instance Show Type where
             f i (TApp (TLit "[]") [x]) = "[" ++ show x ++ "]"
             f i (TApp (TLit ('(':tup)) xs)
                 | not (null tup) && last tup == ')' && all (== ',') (init tup) && length tup == length xs
-                = b True $ concat $ intersperse ", " $ map show xs
+                = b True $ intercalate ", " $ map show xs
 
             -- Should parallel lists and unboxed tuples specially
             f i (TApp (TLit "[::]") [x]) = "[:" ++ show x ++ ":]"
             f i (TApp (TLit ('(':'#':tup)) xs)
                 | "#)" `isSuffixOf` tup && all (== ',') (drop 2 $ reverse tup) && length tup - 1 == length xs
-                = "(# " ++ (concat $ intersperse ", " $ map show xs) ++ " #)"
+                = "(# " ++ intercalate ", " (map show xs) ++ " #)"
 
             
             f i (TLit x) = x
             f i (TVar x) = x
             
             f i (TApp x xs) = b (i > 1) $ unwords $ map (f 2) (x:xs)
-            f i (TFun xs)   = b (i > 0) $ concat (intersperse " -> " $ map (f 1) xs)
+            f i (TFun xs)   = b (i > 0) $ intercalate " -> " $ map (f 1) xs
             
             b True x = "(" ++ x ++ ")"
             b False x = x
