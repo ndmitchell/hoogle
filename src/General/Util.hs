@@ -1,30 +1,12 @@
-{-# LANGUAGE CPP #-}
 
 module General.Util where
 
 import General.Base
-import System.Directory
-import qualified Control.Exception as E
-import System.IO
-import System.Cmd
-import System.Exit
-
-#if __GLASGOW_HASKELL__ >= 612
-import GHC.IO.Handle(hDuplicate,hDuplicateTo)
-#endif
-
 
 
 -- | Only append strings if neither one is empty
 (++?) :: String -> String -> String
 a ++? b = if null a || null b then [] else a ++ b
-
-
-withDirectory dir cmd = E.bracket
-    (do x <- getCurrentDirectory; setCurrentDirectory dir; return x)
-    setCurrentDirectory
-    (const cmd)
-
 
 sortOn f = sortBy (compare `on` f)
 groupOn f = groupBy ((==) `on` f)
@@ -39,7 +21,6 @@ groupFsts = map (fst . head &&& map snd) . groupFst
 
 sortGroupFsts mr = groupFsts . sortFst $ mr
 sortGroupFst mr = groupFst . sortFst $ mr
-
 
 
 fold :: a -> (a -> a -> a) -> [a] -> a
@@ -107,28 +88,6 @@ rbreak f xs = case break f $ reverse xs of
     (as, b:bs) -> (reverse bs, b:reverse as)
 
 
--- FIXME: This could use a lot more bracket calls!
-captureOutput :: IO () -> IO (Maybe String)
-#if __GLASGOW_HASKELL__ < 612
-captureOutput act = return Nothing
-#else
-captureOutput act = do
-    tmp <- getTemporaryDirectory
-    (f,h) <- openTempFile tmp "hlint"
-    sto <- hDuplicate stdout
-    ste <- hDuplicate stderr
-    hDuplicateTo h stdout
-    hDuplicateTo h stderr
-    hClose h
-    act
-    hDuplicateTo sto stdout
-    hDuplicateTo ste stderr
-    res <- readFile' f
-    removeFile f
-    return $ Just res
-#endif
-
-
 compareCaseless :: String -> String -> Ordering
 compareCaseless x = compare (map toLower x) . map toLower
 
@@ -147,9 +106,3 @@ compareChar x y = case (compare x y, compare (toLower x) (toLower y)) of
     (EQ, _) -> EQ
     (x, EQ) -> if x == GT then LT else GT
     (_, x ) -> x
-
-
-system_ :: String -> IO ()
-system_ x = do
-    res <- system x
-    when (res /= ExitSuccess) $ error $ "System command failed: " ++ x

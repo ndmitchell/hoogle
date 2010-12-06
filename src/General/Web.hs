@@ -11,12 +11,8 @@ module General.Web(
     parseHttpQueryArgs
     ) where
 
-import System.Environment
-import Control.Monad
-import Data.Char
-import Data.List
-import Data.Maybe
-import Numeric
+import General.System
+import General.Base
 
 
 ---------------------------------------------------------------------

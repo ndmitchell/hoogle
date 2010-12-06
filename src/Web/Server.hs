@@ -13,7 +13,7 @@ import Network.HTTP
 import Network.URI
 import Network.Socket
 import Data.Time
-import System.IO
+import General.System
 
 
 server :: CmdLine -> IO ()

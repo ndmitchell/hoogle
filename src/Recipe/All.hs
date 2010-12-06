@@ -3,11 +3,9 @@
 module Recipe.All(recipes) where
 
 import General.Base
-import General.Util
-import Recipe.Type
+import General.System
 import Data.IORef
-import System.IO
-import System.Directory
+import Recipe.Type
 
 import Recipe.Download
 import Recipe.Keyword

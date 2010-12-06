@@ -1,13 +1,9 @@
 
 module CmdLine.Load(loadQueryDatabases) where
 
-import Control.Arrow
-import Control.Monad
-import Data.Either
-import Data.Monoid
 import Hoogle
-import System.Directory
-import System.FilePath
+import General.System
+import General.Base
 
 
 -- | Given a list of search directories, and a query, load the databases you

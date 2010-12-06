@@ -1,12 +1,9 @@
 
 module Recipe.Download(download) where
 
-import Recipe.Type
 import General.Base
-import General.Util
-import System.Cmd
-import System.Exit
-import System.Directory
+import General.System
+import Recipe.Type
 
 
 -- download everything required for the recipes

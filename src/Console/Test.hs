@@ -6,13 +6,11 @@ module Console.Test(testPrepare, testFile) where
 
 import Hoogle
 import General.Base
-import General.Util
+import General.System
 import Paths_hoogle
 import CmdLine.All
-import System.Mem
 import Test.All
 import Control.Exception
-import System.Environment
 import System.Console.CmdArgs
 
 

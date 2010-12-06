@@ -4,8 +4,7 @@ module Recipe.Hackage(makePlatform, makeDefault, makePackage, makeAll) where
 import Recipe.Type
 import Recipe.General
 import General.Base
-import System.Directory
-import System.IO
+import General.System
 
 
 avoid = words "ghc-prim integer integer-simple integer-gmp rts ghc Win32"

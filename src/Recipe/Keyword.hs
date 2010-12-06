@@ -1,10 +1,9 @@
 
 module Recipe.Keyword(makeKeyword) where
 
-import Recipe.Type
-import Text.HTML.TagSoup
 import General.Base
-import Numeric
+import Text.HTML.TagSoup
+import Recipe.Type
 import Recipe.General
 
 

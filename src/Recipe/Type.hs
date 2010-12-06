@@ -11,7 +11,7 @@ import Data.IORef
 import System.IO.Unsafe
 import General.Base
 import General.Util
-import System.Directory
+import General.System
 
 type Name = String
 

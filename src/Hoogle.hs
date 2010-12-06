@@ -22,11 +22,9 @@ module Hoogle(
     ) where
 
 import Data.Binary.Defer.Index
-import Data.Monoid
 import Data.Data
-import Data.Maybe
-import General.Base(URL)
-import System.Mem
+import General.Base
+import General.System
 
 import Hoogle.Type.TagStr
 import qualified Hoogle.DataBase.All as H

@@ -6,10 +6,10 @@ module Hoogle.DataBase.Serialise(
 import Data.Binary.Defer
 import Data.Binary.Raw
 import General.Base
+import General.System
 
 import Hoogle.DataBase.Type
 import Data.Version
-import System.IO
 
 
 -- FIXME: Has become hard coded, go back to minor version lumps

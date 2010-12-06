@@ -4,9 +4,8 @@ module Recipe.General(convert, combine) where
 import Recipe.Type
 import Hoogle
 import General.Base
+import General.System
 import System.Console.CmdArgs.Verbosity
-import System.Mem
-import System.Directory
 
 
 -- convert a single database
