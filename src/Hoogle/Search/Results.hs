@@ -5,12 +5,27 @@ module Hoogle.Search.Results(
 
 import General.Base
 import General.Util
-import Data.Key
 import qualified Data.IntMap as IntMap
 import Data.Binary.Defer.Index
 
 import Hoogle.Type.All
 import Hoogle.Query.All
+
+
+---------------------------------------------------------------------
+-- KEYS
+
+data Key k v = Key k v
+
+instance Eq k => Eq (Key k v) where
+    Key k1 v1 == Key k2 v2 = k1 == k2
+
+instance Ord k => Ord (Key k v) where
+    compare (Key k1 v1) (Key k2 v2) = compare k1 k2
+
+toKey f v = Key (f v) v
+fromKey (Key k v) = v
+sortWith f = map fromKey . sort . map (toKey f)
 
 
 ---------------------------------------------------------------------
