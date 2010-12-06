@@ -23,6 +23,7 @@ import System.Console.CmdArgs
 import Hoogle
 import GHC.Conc(numCapabilities)
 import Paths_hoogle
+import Safe
 
 
 ---------------------------------------------------------------------

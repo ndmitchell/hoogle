@@ -2,7 +2,6 @@
 module General.Code(module X) where
 
 import General.Util as X
-import Safe as X
 
 import Control.Arrow as X
 import Control.Monad as X
