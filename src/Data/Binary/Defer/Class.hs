@@ -1,10 +1,12 @@
 
 module Data.Binary.Defer.Class where
 
+import Control.Arrow
 import Control.Monad
 import Data.Binary.Defer.Monad
 import Data.Binary.Raw
 import Data.ByteString(ByteString)
+import qualified Data.Map as Map
 import General.Util(splitAtLength)
 
 ---------------------------------------------------------------------
@@ -205,3 +207,15 @@ instance BinaryDefer a => BinaryDefer (Defer a) where
     getFixed = get
 
 
+instance (Ord k, BinaryDefer k, BinaryDefer v) => BinaryDefer (Map.Map k v) where
+    put = putDefer . putVector . Prelude.map (second Defer) . Map.toAscList
+        where
+            putVector xs = putDefer $ do
+                putInt (length xs)
+                mapM_ put xs
+
+    get = getDefer $ fmap (Map.fromAscList . Prelude.map (second fromDefer)) getVector
+        where
+            getVector = getDefer $ do
+                i <- getInt
+                replicateM i get

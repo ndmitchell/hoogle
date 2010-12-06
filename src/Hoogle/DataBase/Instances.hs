@@ -7,7 +7,7 @@ module Hoogle.DataBase.Instances(
 import General.Base
 import Hoogle.Type.All
 import Data.Binary.Defer
-import qualified Data.Binary.Defer.Map as Map
+import qualified Data.Map as Map
 
 
 -- Map type [classes]
