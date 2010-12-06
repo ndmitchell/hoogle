@@ -1,7 +1,7 @@
 
 module Hoogle.DataBase.Suggest(Suggest, createSuggest, askSuggest) where
 
-import General.Code
+import General.Base
 import Data.Binary.Defer
 import Data.Binary.Defer.Trie as Trie
 import qualified Data.Map as Map

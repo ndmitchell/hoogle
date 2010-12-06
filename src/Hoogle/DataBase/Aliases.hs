@@ -7,7 +7,7 @@ import Hoogle.Type.All
 import qualified Data.Binary.Defer.Map as Map
 import Data.Binary.Defer
 import Data.Generics.Uniplate
-import General.Code
+import General.Base
 import Safe
 
 

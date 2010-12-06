@@ -4,7 +4,7 @@ module Hoogle.DataBase.Instances(
     normInstances, hasInstance
     ) where
 
-import General.Code
+import General.Base
 import Hoogle.Type.All
 import Data.Binary.Defer
 import qualified Data.Binary.Defer.Map as Map

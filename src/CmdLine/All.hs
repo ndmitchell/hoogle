@@ -15,7 +15,7 @@ module CmdLine.All(
     cmdLine, cmdLineWeb, CmdLine(..), isWebCmdLine, loadQueryDatabases
     ) where
 
-import General.Code
+import General.Base
 import CmdLine.Type
 import CmdLine.Load
 import General.Web

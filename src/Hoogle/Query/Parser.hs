@@ -1,7 +1,7 @@
 
 module Hoogle.Query.Parser(parseQuery) where
 
-import General.Code
+import General.Base
 import Hoogle.Query.Type
 import Hoogle.Type.All as Hoogle
 import Text.ParserCombinators.Parsec hiding (ParseError)

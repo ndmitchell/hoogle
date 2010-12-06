@@ -2,7 +2,7 @@
 -- Download to foo.src in most cases, then extract to foo.txt, which can later be compiled to foo.hoo
 module Recipe.All(recipes) where
 
-import General.Code
+import General.Base
 import Recipe.Type
 import Data.IORef
 import System.IO

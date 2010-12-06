@@ -1,7 +1,7 @@
 
 module Console.Rank(rank) where
 
-import General.Code
+import General.Base
 import Hoogle
 
 

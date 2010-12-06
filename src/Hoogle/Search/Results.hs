@@ -3,7 +3,7 @@ module Hoogle.Search.Results(
     mergeDataBaseResults, mergeQueryResults
     ) where
 
-import General.Code
+import General.Base
 import Data.Key
 import qualified Data.IntMap as IntMap
 import Data.Binary.Defer.Index

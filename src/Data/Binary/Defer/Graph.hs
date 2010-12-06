@@ -9,7 +9,7 @@ module Data.Binary.Defer.Graph(
 import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import Data.List
-import General.Code
+import General.Base
 import qualified Data.Heap as Heap
 import qualified Data.Map as Map
 import qualified Data.Set as Set

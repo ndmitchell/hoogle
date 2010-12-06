@@ -2,7 +2,7 @@
 
 module Web.Server(server) where
 
-import General.Code
+import General.Base
 import General.Web
 import CmdLine.All
 import Web.Response

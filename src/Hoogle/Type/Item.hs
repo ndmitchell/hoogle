@@ -2,7 +2,7 @@
 
 module Hoogle.Type.Item where
 
-import General.Code
+import General.Base
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.Type.Documentation

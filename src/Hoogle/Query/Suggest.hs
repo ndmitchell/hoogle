@@ -1,7 +1,7 @@
 
 module Hoogle.Query.Suggest(suggestQuery) where
 
-import General.Code
+import General.Base
 import Hoogle.DataBase.All
 import Hoogle.Query.Type
 import Hoogle.Query.Render

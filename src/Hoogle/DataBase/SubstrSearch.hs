@@ -13,7 +13,7 @@ import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Binary as Bin
 import qualified Data.Binary.Get as Bin
 import qualified Data.Binary.Put as Bin
-import General.Code
+import General.Base
 import Hoogle.Type.All
 import Hoogle.Score.All
 

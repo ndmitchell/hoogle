@@ -1,7 +1,7 @@
 
 module Hoogle.Query.Render(renderQuery) where
 
-import General.Code
+import General.Base
 import Data.Generics.Uniplate
 import Hoogle.Query.Type
 import Hoogle.Type.All

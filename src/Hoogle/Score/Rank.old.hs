@@ -2,7 +2,7 @@
 module Hoogle.Operations.Rank(rank) where
 
 import Data.Monoid
-import General.Code
+import General.Base
 import Hoogle.Query.All
 import Hoogle.Search.All
 import Hoogle.TextBase.All

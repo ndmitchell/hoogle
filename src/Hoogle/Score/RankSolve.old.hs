@@ -1,7 +1,7 @@
 
 module Hoogle.Operations.RankSolve(Cmp(..), rankSolve) where
 
-import General.Code
+import General.Base
 import qualified Data.IntMap as IntMap
 
 -- Privilaged imports

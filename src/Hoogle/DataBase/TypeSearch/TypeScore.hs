@@ -4,7 +4,7 @@ module Hoogle.DataBase.TypeSearch.TypeScore(
     TypeScore, newTypeScore, costTypeScore, costsTypeScore
     ) where
 
-import General.Code
+import General.Base
 import Hoogle.Score.All
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.EntryInfo

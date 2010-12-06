@@ -3,7 +3,7 @@ module Recipe.Keyword(makeKeyword) where
 
 import Recipe.Type
 import Text.HTML.TagSoup
-import General.Code
+import General.Base
 import Numeric
 import Recipe.General
 

@@ -1,5 +1,5 @@
 
-module General.Code(module X) where
+module General.Base(module X) where
 
 import General.Util as X
 

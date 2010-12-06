@@ -3,7 +3,7 @@
 module Console.Search(actionSearch) where
 
 import CmdLine.All
-import General.Code
+import General.Base
 import Hoogle
 
 

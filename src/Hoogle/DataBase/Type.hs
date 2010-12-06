@@ -10,7 +10,7 @@ import Hoogle.DataBase.TypeSearch.All  as X
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.Type.All
-import General.Code
+import General.Base
 
 
 -- suggest, aliases and instances are used for linking with packages

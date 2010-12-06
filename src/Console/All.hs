@@ -6,7 +6,7 @@ import Recipe.All
 import Console.Search
 import Console.Test
 import Console.Rank
-import General.Code
+import General.Base
 import System.Exit
 import Hoogle
 

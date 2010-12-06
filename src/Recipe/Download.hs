@@ -2,7 +2,7 @@
 module Recipe.Download(download) where
 
 import Recipe.Type
-import General.Code
+import General.Base
 import System.Cmd
 import System.Exit
 import System.Directory

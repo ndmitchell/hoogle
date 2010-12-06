@@ -13,7 +13,7 @@ module Hoogle.DataBase.TypeSearch.Binding(
 import Hoogle.Type.All
 import Hoogle.Score.All
 import Data.Function
-import General.Code
+import General.Base
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 

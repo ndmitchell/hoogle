@@ -9,7 +9,7 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import Data.Binary.Defer.Index
 import qualified Data.Map as Map
-import General.Code
+import General.Base
 import Hoogle.Type.All
 import Hoogle.Score.All
 

@@ -17,7 +17,7 @@ import Data.Generics.Uniplate
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import qualified Data.Map as Map
-import General.Code
+import General.Base
 
 
 

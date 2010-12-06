@@ -3,7 +3,7 @@ module Hoogle.Type.Documentation(
     Documentation, htmlDocumentation, renderDocumentation
     ) where
 
-import General.Code
+import General.Base
 import Hoogle.Type.TagStr
 import Data.Binary.Defer
 import Data.ByteString.Char8(ByteString,pack,unpack)

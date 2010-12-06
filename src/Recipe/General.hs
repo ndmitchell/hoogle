@@ -3,7 +3,7 @@ module Recipe.General(convert, combine) where
 
 import Recipe.Type
 import Hoogle
-import General.Code
+import General.Base
 import System.Console.CmdArgs.Verbosity
 import System.Mem
 import System.Directory
