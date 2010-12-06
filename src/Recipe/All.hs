@@ -5,6 +5,8 @@ module Recipe.All(recipes) where
 import General.Code
 import Recipe.Type
 import Data.IORef
+import System.IO
+import System.Directory
 
 import Recipe.Download
 import Recipe.Keyword

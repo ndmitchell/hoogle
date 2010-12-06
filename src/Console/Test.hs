@@ -11,6 +11,7 @@ import CmdLine.All
 import System.Mem
 import Test.All
 import Control.Exception
+import System.Environment
 import System.Console.CmdArgs
 
 

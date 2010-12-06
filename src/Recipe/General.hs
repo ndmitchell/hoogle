@@ -6,6 +6,7 @@ import Hoogle
 import General.Code
 import System.Console.CmdArgs.Verbosity
 import System.Mem
+import System.Directory
 
 
 -- convert a single database

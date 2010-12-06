@@ -13,10 +13,4 @@ import Data.Maybe as X
 import Data.Monoid as X
 import Data.Ord as X
 import Debug.Trace as X (trace)
-import Control.Exception as X (assert)
-import System.Cmd as X
-import System.Directory as X
-import System.Environment as X
-import System.Exit as X
 import System.FilePath as X hiding (combine)
-import System.IO as X

@@ -3,6 +3,9 @@ module Recipe.Download(download) where
 
 import Recipe.Type
 import General.Code
+import System.Cmd
+import System.Exit
+import System.Directory
 
 
 -- download everything required for the recipes

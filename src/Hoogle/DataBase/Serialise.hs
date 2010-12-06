@@ -9,6 +9,7 @@ import General.Code
 
 import Hoogle.DataBase.Type
 import Data.Version
+import System.IO
 
 
 -- FIXME: Has become hard coded, go back to minor version lumps
