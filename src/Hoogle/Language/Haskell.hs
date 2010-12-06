@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 
-module Hoogle.Language.Haskell.Input(parseInputHaskell) where
+module Hoogle.Language.Haskell(parseInputHaskell) where
 
 import General.Base
 import General.Util
