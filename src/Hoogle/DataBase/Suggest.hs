@@ -4,15 +4,14 @@ module Hoogle.DataBase.Suggest(Suggest, createSuggest, askSuggest) where
 import General.Base
 import General.Util
 import Data.Binary.Defer
-import Data.Binary.Defer.Trie as Trie
-import qualified Data.Map as Map
+import qualified Data.Binary.Defer.Map as Map
 import Hoogle.Type.All
 import Data.Generics.Uniplate
 
 
 -- TODO: Move to a Map, first benchmark how much this slows down the
 --       searching, versus how much space is saved
-newtype Suggest = Suggest {fromSuggest :: Trie SuggestItem}
+newtype Suggest = Suggest {fromSuggest :: Map.Map String SuggestItem}
 
 -- if something is both a data and a ctor, no need to mention the ctor
 data SuggestItem = SuggestItem
@@ -50,7 +49,7 @@ instance Monoid Suggest where
 createSuggest :: [Suggest] -> [Fact] -> Suggest
 createSuggest deps xs = mergeSuggest (s:deps)
     where
-        s = Suggest $ newTrie $ Map.toList res
+        s = Suggest res
         res = foldl f Map.empty $ concatMap getTextItem xs
             where f m (s,i) = Map.insertWith joinItem (map toLower s) i m
 
@@ -65,7 +64,7 @@ createSuggest deps xs = mergeSuggest (s:deps)
 
 
 mergeSuggest :: [Suggest] -> Suggest
-mergeSuggest = Suggest . Trie.unionsWith joinItem . map fromSuggest
+mergeSuggest = Suggest . Map.unionsWith joinItem . map fromSuggest
 
 
 joinItem :: SuggestItem -> SuggestItem -> SuggestItem
@@ -85,7 +84,7 @@ askSuggest sug q@(TypeSig con typ)
         | otherwise = Nothing
     where
         tries = map fromSuggest sug
-        get x = case mapMaybe (lookupTrie $ map toLower x) tries of
+        get x = case mapMaybe (Map.lookup $ map toLower x) tries of
                     [] -> Nothing
                     xs -> Just $ foldr1 joinItem xs
 
