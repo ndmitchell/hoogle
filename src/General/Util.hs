@@ -8,7 +8,7 @@ import General.Base
 (++?) :: String -> String -> String
 a ++? b = if null a || null b then [] else a ++ b
 
-sortOn f = sortBy (compare `on` f)
+sortOn f = sortBy (comparing f)
 groupOn f = groupBy ((==) `on` f)
 
 

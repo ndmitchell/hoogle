@@ -8,15 +8,10 @@ module Hoogle.Type.TagStr(
     formatTags
     ) where
 
-import Data.Char
-import Data.List
-import Data.Data
-import Data.Monoid
+import General.Base
+import General.Web
 import Data.Generics.Uniplate
 import Data.Binary.Defer
-import Data.Maybe
-import Data.Function
-import General.Web
 
 
 data TagStr
@@ -140,7 +135,7 @@ showTagHTMLWith f x = g x
 -- each position is a 0-based start and end index
 -- currently not allowed to overlap
 formatTags :: String -> [((Int,Int),TagStr -> TagStr)] -> TagStr
-formatTags o y = tags $ f o 0 $ sortBy (compare `on` fst . fst) y
+formatTags o y = tags $ f o 0 $ sortBy (comparing $ fst . fst) y
     where
         f x i [] = str x
         f x i (((from,to),op):ss)

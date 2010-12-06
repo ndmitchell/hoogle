@@ -9,7 +9,6 @@ import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.Type.All hiding (Result)
 
-import Data.Function
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import qualified Data.IntMap as IntMap
@@ -69,7 +68,7 @@ normType as is t = (t3, EntryInfo [] (length (fromTFun t3) - 1) c2 a)
 graphsSearch :: Aliases -> Instances -> Graphs -> TypeSig -> [ResultReal]
 graphsSearch as is gs t = resultsCombine is query ans
     where
-        ans = mergesBy (compare `on` resultArgBind . snd) $ 
+        ans = mergesBy (comparing $ resultArgBind . snd) $ 
               f Nothing (resGraph gs) res :
               zipWith (\i -> f (Just i) (argGraph gs)) [0..] args
 

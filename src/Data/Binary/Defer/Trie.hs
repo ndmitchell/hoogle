@@ -7,6 +7,7 @@ import Data.Binary.Defer
 import Data.List
 import Data.Maybe
 import Data.Function
+import Data.Ord
 
 
 -- Keep simple first, can move to an Array later if necessary
@@ -16,7 +17,7 @@ data Trie a = Trie (Maybe a) [(Char,Trie a)]
 
 
 newTrie :: [(String,a)] -> Trie a
-newTrie = newTrieOrdered . sortBy (compare `on` fst)
+newTrie = newTrieOrdered . sortBy (comparing fst)
 
 
 newTrieOrdered :: [(String,a)] -> Trie a

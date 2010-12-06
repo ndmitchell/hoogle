@@ -15,8 +15,8 @@ import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import qualified Data.Map as Map
 import Data.Maybe
-import Data.Function
 import Data.List
+import Data.Ord
 import Data.Typeable
 
 type Id = Int
@@ -151,4 +151,4 @@ getLink x (Index_ mp) = (Index_ mp2, newLink (fromMaybe n res) x)
 
 
 indexFreeze :: Index_ a -> Index a
-indexFreeze (Index_ mp) = newIndex $ map fst $ sortBy (compare `on` snd) $ Map.toList mp
+indexFreeze (Index_ mp) = newIndex $ map fst $ sortBy (comparing snd) $ Map.toList mp

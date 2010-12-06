@@ -8,7 +8,6 @@ import Data.Binary.Defer.Index
 import Hoogle.Type.Documentation
 import Hoogle.Type.TagStr
 import Hoogle.Type.TypeSig
-import Data.Typeable
 import Data.Generics.Uniplate
 
 

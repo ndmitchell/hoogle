@@ -40,7 +40,7 @@ instance Eq TypeScore where
     (==) = (==) `on` costTypeScore
 
 instance Ord TypeScore where
-    compare = compare `on` costTypeScore
+    compare = comparing costTypeScore
 
 
 newTypeScore :: Instances -> EntryInfo -> EntryInfo -> Bool -> Binding -> TypeScore

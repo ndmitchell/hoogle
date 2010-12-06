@@ -39,7 +39,7 @@ instance Eq Binding where
     (==) = (==) `on` costBinding
 
 instance Ord Binding where
-    compare = compare `on` costBinding
+    compare = comparing costBinding
 
 
 costBinding :: Binding -> Int

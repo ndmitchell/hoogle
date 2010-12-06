@@ -8,7 +8,6 @@ import Hoogle.Type.All
 import Language.Haskell.Exts.Annotated hiding (TypeSig,Type)
 import qualified Language.Haskell.Exts.Annotated as HSE
 import Data.Generics.Uniplate.Data
-import Data.Data
 
 
 type S = SrcSpanInfo

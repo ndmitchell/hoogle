@@ -34,14 +34,14 @@ haddocks = "download/hackage-haddock"
 listing :: FilePath -> IO [Name]
 listing dir = do
     xs <- getDirectoryContents dir
-    return $ sortBy (compare `on` map toLower) $ filter (`notElem` [".","..","preferred-versions"]) xs
+    return $ sortBy (comparing $ map toLower) $ filter (`notElem` [".","..","preferred-versions"]) xs
 
 version :: FilePath -> Name -> IO String
 version dir x = do
     ys <- getDirectoryContents $ dir </> x
     when (null ys) $ error $ "Couldn't find version for " ++ x ++ " in " ++ dir
     let f = map (read :: String -> Int) . words . map (\x -> if x == '.' then ' ' else x)
-    return $ maximumBy (compare `on` f) $ filter (all (not . isAlpha)) ys
+    return $ maximumBy (comparing f) $ filter (all (not . isAlpha)) ys
 
 
 ---------------------------------------------------------------------

@@ -33,7 +33,7 @@ sortKeys :: Ord k => [Key k v] -> [v]
 sortKeys = map fromKey . sort
 
 
--- | @sort f == sortBy (compare `on` f)@
+-- | @sort f == sortBy (comparing f)@
 --   but @f@ will only be applied to each element once
 sortWith :: Ord k => (v -> k) -> [v] -> [v]
 sortWith f = sortKeys . map (toKey f)
