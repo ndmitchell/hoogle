@@ -4,6 +4,7 @@ module Hoogle.Search.Results(
     ) where
 
 import General.Base
+import General.Util
 import Data.Key
 import qualified Data.IntMap as IntMap
 import Data.Binary.Defer.Index

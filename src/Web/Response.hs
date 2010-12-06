@@ -5,6 +5,7 @@ module Web.Response(response) where
 import CmdLine.All
 import Hoogle
 import General.Base
+import General.Util
 import General.Web
 import Web.Page
 import Data.Generics.Uniplate

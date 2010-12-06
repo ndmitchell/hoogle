@@ -2,6 +2,7 @@
 module Console.Rank(rank) where
 
 import General.Base
+import General.Util
 import Hoogle
 
 

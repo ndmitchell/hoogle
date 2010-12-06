@@ -10,6 +10,7 @@ import CmdLine.All
 import Data.IORef
 import System.IO.Unsafe
 import General.Base
+import General.Util
 import System.Directory
 
 type Name = String

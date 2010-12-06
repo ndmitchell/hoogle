@@ -3,6 +3,7 @@ module Recipe.Hackage(makePlatform, makeDefault, makePackage, makeAll) where
 
 import Recipe.Type
 import Recipe.General
+import General.Util
 import General.Base
 import System.Directory
 import System.IO

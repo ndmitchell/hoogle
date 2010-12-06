@@ -7,6 +7,7 @@ import Console.Search
 import Console.Test
 import Console.Rank
 import General.Base
+import General.Util
 import System.Exit
 import Hoogle
 

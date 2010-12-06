@@ -15,6 +15,7 @@ import Data.Binary.Defer.Index
 import qualified Data.IntMap as IntMap
 import qualified Data.Heap as Heap
 import General.Base
+import General.Util
 import Control.Monad.Trans.State
 
 

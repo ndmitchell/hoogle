@@ -3,6 +3,7 @@
 module Hoogle.Type.Item where
 
 import General.Base
+import General.Util
 import Data.Binary.Defer
 import Data.Binary.Defer.Index
 import Hoogle.Type.Documentation

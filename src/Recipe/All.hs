@@ -3,6 +3,7 @@
 module Recipe.All(recipes) where
 
 import General.Base
+import General.Util
 import Recipe.Type
 import Data.IORef
 import System.IO
