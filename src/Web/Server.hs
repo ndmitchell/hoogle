@@ -56,7 +56,7 @@ talk Server{..} Request{rqURI=URI{uriPath=path,uriQuery=query}}
     | path `elem` ["/","/hoogle"] = do
         args <- cmdLineWeb $ parseHttpQueryArgs $ drop 1 query
         r <- response "/res" args{databases=databases}
-        return $ if local_ then r{rspBody=rewriteFileLinks $ rspBody r} else r
+        return $ if local_ then fmap rewriteFileLinks r else r
     | takeDirectory path == "/res" = do
         h <- openBinaryFile (resources </> takeFileName path) ReadMode
         src <- hGetContents h

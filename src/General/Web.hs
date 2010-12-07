@@ -13,6 +13,10 @@ module General.Web(
 
 import General.System
 import General.Base
+import Network.HTTP
+
+instance Functor Response where
+    fmap f x = x{rspBody = f $ rspBody x}
 
 
 ---------------------------------------------------------------------
