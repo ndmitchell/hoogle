@@ -16,6 +16,7 @@ module CmdLine.All(
     ) where
 
 import General.Base
+import General.System
 import CmdLine.Type
 import CmdLine.Load
 import General.Web
@@ -55,7 +56,8 @@ cmdLineExpand x@Rank{} = do
 cmdLineExpand x@Data{} = do
     dir <- if null $ datadir x then fmap (</> "databases") getDataDir else return $ datadir x
     let thrd = if threads x == 0 then numCapabilities else threads x
-    return x{datadir=dir, threads=thrd}
+    loc <- if all null (local x) && not (null $ local x) then guessLocal else return $ local x
+    return x{datadir=dir, threads=thrd, local=loc}
 
 cmdLineExpand x = return x
 
@@ -63,6 +65,14 @@ cmdLineExpand x = return x
 expandDatabases x = do
     d <- getDataDir
     return $ x ++ [d </> "databases"]
+
+
+guessLocal = do
+    ghc <- findExecutable "ghc"
+    lib <- getLibDir
+    let xs = [takeDirectory (takeDirectory lib) </> "doc"] ++
+             [takeDirectory (takeDirectory ghc) </> "doc/html/libraries" | Just ghc <- [ghc]]
+    filterM doesDirectoryExist xs
 
 
 ---------------------------------------------------------------------

@@ -5,6 +5,8 @@ import Recipe.Type
 import Recipe.General
 import General.Base
 import General.System
+import General.Util
+import General.Web
 
 
 avoid = words "ghc-prim integer integer-simple integer-gmp rts ghc Win32"
@@ -39,8 +41,8 @@ makePackage = do
     convert noDeps "package"
 
 
-makeDefault :: (Name -> IO ()) -> Name -> IO ()
-makeDefault make name = do
+makeDefault :: (Name -> IO ()) -> [FilePath] -> Name -> IO ()
+makeDefault make local name = do
     b1 <- doesDirectoryExist $ cabals </> name
     b2 <- doesDirectoryExist $ haddocks </> name
     if not b1 || not b2 then
@@ -59,10 +61,23 @@ makeDefault make name = do
          else do
             had <- readFile' had
             cab <- readCabal cab
-            writeFile (name <.> "txt") $
-                unlines ["@depends " ++ a | a <- cabalDepends cab, a `notElem` avoid] ++ "\n" ++
-                haddockHacks had
+            loc <- findLocal local name
+            writeFile (name <.> "txt") $ unlines $
+                ["@depends " ++ a | a <- cabalDepends cab, a `notElem` avoid] ++
+                (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
             convert make name
+
+
+-- try and find a local filepath
+findLocal :: [FilePath] -> Name -> IO (Maybe URL)
+findLocal paths name = fmap (listToMaybe . concat . concat) $ forM paths $ \p -> do
+    xs <- getDirectoryContents p
+    xs <- return [p </> x | x <- reverse $ sort xs, name == fst (rbreak (== '-') x)] -- make sure highest version comes first
+    forM xs $ \x -> do
+        b <- doesDirectoryExist $ x </> "html"
+        x <- return $ if b then x </> "html" else x
+        b <- doesFileExist $ x </> "doc-index.html"
+        return [filePathToURL $ x </> "index.html" | b]
 
 
 ---------------------------------------------------------------------
@@ -89,8 +104,8 @@ listPlatform = do
 -- Change instance [incoherent] to instance, Haddock bug
 -- Change !Int to Int, HSE bug
 
-haddockHacks :: String -> String
-haddockHacks = unlines . map (unwords . map f . words) . filter (not . isPrefixOf "@version ") . lines
+haddockHacks :: [String] -> [String]
+haddockHacks = map (unwords . map f . words) . filter (not . isPrefixOf "@version ")
     where
         f "::" = "::"
         f (':':xs) = "(:" ++ xs ++ ")"
@@ -98,3 +113,9 @@ haddockHacks = unlines . map (unwords . map f . words) . filter (not . isPrefixO
         f ('!':x:xs) | isAlpha x || x `elem` "[(" = x:xs
         f x | x `elem` ["[overlap","ok]","[incoherent]"] = ""
         f x = x
+
+
+haddockPackageUrl :: URL -> [String] -> [String]
+haddockPackageUrl x = concatMap f
+    where f y | "@package " `isPrefixOf` y = ["@url " ++ x, y]
+              | otherwise = [y]

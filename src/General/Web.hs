@@ -5,7 +5,7 @@
 -}
 
 module General.Web(
-    combineURL, escapeURL, (++%), unescapeURL,
+    filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
     escapeHTML, (++&), htmlTag,
     cgiArgs,
     parseHttpQueryArgs
@@ -40,9 +40,14 @@ htmlTag x y = "<" ++ x ++ ">" ++ y ++ "</" ++ x ++ ">"
 ---------------------------------------------------------------------
 -- URL STUFF
 
+filePathToURL :: FilePath -> URL
+filePathToURL xs = "file://" ++ ['/' | not $ "/" `isPrefixOf` ys] ++ ys
+    where ys = map (\x -> if isPathSeparator x then '/' else x) xs
+
+
 combineURL :: String -> String -> String
 combineURL a b
-    | any (`isPrefixOf` b) ["http:","https:"] = b
+    | any (`isPrefixOf` b) ["http:","https:","file:"] = b
     | otherwise = a ++ b
 
 

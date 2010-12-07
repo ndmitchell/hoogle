@@ -20,7 +20,7 @@ parseInputHaskell = join . f [] "" . zip [1..] . lines
         f com url ((i,s):is)
             | "-- | " `isPrefixOf` s = f [drop 5 s] url is
             | "--" `isPrefixOf` s = f ([dropWhile isSpace $ drop 2 s | com /= []] ++ com) url is
-            | "@url " `isPrefixOf` s = f com (drop 5 s) is
+            | "@url " `isPrefixOf` s =  f com (drop 5 s) is
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i s of
                                Left y -> Left y
@@ -73,13 +73,16 @@ itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
     itemDisp=Tags [emph "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
 
 addModuleURLs :: [TextItem] -> [TextItem]
-addModuleURLs = f ""
+addModuleURLs = f $ const ""
     where
-        f pkg (x:xs) | itemLevel x == 0 = x : f (head $ itemName x) xs
-                     | itemLevel x == 1 = x{itemURL=url} : f pkg xs
-            where url = "http://hackage.haskell.org/packages/archive/" ++ pkg ++ "/latest/doc/html/" ++ intercalate "-" (itemName x) ++ ".html"
-        f pkg (x:xs) = x : f pkg xs
-        f pkg [] = []
+        f mod (x:xs)
+            | itemLevel x == 1 = x{itemURL=if null $ itemURL x then mod $ itemName x else itemURL x} : f mod xs
+            | itemLevel x == 0 = x : f mod2 xs
+            where mod2 = if "http:" `isPrefixOf` itemURL x then modHackage else modLocal
+                  modHackage xs = "http://hackage.haskell.org/packages/archive/" ++ head (itemName x) ++ "/latest/doc/html/" ++ intercalate "-" xs ++ ".html"
+                  modLocal xs = takeDirectory (itemURL x) ++ "/" ++ intercalate "-" xs ++ ".html"
+        f mod (x:xs) = x : f mod xs
+        f mod [] = []
 
 
 ---------------------------------------------------------------------

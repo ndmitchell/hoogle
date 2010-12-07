@@ -23,12 +23,12 @@ recipes opt = do
         download opt
         let ys = parseActions $ actions opt
         ref <- newIORef []
-        mapM_ (make ref ys . fst) ys
+        mapM_ (make ref opt ys . fst) ys
         recapErrors
 
 
-make :: IORef [Name] -> [(Name,[Name])] -> Name -> IO ()
-make ref acts x = do
+make :: IORef [Name] -> CmdLine -> [(Name,[Name])] -> Name -> IO ()
+make ref opt acts x = do
     b <- fmap (x `elem`) $ readIORef ref
     unless b $ do
         modifyIORef ref (x:)
@@ -41,10 +41,10 @@ make ref acts x = do
                 "platform" -> makePlatform makeRec
                 "package" -> makePackage
                 "all" -> makeAll makeRec
-                _ -> makeDefault makeRec x
+                _ -> makeDefault makeRec (local opt) x
         putStrLn $ "Finished " ++ x
     where
-        makeRec = make ref acts
+        makeRec = make ref opt acts
 
 
 parseActions :: [String] -> [(Name,[Name])]

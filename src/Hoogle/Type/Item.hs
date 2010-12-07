@@ -21,6 +21,7 @@ data TextItem = TextItem
     ,itemURL :: URL
     ,itemDocs :: String
     }
+    deriving Show
 
 data Fact
     = FactAlias TypeSig TypeSig
@@ -28,7 +29,7 @@ data Fact
     | FactDataKind String Int
     | FactClassKind String Int
     | FactCtorType String String -- Ctor, Data
-
+      deriving Show
 
 
 data Package = Package
