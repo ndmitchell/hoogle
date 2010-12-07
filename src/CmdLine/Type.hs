@@ -33,7 +33,7 @@ data CmdLine
         ,queryText :: String
         }
     | Test {testFiles :: [String], example :: Bool}
-    | Server {port :: Int, databases :: [FilePath], resources :: FilePath}
+    | Server {port :: Int, databases :: [FilePath], resources :: FilePath, serve_files :: Bool}
     | Dump {database :: String, section :: [String]}
     | Rank {srcfile :: FilePath}
     | Combine {srcfiles :: [FilePath], outfile :: String}
@@ -70,6 +70,7 @@ test = Test
 server = Server
     {port = 80 &= typ "INT" &= help "Port number"
     ,resources = ""
+    ,serve_files = def &= help "Rewrite file:/// links and serve them, can be a security hole"
     } &= help "Start a Hoogle server"
 
 dump = Dump

@@ -53,15 +53,26 @@ talk :: CmdLine -> Request String -> IO (Response String)
 talk Server{..} Request{rqURI=URI{uriPath=path,uriQuery=query}}
     | path `elem` ["/","/hoogle"] = do
         args <- cmdLineWeb $ parseHttpQueryArgs $ drop 1 query
-        response "/res" args{databases=databases}
+        r <- response "/res" args{databases=databases}
+        return $ if serve_files then r{rspBody=rewriteFileLinks $ rspBody r} else r
     | takeDirectory path == "/res" = do
         h <- openBinaryFile (resources </> takeFileName path) ReadMode
         src <- hGetContents h
         return $ Response (2,0,0) "OK"
             [Header HdrContentType $ contentExt $ takeExtension path
             ,Header HdrCacheControl "max-age=604800" {- 1 week -}] src
+    | serve_files && "/file/" `isPrefixOf` path = do
+        src <- readFile $ drop 6 path
+        return $ Response (2,0,0) "OK" [] src
     | otherwise
         = return $ Response (4,0,4) "Not Found" [] $ "404 Not Found: " ++ show path
+
+
+rewriteFileLinks :: String -> String
+rewriteFileLinks x
+    | "href='file://" `isPrefixOf` x = "href='/file/" ++ drop (13+1) x
+    | null x = x
+    | otherwise = head x : rewriteFileLinks (tail x)
 
 
 contentExt ".png" = "image/png"
