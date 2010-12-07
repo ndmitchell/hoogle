@@ -92,15 +92,11 @@ library
         Data.Binary.Defer.Array
         Data.Binary.Defer.Class
         Data.Binary.Defer.Index
-        Data.Binary.Defer.Map
         Data.Binary.Defer.Monad
-        Data.Binary.Defer.Trie
-        Data.Binary.Defer.Vector
         Data.Binary.Raw
         Data.Heap
-        Data.Key
         Data.TypeMap
-        General.Code
+        General.Base
         General.Util
         General.Web
         Hoogle.DataBase.Aliases
