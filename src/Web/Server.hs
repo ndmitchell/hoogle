@@ -49,6 +49,8 @@ httpServer port handler = do
     return $ sClose s
 
 
+-- FIXME: This should be in terms of Lazy ByteString's, for higher performance
+--        serving of local files
 talk :: CmdLine -> Request String -> IO (Response String)
 talk Server{..} Request{rqURI=URI{uriPath=path,uriQuery=query}}
     | path `elem` ["/","/hoogle"] = do
