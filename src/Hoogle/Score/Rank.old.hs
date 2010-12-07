@@ -24,7 +24,7 @@ data RankTest = RankTest TypeSig [TypeSig]
 
 rank :: FilePath -> IO ()
 rank file = do
-    (tb,tests) <- liftM readRankTests $ readFile file
+    (tb,tests) <- fmap readRankTests $ readFile file
     let rel = concatMap (runRankTest tb) tests
     rankSolve rel
 

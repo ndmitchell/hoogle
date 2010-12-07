@@ -71,12 +71,12 @@ instance Binary TagStr where
 
     get = do i <- getWord8
              case i of
-                0 -> liftM Str get
-                1 -> liftM Tags get
-                2 -> liftM TagBold get
-                3 -> liftM TagEmph get
-                4 -> liftM2 TagLink get get
-                5 -> liftM2 TagColor get get
+                0 -> fmap Str get
+                1 -> fmap Tags get
+                2 -> fmap TagBold get
+                3 -> fmap TagEmph get
+                4 -> fmap TagLink get get
+                5 -> fmap TagColor get get
 -}
 
 

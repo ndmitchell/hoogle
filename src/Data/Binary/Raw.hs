@@ -10,7 +10,6 @@ module Data.Binary.Raw(
     ) where
 
 import System.IO
-import Control.Monad
 import Data.Bits
 import Data.Word
 import Data.Char
@@ -56,5 +55,5 @@ hGetInt hndl = do
 
 
 hGetByte :: Handle -> IO Int
-hGetByte hndl = liftM ord $ hGetChar hndl
+hGetByte hndl = fmap ord $ hGetChar hndl
 

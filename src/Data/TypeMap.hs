@@ -5,7 +5,6 @@ module Data.TypeMap(
     ) where
 
 import Prelude hiding (lookup)
-import Control.Monad
 import Data.Dynamic
 import Data.Maybe
 import qualified Data.Map as Map
@@ -19,7 +18,7 @@ empty = TypeMap Map.empty
 
 lookup :: Typeable a => TypeMap -> Maybe a
 lookup (TypeMap mp) = res
-    where res = liftM (fromJust . fromDynamic) $ Map.lookup (typeOf $ fromJust res) mp
+    where res = fmap (fromJust . fromDynamic) $ Map.lookup (typeOf $ fromJust res) mp
 
 
 find :: Typeable a => TypeMap -> a

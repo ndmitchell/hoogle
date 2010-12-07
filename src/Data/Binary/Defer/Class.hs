@@ -74,7 +74,7 @@ putEnumByte :: Enum a => a -> DeferPut ()
 putEnumByte x = putByte $ fromIntegral $ fromEnum x
 
 getEnumByte :: Enum a => DeferGet a
-getEnumByte = liftM (toEnum . fromIntegral) getByte
+getEnumByte = fmap (toEnum . fromIntegral) getByte
 
 
 instance BinaryDefer Int where
@@ -93,7 +93,7 @@ instance BinaryDefer Char where
 
 instance BinaryDefer Bool where
     put x = putChr (if x then '1' else '0')
-    get = liftM (== '1') getChr
+    get = fmap (== '1') getChr
     size _ = 1
     putFixed = put
     getFixed = get
@@ -202,7 +202,7 @@ fromDefer (Defer x) = x
 
 instance BinaryDefer a => BinaryDefer (Defer a) where
     put (Defer x) = putDefer $ put x
-    get = getDefer $ liftM Defer get
+    get = getDefer $ fmap Defer get
     putFixed = put
     getFixed = get
 

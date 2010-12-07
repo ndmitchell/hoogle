@@ -99,7 +99,7 @@ mergeItems xs = Items
             where
                 (p2,p3) = add pi p id
                 (m2,m3) = add mi m id
-                (_ ,e3) = add ei e $ \x -> x{entryModule = liftM (\x -> m2 !! linkKey x) $ entryModule x
+                (_ ,e3) = add ei e $ \x -> x{entryModule = fmap (\x -> m2 !! linkKey x) $ entryModule x
                                             ,entryPackage = p2 !! linkKey (entryPackage x)}
 
                 add i xs f = (zipWith newLink [i..] xs2, xs2)

@@ -41,7 +41,7 @@ response resources q = do
 logMessage :: CmdLine -> IO ()
 logMessage q = do
     time <- getCurrentTime
-    cgi <- liftM (fromMaybe []) cgiArgs
+    cgi <- fmap (fromMaybe []) cgiArgs
     appendFile logFile $ (++ "\n") $ unwords $
         [showGregorian (utctDay time)
         ,show (queryText q)] ++

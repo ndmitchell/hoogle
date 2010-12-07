@@ -77,11 +77,11 @@ cgiVariable = do
     str <- envVariable "QUERY_STRING"
     if isJust str
         then return str
-        else liftM (liftM $ const "") $ envVariable "REQUEST_URI"
+        else fmap (fmap $ const "") $ envVariable "REQUEST_URI"
 
 
 envVariable :: String -> IO (Maybe String)
-envVariable x = catch (liftM Just $ getEnv x) (const $ return Nothing)
+envVariable x = catch (fmap Just $ getEnv x) (const $ return Nothing)
 
 
 cgiArgs :: IO (Maybe [(String, String)])

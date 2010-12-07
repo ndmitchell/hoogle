@@ -186,7 +186,7 @@ getInt :: DeferGet Int
 getInt  = do h <- asks fst; liftIO $ hGetInt  h
 
 getByte :: DeferGet Word8
-getByte = do h <- asks fst; liftIO $ liftM fromIntegral $ hGetByte h
+getByte = do h <- asks fst; liftIO $ fmap fromIntegral $ hGetByte h
 
 getChr :: DeferGet Char
 getChr  = do h <- asks fst; liftIO $ hGetChar h
