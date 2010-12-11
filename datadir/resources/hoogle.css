@@ -210,18 +210,3 @@ a.dull, a.dull:hover {
     color: #888;
 }
 .shut br {display: none;}
-
-
-/********************************************************************
-*  XUL SPECIFIC BEHAVIOUR
-*/
-
-#xul #links {display: none;}
-#xul body {background-color: white;}
-#xul a {color: blue; text-decoration: underline;}
-#xul a:visited {color: purple;}
-#xul .doc a {color: inherit;}
-#xul a.dull {
-    color: inherit;
-    text-decoration: none;
-}

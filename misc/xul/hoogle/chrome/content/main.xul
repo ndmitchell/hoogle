@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-
-<window onload="on_load()" id="main" title="Hoogle Local" width="600" height="500" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    <script src="main.js"/>
-    <!-- TODO: Hard coded path -->
-    <iframe src="about:blank" flex="1" id="iframe" style="background-color:white;" />
-</window>
