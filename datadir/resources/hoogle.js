@@ -34,7 +34,9 @@ $(function(){
 
 function searchPlugin()
 {
-    window.external.AddSearchProvider("http://haskell.org/hoogle/res/search.xml");
+    var l = document.location;
+    var url = l.protocol + "//" + l.hostname + l.pathname + $("link[rel=search]").attr("href");
+    window.external.AddSearchProvider(url);
 }
 
 function docs(i)
