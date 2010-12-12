@@ -1,4 +1,4 @@
-cabal-version:      >= 1.2
+cabal-version:      >= 1.6
 build-type:         Simple
 name:               hoogle
 version:            4.1
@@ -17,48 +17,10 @@ homepage:           http://www.haskell.org/hoogle/
 stability:          Beta
 extra-source-files: README.txt
 
--- data-dir:
---     datadir
--- data-files:
---     if flag(install-with-databases)
---         databases/array.hoo
---         databases/base.hoo
---         databases/bytestring.hoo
---         databases/cabal.hoo
---         databases/containers.hoo
---         databases/default.hoo
---         databases/directory.hoo
---         databases/filepath.hoo
---         databases/ghc.hoo
---         databases/hackage.hoo
---         databases/haskell-src.hoo
---         databases/hunit.hoo
---         databases/keyword.hoo
---         databases/mtl.hoo
---         databases/parallel.hoo
---         databases/parsec.hoo
---         databases/pretty.hoo
---         databases/process.hoo
---         databases/quickcheck.hoo
---         databases/random.hoo
---         databases/stm.hoo
---         databases/syb.hoo
---         databases/template-haskell.hoo
---         databases/time.hoo
---         databases/xhtml.hoo
--- 
--- flag install-with-databases
---     default: False
---     description: Install a default set of databases with the library
-
-flag extended-library
-    default: False
-    description: Install with support for internal library documentation (intended for developers only)
-
 library
     hs-source-dirs:     src
     build-depends:
-        base > 4 && < 4.3,
+        base > 4 && < 4.4,
         array, bytestring, containers, directory, filepath, process, random,
         safe,
         binary,
@@ -70,22 +32,15 @@ library
     exposed-modules:
         Hoogle
 
-    if flag(extended-library)
-        exposed-modules:
-            Hoogle.DataBase.All
-            Hoogle.Type.All
-            Hoogle.Query.All
-            Hoogle.Score.All
-            Hoogle.Search.All
-            Hoogle.Language.Haskell
-    else
-        other-modules:
-            Hoogle.DataBase.All
-            Hoogle.Type.All
-            Hoogle.Query.All
-            Hoogle.Score.All
-            Hoogle.Search.All
-            Hoogle.Language.Haskell
+    -- modules that I would conditionally expose, were it not for
+    -- http://hackage.haskell.org/trac/hackage/ticket/776
+    other-modules:
+        Hoogle.DataBase.All
+        Hoogle.Type.All
+        Hoogle.Query.All
+        Hoogle.Score.All
+        Hoogle.Search.All
+        Hoogle.Language.Haskell
 
     other-modules:
         Data.Binary.Defer
@@ -97,6 +52,7 @@ library
         Data.Heap
         Data.TypeMap
         General.Base
+        General.System
         General.Util
         General.Web
         Hoogle.DataBase.Aliases
@@ -140,10 +96,18 @@ executable hoogle
 
     other-modules:
         CmdLine.All
+        CmdLine.Load
         CmdLine.Type
         Console.All
+        Console.Rank
         Console.Search
         Console.Test
+        Recipe.All
+        Recipe.Download
+        Recipe.General
+        Recipe.Hackage
+        Recipe.Keyword
+        Recipe.Type
         Test.All
         Test.General
         Test.Parse_Query
