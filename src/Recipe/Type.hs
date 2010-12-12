@@ -7,7 +7,7 @@ module Recipe.Type(
     ) where
 
 import CmdLine.All
-import Data.IORef
+import Control.Concurrent
 import System.IO.Unsafe
 import General.Base
 import General.Util
@@ -21,7 +21,8 @@ hoo x = x <.> "hoo"
 
 
 noDeps :: [Name] -> IO ()
-noDeps = error "Internal error: package with no dependencies had dependencies"
+noDeps [] = return ()
+noDeps xs = error "Internal error: package with no dependencies had dependencies"
 
 
 ---------------------------------------------------------------------
@@ -49,21 +50,21 @@ version dir x = do
 -- ERROR MESSAGES
 
 {-# NOINLINE errors #-}
-errors :: IORef [String]
-errors = unsafePerformIO $ newIORef []
+errors :: MVar [String]
+errors = unsafePerformIO $ newMVar []
 
 putError :: String -> IO ()
 putError x = do
     putStrLn x
-    modifyIORef errors (x:)
+    modifyMVar_ errors $ return . (x:)
 
 recapErrors :: IO ()
 recapErrors = do
-    xs <- readIORef errors
+    xs <- readMVar errors
     mapM_ putStrLn $ reverse xs
 
 resetErrors :: IO ()
-resetErrors = writeIORef errors []
+resetErrors = modifyMVar_ errors $ const $ return []
 
 
 ---------------------------------------------------------------------
