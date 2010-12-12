@@ -5,8 +5,9 @@ module Recipe.All(recipes) where
 import General.Base
 import General.System
 import Control.Concurrent
-import Recipe.Type
+import qualified Data.Map as Map
 
+import Recipe.Type
 import Recipe.Download
 import Recipe.Keyword
 import Recipe.General
@@ -21,38 +22,63 @@ recipes opt = do
     withDirectory (datadir opt) $ do
         resetErrors
         download opt
-        let ys = parseActions $ actions opt
-        ref <- newMVar []
-        make ref opt ys $ map fst ys
+        let ys = parseRules $ actions opt
+        make opt (filter (not . null . snd) ys) (map fst ys)
         recapErrors
         putStrLn "Data generation complete"
 
 
-make :: MVar [Name] -> CmdLine -> [(Name,[Name])] -> [Name] -> IO ()
-make ref opt acts xs = forM_ xs $ \x -> do
-    b <- modifyMVar ref $ \seen -> let b = x `elem` seen in return ([x|not b]++seen, b)
-    unless b $ do
-        putStrLn $ "Starting " ++ x
-        case lookup x acts of
-            Just ys | not $ null ys -> combine makeRec x ys True
-            _ -> case x of
-                "keyword" -> makeKeyword
-                "default" -> combine makeRec x ["keyword","package","platform"] False
-                "platform" -> makePlatform makeRec
-                "package" -> makePackage
-                "all" -> makeAll makeRec
-                _ -> makeDefault makeRec (local opt) x
-        putStrLn $ "Finished " ++ x
+-- If I switch to the parallel-io library then it segfaults, due to GHC bug:
+-- http://hackage.haskell.org/trac/ghc/ticket/4835 
+withPool i f = f ()
+extraWorkerWhileBlocked _ = id
+parallel_ _ = sequence_
+
+
+data Status = Built | Building (MVar ())
+
+make :: CmdLine -> [(Name,[Name])] -> [Name] -> IO ()
+make opt rules xs = withPool (error $ show $ threads opt) $ \pool -> do
+    ref <- newMVar Map.empty
+    fs ref pool [] xs
     where
-        makeRec = make ref opt acts
+        fs ref pool rec xs = parallel_ pool $ map (f ref pool rec) xs
+
+        f ref pool rec x
+            | x `elem` rec = putStrLn $ "Warning: Package database appears to be recursive, " ++ x
+            | otherwise = join $ modifyMVar ref $ \mp -> case Map.lookup x mp of
+                Just Built -> return (mp, return ())
+                Just (Building v) -> return $ (,) mp $
+                    extraWorkerWhileBlocked pool $ readMVar v
+                Nothing -> do
+                    v <- newEmptyMVar
+                    return $ (,) (Map.insert x (Building v) mp) $ do
+                        build (fs ref pool $ x:rec) opt rules x
+                        modifyMVar_ ref $ \mp -> return $ Map.insert x Built mp
+                        putMVar v ()
 
 
-parseActions :: [String] -> [(Name,[Name])]
-parseActions [] = [("default",[])]
-parseActions xs = map parseAction xs
+build :: ([Name] -> IO ()) -> CmdLine -> [(Name,[Name])] -> Name -> IO ()
+build makeRec opt rules x = do
+    putStrLn $ "Starting " ++ x
+    case lookup x rules of
+        Just ys -> combine makeRec x ys True
+        _ -> case x of
+            "keyword" -> makeKeyword
+            "default" -> combine makeRec x ["keyword","package","platform"] False
+            "platform" -> makePlatform makeRec
+            "package" -> makePackage
+            "all" -> makeAll makeRec
+            _ -> makeDefault makeRec (local opt) x
+    putStrLn $ "Finished " ++ x
 
 
-parseAction :: String -> (Name,[Name])
-parseAction x = (a, uncommas $ drop 1 b)
+parseRules :: [String] -> [(Name,[Name])]
+parseRules [] = [("default",[])]
+parseRules xs = map parseRule xs
+
+
+parseRule :: String -> (Name,[Name])
+parseRule x = (a, uncommas $ drop 1 b)
     where (a,b) = break (== '=') x
           uncommas = words . map (\x -> if x == ',' then ' ' else x)
