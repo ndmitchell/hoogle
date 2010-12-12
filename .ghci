@@ -9,63 +9,63 @@
 
 :{
 :def hlint const $ return $ unlines
-    [":!hlint src --report"
-    ,":!start report.html"]
+        [":!hlint src --report"
+        ,":!start report.html"]
 :}
 
 :{
 :def docs const $ return $ unlines
-    [":!cabal configure --flags=extended-library"
-    ,":!cabal haddock"
-    ,":!start dist\\doc\\html\\hoogle\\Hoogle.html"]
+        [":!cabal configure --flags=extended-library"
+        ,":!cabal haddock"
+        ,":!start dist\\doc\\html\\hoogle\\Hoogle.html"]
 :}
 
 :{
 :def local \args -> return $ unlines
-    [":!mkdir obj"
-    ,":!ghc --make src/Main.hs src/Paths.hs -isrc -odir obj -hidir obj -o obj/hoogle.exe -threaded"
-    ,":!obj\\hoogle " ++ args]
+        [":!mkdir obj"
+        ,":!ghc --make src/Main.hs src/Paths.hs -isrc -odir obj -hidir obj -o obj/hoogle.exe -threaded"
+        ,":!obj\\hoogle " ++ args]
 :}
 
 :{
 :def extra const $
-    let msg = [":test  - run the test suit"
-              ,":hlint - run HLint on the code"
-              ,":docs  - generate haddock documentation"
-              ,":local - compile and run locally"]
-    in putStr (unlines msg) >> return []
+        let msg = [":test  - run the test suit"
+                  ,":hlint - run HLint on the code"
+                  ,":docs  - generate haddock documentation"
+                  ,":local - compile and run locally"]
+        in putStr (unlines msg) >> return []
 :}
 
 :{
 :def tagsoup const $ return $ unlines
-    [":reload"
-    ,":main data package=tagsoup convert=tagsoup --rebuild --verbose"
-    ,":main server"]
+        [":reload"
+        ,":main data package=tagsoup convert=tagsoup --rebuild --verbose"
+        ,":main server"]
 :}
 
 :{
 :def prof \x -> return $ unlines
-    [":!(if not exist .hpc mkdir .hpc) && " ++
-       "(if not exist .hpc\\prof mkdir .hpc\\prof) && " ++
-       "(ghc --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/prof -hidir .hpc/prof -o .hpc/prof/hoogle -prof -auto-all -caf-all) && " ++
-       "(.hpc\\prof\\hoogle " ++ x ++ " +RTS -p)"
-    ,":!start hoogle.prof"]
+        [":!(if not exist .hpc mkdir .hpc) && " ++
+           "(if not exist .hpc\\prof mkdir .hpc\\prof) && " ++
+           "(ghc --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/prof -hidir .hpc/prof -o .hpc/prof/hoogle -prof -auto-all -caf-all) && " ++
+           "(.hpc\\prof\\hoogle " ++ x ++ " +RTS -p)"
+        ,":!start hoogle.prof"]
 :}
 
 :{
 :def opt \x -> return $ unlines
-    [":!(if not exist .hpc mkdir .hpc) && " ++
-       "(if not exist .hpc\\opt mkdir .hpc\\opt) && " ++
-       "(ghc --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/opt -hidir .hpc/opt -o .hpc/opt/hoogle -threaded -O) && " ++
-       "(timer .hpc\\opt\\hoogle " ++ x ++ ")"
-    ,"putStrLn \"\""]
+        [":!(if not exist .hpc mkdir .hpc) && " ++
+           "(if not exist .hpc\\opt mkdir .hpc\\opt) && " ++
+           "(ghc --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/opt -hidir .hpc/opt -o .hpc/opt/hoogle -threaded -O) && " ++
+           "(timer .hpc\\opt\\hoogle " ++ x ++ ")"
+        ,"putStrLn \"\""]
 :}
 
 :{
 :def deploy const $ return $ unlines
-    [":!cabal clean"
-    ,":!cabal configure --datadir=/srv/web/haskell.org/hoogle --datasubdir=datadir -O2"
-    ,":!cabal build"
-    ,":!cp dist/build/hoogle/hoogle /srv/web/haskell.org/hoogle/index.cgi"
-    ]
+        [":!cabal clean"
+        ,":!cabal configure --datadir=/srv/web/haskell.org/hoogle --datasubdir=datadir -O2"
+        ,":!cabal build"
+        ,":!cp dist/build/hoogle/hoogle /srv/web/haskell.org/hoogle/index.cgi"
+        ]
 :}
