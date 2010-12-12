@@ -12,7 +12,7 @@ import General.Web
 avoid = words "ghc-prim integer integer-simple integer-gmp rts ghc Win32"
 
 
-makePlatform :: (Name -> IO ()) -> IO ()
+makePlatform :: ([Name] -> IO ()) -> IO ()
 makePlatform make = do
     xs <- listPlatform
     forM_ xs $ \(name,ver) -> do
@@ -21,10 +21,10 @@ makePlatform make = do
     combine make "platform" (map fst xs) False
 
 
-makeAll :: (Name -> IO ()) -> IO ()
+makeAll :: ([Name] -> IO ()) -> IO ()
 makeAll make = do
     xs <- listing haddocks
-    mapM_ make xs
+    make xs
 
 
 -- create a database containing an entry for each package in hackage
@@ -41,7 +41,7 @@ makePackage = do
     convert noDeps "package"
 
 
-makeDefault :: (Name -> IO ()) -> [FilePath] -> Name -> IO ()
+makeDefault :: ([Name] -> IO ()) -> [FilePath] -> Name -> IO ()
 makeDefault make local name = do
     b1 <- doesDirectoryExist $ cabals </> name
     b2 <- doesDirectoryExist $ haddocks </> name

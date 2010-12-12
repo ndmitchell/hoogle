@@ -9,14 +9,14 @@ import System.Console.CmdArgs.Verbosity
 
 
 -- convert a single database
-convert :: (Name -> IO ()) -> Name -> IO ()
+convert :: ([Name] -> IO ()) -> Name -> IO ()
 convert make x = do
     b <- doesFileExist $ x <.> "txt"
     if not b then
         putError $ "Error: " ++ x ++ " couldn't be converted, no input file found"
      else do
         (deps,src) <- readInput x
-        mapM_ make deps
+        make deps
         let deps2 = map hoo deps
         deps3 <- filterM doesFileExist deps2
         when (deps2 /= deps3) $ putError $ "Error: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps2 \\ deps3)
@@ -39,9 +39,9 @@ readInput x = do
 
 
 -- combine multiple databases
-combine :: (Name -> IO ()) -> Name -> [Name] -> Bool -> IO ()
+combine :: ([Name] -> IO ()) -> Name -> [Name] -> Bool -> IO ()
 combine make x deps force = do
-    mapM_ make deps
+    make deps
     dbs <- mapM (loadDatabase . hoo) deps
     putStr $ "Creating " ++ x ++ " from " ++ show (length deps) ++ " databases... "
     performGC

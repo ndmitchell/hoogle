@@ -13,13 +13,14 @@ import General.Base
 import General.Util
 import General.System
 
+
 type Name = String
 
 hoo :: Name -> FilePath
 hoo x = x <.> "hoo"
 
 
-noDeps :: Name -> IO ()
+noDeps :: [Name] -> IO ()
 noDeps = error "Internal error: package with no dependencies had dependencies"
 
 

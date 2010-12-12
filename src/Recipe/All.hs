@@ -4,7 +4,7 @@ module Recipe.All(recipes) where
 
 import General.Base
 import General.System
-import Data.IORef
+import Control.Concurrent
 import Recipe.Type
 
 import Recipe.Download
@@ -22,16 +22,16 @@ recipes opt = do
         resetErrors
         download opt
         let ys = parseActions $ actions opt
-        ref <- newIORef []
-        mapM_ (make ref opt ys . fst) ys
+        ref <- newMVar []
+        make ref opt ys $ map fst ys
         recapErrors
+        putStrLn "Data generation complete"
 
 
-make :: IORef [Name] -> CmdLine -> [(Name,[Name])] -> Name -> IO ()
-make ref opt acts x = do
-    b <- fmap (x `elem`) $ readIORef ref
+make :: MVar [Name] -> CmdLine -> [(Name,[Name])] -> [Name] -> IO ()
+make ref opt acts xs = forM_ xs $ \x -> do
+    b <- modifyMVar ref $ \seen -> let b = x `elem` seen in return ([x|not b]++seen, b)
     unless b $ do
-        modifyIORef ref (x:)
         putStrLn $ "Starting " ++ x
         case lookup x acts of
             Just ys | not $ null ys -> combine makeRec x ys True
