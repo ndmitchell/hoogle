@@ -56,7 +56,7 @@
 :def opt \x -> return $ unlines
         [":!(if not exist .hpc mkdir .hpc) && " ++
            "(if not exist .hpc\\opt mkdir .hpc\\opt) && " ++
-           "(ghc --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/opt -hidir .hpc/opt -o .hpc/opt/hoogle -threaded -O) && " ++
+           "(ghc --make -isrc -i. src/Paths.hs src/Main.hs -w -odir .hpc/opt -hidir .hpc/opt -o .hpc/opt/hoogle -threaded -O -package transformers) && " ++
            "(timer .hpc\\opt\\hoogle " ++ x ++ ")"
         ,"putStrLn \"\""]
 :}
