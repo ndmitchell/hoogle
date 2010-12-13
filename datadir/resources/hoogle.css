@@ -172,6 +172,7 @@ a.dull, a.dull:hover {
     vertical-align: top;
     font-size: 8pt;
     padding-bottom: 10px;
+    white-space: nowrap;
 }
 .pkg, .pkg a {
     color: #888;
