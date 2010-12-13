@@ -34,7 +34,7 @@ search resources query =
     ["<form action='.' method='get'>"
     ,"  <div id='search'>"
     ,"    <a id='logo' href='http://haskell.org/hoogle/'>" ++
-           "<img src='" ++ resources ++ "/hoogle.png' alt='Hoogle' />" ++
+           "<img src='" ++ resources ++ "/hoogle.png' width='160' height='58' alt='Hoogle' />" ++
          "</a>"
     ,"    <input name='hoogle' id='hoogle' type='text' autocomplete='off' value=\"" ++ query ++ "\" />"
     ,"    <input id='submit' type='submit' value='Search' />"
