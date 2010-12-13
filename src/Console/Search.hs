@@ -4,14 +4,22 @@ module Console.Search(actionSearch) where
 
 import CmdLine.All
 import General.Base
+import General.System
 import Hoogle
 
 
 actionSearch :: CmdLine -> Query -> IO ()
 actionSearch flags q = do
     (missing,dbs) <- loadQueryDatabases (databases flags) q
-    unless (null missing) $
-        error $ "Could not find some databases: " ++ unwords missing
+    unless (null missing) $ do
+        n <- availableDatabases (databases flags)
+        exitMessage $
+            ("Could not find some databases: " ++ unwords missing) :
+            (if null n then ["  There are no available databases, generate them with: hoogle data"]
+             else if length n < 100 then ["  Either the package does not exist or has not been generated"
+                                         ,"  Generate more databases with: hoogle data all"]
+             else ["  Either the package does not exist or has not been generated"]) ++
+            ["  Found " ++ show (length n) ++ " databases, including: " ++ unwords (take 5 n) | not $ null n]
 
     let sug = querySuggestions dbs q
     when (isJust sug) $

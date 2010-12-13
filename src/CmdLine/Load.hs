@@ -1,9 +1,10 @@
 
-module CmdLine.Load(loadQueryDatabases) where
+module CmdLine.Load(loadQueryDatabases, availableDatabases) where
 
 import Hoogle
-import General.System
 import General.Base
+import General.Util
+import General.System
 
 
 -- | Given a list of search directories, and a query, load the databases you
@@ -29,3 +30,9 @@ findFile [] = return Nothing
 findFile (x:xs) = do
     b <- doesFileExist x
     if b then return $ Just x else findFile xs
+
+
+availableDatabases :: [FilePath] -> IO [String]
+availableDatabases xs = fmap (sortBy compareString . nub . concat) $ forM xs $ \x -> do
+    ys <- getDirectoryContents x
+    return [dropExtension y | y <- ys, takeExtension y == ".hoo"] 

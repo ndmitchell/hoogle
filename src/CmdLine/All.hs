@@ -12,7 +12,8 @@
     * Which flags were specified, and which were erroneous.
 -}
 module CmdLine.All(
-    cmdLine, cmdLineWeb, CmdLine(..), isWebCmdLine, loadQueryDatabases
+    cmdLine, cmdLineWeb, CmdLine(..), isWebCmdLine,
+    module CmdLine.Load
     ) where
 
 import General.Base

@@ -51,3 +51,7 @@ system_ :: String -> IO ()
 system_ x = do
     res <- system x
     when (res /= ExitSuccess) $ error $ "System command failed: " ++ x
+
+
+exitMessage :: [String] -> IO a
+exitMessage msg = putStr (unlines msg) >> exitFailure
