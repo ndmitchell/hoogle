@@ -20,6 +20,7 @@ data TextItem = TextItem
     ,itemDisp :: TagStr -- TagColor 0 for result type, TagColor 1.. for arg types, TagBold for name
     ,itemURL :: URL
     ,itemDocs :: String
+    ,itemPriority :: Int -- priority, 0 is highest priority
     }
     deriving Show
 
@@ -55,6 +56,7 @@ data Entry = Entry
     ,entryDocs :: Documentation
     ,entryURL :: URL
     ,entryType :: Maybe TypeSig -- entirely pointless, should be eliminated by here!
+    ,entryPriority :: Int
     }
     deriving (Typeable)
 
@@ -84,7 +86,7 @@ renderEntryText view = transform f
 -- TODO: EntryScore is over-prescriptive, and not overly useful
 --       Have name and type scores to it themselves, using name only
 --       to break ties when merging
--- the number of elements in the module name
+-- the entry priority
 -- the name of the entry, in lower case
 -- the name of the entry
 -- the module
@@ -93,9 +95,7 @@ data EntryScore = EntryScore Int String String [String]
 
 
 entryScore :: Entry -> EntryScore
-entryScore e = EntryScore
-    (length m)
-    (map toLower $ entryName e) (entryName e) m
+entryScore e = EntryScore (entryPriority e) (map toLower $ entryName e) (entryName e) m
     where m = maybe [] (moduleName . fromLink) $ entryModule e
 
 
@@ -125,5 +125,5 @@ instance BinaryDefer Module where
     get = get3 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e f g) = put7 a b c d e f g
-    get = get7 Entry
+    put (Entry a b c d e f g h) = put8 a b c d e f g h
+    get = get8 Entry

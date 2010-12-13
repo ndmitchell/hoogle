@@ -82,7 +82,8 @@ addTextItem TextItem{..} = do
         itemDisp
         (htmlDocumentation itemDocs)
         url
-        itemType]
+        itemType
+        itemPriority]
 
 
 mergeItems :: [Items] -> Items

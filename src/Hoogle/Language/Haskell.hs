@@ -27,7 +27,7 @@ parseInputHaskell = join . f [] "" . zip [1..] . lines
                                Right (as,bs) -> Right (as,[b{itemURL=if null url then itemURL b else url, itemDocs=unlines $ reverse com} | b <- bs]))
                           : f [] "" is
 
-        join xs = (err, (concat as, addModuleURLs $ concat bs))
+        join xs = (err, (concat as, ripple setPriority $ ripple setModuleURL $ concat bs))
             where (err,items) = unzipEithers xs
                   (as,bs) = unzip items
 
@@ -72,7 +72,7 @@ subtractCols n (SrcSpanInfo x xs) = SrcSpanInfo (f x) (map f xs)
     where f x = x{srcSpanStartColumn=srcSpanStartColumn x - n, srcSpanEndColumn=srcSpanEndColumn x - n}
 
 
-textItem = TextItem 2 [] Nothing (Str "") "" ""
+textItem = TextItem 2 [] Nothing (Str "") "" "" 0
 
 fact x y = (x,[y])
 
@@ -84,20 +84,35 @@ itemKeyword x = fact [] $ textItem{itemName=[x],
     itemDisp=Tags [emph "keyword",space,bold x]}
 
 itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
-    itemURL="", -- filled in by addModuleURLs
+    itemURL="",
     itemDisp=Tags [emph "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
 
-addModuleURLs :: [TextItem] -> [TextItem]
-addModuleURLs = f $ const ""
+
+-- apply things that need to ripple down, priorities and module URL's
+ripple :: (Maybe TextItem -> Maybe TextItem -> TextItem -> TextItem) -> [TextItem] -> [TextItem]
+ripple f = fs Nothing Nothing
     where
-        f mod (x:xs)
-            | itemLevel x == 1 = x{itemURL=if null $ itemURL x then mod $ itemName x else itemURL x} : f mod xs
-            | itemLevel x == 0 = x : f mod2 xs
-            where mod2 = if "http:" `isPrefixOf` itemURL x then modHackage else modLocal
-                  modHackage xs = "http://hackage.haskell.org/packages/archive/" ++ head (itemName x) ++ "/latest/doc/html/" ++ intercalate "-" xs ++ ".html"
-                  modLocal xs = takeDirectory (itemURL x) ++ "/" ++ intercalate "-" xs ++ ".html"
-        f mod (x:xs) = x : f mod xs
-        f mod [] = []
+        fs a b [] = []
+        fs a b (x:xs) = f a2 b2 x : fs a2 b2 xs
+            where a2 = if itemLevel x == 0 then Just x else a
+                  b2 = if itemLevel x == 1 then Just x else b
+
+
+-- base::Prelude is priority 0
+-- base is priority 1
+-- Everything else is priority 2
+setPriority pkg mod x = x{itemPriority = pri}
+    where pri = if base then (if prelude then 0 else 1) else 2
+          prelude = maybe [] itemName mod == ["Prelude"]
+          base = maybe [] itemName pkg == ["base"]
+
+
+setModuleURL pkg _ x
+    | isJust pkg && itemLevel x == 1 = x{itemURL=if null $ itemURL x then f $ itemName x else itemURL x}
+    | otherwise = x
+    where f = if "http:" `isPrefixOf` itemURL (fromJust pkg) then modHackage else modLocal
+          modHackage xs = "http://hackage.haskell.org/packages/archive/" ++ head (itemName $ fromJust pkg) ++ "/latest/doc/html/" ++ intercalate "-" xs ++ ".html"
+          modLocal xs = takeDirectory (itemURL $ fromJust pkg) ++ "/" ++ intercalate "-" xs ++ ".html"
 
 
 ---------------------------------------------------------------------
