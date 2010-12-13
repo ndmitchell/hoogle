@@ -41,12 +41,27 @@ parseLine line ('@':str) = case a of
     where (a,b) = break isSpace str
 parseLine line x | a == "module" = Right $ itemModule $ split '.' $ dropWhile isSpace b
     where (a,b) = break isSpace x
-parseLine line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x ++ ex of
-    ParseOk y -> maybe (Left $ parseErrorWith line 1 "Can't translate" $ x ++ ex) Right $ transDecl x y
-    ParseFailed pos msg -> case parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x of
-        ParseOk y | Just z <- transDecl x $ fmap (subtractCols 16) y -> Right z
-        _ -> Left $ parseErrorWith line (srcColumn pos) msg $ x ++ ex
+parseLine line x
+    | not continue = res
+    | otherwise = fromMaybe res $ fmap Right $ parseTuple x `mappend` parseCtor x
+    where (continue,res) = parseFunction line x
+
+parseFunction line x = case parseDeclWithMode defaultParseMode{extensions=exts} $ x ++ ex of
+    ParseOk y -> (,) False $ maybe (Left $ parseErrorWith line 1 "Can't translate" $ x ++ ex) Right $ transDecl x y
+    ParseFailed pos msg -> (,) True $ Left $ parseErrorWith line (srcColumn pos) msg $ x ++ ex
     where ex = if "newtype " `isPrefixOf` x then " = N T" else " " -- space to work around HSE bug #205
+
+parseTuple o@('(':xs) | ")" `isPrefixOf` rest
+    , ParseOk y <- parseDeclWithMode defaultParseMode{extensions=exts} $ replicate (length com + 2) 'a' ++ drop 1 rest
+    = transDecl o $ f y
+    where
+        (com,rest) = span (== ',') xs
+        f (HSE.TypeSig sl [Ident sl2 _] ty) = HSE.TypeSig sl [Ident sl2 $ '(':com++")"] ty
+parseTuple _ = Nothing
+
+parseCtor x = case parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x of
+        ParseOk y -> transDecl x $ fmap (subtractCols 16) y
+        _ -> Nothing
 
 exts = [EmptyDataDecls,TypeOperators,ExplicitForall,GADTs,KindSignatures,MultiParamTypeClasses
        ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples]
@@ -98,8 +113,10 @@ transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ te
     itemDisp=formatTags x $ (cols snam,TagBold) : zipWith (\i a -> (cols a,TagColor i)) [1..] as ++ [(cols b,TagColor 0)]}
     where (snam,nam) = findName name
           (as,b) = initLast $ typeArgsPos tyy
-          ctr = [FactCtorType nam y | isUpper $ head nam, TLit y <- [fst $ fromTApp $ last $ fromTFun ty]]
+          ctr = [FactCtorType nam y | ctorStart $ head nam, TLit y <- [fst $ fromTApp $ last $ fromTFun ty]]
           typ@(TypeSig _ ty) = transTypeSig tyy
+
+          ctorStart x = isUpper x || x `elem` ":("
 
 transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
     {itemName=[nam]
@@ -144,7 +161,8 @@ findName x = case universeBi x of
         Ident s x : _ -> (srcInfoSpan s,x)
         Symbol s x : _ -> (srcInfoSpan s,x)
 
-unbracket ('(':xs) | ")" `isSuffixOf` xs = init xs
+unbracket ('(':xs) | ")" `isSuffixOf` xs && nub ys `notElem` ["",","] = ys
+    where ys = init xs
 unbracket x = x
 
 

@@ -79,3 +79,7 @@ Did you mean: :: Maybe a +testdata
 
 :: Maybe +testdata
 Did you mean: :: Maybe a +testdata
+
+-- check that () is known, not a warning, and is the first result
+:: () +testdata
+@now () :: ()

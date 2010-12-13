@@ -4,6 +4,8 @@
 
 module Testdata
 
+() :: ()
+(,) :: a -> b -> (a,b)
 type FilePath = String
 type String = [Char]
 data Unit
