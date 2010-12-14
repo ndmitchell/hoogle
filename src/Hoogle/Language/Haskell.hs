@@ -72,18 +72,18 @@ subtractCols n (SrcSpanInfo x xs) = SrcSpanInfo (f x) (map f xs)
     where f x = x{srcSpanStartColumn=srcSpanStartColumn x - n, srcSpanEndColumn=srcSpanEndColumn x - n}
 
 
-textItem = TextItem 2 [] Nothing (Str "") "" "" 0
+textItem = TextItem 2 "" "" Nothing (Str "") "" "" 0
 
 fact x y = (x,[y])
 
-itemPackage x = fact [] $ textItem{itemLevel=0, itemName=[x],
+itemPackage x = fact [] $ textItem{itemLevel=0, itemKey=x, itemName=x,
     itemURL="http://hackage.haskell.org/package/" ++ x ++ "/",
     itemDisp=Tags [emph "package",space,bold x]}
 
-itemKeyword x = fact [] $ textItem{itemName=[x],
+itemKeyword x = fact [] $ textItem{itemName=x, itemKey=x,
     itemDisp=Tags [emph "keyword",space,bold x]}
 
-itemModule xs = fact [] $ textItem{itemLevel=1, itemName=xs,
+itemModule xs = fact [] $ textItem{itemLevel=1, itemKey=last xs, itemName=intercalate "." xs,
     itemURL="",
     itemDisp=Tags [emph "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
 
@@ -103,16 +103,16 @@ ripple f = fs Nothing Nothing
 -- Everything else is priority 2
 setPriority pkg mod x = x{itemPriority = pri}
     where pri = if base then (if prelude then 0 else 1) else 2
-          prelude = maybe [] itemName mod == ["Prelude"]
-          base = maybe [] itemName pkg == ["base"]
+          prelude = maybe [] itemName mod == "Prelude"
+          base = maybe [] itemName pkg == "base"
 
 
 setModuleURL pkg _ x
     | isJust pkg && itemLevel x == 1 = x{itemURL=if null $ itemURL x then f $ itemName x else itemURL x}
     | otherwise = x
     where f = if "http:" `isPrefixOf` itemURL (fromJust pkg) then modHackage else modLocal
-          modHackage xs = "http://hackage.haskell.org/packages/archive/" ++ head (itemName $ fromJust pkg) ++ "/latest/doc/html/" ++ intercalate "-" xs ++ ".html"
-          modLocal xs = takeDirectory (itemURL $ fromJust pkg) ++ "/" ++ intercalate "-" xs ++ ".html"
+          modHackage xs = "http://hackage.haskell.org/packages/archive/" ++ itemName (fromJust pkg) ++ "/latest/doc/html/" ++ reps '.' '-' xs ++ ".html"
+          modLocal xs = takeDirectory (itemURL $ fromJust pkg) ++ "/" ++ reps '.' '-' xs ++ ".html"
 
 
 ---------------------------------------------------------------------
@@ -123,7 +123,8 @@ transDecl :: String -> Decl S -> Maybe ([Fact],[TextItem])
 transDecl x (GDataDecl s dat ctxt hd _ [] _) = transDecl x $ DataDecl s dat ctxt hd [] Nothing
 transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = transDecl x $ HSE.TypeSig s [name] ty
 
-transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ textItem{itemName=[nam],itemType=Just typ,
+transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ textItem{itemName=nam,itemKey=nam,
+    itemType=Just typ,
     itemURL="#v:" ++ nam,
     itemDisp=formatTags x $ (cols snam,TagBold) : zipWith (\i a -> (cols a,TagColor i)) [1..] as ++ [(cols b,TagColor 0)]}
     where (snam,nam) = findName name
@@ -134,13 +135,13 @@ transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ te
           ctorStart x = isUpper x || x `elem` ":("
 
 transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
-    {itemName=[nam]
+    {itemName=nam, itemKey=nam
     ,itemURL="#t:" ++ nam
     ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
 transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from++kinds False to) $ textItem
-    {itemName=[nam]
+    {itemName=nam, itemKey=nam
     ,itemURL="#t:" ++ nam
     ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
@@ -148,7 +149,7 @@ transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from
           to = transTypeSig ty
 
 transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ fact (kinds False $ transDeclHead ctxt hd) $ textItem
-    {itemName=[nam]
+    {itemName=nam, itemKey=nam
     ,itemURL="#t:" ++ nam
     ,itemDisp=x `formatTags` [(cols $ srcInfoSpan $ ann dat, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd

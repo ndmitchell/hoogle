@@ -20,7 +20,7 @@ createDataBase deps (facts,xs) = DataBase items
     where
         items = createItems xs
         ys = entriesItems items
-        ns = createSubstrSearch [(entryName $ fromLink y, y) | y <- ys]
+        ns = createSubstrSearch [(entryKey $ fromLink y, y) | y <- ys]
         as = createAliases (map aliases deps) facts
         is = createInstances (map instances deps) facts
 
@@ -32,7 +32,7 @@ combineDataBase dbs = DataBase items_
     where
         items_ = mconcat $ map items dbs
         ys = entriesItems items_
-        ns = createSubstrSearch [(entryName $ fromLink y, y) | y <- ys]
+        ns = createSubstrSearch [(entryKey $ fromLink y, y) | y <- ys]
         ss = mconcat $ map suggest dbs
         as = mconcat $ map aliases dbs
         is = mconcat $ map instances dbs

@@ -13,9 +13,11 @@ import Data.Generics.Uniplate
 
 type Input = ([Fact], [TextItem])
 
+
 data TextItem = TextItem
     {itemLevel :: Int -- 0 = package, 1 = module, >2 = entry
-    ,itemName :: [String] -- for modules is the module name, for all others is a singleton
+    ,itemKey :: String -- how i should be searched for (name for most things, last module component for modules)
+    ,itemName :: String -- what is the full text representation of me (key for most things, A.B.C for modules)
     ,itemType :: Maybe TypeSig
     ,itemDisp :: TagStr -- TagColor 0 for result type, TagColor 1.. for arg types, TagBold for name
     ,itemURL :: URL
@@ -51,7 +53,8 @@ data Module = Module
 data Entry = Entry
     {entryModule :: Maybe (Link Module)
     ,entryPackage :: Link Package
-    ,entryName :: String -- entirely pointless, should be eliminated by here!
+    ,entryName :: String
+    ,entryKey :: String -- entirely pointless, should be eliminated by here!
     ,entryText :: TagStr
     ,entryDocs :: Documentation
     ,entryURL :: URL
@@ -122,5 +125,5 @@ instance BinaryDefer Module where
     get = get3 Module
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e f g h) = put8 a b c d e f g h
-    get = get8 Entry
+    put (Entry a b c d e f g h i) = put9 a b c d e f g h i
+    get = get9 Entry

@@ -68,9 +68,9 @@ createItems xs = Items (newIndexS pkgs) (newIndexS mods)
 addTextItem :: TextItem -> State (S Package, S Module) [Entry]
 addTextItem TextItem{..} = do
     when (itemLevel == 0) $
-        modify $ \(ps,ms) -> (addS (Package (head itemName) itemURL) ps, ms)
+        modify $ \(ps,ms) -> (addS (Package itemName itemURL) ps, ms)
     when (itemLevel == 1) $
-        modify $ \(ps,ms) -> let p = getS ps in (ps, addS (Module (intercalate "." itemName) p (packageURL (fromLink p) `combineURL` itemURL)) ms)
+        modify $ \(ps,ms) -> let p = getS ps in (ps, addS (Module itemName p (packageURL (fromLink p) `combineURL` itemURL)) ms)
     (ps,ms) <- get
     let p = getS ps
         m = if itemLevel > 1 then getSMay ms else Nothing
@@ -78,7 +78,8 @@ addTextItem TextItem{..} = do
               else if itemLevel > 1 && isJust m then moduleURL (fromLink $ fromJust m) `combineURL` itemURL
               else itemURL
     return [Entry m p
-        (intercalate "." itemName)
+        itemName
+        itemKey
         itemDisp
         (htmlDocumentation itemDocs)
         url
