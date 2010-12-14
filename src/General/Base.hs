@@ -61,3 +61,9 @@ readFile' x = do
 ltrim = dropWhile isSpace
 rtrim = reverse . ltrim . reverse
 trim = ltrim . rtrim
+
+
+chop :: ([a] -> (b, [a])) -> [a] -> [b]
+chop _ [] = []
+chop f as = b : chop f as'
+    where (b, as') = f as

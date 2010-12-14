@@ -70,6 +70,7 @@ split x xs = if null b then [a] else a : split x (tail b)
 
 
 rep from to x = if x == from then to else x
+reps from to = map (rep from to)
 
 
 -- | Like splitAt, but also return the number of items that were split.
