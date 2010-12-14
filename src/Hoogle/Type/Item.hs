@@ -50,9 +50,11 @@ data Module = Module
     deriving Typeable
 
 
+-- FIXME: Eliminate the two dead fields
+--        Eliminate Module and Package, just link back to entry
 data Entry = Entry
-    {entryModule :: Maybe (Link Module)
-    ,entryPackage :: Link Package
+    {entryPackage :: Maybe (Link Package)
+    ,entryModule :: Maybe (Link Module)
     ,entryName :: String
     ,entryKey :: String -- entirely pointless, should be eliminated by here!
     ,entryText :: TagStr

@@ -76,7 +76,7 @@ filterResults q = f mods correctModule . f pkgs correctPackage
 
 -- pkgs is a non-empty list of MinusPackage values
 correctPackage :: [String] -> Entry -> Bool
-correctPackage pkgs = (`notElem` pkgs) . packageName . fromLink . entryPackage
+correctPackage pkgs = maybe True ((`notElem` pkgs) . packageName . fromLink) . entryPackage
 
 
 -- mods is a non-empty list of PlusModule/MinusModule

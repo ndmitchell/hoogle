@@ -77,7 +77,7 @@ addTextItem TextItem{..} = do
         url = if itemLevel == 1 || (itemLevel > 1 && isNothing m) then packageURL (fromLink p) `combineURL` itemURL
               else if itemLevel > 1 && isJust m then moduleURL (fromLink $ fromJust m) `combineURL` itemURL
               else itemURL
-    return [Entry m p
+    return [Entry (Just p) m
         itemName
         itemKey
         itemDisp
@@ -102,7 +102,7 @@ mergeItems xs = Items
                 (p2,p3) = add pi p id
                 (m2,m3) = add mi m id
                 (_ ,e3) = add ei e $ \x -> x{entryModule = fmap (\x -> m2 !! linkKey x) $ entryModule x
-                                            ,entryPackage = p2 !! linkKey (entryPackage x)}
+                                            ,entryPackage = fmap (\x -> p2 !! linkKey x) $ entryPackage x}
 
                 add i xs f = (zipWith newLink [i..] xs2, xs2)
                     where xs2 = map (f . fromLink) $ indexLinks xs
