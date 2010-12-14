@@ -50,18 +50,17 @@ data Module = Module
     deriving Typeable
 
 
--- FIXME: Eliminate the two dead fields
---        Eliminate Module and Package, just link back to entry
+-- FIXME: Eliminate Module and Package, just link back to entry
 data Entry = Entry
     {entryPackage :: Maybe (Link Package)
     ,entryModule :: Maybe (Link Module)
     ,entryName :: String
-    ,entryKey :: String -- entirely pointless, should be eliminated by here!
     ,entryText :: TagStr
     ,entryDocs :: Documentation
     ,entryURL :: URL
-    ,entryType :: Maybe TypeSig -- entirely pointless, should be eliminated by here!
     ,entryPriority :: Int
+    ,entryKey :: String -- used only for rebuilding combined databases
+    ,entryType :: Maybe TypeSig -- used only for rebuilding combined databases
     }
     deriving (Typeable)
 

@@ -79,12 +79,12 @@ addTextItem TextItem{..} = do
               else itemURL
     return [Entry (Just p) m
         itemName
-        itemKey
         itemDisp
         (htmlDocumentation itemDocs)
         url
-        itemType
-        itemPriority]
+        itemPriority
+        itemKey
+        itemType]
 
 
 mergeItems :: [Items] -> Items
