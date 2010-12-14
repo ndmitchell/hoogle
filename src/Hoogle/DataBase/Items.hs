@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Hoogle.DataBase.Items(Items(..), createItems, entriesItems) where
+module Hoogle.DataBase.Items(Items, createItems, entriesItems) where
 
 import Control.Monad.Trans.State
 import Data.Binary.Defer.Index
@@ -14,8 +14,8 @@ import qualified Data.Binary.Defer as D
 -- Invariant: Index Entry is by order of EntryScore
 
 data Items = Items
-    {packages :: Index Package
-    ,modules :: Index Module
+    {_packages :: Index Package
+    ,_modules :: Index Module
     ,entries :: Index Entry
     }
 
