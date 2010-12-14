@@ -39,6 +39,7 @@ get5 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; x5 <- get; return (f x1 
 get6 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; x5 <- get; x6 <- get; return (f x1 x2 x3 x4 x5 x6)
 get7 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; x5 <- get; x6 <- get; x7 <- get; return (f x1 x2 x3 x4 x5 x6 x7)
 get8 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; x5 <- get; x6 <- get; x7 <- get; x8 <- get; return (f x1 x2 x3 x4 x5 x6 x7 x8)
+get9 f = do x1 <- get; x2 <- get; x3 <- get; x4 <- get; x5 <- get; x6 <- get; x7 <- get; x8 <- get; x9 <- get; return (f x1 x2 x3 x4 x5 x6 x7 x8 x9)
 
 
 getFixed0 f = return f
@@ -59,6 +60,7 @@ put5 x1 x2 x3 x4 x5 = put x1 >> put x2 >> put x3 >> put x4 >> put x5
 put6 x1 x2 x3 x4 x5 x6 = put x1 >> put x2 >> put x3 >> put x4 >> put x5 >> put x6
 put7 x1 x2 x3 x4 x5 x6 x7 = put x1 >> put x2 >> put x3 >> put x4 >> put x5 >> put x6 >> put x7
 put8 x1 x2 x3 x4 x5 x6 x7 x8 = put x1 >> put x2 >> put x3 >> put x4 >> put x5 >> put x6 >> put x7 >> put x8
+put9 x1 x2 x3 x4 x5 x6 x7 x8 x9 = put x1 >> put x2 >> put x3 >> put x4 >> put x5 >> put x6 >> put x7 >> put x8 >> put x9
 
 
 putFixed0 = return () :: DeferPut ()
