@@ -41,11 +41,11 @@ instance BinaryDefer Graphs where
 ---------------------------------------------------------------------
 -- GRAPHS CONSTRUCTION
 
-newGraphs :: Aliases -> Instances -> [(Link Entry, TypeSig)] -> Graphs
+newGraphs :: Aliases -> Instances -> [(TypeSig, Link Entry)] -> Graphs
 newGraphs as is xs = Graphs (newIndex $ map snd entries) argGraph resGraph
     where
         entries = [ (t2, e2{entryInfoEntries = sortOn linkKey $ map snd ys})
-                  | ys@(((t2,e2),_):_) <- sortGroupFst $ map (\(e,t) -> (normType as is t, e)) xs]
+                  | ys@(((t2,e2),_):_) <- sortGroupFst $ map (\(t,e) -> (normType as is t, e)) xs]
 
         argGraph = newGraph (concat args)
         resGraph = newGraph res

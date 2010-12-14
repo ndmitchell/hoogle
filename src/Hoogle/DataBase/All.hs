@@ -15,7 +15,7 @@ import Hoogle.DataBase.Serialise
 
 createDataBase :: [DataBase] -> Input -> DataBase
 createDataBase deps (facts,xs) = DataBase items
-        ns (createTypeSearch as is ys)
+        ns (createTypeSearch as is tys)
         (createSuggest (map suggest deps) facts) as is
     where
         items = createItems xs
@@ -23,11 +23,13 @@ createDataBase deps (facts,xs) = DataBase items
         ns = createSubstrSearch [(entryKey $ fromLink y, y) | y <- ys]
         as = createAliases (map aliases deps) facts
         is = createInstances (map instances deps) facts
+        tys = [(sig, x) | x <- ys, Just sig <- [entryType $ fromLink x]]
+
 
 
 combineDataBase :: [DataBase] -> DataBase
 combineDataBase dbs = DataBase items_
-        ns (createTypeSearch as is ys)
+        ns (createTypeSearch as is tys)
         ss as is
     where
         items_ = mconcat $ map items dbs
@@ -36,6 +38,7 @@ combineDataBase dbs = DataBase items_
         ss = mconcat $ map suggest dbs
         as = mconcat $ map aliases dbs
         is = mconcat $ map instances dbs
+        tys = [(sig, x) | x <- ys, Just sig <- [entryType $ fromLink x]]
 
 
 searchName :: DataBase -> String -> [(Link Entry,EntryView,Score)]
