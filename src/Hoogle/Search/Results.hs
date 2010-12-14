@@ -81,7 +81,7 @@ correctPackage pkgs = (`notElem` pkgs) . packageName . fromLink . entryPackage
 
 -- mods is a non-empty list of PlusModule/MinusModule
 correctModule :: [Scope] -> Entry -> Bool
-correctModule mods = maybe True (f base mods . moduleName . fromLink) . entryModule
+correctModule mods = maybe True (f base mods . split '.' . moduleName . fromLink) . entryModule
     where
         base = isMinusModule $ head mods
 

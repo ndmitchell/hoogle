@@ -70,7 +70,7 @@ addTextItem TextItem{..} = do
     when (itemLevel == 0) $
         modify $ \(ps,ms) -> (addS (Package (head itemName) itemURL) ps, ms)
     when (itemLevel == 1) $
-        modify $ \(ps,ms) -> let p = getS ps in (ps, addS (Module itemName p (packageURL (fromLink p) `combineURL` itemURL)) ms)
+        modify $ \(ps,ms) -> let p = getS ps in (ps, addS (Module (intercalate "." itemName) p (packageURL (fromLink p) `combineURL` itemURL)) ms)
     (ps,ms) <- get
     let p = getS ps
         m = if itemLevel > 1 then getSMay ms else Nothing

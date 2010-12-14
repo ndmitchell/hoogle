@@ -41,7 +41,7 @@ data Package = Package
 
 
 data Module = Module
-    {moduleName :: [String]
+    {moduleName :: String
     ,modulePackage :: Link Package
     ,moduleURL :: URL
     }
@@ -90,7 +90,7 @@ renderEntryText view = transform f
 -- the name of the entry, in lower case
 -- the name of the entry
 -- the module
-data EntryScore = EntryScore Int String String [String]
+data EntryScore = EntryScore Int String String String
                   deriving (Eq,Ord)
 
 
@@ -99,14 +99,11 @@ entryScore e = EntryScore (entryPriority e) (map toLower $ entryName e) (entryNa
     where m = maybe [] (moduleName . fromLink) $ entryModule e
 
 
-
-showModule = intercalate "."
-
 instance Show Package where
     show (Package a b) = unwords $ filter (/= "") [a,b]
 
 instance Show Module where
-    show = showModule . moduleName
+    show = moduleName
 
 instance Show Entry where
     show e = unwords [showTagText $ entryText e, m]
