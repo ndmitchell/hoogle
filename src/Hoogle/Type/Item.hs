@@ -35,25 +35,9 @@ data Fact
       deriving Show
 
 
-data Package = Package
-    {packageName :: String
-    ,packageURL :: URL
-    }
-    deriving Typeable
-
-
-data Module = Module
-    {moduleName :: String
-    ,modulePackage :: Link Package
-    ,moduleURL :: URL
-    }
-    deriving Typeable
-
-
--- FIXME: Eliminate Module and Package, just link back to entry
 data Entry = Entry
-    {entryPackage :: Maybe (Link Package)
-    ,entryModule :: Maybe (Link Module)
+    {entryPackage :: Maybe (Link Entry)
+    ,entryModule :: Maybe (Link Entry)
     ,entryName :: String
     ,entryText :: TagStr
     ,entryDocs :: Documentation
@@ -100,14 +84,7 @@ data EntryScore = EntryScore Int String String String
 
 entryScore :: Entry -> EntryScore
 entryScore e = EntryScore (entryPriority e) (map toLower $ entryName e) (entryName e) m
-    where m = maybe [] (moduleName . fromLink) $ entryModule e
-
-
-instance Show Package where
-    show (Package a b) = unwords $ filter (/= "") [a,b]
-
-instance Show Module where
-    show = moduleName
+    where m = maybe [] (entryName . fromLink) $ entryModule e
 
 instance Show Entry where
     show e = unwords [showTagText $ entryText e, m]
@@ -115,15 +92,6 @@ instance Show Entry where
             m = case entryModule e of
                     Nothing -> ""
                     Just y -> "{#" ++ show (linkKey y) ++ "}"
-
-
-instance BinaryDefer Package where
-    put (Package a b) = put2 a b
-    get = get2 Package
-
-instance BinaryDefer Module where
-    put (Module a b c) = put3 a b c
-    get = get3 Module
 
 instance BinaryDefer Entry where
     put (Entry a b c d e f g h i) = put9 a b c d e f g h i

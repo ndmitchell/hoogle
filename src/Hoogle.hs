@@ -110,8 +110,8 @@ toResult r@(H.Result entry view score) = (score, Result package modul self docs)
         ent = fromLink entry
         (modu,text,_) = H.renderResult r
 
-        package = fmap ((H.packageURL &&& H.packageName) . fromLink) $ H.entryPackage ent
-        modul = fmap (\x -> (H.moduleURL x, show x)) modu
+        package = fmap ((H.entryURL &&& H.entryName) . fromLink) $ H.entryPackage ent
+        modul = fmap (\x -> (H.entryURL x, H.entryName x)) modu
         self = (H.entryURL ent, text)
         docs = H.renderDocumentation $ H.entryDocs ent
 

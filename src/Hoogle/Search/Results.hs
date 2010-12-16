@@ -76,12 +76,12 @@ filterResults q = f mods correctModule . f pkgs correctPackage
 
 -- pkgs is a non-empty list of MinusPackage values
 correctPackage :: [String] -> Entry -> Bool
-correctPackage pkgs = maybe True ((`notElem` pkgs) . packageName . fromLink) . entryPackage
+correctPackage pkgs = maybe True ((`notElem` pkgs) . entryName . fromLink) . entryPackage
 
 
 -- mods is a non-empty list of PlusModule/MinusModule
 correctModule :: [Scope] -> Entry -> Bool
-correctModule mods = maybe True (f base mods . split '.' . moduleName . fromLink) . entryModule
+correctModule mods = maybe True (f base mods . split '.' . entryName . fromLink) . entryModule
     where
         base = isMinusModule $ head mods
 

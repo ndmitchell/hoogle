@@ -1,37 +1,33 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, PatternGuards #-}
 
 module Hoogle.DataBase.Items(Items, createItems, entriesItems) where
 
-import Control.Monad.Trans.State
 import Data.Binary.Defer.Index
 import General.Base
 import General.Util
 import General.Web
 import Hoogle.Type.All
+import qualified Data.Map as Map
 import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
 
 -- Invariant: Index Entry is by order of EntryScore
+newtype Items = Items (Index Entry)
 
-data Items = Items
-    {_packages :: Index Package
-    ,_modules :: Index Module
-    ,entries :: Index Entry
-    }
+entriesItems :: Items -> [Link Entry]
+entriesItems (Items x) = indexLinks x
+
 
 instance BinaryDefer Items where
-    put (Items a b c) = put3 a b c
+    put (Items a) = put1 a
     get = do
-        res@(Items a b c) <- get3 Items
+        res@(Items a) <- get1 Items
         getDeferPut a
-        getDeferPut b
-        getDeferPut c
         return res
 
 
 instance Show Items where
-    show (Items a b c) = f "Packages" a ++ "\n" ++ f "Modules" b ++ "\n" ++ f "Entries" c
-        where f header x = "== " ++ header ++ " ==\n\n" ++ show x
+    show (Items x) = "== Entries ==\n\n" ++ show x
 
 
 instance Monoid Items where
@@ -40,69 +36,31 @@ instance Monoid Items where
     mconcat = mergeItems
 
 
--- temporary state structure
-data S a = S {_count :: Int, values :: [a]}
-
-newS = S (-1) []
-newIndexS = newIndex . reverse . values
-addS x (S i xs) = S (i+1) (x:xs)
-getS (S i (x:xs)) = newLink i x
-getS _ = error "DataBase.Items.getS, lacking a package/module?"
-
-getSMay (S i (x:xs)) = Just $ newLink i x
-getSMay _ = Nothing
-
-
-entriesItems :: Items -> [Link Entry]
-entriesItems = indexLinks . entries
-
-
 createItems :: [TextItem] -> Items
-createItems xs = Items (newIndexS pkgs) (newIndexS mods)
-                       (newIndex $ sortOn entryScore ents)
+createItems xs = mergeItems [Items $ newIndex $ fs Nothing Nothing $ zip [0..] xs]
     where
-        (ents, (pkgs,mods)) = flip runState (newS,newS) $ concatMapM addTextItem xs
+        fs pkg mod [] = []
+        fs pkg mod ((i,x):xs) = r : fs pkg2 mod2 xs
+            where r = f pkg2 mod2 x
+                  pkg2 = if itemLevel x == 0 then Just $ newLink i r else pkg
+                  mod2 = if itemLevel x == 1 then Just $ newLink i r else mod
+
+        f pkg mod TextItem{..} = Entry pkg mod itemName itemDisp
+            (htmlDocumentation itemDocs) url itemPriority itemKey itemType
+            where url | Just pkg <- pkg, itemLevel == 1 || (itemLevel > 1 && isNothing mod) = entryURL (fromLink pkg) `combineURL` itemURL
+                      | Just mod <- mod, itemLevel > 1 = entryURL (fromLink mod) `combineURL` itemURL
+                      | otherwise = itemURL
 
 
--- add a TextItem to the state S
-addTextItem :: TextItem -> State (S Package, S Module) [Entry]
-addTextItem TextItem{..} = do
-    when (itemLevel == 0) $
-        modify $ \(ps,ms) -> (addS (Package itemName itemURL) ps, ms)
-    when (itemLevel == 1) $
-        modify $ \(ps,ms) -> let p = getS ps in (ps, addS (Module itemName p (packageURL (fromLink p) `combineURL` itemURL)) ms)
-    (ps,ms) <- get
-    let p = getS ps
-        m = if itemLevel > 1 then getSMay ms else Nothing
-        url = if itemLevel == 1 || (itemLevel > 1 && isNothing m) then packageURL (fromLink p) `combineURL` itemURL
-              else if itemLevel > 1 && isJust m then moduleURL (fromLink $ fromJust m) `combineURL` itemURL
-              else itemURL
-    return [Entry (Just p) m
-        itemName
-        itemDisp
-        (htmlDocumentation itemDocs)
-        url
-        itemPriority
-        itemKey
-        itemType]
-
-
+-- | Given a set of items, which may or may not individually satisfy the entryScore invariant,
+--   make it so they _do_ satisfy the invariant
 mergeItems :: [Items] -> Items
-mergeItems [x] = x
-mergeItems xs = Items
-        (newIndex $ concat $ reverse ps)
-        (newIndex $ concat $ reverse ms)
-        (newIndex $ sortOn entryScore $ concat $ reverse es)
+mergeItems xs = Items $ newIndex $ map ren ijv
     where
-        (_,ps,_,ms,_,es) = foldl' f (0,[],0,[],0,[]) xs
+        -- xs are sets of items, vs are sets of values, is index xs, js index vs
+        mp = Map.fromList [(ij, newLink n v) | (n,(ij,v)) <- zip [0..] ijv]
+        ijv = sortOn (entryScore . snd) [((i,linkKey jv),fromLink jv) | (i,Items vs) <- zip [0..] xs, jv <- indexLinks vs]
 
-        f (pi,ps,mi,ms,ei,es) (Items p m e) =
-                (pi+length p3,p3:ps, mi+length m3,m3:ms, ei+length e3,e3:es)
-            where
-                (p2,p3) = add pi p id
-                (m2,m3) = add mi m id
-                (_ ,e3) = add ei e $ \x -> x{entryModule = fmap (\x -> m2 !! linkKey x) $ entryModule x
-                                            ,entryPackage = fmap (\x -> p2 !! linkKey x) $ entryPackage x}
-
-                add i xs f = (zipWith newLink [i..] xs2, xs2)
-                    where xs2 = map (f . fromLink) $ indexLinks xs
+        ren (ij,v) = v{entryPackage = f ij $ entryPackage v, entryModule = f ij $ entryModule v}
+        f _ Nothing = Nothing
+        f (i,j) (Just e) = Just $ mp Map.! (i,linkKey e) 
