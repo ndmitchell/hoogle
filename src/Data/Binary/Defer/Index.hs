@@ -3,9 +3,7 @@
 module Data.Binary.Defer.Index(
     Id,
     Index, newIndex,
-    Lookup, newLookup, lookupKey, lookupIndex,
-    Link, newLink, fromLink, linkKey, indexLinks,
-    Index_, newIndex_, getLink, getLookup, indexFreeze
+    Link, newLink, fromLink, linkKey, indexLinks
     ) where
 
 import qualified Data.Binary as Bin
@@ -13,9 +11,6 @@ import qualified Data.Binary.Get as Bin
 import qualified Data.Binary.Put as Bin
 import Data.Binary.Defer
 import Data.Binary.Defer.Array
-import qualified Data.Map as Map
-import Data.Maybe
-import Data.List
 import Data.Ord
 import Data.Typeable
 
@@ -34,7 +29,7 @@ newIndex :: [a] -> Index a
 newIndex = Index . array
 
 
-instance BinaryDefer a => BinaryDefer (Index a) where
+instance (Typeable a, BinaryDefer a) => BinaryDefer (Index a) where
     put (Index x) = put x
     get = do res <- get1 Index; getDeferPut res; return res
 
@@ -44,34 +39,6 @@ instance Show a => Show (Index a) where
             f i x = "#" ++ si ++ replicate (width - length si + 1) ' ' ++ show x
                 where si = show i
             width = length $ show $ arraySize xs
-
-instance Functor Index where
-    fmap f (Index x) = Index $ fmap f x
-
-
----------------------------------------------------------------------
--- LOOKUP
-
-newtype Lookup a = Lookup {lookupKey :: Id}
-                   deriving (Eq,Ord)
-
-newLookup :: Id -> Lookup a
-newLookup = Lookup
-
-lookupIndex :: Lookup a -> Index a -> a
-lookupIndex (Lookup i) (Index xs) = xs ! i
-
-
-instance BinaryDefer (Lookup a) where
-    put (Lookup key) = put key
-    get = get1 Lookup
-    size _ = size (0 :: Id)
-    putFixed (Lookup key) = putFixed key
-    getFixed = getFixed1 Lookup
-
-
-instance Show (Lookup a) where
-    show (Lookup key) = "#" ++ show key
 
 
 ---------------------------------------------------------------------
@@ -125,30 +92,3 @@ instance FixedBinary (Link a) where
 
 indexLinks :: Index a -> [Link a]
 indexLinks (Index x) = zipWith newLink [0..] $ elems x
-
-
----------------------------------------------------------------------
--- INDEXMUTABLE
-
-newtype Index_ a = Index_ (Map.Map a Id)
-
-instance Show a => Show (Index_ a) where
-    show = show . indexFreeze
-
-
-newIndex_ :: Index_ a
-newIndex_ = Index_ Map.empty
-
-
-getLookup :: Ord a => a -> Index_ a -> (Index_ a, Lookup a)
-getLookup x y = (a, Lookup $ linkKey b)
-    where (a,b) = getLink x y
-
-getLink :: Ord a => a -> Index_ a -> (Index_ a, Link a)
-getLink x (Index_ mp) = (Index_ mp2, newLink (fromMaybe n res) x)
-    where (res,mp2) = Map.insertLookupWithKey (\_ _ a -> a) x n mp
-          n = Map.size mp
-
-
-indexFreeze :: Index_ a -> Index a
-indexFreeze (Index_ mp) = newIndex $ map fst $ sortBy (comparing snd) $ Map.toList mp
