@@ -16,8 +16,7 @@ data Result = Result
 
 
 -- return (module it is in, the text to go beside it, verbose scoring info)
-renderResult :: Result -> (Maybe Entry, TagStr, String)
-renderResult r = (fmap fromLink $ entryModule e
-                 ,renderEntryText (resultView r) $ entryText e
+renderResult :: Result -> (TagStr, String)
+renderResult r = (renderEntryText (resultView r) $ entryText e
                  ,show $ resultScore r)
     where e = fromLink $ resultEntry r
