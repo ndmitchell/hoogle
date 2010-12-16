@@ -20,10 +20,7 @@ entriesItems (Items x) = indexLinks x
 
 instance BinaryDefer Items where
     put (Items a) = put1 a
-    get = do
-        res@(Items a) <- get1 Items
-        getDeferPut a
-        return res
+    get = get1 Items
 
 
 instance Show Items where

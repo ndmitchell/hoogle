@@ -36,7 +36,7 @@ newIndex = Index . array
 
 instance BinaryDefer a => BinaryDefer (Index a) where
     put (Index x) = put x
-    get = get1 Index
+    get = do res <- get1 Index; getDeferPut res; return res
 
 instance Show a => Show (Index a) where
     show (Index xs) = unlines $ zipWith f [0..] (elems xs)
