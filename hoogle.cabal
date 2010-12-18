@@ -91,7 +91,7 @@ executable hoogle
         time,
         cmdargs == 0.6.*,
         tagsoup == 0.11.*,
-        network == 2.2.*,
+        network == 2.3.*,
         HTTP == 4000.0.*
 
     other-modules:
