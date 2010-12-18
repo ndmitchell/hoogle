@@ -22,12 +22,12 @@ convert make x = do
         when (deps2 /= deps3) $ putError $ "Error: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps2 \\ deps3)
         dbs <- mapM loadDatabase deps3
         let (err,db) = createDatabase Haskell dbs src
-        unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " errors in " ++ x
-        whenLoud $ putStr $ unlines $ map show err
-        putStr $ "Converting " ++ x ++ "... "
+        unless (null err) $ outStrLn $ "Skipped " ++ show (length err) ++ " errors in " ++ x
+        whenLoud $ outStr $ unlines $ map show err
+        outStr $ "Converting " ++ x ++ "... "
         performGC
         saveDatabase (hoo x) db
-        putStrLn "done"
+        outStrLn "done"
 
 
 readInput :: Name -> IO ([Name], String)
@@ -43,7 +43,7 @@ combine :: ([Name] -> IO ()) -> Name -> [Name] -> Bool -> IO ()
 combine make x deps force = do
     make deps
     dbs <- mapM (loadDatabase . hoo) deps
-    putStr $ "Creating " ++ x ++ " from " ++ show (length deps) ++ " databases... "
+    outStr $ "Creating " ++ x ++ " from " ++ show (length deps) ++ " databases... "
     performGC
     saveDatabase (hoo x) $ mconcat dbs
-    putStrLn "done"
+    outStrLn "done"

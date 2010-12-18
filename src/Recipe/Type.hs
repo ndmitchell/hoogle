@@ -3,6 +3,7 @@ module Recipe.Type(
     CmdLine(..), Name, hoo, noDeps,
     keywords, platform, cabals, haddocks, listing, version,
     resetErrors, putError, recapErrors,
+    outStr, outStrLn,
     Cabal(..), readCabal, readCabalDepends, readCabalField
     ) where
 
@@ -55,16 +56,24 @@ errors = unsafePerformIO $ newMVar []
 
 putError :: String -> IO ()
 putError x = do
-    putStrLn x
+    outStrLn x
     modifyMVar_ errors $ return . (x:)
 
 recapErrors :: IO ()
 recapErrors = do
     xs <- readMVar errors
-    mapM_ putStrLn $ reverse xs
+    mapM_ outStrLn $ reverse xs
 
 resetErrors :: IO ()
 resetErrors = modifyMVar_ errors $ const $ return []
+
+
+outputLock :: MVar ()
+outputLock = unsafePerformIO $ newMVar ()
+
+outStr, outStrLn :: String -> IO ()
+outStr x = withMVar outputLock $ \_ -> do putStr x; hFlush stdout
+outStrLn x = outStr $ x ++ "\n"
 
 
 ---------------------------------------------------------------------

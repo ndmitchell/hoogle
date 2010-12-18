@@ -46,7 +46,7 @@ make opt rules xs = withPool (threads opt) $ \pool -> do
         fs ref pool rec xs = parallel_ pool $ map (f ref pool rec) xs
 
         f ref pool rec x
-            | x `elem` rec = putStrLn $ "Warning: Package database appears to be recursive, " ++ x
+            | x `elem` rec = outStrLn $ "Warning: Package database appears to be recursive, " ++ x
             | otherwise = join $ modifyMVar ref $ \mp -> case Map.lookup x mp of
                 Just Built -> return (mp, return ())
                 Just (Building v) -> return $ (,) mp $
@@ -61,7 +61,7 @@ make opt rules xs = withPool (threads opt) $ \pool -> do
 
 build :: ([Name] -> IO ()) -> CmdLine -> [(Name,[Name])] -> Name -> IO ()
 build makeRec opt rules x = do
-    putStrLn $ "Starting " ++ x
+    outStrLn $ "Starting " ++ x
     case lookup x rules of
         Just ys -> combine makeRec x ys True
         _ -> case x of
@@ -71,7 +71,7 @@ build makeRec opt rules x = do
             "package" -> makePackage
             "all" -> makeAll makeRec
             _ -> makeDefault makeRec (local opt) x
-    putStrLn $ "Finished " ++ x
+    outStrLn $ "Finished " ++ x
 
 
 parseRules :: [String] -> [(Name,[Name])]
