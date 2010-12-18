@@ -1,7 +1,7 @@
 cabal-version:      >= 1.6
 build-type:         Simple
 name:               hoogle
-version:            4.1
+version:            4.1.1
 license:            GPL
 license-file:       docs/LICENSE
 category:           Development
@@ -16,6 +16,16 @@ description:
 homepage:           http://www.haskell.org/hoogle/
 stability:          Beta
 extra-source-files: README.txt
+
+data-dir: datadir
+data-files:
+    resources/*.css
+    resources/*.gif
+    resources/*.ico
+    resources/*.js
+    resources/*.png
+    -- surely a Cabal bug that this isn't picked up by *.js
+    resources/jquery-1.4.2.js
 
 library
     hs-source-dirs:     src
@@ -91,7 +101,7 @@ executable hoogle
         time,
         cmdargs == 0.6.*,
         tagsoup == 0.11.*,
-        network >= 2.2 && <= 2.4,
+        network >= 2.2 && < 2.4,
         HTTP == 4000.0.*
 
     other-modules:
@@ -102,6 +112,7 @@ executable hoogle
         Console.Rank
         Console.Search
         Console.Test
+        Paths_hoogle
         Recipe.All
         Recipe.Download
         Recipe.General
