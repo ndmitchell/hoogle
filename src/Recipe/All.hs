@@ -29,7 +29,8 @@ recipes opt = do
 
 
 -- If I switch to the parallel-io library then it segfaults, due to GHC bug:
--- http://hackage.haskell.org/trac/ghc/ticket/4835 
+-- http://hackage.haskell.org/trac/ghc/ticket/4850
+-- import "parallel-io" Control.Concurrent.ParallelIO.Local
 withPool i f = f ()
 extraWorkerWhileBlocked _ = id
 parallel_ _ = sequence_
@@ -38,7 +39,7 @@ parallel_ _ = sequence_
 data Status = Built | Building (MVar ())
 
 make :: CmdLine -> [(Name,[Name])] -> [Name] -> IO ()
-make opt rules xs = withPool (error $ show $ threads opt) $ \pool -> do
+make opt rules xs = withPool (threads opt) $ \pool -> do
     ref <- newMVar Map.empty
     fs ref pool [] xs
     where
