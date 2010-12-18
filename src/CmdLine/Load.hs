@@ -34,5 +34,6 @@ findFile (x:xs) = do
 
 availableDatabases :: [FilePath] -> IO [String]
 availableDatabases xs = fmap (sortBy compareString . nub . concat) $ forM xs $ \x -> do
-    ys <- getDirectoryContents x
+    b <- doesDirectoryExist x
+    ys <- if b then getDirectoryContents x else return []
     return [dropExtension y | y <- ys, takeExtension y == ".hoo"] 
