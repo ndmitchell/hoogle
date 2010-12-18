@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.1
     #320, make sure system is found
     #146, preserve forall's in everywhere
     #186, switch to using haskell-src-exts to parse input files
