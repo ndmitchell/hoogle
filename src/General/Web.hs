@@ -5,6 +5,7 @@
 -}
 
 module General.Web(
+    responseOk, responseBadRequest, responseNotFound, responseError,
     filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
     escapeHTML, (++&), htmlTag,
     cgiArgs,
@@ -17,6 +18,12 @@ import Network.HTTP
 
 instance Functor Response where
     fmap f x = x{rspBody = f $ rspBody x}
+
+
+responseOk = Response (2,0,0) "OK"
+responseBadRequest x = Response (4,0,0) "Bad Request" [] $ "Bad request: " ++ x
+responseNotFound x = Response (4,0,4) "Not Found" [] $ "File not found: " ++ x
+responseError x = Response (5,0,0) "Internal Server Error" [] $ "Internal server error: " ++ x
 
 
 ---------------------------------------------------------------------

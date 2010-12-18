@@ -30,22 +30,26 @@ httpServer port handler = do
     s <- listenOn $ PortNumber $ fromIntegral port
     forkIO $ forever $ do
         (sock,host) <- Network.Socket.accept s
-        bracket
-            (socketConnection "" sock)
-            close
-            (\strm -> do
-                start <- getCurrentTime
-                res <- receiveHTTP strm
-                case res of
-                    Left x -> do
-                        putStrLn $ "Bad request: " ++ show x
-                        respondHTTP strm $ Response (4,0,0) "Bad Request" [] ("400 Bad Request: " ++ show x)
-                    Right x -> do
-                        respondHTTP strm =<< handler x
-                        end <- getCurrentTime
-                        let t = floor $ diffUTCTime end start * 1000
-                        putStrLn $ "Served in " ++ show t ++ "ms: " ++ unescapeURL (show $ rqURI x)
-            )
+        bracket (socketConnection "" sock) close $ \strm -> do
+            start <- getCurrentTime
+            res <- receiveHTTP strm
+            case res of
+                Left x -> do
+                    putStrLn $ "Bad request: " ++ show x
+                    respondHTTP strm $ responseBadRequest $ show x
+                Right x -> do
+                    let msg = unescapeURL $ show $ rqURI x
+                    res <- try $ handler x
+                    case res of
+                        Left e -> do
+                            let s = show (e :: SomeException)
+                            putStrLn $ "Crash when serving " ++ msg ++ ", " ++ s
+                            respondHTTP strm $ responseError s
+                        Right r -> do
+                            respondHTTP strm r
+                            end <- getCurrentTime
+                            let t = floor $ diffUTCTime end start * 1000
+                            putStrLn $ "Served in " ++ show t ++ "ms: " ++ msg
     return $ sClose s
 
 
@@ -57,17 +61,22 @@ talk Server{..} Request{rqURI=URI{uriPath=path,uriQuery=query}}
         args <- cmdLineWeb $ parseHttpQueryArgs $ drop 1 query
         r <- response "/res" args{databases=databases}
         return $ if local_ then fmap rewriteFileLinks r else r
-    | takeDirectory path == "/res" = do
-        h <- openBinaryFile (resources </> takeFileName path) ReadMode
-        src <- hGetContents h
-        return $ Response (2,0,0) "OK"
-            [Header HdrContentType $ contentExt $ takeExtension path
-            ,Header HdrCacheControl "max-age=604800" {- 1 week -}] src
-    | local_ && "/file/" `isPrefixOf` path = do
-        src <- readFile $ drop 6 path
-        return $ Response (2,0,0) "OK" [] src
-    | otherwise
-        = return $ Response (4,0,4) "Not Found" [] $ "404 Not Found: " ++ show path
+    | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
+    | local_ && "/file/" `isPrefixOf` path = serveFile False $ drop 6 path
+    | otherwise = return $ responseNotFound $ show path
+
+
+serveFile :: Bool -> FilePath -> IO (Response String)
+serveFile cache file = do
+    b <- doesFileExist file
+    if not b
+        then return $ responseNotFound file
+        else do
+            h <- openBinaryFile file ReadMode
+            src <- hGetContents h
+            return $ responseOk
+                ([Header HdrContentType $ contentExt $ takeExtension file] ++
+                 [Header HdrCacheControl "max-age=604800" {- 1 week -} | cache]) src
 
 
 rewriteFileLinks :: String -> String

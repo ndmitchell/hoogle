@@ -22,20 +22,20 @@ logFile = "log.txt"
 response :: FilePath -> CmdLine -> IO (Response String)
 response resources q = do
     logMessage q
-    let r200 x = Response (2,0,0) "OK" [Header HdrContentType x]
+    let response x = responseOk [Header HdrContentType x]
     case webmode q of
-        Just "suggest" -> fmap (r200 "application/json") $ runSuggest q
+        Just "suggest" -> fmap (response "application/json") $ runSuggest q
         Just "ajax" -> do
             dbs <- if isRight $ queryParsed q
                    then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
                    else return mempty
-            return $ r200 "text/html" $ unlines $ runQuery dbs q
+            return $ response "text/html" $ unlines $ runQuery dbs q
         Nothing -> do
             dbs <- if isRight $ queryParsed q
                    then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
                    else return mempty
-            return $ r200 "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
-        Just e -> return $ r200 "text/html" $ "Unknown webmode: " ++ show e
+            return $ response "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
+        Just e -> return $ response "text/html" $ "Unknown webmode: " ++ show e
 
 
 logMessage :: CmdLine -> IO ()

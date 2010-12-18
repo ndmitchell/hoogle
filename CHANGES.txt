@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    When in server mode, be more robust to errors
 4.1
     #320, make sure system is found
     #146, preserve forall's in everywhere
