@@ -1,11 +1,20 @@
-README FOR HOOGLE
-=================
+Hoogle - a Haskell API search.
 
-A Haskell API search. To invoke it type
+Command Line Version
+--------------------
+
+To invoke Hoogle type:
 
     hoogle "[a] -> [b]"
 
 Note the quotes, otherwise you will redirect the output to the file [b].
+
+To ensure you have data files for the Hackage modules, you will first need to
+type:
+
+    hoogle data
+
+Which will download and build Hoogle databases.
 
 
 Web Version
@@ -16,15 +25,6 @@ A web version is available at http://www.haskell.org/hoogle
 All the appropriate documentation/credits/reference material is on the
 Haskell wiki at http://www.haskell.org/haskellwiki/Hoogle
 
-
-Building
---------
-
-To build the source type follow the standard Cabal procedure:
-
-$ runhaskell Setup configure
-$ runhaskell Setup build
-$ runhaskell Setup install
 
 Folders
 -------
