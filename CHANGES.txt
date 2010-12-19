@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Avoid self circular dependencies
 4.1.1
     #195, include all the necessary resources to run as a server
     When in server mode, be more robust to errors
