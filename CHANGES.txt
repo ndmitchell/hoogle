@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Loosen dependencies for tagsoup and HTTP (but not parsec)
     Avoid self circular dependencies
 4.1.1
     #195, include all the necessary resources to run as a server
