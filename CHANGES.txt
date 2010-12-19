@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.1.2
     Loosen dependencies for tagsoup and HTTP (but not parsec)
     Avoid self circular dependencies
 4.1.1
