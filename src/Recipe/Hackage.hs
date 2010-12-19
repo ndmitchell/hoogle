@@ -9,6 +9,7 @@ import General.Util
 import General.Web
 
 
+-- FIXME: This is a list of hack
 avoid = words "ghc-prim integer integer-simple integer-gmp rts ghc Win32"
 
 
@@ -63,7 +64,7 @@ makeDefault make local name = do
             cab <- readCabal cab
             loc <- findLocal local name
             writeFile (name <.> "txt") $ unlines $
-                ["@depends " ++ a | a <- cabalDepends cab, a `notElem` avoid] ++
+                ["@depends " ++ a | a <- cabalDepends cab \\ (name:avoid)] ++
                 (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
             convert make name
 
