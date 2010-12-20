@@ -5,6 +5,7 @@ The intention is to turn this list into a script in the future.
 * Run ghci
 * :opt data --haddock
 * Copy a suitable base.txt into datadir/databases/download/hackage-haddock/base/4.3.0.0
+    [A suitable base should be in Unix format, and lines 8595 and 8188 should not have higher ASCII codes]
 * :opt data default all
 * :testfull
 * cd datadir/databases/download/hackage-haddock && tar -czf../hackage-haddock.tar.gz *
