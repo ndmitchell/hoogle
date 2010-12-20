@@ -50,7 +50,7 @@ cmdLineMode = cmdArgsMode $ modes [search &= auto,test,server,dump,rank,combine,
 search = Search
     {web = def &= help "Operate as a web tool"
     ,start = def
-    ,count = def
+    ,count = def &= name "n" &= help "Return the first N results"
     ,webmode = def
     ,queryChunks = def &= args
     ,info = def
