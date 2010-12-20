@@ -92,7 +92,10 @@ listPlatform = do
              lines src
     return [(name, takeWhile (\x -> x == '.' || isDigit x) $ drop 1 b)
            | x <- xs, (a,_:b) <- [break (== '=') x], let name = trim $ dropWhile (== '-') $ trim a
-           , name `notElem` words "Cabal hpc Win32"]
+           , not $ avoid name]
+    where
+        avoid x = ("haskell" `isPrefixOf` x && all isDigit (drop 7 x)) ||
+                  (x `elem` words "Cabal hpc Win32")
 
 
 ---------------------------------------------------------------------
