@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Add --nostdin to server mode, to support running with nohup
     Loosen dependencies for tagsoup (typo'd it before)
 4.1.2
     Loosen dependencies for tagsoup and HTTP (but not parsec)

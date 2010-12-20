@@ -19,9 +19,12 @@ import General.System
 server :: CmdLine -> IO ()
 server q@Server{..} = withSocketsDo $ do
     stop <- httpServer port (talk q)
-    putStrLn $ "Started Hoogle Server on port " ++ show port
-    b <- hIsClosed stdin
-    (if b then forever $ threadDelay maxBound else getChar >> return ()) `finally` stop
+    flip finally stop $ do
+        putStrLn $ "Started Hoogle Server on port " ++ show port
+        -- must run under nohup, and with input from /dev/null
+        shut <- if nostdin then return True else hIsClosed stdin
+        eof <- if shut then return True else isEOF
+        when eof $ forever $ threadDelay maxBound
 
 
 -- | Given a port and a handler, return an action to shutdown the server
