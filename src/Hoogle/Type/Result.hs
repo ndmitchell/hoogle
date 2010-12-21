@@ -16,7 +16,6 @@ data Result = Result
 
 
 -- return (module it is in, the text to go beside it, verbose scoring info)
-renderResult :: Result -> (TagStr, String)
-renderResult r = (renderEntryText (resultView r) $ entryText e
-                 ,show $ resultScore r)
+renderResult :: Result -> TagStr
+renderResult r = renderEntryText (resultView r) $ entryText e
     where e = fromLink $ resultEntry r
