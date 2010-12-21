@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Change search results display, packages/modules on separate line
     Exclude haskellN* from the platform, they are in base
     Add --nostdin to server mode, to support running with nohup
     Loosen dependencies for tagsoup (typo'd it before)

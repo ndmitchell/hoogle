@@ -15,7 +15,7 @@ rank file = do
 scores :: ([String], [(String,[String])]) -> [(Score,Score)]
 scores (pre,xs) = concatMap trans
     [
-        [ fst $ head $ searchAll db q ++ [error $ "Did not find in " ++ query ++ ", " ++ y]
+        [ fst $ head $ search db q ++ [error $ "Did not find in " ++ query ++ ", " ++ y]
         | y <- ys , let (err,db) = createDatabase Haskell [] $ unlines $ pre ++ ["a::" ++ y]
         , null err || error "Errors while converting rank database"
         ]

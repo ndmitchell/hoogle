@@ -23,18 +23,21 @@ response :: FilePath -> CmdLine -> IO (Response String)
 response resources q = do
     logMessage q
     let response x = responseOk [Header HdrContentType x]
+
+    let res ajax = do
+            dbs <- if isRight $ queryParsed q
+                   then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
+                   else return mempty
+            return $ runQuery ajax dbs q
+
     case webmode q of
-        Just "suggest" -> fmap (response "application/json") $ runSuggest q
         Just "ajax" -> do
-            dbs <- if isRight $ queryParsed q
-                   then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
-                   else return mempty
-            return $ response "text/html" $ unlines $ runQuery dbs q
+            res <- res True
+            return $ response "text/html" $ unlines res
         Nothing -> do
-            dbs <- if isRight $ queryParsed q
-                   then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
-                   else return mempty
-            return $ response "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ runQuery dbs q ++ footer
+            res <- res False
+            return $ response "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ res ++ footer
+        Just "suggest" -> fmap (response "application/json") $ runSuggest q
         Just e -> return $ response "text/html" $ "Unknown webmode: " ++ show e
 
 
@@ -57,14 +60,13 @@ runSuggest Search{queryText=q} = do
 runSuggest _ = return ""
 
 
-
-runQuery :: Database -> CmdLine -> [String]
-runQuery dbs Search{queryParsed = Left err} =
+runQuery :: Bool -> Database -> CmdLine -> [String]
+runQuery ajax dbs Search{queryParsed = Left err} =
     ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
-    ,"  Query: <span id='error'>" ++ showTagHTMLWith f (parseInput err) ++ "</span><br/>"
+    ,"  Query: <span id='error'>" ++ showTagHTMLWith f (parseInput err) ++ "</span>"
     ,"</p><p>"
-    ,"  Error: " ++& errorMessage err ++ "<br/>"
+    ,"  Error: " ++& errorMessage err
     ,"</p><p>"
     ,"  For information on what queries should look like, see the"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>user manual</a>."
@@ -75,56 +77,44 @@ runQuery dbs Search{queryParsed = Left err} =
         f _ = Nothing
 
 
-runQuery dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome
+runQuery ajax dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome
 
 
-runQuery dbs cq@Search{queryParsed = Right q} =
-    ["<h1>Searching for " ++ qstr ++ "</h1>"] ++
-    ["<p>" ++ showTagHTML (transform qurl sug) ++ "</p>" | Just sug <- [querySuggestions dbs q]] ++
-    if null res then
-        ["<p>No results found</p>"]
+runQuery ajax dbs cq@Search{queryParsed = Right q} =
+    (if prefix then
+        ["<h1>Searching for " ++ qstr ++ "</h1>"] ++
+        ["<p>" ++ showTagHTML (transform qurl sug) ++ "</p>" | Just sug <- [querySuggestions dbs q]] ++
+        if null res then
+            ["<p>No results found</p>"]
+        else
+            concat (pre ++ now)
     else
-        ["<table>"] ++
-        concatMap (uncurry renderRes) pre ++
-        insertMore (concatMap (uncurry renderRes) now) ++
-        [moreResults | not $ null post] ++
-        ["</table>"]
+        concat now) ++
+    ["<p><a href=\"" ++& urlMore ++ "\" class='more'>Show more results</a></p>" | not $ null post]
     where
+        prefix = not $ ajax && start2 /= 0 -- show from the start, with header
         start2 = maybe 0 (subtract 1 . max 0) $ start cq
         count2 = maybe 20 (max 1) $ count cq
-        res = zip [0..] $ map snd $ searchRange (start2,start2+count2) dbs q
+
+        res = [renderRes i (i /= 0 && i == start2 && prefix) x | (i,(_,x)) <- zip [0..] $ search dbs q]
         (pre,res2) = splitAt start2 res
         (now,post) = splitAt count2 res2
 
-        moreResults = "<tr><td></td><td><a href=\"" ++& urlMore ++ "\" class='more'>Show more results</a></td></tr>"
         urlMore = "?hoogle=" ++% queryText cq ++ "&start=" ++ show (start2+count2+1) ++ "#more"
-
         qstr = showTagHTML (renderQuery q)
         qurl (TagLink url x) | "query:" `isPrefixOf` url = TagLink ("?hoogle=" ++% drop 6 url) x
         qurl x = x
 
 
-
--- insert <a name=more> where you can
-insertMore :: [String] -> [String]
-insertMore [] = []
-insertMore (x:xs) = f x : xs
+renderRes :: Int -> Bool -> Result -> [String]
+renderRes i more Result{..} =
+        ["<a name='more'></a>" | more] ++
+        ["<div class='ans'>" ++ href selfUrl (showTagHTMLWith url selfText) ++ "</div>"] ++
+        ["<div class='from'>" ++ intercalate ", " [f "pkg" p ++ " " ++ f "mod" m | (p,m) <- parents] ++ "</div>" | not $ null parents] ++
+        ["<div class='doc'>" ++ docs2 ++ "</div>" | showTagText docs /= ""]
     where
-        f ('>':xs) | not $ "<td" `isPrefixOf` xs = "><a name='more'></a>" ++ xs
-        f (x:xs) = x : f xs
-        f [] = []
-
-
-renderRes :: Int -> Result -> [String]
-renderRes i Result{..} =
-        [tr $ td "mod" (f modul) ++ td "ans" (href selfUrl $ showTagHTMLWith url selfText)
-        ,tr $ td "pkg" (f package) ++ td "doc" docs2] ++
-        [tr $ td "" "" ++ td "and" ("Also found in " ++ intercalate ", " [f p ++ " " ++ f m | (p,m) <- rest]) | rest /= []]
-    where
-        (package,modul):rest = parents
-    
         (selfUrl,selfText) = self
-        f = maybe "" (uncurry href)
+        f cls = maybe "" $ \(url,text) -> "<a class='" ++ cls ++ "' href='" ++ url ++ "'>" ++ text ++ "</a>"
 
         docs2 = ("<div id='d" ++ show i ++ "' class='shut'>" ++
                    "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++& selfUrl ++ "'></a>") ++?
@@ -140,7 +130,4 @@ renderRes i Result{..} =
         g (TagEmph x) = TagBold x
         g x = x
 
-
-tr x = "<tr>" ++ x ++ "</tr>"
-td c x = "<td" ++ (if null c then "" else " class='" ++ c ++ "'") ++ ">" ++ x ++ "</td>"
-href url x = if null url then x else "<a class='dull' href='" ++& url ++ "'>" ++ x ++ "</a>"
+        href url x = if null url then x else "<a class='dull' href='" ++& url ++ "'>" ++ x ++ "</a>"

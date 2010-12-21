@@ -43,11 +43,11 @@ data CmdLine
 
 blankSearch = Search False Nothing Nothing Nothing False False False 1 [] [] (Left emptyParseError) ""
 
-cmdLineMode = cmdArgsMode $ modes [search &= auto,test,server,dump,rank,combine,convert,dataa]
+cmdLineMode = cmdArgsMode $ modes [search_ &= auto,test,server,dump,rank,combine,convert,dataa]
     &= verbosity &= program "hoogle"
     &= summary ("Hoogle v" ++ showVersion version ++ ", (C) Neil Mitchell 2004-2010\nhttp://haskell.org/hoogle")
 
-search = Search
+search_ = Search
     {web = def &= help "Operate as a web tool"
     ,start = def
     ,count = def &= name "n" &= help "Return the first N results"

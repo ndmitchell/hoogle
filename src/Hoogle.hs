@@ -18,7 +18,7 @@ module Hoogle(
     -- * Score
     Score, H.scoring,
     -- * Search
-    Result(..), searchAll, searchRange
+    Result(..), search
     ) where
 
 import Data.Binary.Defer.Index
@@ -115,11 +115,6 @@ toResult r@(H.Result entry view score) = (score, Result [(package,modul)] self d
         docs = H.renderDocumentation $ H.entryDocs ent
 
 
-searchAll :: Database -> Query -> [(Score,Result)]
-searchAll (Database xs) q = map toResult $ H.searchAll xs q
-
-
--- | A pair of bounds. These bounds are the lowest and highest indices in the array, in that order.
---   For example, the first 10 elements are (0,9) and the next 10 are (10,19)
-searchRange :: (Int,Int) -> Database -> Query -> [(Score,Result)]
-searchRange (a,b) (Database xs) q = map toResult $ H.searchRange (a,b) xs q
+-- | Perform a search. The results are returned lazily.
+search :: Database -> Query -> [(Score,Result)]
+search (Database xs) q = map toResult $ H.search xs q

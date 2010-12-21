@@ -5,6 +5,7 @@ module Console.Search(actionSearch) where
 import CmdLine.All
 import General.Base
 import General.System
+import System.Console.CmdArgs
 import Hoogle
 
 
@@ -24,35 +25,41 @@ actionSearch flags q = do
     let sug = querySuggestions dbs q
     when (isJust sug) $
         putStrLn $ showTag $ fromJust sug
+    verbose <- isLoud
     when verbose $ putStrLn "= ANSWERS ="
 
     when (color flags) $
         putStrLn $ "Searching for: " ++ showTag (renderQuery q)
 
-    let res = search dbs q
+    let res = restrict $ concatMap expand $ search dbs q
     if null res then
         putStrLn "No results found"
      else if info flags then do
-        let Result{self=self,docs=docs,parents=(package,_):_} = snd $ head res
-        putStrLns 2 $ f $ head res
+        let Result{..} = snd $ head res
+        putStrLns 2 $ disp verbose $ head res
         putStrLns 2 $ showTag docs
-        when (isJust package) $ putStrLn $ "From package " ++ snd (fromJust package)
+        case parents of
+            (Just (_,p),_):_ -> putStrLn $ "From package " ++ p
+            _ -> return ()
         putStrLns 1 $ showTag $ snd self
      else
-        putStr $ unlines $ map f res
+        putStr $ unlines $ map (disp verbose) res
     where
-        search | start2 == 0 && count2 == maxBound = searchAll
-               | otherwise = searchRange (start2,start2+count2-1)
+        restrict | start2 == 0 && count2 == maxBound = id
+                 | otherwise = take count2 . drop start2
             where start2 = maybe 0 (subtract 1) $ start flags
                   count2 = fromMaybe maxBound $ count flags
 
         showTag = if color flags then showTagANSI else showTagText
-        verbose = False
 
-        f (s,Result{..}) = maybe "" (\m -> snd m ++ " ") (snd $ head parents) ++
-                           showTag (snd self) ++
-                           (if verbose then "  -- " ++ show s else "") ++
-                           (if link flags then " -- " ++ fst self else "")
+        expand (s,r) | null $ parents r = [(s,r)]
+                     | otherwise = [(s,r{parents=[p]}) | p <- parents r]
+
+        disp verbose (s,Result{..}) =
+            (case parents of (_,Just (_,m)):_ -> m ++ " "; _ -> "") ++
+            showTag (snd self) ++
+            (if verbose then "  -- " ++ show s else "") ++
+            (if link flags then " -- " ++ fst self else "")
 
 
 -- Put out a string with some blank links following
