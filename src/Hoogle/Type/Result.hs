@@ -15,7 +15,7 @@ data Result = Result
     deriving Show
 
 
--- return (module it is in, the text to go beside it, verbose scoring info)
+-- return the entry rendered with respect to the EntryView
 renderResult :: Result -> TagStr
 renderResult r = renderEntryText (resultView r) $ entryText e
     where e = fromLink $ resultEntry r
