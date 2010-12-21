@@ -98,14 +98,13 @@ queryCompletions x = H.completions (toDataBase x)
 -- Hoogle.Search
 
 data Result = Result
-    {package :: Maybe (URL, String)
-    ,modul :: Maybe (URL, String)
+    {parents :: [(Maybe (URL, String), Maybe (URL, String))] -- a list of package/module pairs
     ,self :: (URL, TagStr)
     ,docs :: TagStr
     }
 
 toResult :: H.Result -> (Score,Result)
-toResult r@(H.Result entry view score) = (score, Result package modul self docs)
+toResult r@(H.Result entry view score) = (score, Result [(package,modul)] self docs)
     where
         ent = fromLink entry
         text = H.renderResult r

@@ -33,7 +33,7 @@ actionSearch flags q = do
     if null res then
         putStrLn "No results found"
      else if info flags then do
-        let Result{self=self,docs=docs,package=package} = snd $ head res
+        let Result{self=self,docs=docs,parents=(package,_):_} = snd $ head res
         putStrLns 2 $ f $ head res
         putStrLns 2 $ showTag docs
         when (isJust package) $ putStrLn $ "From package " ++ snd (fromJust package)
@@ -49,7 +49,7 @@ actionSearch flags q = do
         showTag = if color flags then showTagANSI else showTagText
         verbose = False
 
-        f (s,Result{..}) = maybe "" (\m -> snd m ++ " ") modul ++
+        f (s,Result{..}) = maybe "" (\m -> snd m ++ " ") (snd $ head parents) ++
                            showTag (snd self) ++
                            (if verbose then "  -- " ++ show s else "") ++
                            (if link flags then " -- " ++ fst self else "")
