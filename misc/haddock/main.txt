@@ -7,15 +7,15 @@ module Haddock
 
 -- | BUG 1: bug1 will not have any documentation
 class BUG1 a
-bug1 :: (BUG1 a) => Integer -> a
+bug1 :: BUG1 a => Integer -> a
 data (:**:) a b
 
 -- | BUG 2: The :**: is prefix without brackets
 Bug2 :: :**: a b
 data Bug3
 
--- | BUG 3: This Int gets two !!'s before it
-Bug3 :: !!Int -> Bug3
+-- | FIXED 3 (Haddock 2.8): This Int gets two !!'s before it
+Bug3 :: {-# UNPACK #-} !Int -> Bug3
 
 -- | BUG 4: The instance below has [incoherent] on it
 bug4 :: ()
