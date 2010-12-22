@@ -104,13 +104,13 @@ data Result = Result
     }
 
 toResult :: H.Result -> (Score,Result)
-toResult r@(H.Result entry view score) = (score, Result [(package,modul)] self docs)
+toResult r@(H.Result entry view score) = (score, Result parents self docs)
     where
         ent = fromLink entry
         text = H.renderResult r
 
-        package = fmap ((H.entryURL &&& H.entryName) . fromLink) $ H.entryPackage ent
-        modul = fmap ((H.entryURL &&& H.entryName) . fromLink) $ H.entryModule ent
+        parents = map (f *** f) $  H.entryParents ent
+        f = fmap ((H.entryURL &&& H.entryName) . fromLink)
         self = (H.entryURL ent, text)
         docs = H.renderDocumentation $ H.entryDocs ent
 

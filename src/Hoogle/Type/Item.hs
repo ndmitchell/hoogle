@@ -36,8 +36,7 @@ data Fact
 
 
 data Entry = Entry
-    {entryPackage :: Maybe (Link Entry)
-    ,entryModule :: Maybe (Link Entry)
+    {entryParents :: [(Maybe (Link Entry), Maybe (Link Entry))] -- (package,module)
     ,entryName :: String
     ,entryText :: TagStr
     ,entryDocs :: Documentation
@@ -84,15 +83,11 @@ data EntryScore = EntryScore Int String String String
 
 entryScore :: Entry -> EntryScore
 entryScore e = EntryScore (entryPriority e) (map toLower $ entryName e) (entryName e) m
-    where m = maybe [] (entryName . fromLink) $ entryModule e
+    where m = case entryParents e of (_,Just m):_ -> entryName $ fromLink m; _ -> ""
 
 instance Show Entry where
-    show e = unwords [showTagText $ entryText e, m]
-        where
-            m = case entryModule e of
-                    Nothing -> ""
-                    Just y -> "{#" ++ show (linkKey y) ++ "}"
+    show = showTagText . entryText
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e f g h i) = put9 a b c d e f g h i
-    get = get9 Entry
+    put (Entry a b c d e f g h) = put8 a b c d e f g h
+    get = get8 Entry

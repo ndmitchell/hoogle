@@ -42,7 +42,7 @@ createItems xs = mergeItems [Items $ newIndex $ fs Nothing Nothing $ zip [0..] x
                   pkg2 = if itemLevel x == 0 then Just $ newLink i r else pkg
                   mod2 = if itemLevel x == 1 then Just $ newLink i r else mod
 
-        f pkg mod TextItem{..} = Entry pkg mod itemName itemDisp
+        f pkg mod TextItem{..} = Entry [(pkg,mod)] itemName itemDisp
             (htmlDocumentation itemDocs) url itemPriority itemKey itemType
             where url | Just pkg <- pkg, itemLevel == 1 || (itemLevel > 1 && isNothing mod) = entryURL (fromLink pkg) `combineURL` itemURL
                       | Just mod <- mod, itemLevel > 1 = entryURL (fromLink mod) `combineURL` itemURL
@@ -58,6 +58,6 @@ mergeItems xs = Items $ newIndex $ map ren ijv
         mp = Map.fromList [(ij, newLink n v) | (n,(ij,v)) <- zip [0..] ijv]
         ijv = sortOn (entryScore . snd) [((i,linkKey jv),fromLink jv) | (i,Items vs) <- zip [0..] xs, jv <- indexLinks vs]
 
-        ren (ij,v) = v{entryPackage = f ij $ entryPackage v, entryModule = f ij $ entryModule v}
+        ren (ij,v) = v{entryParents = map (f ij *** f ij) $ entryParents v}
         f _ Nothing = Nothing
         f (i,j) (Just e) = Just $ mp Map.! (i,linkKey e) 
