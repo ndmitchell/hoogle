@@ -1,6 +1,6 @@
 
 module Recipe.Type(
-    CmdLine(..), Name, hoo, noDeps,
+    CmdLine(..), Name, hoo, noDeps, safeEncoding,
     keywords, platform, cabals, haddocks, listing, version,
     resetWarnings, putWarning, recapWarnings,
     outStr, outStrLn
@@ -22,6 +22,11 @@ hoo x = x <.> "hoo"
 noDeps :: [Name] -> IO ()
 noDeps [] = return ()
 noDeps xs = error "Internal error: package with no dependencies had dependencies"
+
+
+-- | Lots of things go slightly wrong if you use characters > 127 in places, this just replaces them with ?
+safeEncoding :: String -> String
+safeEncoding = map (\x -> if x <= '\0' || x > '\127' then '?' else x)
 
 
 ---------------------------------------------------------------------

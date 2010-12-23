@@ -39,7 +39,7 @@ makePackage = do
         src <- readCabal file
         return $ [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
                  ["--","-- Version " ++ ver, "@package " ++ name]
-    writeFile "package.txt" $ unlines $ concat xs
+    writeFile "package.txt" $ safeEncoding $ unlines $ concat xs
     convert noDeps "package"
 
 
