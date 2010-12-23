@@ -20,11 +20,11 @@ recipes opt = do
     hSetBuffering stdout NoBuffering
     createDirectoryIfMissing True $ datadir opt
     withDirectory (datadir opt) $ do
-        resetErrors
+        resetWarnings
         download opt
         let ys = parseRules $ actions opt
         make opt (filter (not . null . snd) ys) (map fst ys)
-        recapErrors
+        recapWarnings
         putStrLn "Data generation complete"
 
 

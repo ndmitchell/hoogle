@@ -2,7 +2,7 @@
 module Recipe.Type(
     CmdLine(..), Name, hoo, noDeps,
     keywords, platform, cabals, haddocks, listing, version,
-    resetErrors, putError, recapErrors,
+    resetWarnings, putWarning, recapWarnings,
     outStr, outStrLn,
     Cabal(..), readCabal, readCabalDepends, readCabalField
     ) where
@@ -48,24 +48,24 @@ version dir x = do
 
 
 ---------------------------------------------------------------------
--- ERROR MESSAGES
+-- WARNING MESSAGES
 
-{-# NOINLINE errors #-}
-errors :: MVar [String]
-errors = unsafePerformIO $ newMVar []
+{-# NOINLINE warnings #-}
+warnings :: MVar [String]
+warnings = unsafePerformIO $ newMVar []
 
-putError :: String -> IO ()
-putError x = do
+putWarning :: String -> IO ()
+putWarning x = do
     outStrLn x
-    modifyMVar_ errors $ return . (x:)
+    modifyMVar_ warnings $ return . (x:)
 
-recapErrors :: IO ()
-recapErrors = do
-    xs <- readMVar errors
+recapWarnings :: IO ()
+recapWarnings = do
+    xs <- readMVar warnings
     mapM_ outStrLn $ reverse xs
 
-resetErrors :: IO ()
-resetErrors = modifyMVar_ errors $ const $ return []
+resetWarnings :: IO ()
+resetWarnings = modifyMVar_ warnings $ const $ return []
 
 
 outputLock :: MVar ()

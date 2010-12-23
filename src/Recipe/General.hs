@@ -13,16 +13,16 @@ convert :: ([Name] -> IO ()) -> Name -> IO ()
 convert make x = do
     b <- doesFileExist $ x <.> "txt"
     if not b then
-        putError $ "Error: " ++ x ++ " couldn't be converted, no input file found"
+        putWarning $ "Warning: " ++ x ++ " couldn't be converted, no input file found"
      else do
         (deps,src) <- readInput x
         make deps
         let deps2 = map hoo deps
         deps3 <- filterM doesFileExist deps2
-        when (deps2 /= deps3) $ putError $ "Error: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps2 \\ deps3)
+        when (deps2 /= deps3) $ putWarning $ "Warning: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps2 \\ deps3)
         dbs <- mapM loadDatabase deps3
         let (err,db) = createDatabase Haskell dbs src
-        unless (null err) $ outStrLn $ "Skipped " ++ show (length err) ++ " errors in " ++ x
+        unless (null err) $ outStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x
         whenLoud $ outStr $ unlines $ map show err
         outStr $ "Converting " ++ x ++ "... "
         performGC

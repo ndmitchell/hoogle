@@ -47,7 +47,7 @@ makeDefault make local name = do
     b1 <- doesDirectoryExist $ cabals </> name
     b2 <- doesDirectoryExist $ haddocks </> name
     if not b1 || not b2 then
-        putError $ "Error: " ++ name ++ " couldn't find both Cabal and Haddock inputs"
+        putWarning $ "Warning: " ++ name ++ " couldn't find both Cabal and Haddock inputs"
      else do
         vc <- version cabals name
         vh <- version haddocks name
@@ -58,7 +58,7 @@ makeDefault make local name = do
         sz <- hFileSize h
         hClose h
         if sz == 0 then
-            putError $ "Error: " ++ name ++ " has no haddock output"
+            putWarning $ "Warning: " ++ name ++ " has no haddock output"
          else do
             had <- readFile' had
             cab <- readCabal cab
