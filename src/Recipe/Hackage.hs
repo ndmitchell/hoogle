@@ -2,6 +2,7 @@
 module Recipe.Hackage(makePlatform, makeDefault, makePackage, makeAll) where
 
 import Recipe.Type
+import Recipe.Cabal
 import Recipe.General
 import General.Base
 import General.System

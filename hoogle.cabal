@@ -114,6 +114,7 @@ executable hoogle
         Console.Test
         Paths_hoogle
         Recipe.All
+        Recipe.Cabal
         Recipe.Download
         Recipe.General
         Recipe.Hackage
