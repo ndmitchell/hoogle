@@ -6,8 +6,8 @@
 module Haddock
 
 -- | BUG 1: bug1 will not have any documentation
-class BUG1 a
-bug1 :: BUG1 a => Integer -> a
+class Bug1 a
+bug1 :: Bug1 a => Integer -> a
 data (:**:) a b
 
 -- | BUG 2: The :**: is prefix without brackets
@@ -17,6 +17,9 @@ data Bug3
 -- | FIXED 3 (Haddock 2.8): This Int gets two !!'s before it
 Bug3 :: {-# UNPACK #-} !Int -> Bug3
 
--- | BUG 4: The instance below has [incoherent] on it
-bug4 :: ()
+-- | BUG 4: The kind signature gets misplaced
+class Bug4 m :: (* -> *)
+
+-- | BUG 5: The instance below has [incoherent] on it
+bug5 :: ()
 instance [incoherent] Num ()
