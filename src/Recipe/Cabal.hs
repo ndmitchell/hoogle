@@ -1,35 +1,39 @@
 
 module Recipe.Cabal(
-    Cabal(..), readCabal, readCabalDepends, readCabalField
+    Cabal(..), readCabal
     ) where
 
-import General.Base
-import General.Util
+import Distribution.Compiler
+import Distribution.Package
+import Distribution.PackageDescription
+import Distribution.PackageDescription.Configuration
+import Distribution.PackageDescription.Parse
+import Distribution.System
+import Distribution.Text
+import Distribution.Verbosity
+import Distribution.Version
 
 
-data Cabal = Cabal {cabalDepends :: [String], cabalDescription :: [String]}
+ghcVersion = [7,0,1]
+
+data Cabal = Cabal
+    {cabalName :: String
+    ,cabalVersion :: String
+    ,cabalDescription :: [String]
+    ,cabalDepends :: [String]
+    } deriving Show
+
 
 readCabal :: FilePath -> IO Cabal
 readCabal file = do
-    src <- fmap lines $ readFile' file
-    return $ Cabal (readCabalDepends src) (readCabalField src True "description")
-
-
-readCabalDepends :: [String] -> [String]
-readCabalDepends xs = nub $ map (takeWhile g) $ filter f $ words $ map (rep ',' ' ') $ unwords $ readCabalField xs False "build-depends"
-    where f x = x /= "" && isAlpha (head x)
-          g x = isAlphaNum x || x `elem` "-_"
-
-
-readCabalField :: [String] -> Bool -> String -> [String]
-readCabalField xs root name = f xs
-    where
-        f (x:xs) | (name ++ ":") `isPrefixOf` map toLower x2 && (null spc || not root) =
-                [x4 | x4 /= []] ++ map (rep "." "" . trim) ys ++ f zs
-            where
-                x4 = trim x3
-                x3 = drop (length name + 1) x2
-                (spc,x2) = span isSpace x
-                (ys,zs) = span ((> length spc) . length . takeWhile isSpace) xs
-        f (x:xs) = f xs
-        f [] = []
+    pkg <- readPackageDescription silent file
+    let plat = Platform I386 Linux
+        comp = CompilerId GHC (Version ghcVersion [])
+    pkg <- return $ case finalizePackageDescription [] (const True) plat comp [] pkg of
+        Left _ -> flattenPackageDescription pkg
+        Right (pkg,_) -> pkg
+    return $ Cabal
+        (display $ pkgName $ package pkg)
+        (display $ pkgVersion $ package pkg)
+        (lines $ description pkg)
+        [display x | Just l <- [library pkg], Dependency x _ <- targetBuildDepends $ libBuildInfo l]
