@@ -99,12 +99,12 @@ ripple f = fs Nothing Nothing
 
 
 -- base::Prelude is priority 0
--- base is priority 1
+-- base, but not inside GHC is priority 1
 -- Everything else is priority 2
 setPriority pkg mod x = x{itemPriority = pri}
-    where pri = if base then (if prelude then 0 else 1) else 2
-          prelude = maybe [] itemName mod == "Prelude"
-          base = maybe [] itemName pkg == "base"
+    where pri = if pkg2 == "base" && not ("GHC." `isPrefixOf` mod2) then (if mod2 == "Prelude" then 0 else 1) else 2
+          mod2 = maybe "" itemName mod
+          pkg2 = maybe "" itemName pkg
 
 
 setModuleURL pkg _ x
