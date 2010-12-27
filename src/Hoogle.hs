@@ -1,12 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
--- The plan, over time, is to make this module simply reexport things, integrating the wrapper
--- layer back into Hoogle proper
-
--- | The Hoogle API.
+-- | The Hoogle API. To perform a search you call 'search' with a 'Database' (obtained by 'loadDatabase') and a
+--   'Query' (obtained by 'parseQuery').
 module Hoogle(
     -- * Utility types
-    module Hoogle.Type.TagStr,
+    TagStr(..), showTagText, showTagANSI, showTagHTML, showTagHTMLWith,
     H.ParseError(..), H.emptyParseError,
     URL,
     Language(..),
