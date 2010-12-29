@@ -35,17 +35,19 @@ data Fact
       deriving Show
 
 
+-- Invariant: locations will not be empty
 data Entry = Entry
-    {entryParents :: [(Maybe (Link Entry), Maybe (Link Entry))] -- (package,module)
+    {entryLocations :: [(URL, [Link Entry])]
     ,entryName :: String
     ,entryText :: TagStr
     ,entryDocs :: Documentation
-    ,entryURL :: URL
     ,entryPriority :: Int
     ,entryKey :: String -- used only for rebuilding combined databases
     ,entryType :: Maybe TypeSig -- used only for rebuilding combined databases
     }
     deriving (Typeable)
+
+entryURL e = head $ map fst (entryLocations e) ++ [""]
 
 
 data EntryView = FocusOn String -- characters in the range should be focused
@@ -76,18 +78,16 @@ renderEntryText view = transform f
 -- the entry priority
 -- the name of the entry, in lower case
 -- the name of the entry
--- the module
-data EntryScore = EntryScore Int String String String
+data EntryScore = EntryScore Int String String
                   deriving (Eq,Ord)
 
 
 entryScore :: Entry -> EntryScore
-entryScore e = EntryScore (entryPriority e) (map toLower $ entryName e) (entryName e) m
-    where m = case entryParents e of (_,Just m):_ -> entryName $ fromLink m; _ -> ""
+entryScore e = EntryScore (entryPriority e) (map toLower $ entryName e) (entryName e)
 
 instance Show Entry where
     show = showTagText . entryText
 
 instance BinaryDefer Entry where
-    put (Entry a b c d e f g h) = put8 a b c d e f g h
-    get = get8 Entry
+    put (Entry a b c d e f g) = put7 a b c d e f g
+    get = get7 Entry

@@ -77,14 +77,14 @@ filterResults q = f mods correctModule . f pkgs correctPackage
 -- pkgs is a non-empty list of MinusPackage values
 correctPackage :: [String] -> Entry -> Bool
 correctPackage pkgs x = null myPkgs || any (maybe True (`notElem` pkgs)) myPkgs
-    where myPkgs = map (fmap (entryName . fromLink) . fst) $ entryParents x
+    where myPkgs = map (fmap (entryName . fromLink) . listToMaybe . snd) $ entryLocations x
 
 
 -- mods is a non-empty list of PlusModule/MinusModule
 correctModule :: [Scope] -> Entry -> Bool
 correctModule mods x = null myMods || any (maybe True (f base mods . split '.')) myMods
     where
-        myMods = map (fmap (entryName . fromLink) . snd) $ entryParents x
+        myMods = map (fmap (entryName . fromLink) . listToMaybe . drop 1 . snd) $ entryLocations x
         base = isMinusModule $ head mods
 
         f z [] y = z

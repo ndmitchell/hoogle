@@ -156,15 +156,15 @@ a.dull, a.dull:hover {
     color: blue;
 }
 
-/** MODULES & PACKAGES **/
+/** PARENTS **/
 
-.mod, .pkg {
+.p1, .p2 {
     font-size: 8pt;
     white-space: nowrap;
     text-decoration: none;
 }
-.mod {color: #080;}
-.pkg {color: #000;}
+.p1 {color: #080;}
+.p2 {color: #000;}
 
 /** DOCS **/
 

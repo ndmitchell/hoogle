@@ -95,9 +95,10 @@ queryCompletions x = H.completions (toDataBase x)
 
 -- Hoogle.Search
 
+-- Invariant: locations will not be empty
 data Result = Result
-    {parents :: [(Maybe (URL, String), Maybe (URL, String))] -- a list of package/module pairs
-    ,self :: (URL, TagStr)
+    {locations :: [(URL, [(URL, String)])] -- your location, your parents
+    ,self :: TagStr
     ,docs :: TagStr
     }
 
@@ -105,11 +106,10 @@ toResult :: H.Result -> (Score,Result)
 toResult r@(H.Result entry view score) = (score, Result parents self docs)
     where
         ent = fromLink entry
-        text = H.renderResult r
+        self = H.renderResult r
 
-        parents = map (f *** f) $  H.entryParents ent
-        f = fmap ((H.entryURL &&& H.entryName) . fromLink)
-        self = (H.entryURL ent, text)
+        parents = map (second $ map f) $  H.entryLocations ent
+        f = (H.entryURL &&& H.entryName) . fromLink
         docs = H.renderDocumentation $ H.entryDocs ent
 
 

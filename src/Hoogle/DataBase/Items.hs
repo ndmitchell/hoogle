@@ -42,8 +42,8 @@ createItems xs = mergeItems [Items $ newIndex $ fs Nothing Nothing $ zip [0..] x
                   pkg2 = if itemLevel x == 0 then Just $ newLink i r else pkg
                   mod2 = if itemLevel x == 1 then Just $ newLink i r else mod
 
-        f pkg mod TextItem{..} = Entry [(pkg,mod)] itemName itemDisp
-            (htmlDocumentation itemDocs) url itemPriority itemKey itemType
+        f pkg mod TextItem{..} = Entry [(url, catMaybes [pkg,mod])] itemName itemDisp
+            (htmlDocumentation itemDocs) itemPriority itemKey itemType
             where url | Just pkg <- pkg, itemLevel == 1 || (itemLevel > 1 && isNothing mod) = entryURL (fromLink pkg) `combineURL` itemURL
                       | Just mod <- mod, itemLevel > 1 = entryURL (fromLink mod) `combineURL` itemURL
                       | otherwise = itemURL
@@ -71,6 +71,4 @@ flatten xs = concat $ zipWith f ns xs
 
 
 reindex :: (Int -> Link Entry) -> Entry -> Entry
-reindex op x = x{entryParents = map (f *** f) $ entryParents x}
-    where f Nothing = Nothing
-          f (Just e) = Just $ op $ linkKey e
+reindex op x = x{entryLocations = map (second $ map $ op . linkKey) $ entryLocations x}

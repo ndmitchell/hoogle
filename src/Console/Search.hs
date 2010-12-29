@@ -38,10 +38,10 @@ actionSearch flags q = do
         let Result{..} = snd $ head res
         putStrLns 2 $ disp verbose $ head res
         putStrLns 2 $ showTag docs
-        case parents of
-            (Just (_,p),_):_ -> putStrLn $ "From package " ++ p
+        case locations of
+            (_,(_,p):_):_ -> putStrLn $ "From package " ++ p
             _ -> return ()
-        putStrLns 1 $ showTag $ snd self
+        putStrLns 1 $ showTag self
      else
         putStr $ unlines $ map (disp verbose) res
     where
@@ -52,14 +52,14 @@ actionSearch flags q = do
 
         showTag = if color flags then showTagANSI else showTagText
 
-        expand (s,r) | null $ parents r = [(s,r)]
-                     | otherwise = [(s,r{parents=[p]}) | p <- parents r]
+        expand (s,r) | null $ locations r = [(s,r)]
+                     | otherwise = [(s,r{locations=[p]}) | p <- locations r]
 
         disp verbose (s,Result{..}) =
-            (case parents of (_,Just (_,m)):_ -> m ++ " "; _ -> "") ++
-            showTag (snd self) ++
+            (case locations of (_,_:(_,m):_):_ -> m ++ " "; _ -> "") ++
+            showTag self ++
             (if verbose then "  -- " ++ show s else "") ++
-            (if link flags then " -- " ++ fst self else "")
+            (if link flags then " -- " ++ head (map fst locations ++ [""]) else "")
 
 
 -- Put out a string with some blank links following

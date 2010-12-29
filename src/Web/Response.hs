@@ -109,12 +109,12 @@ runQuery ajax dbs cq@Search{queryParsed = Right q} =
 renderRes :: Int -> Bool -> Result -> [String]
 renderRes i more Result{..} =
         ["<a name='more'></a>" | more] ++
-        ["<div class='ans'>" ++ href selfUrl (showTagHTMLWith url selfText) ++ "</div>"] ++
-        ["<div class='from'>" ++ intercalate ", " [f "pkg" p ++ " " ++ f "mod" m | (p,m) <- parents] ++ "</div>" | not $ null parents] ++
+        ["<div class='ans'>" ++ href selfUrl (showTagHTMLWith url self) ++ "</div>"] ++
+        ["<div class='from'>" ++ intercalate ", " [unwords $ zipWith f [1..] ps | (_,ps) <- locations] ++ "</div>" | not $ null locations] ++
         ["<div class='doc'>" ++ docs2 ++ "</div>" | showTagText docs /= ""]
     where
-        (selfUrl,selfText) = self
-        f cls = maybe "" $ \(url,text) -> "<a class='" ++ cls ++ "' href='" ++ url ++ "'>" ++ text ++ "</a>"
+        selfUrl = head $ map fst locations ++ [""]
+        f cls (url,text) = "<a class='p" ++ show cls ++ "' href='" ++ url ++ "'>" ++ text ++ "</a>"
 
         docs2 = ("<div id='d" ++ show i ++ "' class='shut'>" ++
                    "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++& selfUrl ++ "'></a>") ++?
