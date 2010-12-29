@@ -30,6 +30,7 @@ a:hover {
 }
 
 input {
+    font-size: 16px;
     margin-top: 22px;
     vertical-align: top;
 }
@@ -68,7 +69,7 @@ form a:hover {
 */
 
 h1 {
-    font-size: 10pt;
+    font-size: 13px;
     padding: 5px;
     margin-top: 0px;
     font-weight: normal;
@@ -118,7 +119,7 @@ p {
 */
 
 .ans, .doc, .from {
-    margin-left: 25px;
+    margin-left: 170px;
     margin-right: 10px;
 }
 
@@ -129,12 +130,18 @@ a.dull, a.dull:hover {
 
 /** ANSWERS **/
 
+.ans i {
+    font-weight: bold;
+    font-style: normal;
+}
+
 .ans {
+    font-size: 16px;
     margin-top: 15px;
 }
 
 .ans .a {
-    color: blue;
+    color: #2200C1;
 }
 
 .ans a.dull {
@@ -159,12 +166,11 @@ a.dull, a.dull:hover {
 /** PARENTS **/
 
 .p1, .p2 {
-    font-size: 8pt;
+    font-size: 13px;
     white-space: nowrap;
     text-decoration: none;
+    color: #0E774A;
 }
-.p1 {color: #080;}
-.p2 {color: #000;}
 
 /** DOCS **/
 

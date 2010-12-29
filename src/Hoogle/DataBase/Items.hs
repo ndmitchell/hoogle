@@ -66,7 +66,7 @@ reorder = sortOn (entryScore . snd) . Map.elems . foldl' f Map.empty
             where key = (entryName, entryText, entryDocs, entryKey, entryType)
         g (i1,e1) (i2,e2) = (i1++i2, e1
             {entryPriority=min (entryPriority e1) (entryPriority e2)
-            ,entryLocations=concatMap entryLocations $ if entryScore e1 < entryScore e2 then [e1,e2] else [e2,e1]})
+            ,entryLocations=nub $ concatMap entryLocations $ if entryScore e1 < entryScore e2 then [e1,e2] else [e2,e1]})
 
 
 flatten :: [[(Int,Entry)]] -> [(Int,Entry)]
