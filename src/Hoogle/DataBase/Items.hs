@@ -12,7 +12,7 @@ import Data.Binary.Defer hiding (get,put)
 import qualified Data.Binary.Defer as D
 
 -- Invariant: Index Entry is by order of EntryScore
-newtype Items = Items (Index Entry)
+newtype Items = Items {fromItems :: Index Entry}
 
 entriesItems :: Items -> [Link Entry]
 entriesItems (Items x) = indexLinks x
@@ -50,14 +50,27 @@ createItems xs = mergeItems [Items $ newIndex $ fs Nothing Nothing $ zip [0..] x
 
 
 -- | Given a set of items, which may or may not individually satisfy the entryScore invariant,
---   make it so they _do_ satisfy the invariant
+--   make it so they _do_ satisfy the invariant.
+--   Also merge any pair of items which are similar enough.
 mergeItems :: [Items] -> Items
-mergeItems xs = Items $ newIndex $ map ren ijv
+mergeItems xs = Items $ newIndex $ map (reindex (mp Map.!) . snd) ys
     where
-        -- xs are sets of items, vs are sets of values, is index xs, js index vs
-        mp = Map.fromList [(ij, newLink n v) | (n,(ij,v)) <- zip [0..] ijv]
-        ijv = sortOn (entryScore . snd) [((i,linkKey jv),fromLink jv) | (i,Items vs) <- zip [0..] xs, jv <- indexLinks vs]
+        mp = Map.fromList [(i, newLink n y) | (n,(is, y)) <- zip [0..] ys, i <- is]
+        ys = reorder $ flatten $ map (map (linkKey &&& fromLink) . indexLinks . fromItems) xs
 
-        ren (ij,v) = v{entryParents = map (f ij *** f ij) $ entryParents v}
-        f _ Nothing = Nothing
-        f (i,j) (Just e) = Just $ mp Map.! (i,linkKey e) 
+
+reorder :: [(a,Entry)] -> [([a],Entry)]
+reorder = map (first return) . sortOn (entryScore . snd)
+
+
+flatten :: [[(Int,Entry)]] -> [(Int,Entry)]
+flatten xs = concat $ zipWith f ns xs
+    where
+        ns = 0 : scanl1 (+) (map length xs)
+        f n x = [(i+n, reindex (\j -> newLink (j+n) (snd $ x!!j)) y) | (i,y) <- x]
+
+
+reindex :: (Int -> Link Entry) -> Entry -> Entry
+reindex op x = x{entryParents = map (f *** f) $ entryParents x}
+    where f Nothing = Nothing
+          f (Just e) = Just $ op $ linkKey e
