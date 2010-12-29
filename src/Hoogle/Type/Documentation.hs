@@ -10,6 +10,7 @@ import Data.ByteString.Char8(ByteString,pack,unpack)
 
 
 newtype Documentation = Documentation ByteString
+    deriving (Eq,Ord)
 
 
 instance BinaryDefer Documentation where

@@ -110,11 +110,12 @@ renderRes :: Int -> Bool -> Result -> [String]
 renderRes i more Result{..} =
         ["<a name='more'></a>" | more] ++
         ["<div class='ans'>" ++ href selfUrl (showTagHTMLWith url self) ++ "</div>"] ++
-        ["<div class='from'>" ++ intercalate ", " [unwords $ zipWith f [1..] ps | (_,ps) <- locations] ++ "</div>" | not $ null locations] ++
+        ["<div class='from'>" ++ intercalate ", " [unwords $ zipWith (f u) [1..] ps | (u,ps) <- locations] ++ "</div>" | not $ null locations] ++
         ["<div class='doc'>" ++ docs2 ++ "</div>" | showTagText docs /= ""]
     where
         selfUrl = head $ map fst locations ++ [""]
-        f cls (url,text) = "<a class='p" ++ show cls ++ "' href='" ++ url ++ "'>" ++ text ++ "</a>"
+        f u cls (url,text) = "<a class='p" ++ show cls ++ "' href='" ++  url2 ++ "'>" ++ text ++ "</a>"
+            where url2 = if url == takeWhile (/= '#') u then u else url
 
         docs2 = ("<div id='d" ++ show i ++ "' class='shut'>" ++
                    "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++& selfUrl ++ "'></a>") ++?
