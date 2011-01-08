@@ -20,7 +20,7 @@ data TagStr
     | TagBold TagStr -- ^ Bold text.
     | TagEmph TagStr -- ^ Underlined/italic text.
     | TagLink String TagStr -- ^ A hyperlink to a URL.
-    | TagColor Int TagStr -- ^ Colored text. Index into a 0-based palette.
+    | TagColor Int TagStr -- ^ Colored text. Index into a 0-based palette. Text without any 'TagColor' should be black.
       deriving (Data,Typeable,Ord,Show,Eq)
 
 

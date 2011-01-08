@@ -7,6 +7,7 @@ import Hoogle.Query.Type
 import Hoogle.Type.All
 
 
+-- | Render a query, in particular using 'TagColor' for any type signature argument positions.
 renderQuery :: Query -> TagStr
 renderQuery x = Tags $ namesig ++ [Str " " | namesig /= [] && scp /= []] ++ scp
     where

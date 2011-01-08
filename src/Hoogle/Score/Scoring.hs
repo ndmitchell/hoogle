@@ -10,8 +10,8 @@ import Control.Monad
 import System.Random
 
 
--- | A list of scores where one is lower than the other, returns the score result.
---   In the 'IO' monad since it may require randomness, and it may output status messages while solving,
+-- | Given a set of scores, where the first is lower than the second, returns details for how to rank scores.
+--   This function is in the 'IO' monad since it may require randomness, and it may output status messages while solving,
 --   particularly if in Verbose mode.
 scoring :: [(Score,Score)] -> IO String
 scoring xs = do

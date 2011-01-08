@@ -5,20 +5,16 @@ module Hoogle.Type.ParseError where
 import Hoogle.Type.TagStr
 import Data.Data
 
--- | 1 based
+-- | Data type representing a parse error. All indecies are 1-based.
 data ParseError = ParseError
-    {lineNo :: Int
-    ,columnNo :: Int
-    ,errorMessage :: String
-    ,parseInput :: TagStr
+    {lineNo :: Int -- ^ Line number on which the error occured, 1 for the first line of a file.
+    ,columnNo :: Int -- ^ Column number on which the error occured, 1 for the first character of a line.
+    ,errorMessage :: String -- ^ Error message caused by the parse error.
+    ,parseInput :: TagStr -- ^ Input string which caused the error - sometimes with a 'TagEmph' to indicate which part was incorrect.
     } deriving (Ord,Eq,Data,Typeable)
 
 instance Show ParseError where
     show (ParseError line col err _) = "Parse error " ++ show line ++ ":" ++ show col ++ ": " ++ err
-
-
-emptyParseError :: ParseError
-emptyParseError = ParseError 0 0 "" $ Str ""
 
 
 parseErrorWith :: Int -> Int -> String -> String -> ParseError

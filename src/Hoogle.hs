@@ -5,7 +5,7 @@
 module Hoogle(
     -- * Utility types
     TagStr(..), showTagText, showTagANSI, showTagHTML, showTagHTMLWith,
-    H.ParseError(..), H.emptyParseError,
+    H.ParseError(..),
     URL,
     Language(..),
     -- * Database
@@ -36,13 +36,21 @@ import Hoogle.Query.All(Query)
 import Hoogle.Score.All(Score)
 
 
--- * Utility types
-
-data Language = Haskell
+-- | The languages supported by Hoogle.
+data Language = Haskell -- ^ The Haskell language (<http://haskell.org/>), along with many GHC specific extensions.
     deriving (Enum,Read,Show,Eq,Ord,Bounded,Data,Typeable)
 
 -- * Database
 
+-- | A Hoogle database, containing a set of functions/items which can be searched. The 'Database' type is used
+--   for a variety of purposes:
+--
+--   [Creation] A database is created by merging existing databases with the 'Monoid' instance and 'mappend',
+--   or by creating a new 'Database' from an input file with 'createDatabase'.
+--
+--   [Serialization] A database is saved to disk with 'saveDatabase' and loaded from disk with 'loadDatabase'.
+--
+--   [Searching] A database is searched using 'search'.
 newtype Database = Database [H.DataBase]
 
 toDataBase (Database x) = H.combineDataBase x
@@ -56,39 +64,54 @@ instance Show Database where
     show = show . toDataBase
 
 
-loadDatabase :: FilePath -> IO Database
-loadDatabase = fmap fromDataBase . H.loadDataBase
-
-
-showDatabase :: Database -> Maybe [String] -> String
-showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""] sects
-
-
--- | From a textbase lines we have currently
-createDatabase :: Language -> [Database] -> String -> ([H.ParseError], Database)
-createDatabase _ dbs src = (err, fromDataBase $ H.createDataBase xs res)
-    where
-        (err,res) = H.parseInputHaskell src
-        xs = concat [x | Database x <- dbs]
-
-
+-- | Save a database to a file.
 saveDatabase :: FilePath -> Database -> IO ()
 saveDatabase file x = do
     performGC
     H.saveDataBase file $ toDataBase x
 
 
+-- | Load a database from a file. If the database was not saved with the same version of Hoogle,
+--   it will probably throw an error.
+loadDatabase :: FilePath -> IO Database
+loadDatabase = fmap fromDataBase . H.loadDataBase
+
+
+-- | Create a database from an input definition.
+createDatabase
+    :: Language -- ^ Which format the input definition is in.
+    -> [Database] -- ^ A list of databases which contain definitions this input definition relies upon (e.g. types, aliases, instances).
+    -> String -- ^ The input definitions, usually with one definition per line, in a format specified by the 'Language'.
+    -> ([H.ParseError], Database) -- ^ A pair containing any parse errors present in the input definition, and the database ignoring any parse errors.
+createDatabase _ dbs src = (err, fromDataBase $ H.createDataBase xs res)
+    where
+        (err,res) = H.parseInputHaskell src
+        xs = concat [x | Database x <- dbs]
+
+
+-- | Show debugging information on some parts of the database. If the second argument
+--   is 'Nothing' the whole database will be shown. Otherwise, the listed parts will be shown.
+showDatabase :: Database -> Maybe [String] -> String
+showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""] sects
+
+
 -- Hoogle.Query
+
+-- | Parse a query for a given language, returning either a parse error, or a query.
 parseQuery :: Language -> String -> Either H.ParseError Query
 parseQuery _ = H.parseQuery
 
+-- | Given a query, return the list of packages that should be searched. Each package will be
+--   the name of a database, without any file path or extension included.
 queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps
     where ps = [p | H.PlusPackage p <- H.scope x]
 
+-- | Given a query and a database optionally give a list of what the user might have meant.
 querySuggestions :: Database -> Query -> Maybe TagStr
 querySuggestions (Database dbs) q = H.suggestQuery dbs q
 
+-- | Given a query data a database return a list of the possible completions for the search.
 queryCompletions :: Database -> String -> [String]
 queryCompletions x = H.completions (toDataBase x)
 

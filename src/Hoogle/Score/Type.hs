@@ -46,6 +46,7 @@ data TextMatch
       deriving (Show,Eq,Ord,Enum,Bounded)
 
 
+-- | A score, representing how close a match is. Lower scores are better.
 data Score = Score Int [TypeCost] [TextMatch]
 
 instance Monoid Score where

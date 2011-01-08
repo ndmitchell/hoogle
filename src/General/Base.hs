@@ -17,6 +17,8 @@ import Numeric as X (readHex,showHex)
 import System.FilePath as X hiding (combine)
 
 
+-- | A URL, or internet address. These addresses will usually start with either
+--   @http:\/\/@ or @file:\/\/@.
 type URL = String
 
 fst3 (a,b,c) = a

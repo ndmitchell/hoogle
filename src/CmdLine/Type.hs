@@ -41,6 +41,7 @@ data CmdLine
     | Data {datadir :: FilePath, threads :: Int, haddock :: Bool, redownload :: Bool, actions :: [String], local :: [String]}
       deriving (Data,Typeable,Show)
 
+emptyParseError = ParseError 0 0 "" $ Str ""
 blankSearch = Search False Nothing Nothing Nothing False False False 1 [] [] (Left emptyParseError) ""
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,test,server,dump,rank,combine,convert,dataa]

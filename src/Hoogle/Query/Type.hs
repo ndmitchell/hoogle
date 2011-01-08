@@ -7,6 +7,7 @@ import Data.Data
 import Hoogle.Type.All
 
 
+-- | A query, representing a user input.
 data Query = Query
     {names :: [String]
     ,typeSig :: Maybe TypeSig
@@ -15,6 +16,8 @@ data Query = Query
     deriving (Data,Typeable,Show,Eq)
 
 
+-- | Test if a query will result in a search being performed. A query which lists only scopes
+--   (e.g. @+base@) will still be reported is blank.
 isBlankQuery :: Query -> Bool
 isBlankQuery query = null (names query) && isNothing (typeSig query)
 
