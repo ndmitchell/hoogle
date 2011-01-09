@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.1.3
     Read and write all database files in UTF8
     #391, add tar -xzf when extracting from the tarball
     Change search results display, packages/modules on separate line
