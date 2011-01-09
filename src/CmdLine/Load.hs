@@ -20,7 +20,7 @@ loadQueryDatabases paths q = do
                 case r of
                     Nothing -> return $ Left x
                     Just x -> do
-                        src <- readFile x
+                        src <- readFileUtf8 x
                         return $ Right $ snd $ createDatabase Haskell [] src
             Just x -> fmap Right $ loadDatabase x
 

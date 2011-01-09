@@ -77,7 +77,8 @@ loadDatabase :: FilePath -> IO Database
 loadDatabase = fmap fromDataBase . H.loadDataBase
 
 
--- | Create a database from an input definition.
+-- | Create a database from an input definition. Source files for Hoogle databases are usually
+--   stored in UTF8 format, and should be read using 'hSetEncoding' and 'utf8'.
 createDatabase
     :: Language -- ^ Which format the input definition is in.
     -> [Database] -- ^ A list of databases which contain definitions this input definition relies upon (e.g. types, aliases, instances).

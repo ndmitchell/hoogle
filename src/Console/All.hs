@@ -36,7 +36,7 @@ action x@Data{} = recipes x
 action (Convert from to) = do
     to <- return $ if null to then replaceExtension from "hoo" else to
     putStrLn $ "Converting " ++ from
-    src <- readFile from
+    src <- readFileUtf8 from
     let (err,db) = createDatabase Haskell [] src
     unless (null err) $ putStr $ unlines $ "Warning: parse errors" : map show err
     saveDatabase to db

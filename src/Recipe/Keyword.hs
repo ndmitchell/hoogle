@@ -2,6 +2,7 @@
 module Recipe.Keyword(makeKeyword) where
 
 import General.Base
+import General.System
 import Text.HTML.TagSoup
 import Recipe.Type
 import Recipe.General
@@ -9,7 +10,7 @@ import Recipe.General
 
 makeKeyword :: IO ()
 makeKeyword = do
-    writeFile "keyword.txt" . translate =<< readFile' keywords
+    writeFileUtf8 "keyword.txt" . translate =<< readFile' keywords
     convert noDeps "keyword"
 
 

@@ -32,7 +32,7 @@ convert make x = do
 
 readInput :: Name -> IO ([Name], String)
 readInput x = do
-    src <- readFile $ x <.> "txt"
+    src <- readFileUtf8 $ x <.> "txt"
     let (a,b) = span ("@depends " `isPrefixOf`) $ lines src
     return (map (drop 9) a, unlines b)
 
