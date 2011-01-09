@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Read and write all database files in UTF8
     #391, add tar -xzf when extracting from the tarball
     Change search results display, packages/modules on separate line
     Exclude haskellN* from the platform, they are in base
