@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- | Module for "pure" things in the base, and things I think should
 --   have been in base, or could plausibly be added.
 module General.Base(module General.Base, module X) where
@@ -15,6 +17,9 @@ import Data.Ord as X
 import Debug.Trace as X (trace)
 import Numeric as X (readHex,showHex)
 import System.FilePath as X hiding (combine)
+
+import Control.Exception(bracket)
+import System.IO
 
 
 -- | A URL, or internet address. These addresses will usually start with either
@@ -58,6 +63,33 @@ upper = map toUpper
 readFile' x = do
     src <- readFile x
     length src `seq` return src
+
+
+readFileUtf8' :: FilePath -> IO String
+readFileUtf8' x = do
+    src <- readFileUtf8 x
+    length src `seq` return src
+
+
+readFileUtf8 :: FilePath -> IO String
+#if __GLASGOW_HASKELL__ < 612
+readFileUtf8 x = readFile x
+#else
+readFileUtf8 x = do
+    h <- openFile x ReadMode
+    hSetEncoding h utf8
+    hGetContents h
+#endif
+
+
+writeFileUtf8 :: FilePath -> String -> IO ()
+#if __GLASGOW_HASKELL__ < 612
+writeFileUtf8 x y = writeFile x y
+#else
+writeFileUtf8 x y = bracket (openFile x WriteMode) hClose $ \h -> do
+    hSetEncoding h utf8
+    hPutStr h y
+#endif
 
 
 ltrim = dropWhile isSpace

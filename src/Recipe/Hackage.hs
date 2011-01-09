@@ -61,10 +61,10 @@ makeDefault make local name = do
         if sz == 0 then
             putWarning $ "Warning: " ++ name ++ " has no haddock output"
          else do
-            had <- readFile' had
+            had <- readFileUtf8' had
             cab <- readCabal cab
             loc <- findLocal local name
-            writeFile (name <.> "txt") $ unlines $
+            writeFileUtf8 (name <.> "txt") $ unlines $
                 ["@depends " ++ a | a <- cabalDepends cab \\ (name:avoid)] ++
                 (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
             convert make name

@@ -2,7 +2,6 @@
 module Recipe.Keyword(makeKeyword) where
 
 import General.Base
-import General.System
 import Text.HTML.TagSoup
 import Recipe.Type
 import Recipe.General

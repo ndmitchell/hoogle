@@ -55,24 +55,3 @@ system_ x = do
 
 exitMessage :: [String] -> IO a
 exitMessage msg = putStr (unlines msg) >> exitFailure
-
-
-readFileUtf8 :: FilePath -> IO String
-#if __GLASGOW_HASKELL__ < 612
-readFileUtf8 x = readFile x
-#else
-readFileUtf8 x = do
-    h <- openFile x ReadMode
-    hSetEncoding h utf8
-    hGetContents h
-#endif
-
-
-writeFileUtf8 :: FilePath -> String -> IO ()
-#if __GLASGOW_HASKELL__ < 612
-writeFileUtf8 x y = writeFile x y
-#else
-writeFileUtf8 x y = E.bracket (openFile x WriteMode) hClose $ \h -> do
-    hSetEncoding h utf8
-    hPutStr h y
-#endif
