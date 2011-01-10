@@ -7,7 +7,7 @@ license-file:       docs/LICENSE
 category:           Development
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
-copyright:          Neil Mitchell 2004-2010
+copyright:          Neil Mitchell 2004-2011
 synopsis:           Haskell API Search
 description:
     Hoogle is a Haskell API search engine, which allows you to

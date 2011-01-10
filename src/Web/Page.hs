@@ -45,7 +45,7 @@ search resources query =
 
 footer =
     ["</div>"
-    ,"    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2010</p>"
+    ,"    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2011</p>"
     ,"  </body>"
     ,"</html>"
     ]
