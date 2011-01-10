@@ -82,7 +82,7 @@ runQuery ajax dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome
 
 runQuery ajax dbs cq@Search{queryParsed = Right q} =
     (if prefix then
-        ["<h1>Searching for " ++ qstr ++ "</h1>"] ++
+        ["<h1>" ++ qstr ++ "</h1>"] ++
         ["<p>" ++ showTagHTML (transform qurl sug) ++ "</p>" | Just sug <- [querySuggestions dbs q]] ++
         if null res then
             ["<p>No results found</p>"]

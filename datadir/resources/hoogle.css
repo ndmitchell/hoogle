@@ -61,6 +61,7 @@ form a:hover {
 
 #footer {
     text-align: center;
+    font-size: 13px;
 }
 
 
@@ -69,7 +70,6 @@ form a:hover {
 */
 
 h1 {
-    font-size: 13px;
     padding: 5px;
     margin-top: 0px;
     font-weight: normal;
@@ -77,11 +77,14 @@ h1 {
        to make type searching visisble */
     background-color: #e4e4e4;
     border-top: 1px solid #999;
+    text-indent: 165px;
+    font-size: 16px;
 }
 
 p {
-    padding-left: 20px;
-    padding-right: 20px;
+    margin-left: 170px;
+    margin-right: 20px;
+    font-size: 16px;
 }
 
 
@@ -102,10 +105,9 @@ p {
     margin-top: 20px;
     margin-bottom: 20px;
     padding: 3px;
-    width: 300px;
+    width: 400px;
     border: 2px solid #cc0;
     background-color: #ffc;
-    font-size: 10pt;
     text-align: left;
 }
 
