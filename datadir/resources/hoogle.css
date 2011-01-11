@@ -29,18 +29,18 @@ a:hover {
     margin-top: 5px;
 }
 
-input {
-    font-size: 16px;
-    margin-top: 22px;
-    vertical-align: top;
-}
-
 form {
     margin-bottom: 0px;
 }
 
-form a:hover {
-    background-color: white;
+#logo img {
+    vertical-align: bottom;
+}
+
+#hoogle, #submit {
+    font-size: 16px;
+    margin-bottom: 16px;
+    vertical-align: bottom;
 }
 
 #hoogle {
