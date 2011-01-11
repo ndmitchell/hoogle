@@ -46,7 +46,7 @@ createSubstrSearch xs = SubstrSearch
     (BS.pack $ map fromIntegral ls2)
     (is !!)
     where
-        (ts,is) = unzip $ sortBy (comparing fst) $ map (first $ map toLower) xs
+        (ts,is) = unzip $ map (first $ map toLower) xs
         (ts2,ls2) = f "" ts
 
         f x (y:ys) = first (y:) $ second (length y:) $ f y ys
