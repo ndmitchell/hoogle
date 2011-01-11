@@ -83,6 +83,7 @@ runQuery ajax dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome
 runQuery ajax dbs cq@Search{queryParsed = Right q} =
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
+        ["<div id='left'>" ++ also ++ "</div>"] ++
         ["<p>" ++ showTagHTML (transform qurl sug) ++ "</p>" | Just sug <- [querySuggestions dbs q]] ++
         if null res then
             ["<p>No results found</p>"]
@@ -96,9 +97,16 @@ runQuery ajax dbs cq@Search{queryParsed = Right q} =
         start2 = maybe 0 (subtract 1 . max 0) $ start cq
         count2 = maybe 20 (max 1) $ count cq
 
-        res = [renderRes i (i /= 0 && i == start2 && prefix) x | (i,(_,x)) <- zip [0..] $ search dbs q]
+        src = search dbs q
+        res = [renderRes i (i /= 0 && i == start2 && prefix) x | (i,(_,x)) <- zip [0..] src]
         (pre,res2) = splitAt start2 res
         (now,post) = splitAt count2 res2
+
+        also = "<ul><li><b>Packages</b></li>" ++ concat
+            ["<li><a class='minus' href='?hoogle=" ++% (queryText cq ++ " -" ++ x) ++ "'>&nbsp;</a>" ++
+             "<a class='plus' href='?hoogle=" ++% (queryText cq ++ " +" ++ x) ++ "'>" ++ x ++ "</a></li>"
+            | x <- take 5 pkgs] ++ "</ul>"
+        pkgs = nub [x | (_, (_,x):_)  <- concatMap (locations . snd) $ take (start2+count2) src]
 
         urlMore = "?hoogle=" ++% queryText cq ++ "&start=" ++ show (start2+count2+1) ++ "#more"
         qstr = showTagHTML (renderQuery q)

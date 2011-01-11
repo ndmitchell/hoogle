@@ -56,6 +56,50 @@ form {
 
 
 /********************************************************************
+*  LEFT - EXTRA SUGGESTIONS
+*/
+
+#left {
+    float: left;
+    width: 140px;
+    margin-top: 7px;
+    margin-left: 10px;
+    font-size: 13px;
+}
+
+#left ul {
+    padding: 0px;
+    margin: 0px;
+}
+
+#left li {
+    list-style-type: none;
+    margin-bottom: 7px;
+    white-space: nowrap;
+    display: block;
+}
+
+#left a {
+    text-decoration: none;
+    color: #0E774A;
+    background-repeat: no-repeat;
+}
+
+#left .plus {
+    background-image: url(more_small.png);
+    padding-right: 16px;
+    background-position: center right;
+}
+
+#left .minus {
+    padding-right: 13px;
+    background-image: url(less_small.png);
+    background-repeat: no-repeat;
+    background-position: center left;
+}
+
+
+/********************************************************************
 *  BOTTOM - COPYRIGHT MESSAGE
 */
 
