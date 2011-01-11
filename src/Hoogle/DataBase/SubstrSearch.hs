@@ -28,20 +28,13 @@ import Hoogle.Score.All
 {-
 Description:
 
-The substring search is an array of (key,value) pairs. The keys are sorted case
-sensitively.
-
-To do a search we binary chop to find the range where the exact prefixes lie,
-then we binary chop to find the range where the inexact prefixes lie, then we
-scan linearly to find all substrings.
-
 Data is stored flattened. For default we expect ~200Kb of disk usage.
 -}
 
 -- keys are sorted after being made lower case
 data SubstrSearch a = SubstrSearch
-    {text :: BS.ByteString -- all the bytestrings, lowercase, sorted
-    ,lens :: BS.ByteString -- a list of lengths, 0 means the string was identical to the previous one
+    {text :: BS.ByteString -- all the bytestrings, in preference order
+    ,lens :: BS.ByteString -- a list of lengths
     ,inds :: Int -> a -- a way of retrieving each index
     }
 
@@ -56,15 +49,13 @@ createSubstrSearch xs = SubstrSearch
         (ts,is) = unzip $ sortBy (comparing fst) $ map (first $ map toLower) xs
         (ts2,ls2) = f "" ts
 
-        f x (y:ys) | x == y = second (0:) $ f x ys
-                   | otherwise = first (y:) $ second (length y:) $ f y ys
+        f x (y:ys) = first (y:) $ second (length y:) $ f y ys
         f x [] = ([],[])
 
 
 data S a = S
     {sCount :: !Int -- which one are we on
     ,sFocus :: !BS.ByteString -- where we are in the string
-    ,sLast :: !(Maybe TextMatch) -- the last result
     ,sPrefix :: ![(a,EntryView,Score)] -- the prefixes
     ,sInfix :: ![(a,EntryView,Score)] -- the infixes
     }
@@ -76,12 +67,9 @@ searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
         view = FocusOn y
         match = bsMatch (BSC.pack $ map toLower y)
         sN = BS.foldl f s0 $ lens x
-        s0 = S 0 (text x) Nothing [] []
+        s0 = S 0 (text x) [] []
 
-        f s 0 = addCount $ case sLast s of
-            Nothing -> s
-            Just x -> addMatch x s
-        f s ii = addCount $ moveFocus i $ maybe id addMatch t $ s{sLast=t}
+        f s ii = addCount $ moveFocus i $ maybe id addMatch t s
             where t = match i $ BS.unsafeTake i $ sFocus s
                   i = fromIntegral ii
 
