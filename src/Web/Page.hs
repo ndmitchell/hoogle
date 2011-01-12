@@ -1,8 +1,12 @@
 
-module Web.Page(header, footer, welcome) where
+module Web.Page(searchLink, header, footer, welcome) where
 
 import General.Web
 import General.Util
+
+
+searchLink :: Args -> String -> URL
+searchLink extra x = "?" ++ concat [a ++ "=" ++% b ++ "&" | (a,b) <- extra, a /= "hoogle"] ++ "hoogle=" ++% x
 
 
 header resources query =
@@ -49,7 +53,7 @@ footer =
     ]
 
 
-welcome =
+welcome extra =
     ["<h1><b>Welcome to Hoogle</b></h1>"
     ,"<p>"
     ,"  Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries"
@@ -75,4 +79,4 @@ welcome =
     ,"</p>"
     ]
     where
-        search x = "<a href='?hoogle=" ++% x ++ "'>" ++& x ++ "</a><br/>"
+        search x = "<a href='" ++ searchLink extra x ++ "'>" ++& x ++ "</a><br/>"

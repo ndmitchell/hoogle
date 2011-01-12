@@ -120,11 +120,7 @@ showTagHTMLWith f x = g x
         g (Tags xs) = concatMap g xs
         g (TagBold x) = htmlTag "b" $ showTagHTML x
         g (TagEmph x) = htmlTag "i" $ showTagHTML x
-        -- FIXME: this is overly specific!
-        g (TagLink "" x) = g (TagLink url x)
-            where str = showTagText x
-                  url = if "http:" `isPrefixOf` str then str else "?hoogle=" ++% str
-        g (TagLink url x) = "<a href=\"" ++& url ++ "\">" ++ showTagHTML x ++ "</a>"
+        g (TagLink url x) = "<a href=\"" ++& (if null url then showTagText x else url) ++ "\">" ++ showTagHTML x ++ "</a>"
         g (TagColor i x) = "<span class='c" ++ show i ++ "'>" ++ showTagHTML x ++ "</span>"
 
         nbsp (' ':' ':xs) = " &nbsp;" ++ nbsp xs

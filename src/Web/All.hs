@@ -10,7 +10,8 @@ import Network.HTTP
 action :: CmdLine -> IO ()
 action q@Server{} = server q
 
--- would like to use datadir, but not sure how
+-- FIXME: Should use datadir, but not sure how
+-- FIXME: Only server will preserve extra flags
 action q = do
-    res <- response "datadir/resources" q
+    res <- response "datadir/resources" [] q
     putStrLn $ intercalate "\n" $ map show (rspHeaders res) ++ ["",rspBody res]

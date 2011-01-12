@@ -3,6 +3,7 @@
 module Web.Server(server) where
 
 import General.Base
+import General.Util
 import General.Web
 import CmdLine.All
 import Web.Response
@@ -61,8 +62,9 @@ httpServer port handler = do
 talk :: CmdLine -> Request String -> IO (Response String)
 talk Server{..} Request{rqURI=URI{uriPath=path,uriQuery=query}}
     | path `elem` ["/","/hoogle"] = do
-        args <- cmdLineWeb $ parseHttpQueryArgs $ drop 1 query
-        r <- response "/res" args{databases=databases}
+        let args = parseHttpQueryArgs $ drop 1 query
+        cmd <- cmdLineWeb args
+        r <- response "/res" (reps ("mode","ajax") ("ajax","1") args) cmd{databases=databases}
         return $ if local_ then fmap rewriteFileLinks r else r
     | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
     | local_ && "/file/" `isPrefixOf` path = serveFile False $ drop 6 path
