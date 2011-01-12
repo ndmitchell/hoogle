@@ -39,6 +39,9 @@ library
         uniplate == 1.6.*,
         haskell-src-exts == 1.9.*
 
+    if !os(mingw32)
+        build-depends: unix
+
     exposed-modules:
         Hoogle
 

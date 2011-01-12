@@ -16,7 +16,7 @@ import Recipe.Hackage
 
 -- CmdLine is guaranteed to be a constructor of type Data
 recipes :: CmdLine -> IO ()
-recipes opt = do
+recipes opt = withModeGlobalRead $ do
     hSetBuffering stdout NoBuffering
     createDirectoryIfMissing True $ datadir opt
     withDirectory (datadir opt) $ do

@@ -10,6 +10,10 @@ import System.Exit as X
 import System.IO as X
 import System.Mem as X (performGC)
 
+#ifndef mingw32_HOST_OS
+import System.Posix(setFileCreationMask)
+#endif
+
 
 import General.Base
 import qualified Control.Exception as E
@@ -24,6 +28,16 @@ withDirectory dir cmd = E.bracket
     setCurrentDirectory
     (const cmd)
 
+
+withModeGlobalRead :: IO () -> IO ()
+#ifdef mingw32_HOST_OS
+withModeGlobalRead act = act
+#else
+withModeGlobalRead act = E.bracket
+    (setFileCreationMask 0o022)
+    (const act)
+    setFileCreationMask
+#endif
 
 -- FIXME: This could use a lot more bracket calls!
 captureOutput :: IO () -> IO (Maybe String)
