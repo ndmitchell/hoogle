@@ -41,7 +41,7 @@ suggestQuery db q = Nothing
 
 
 didYouMean :: Query -> TagStr
-didYouMean q = Tags [TagBold $ Str "Did you mean: ", TagLink ("query:" ++ s) $ Str s]
+didYouMean q = Tags [TagBold $ Str "Did you mean: ", TagLink "" $ Str s]
     where s = showTagText $ renderQuery q
 
 
