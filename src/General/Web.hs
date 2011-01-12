@@ -6,10 +6,9 @@
 
 module General.Web(
     responseOk, responseBadRequest, responseNotFound, responseError,
-    filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
+    URL, filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
     escapeHTML, (++&), htmlTag,
-    cgiArgs,
-    parseHttpQueryArgs
+    Args, cgiArgs, parseHttpQueryArgs
     ) where
 
 import General.System
@@ -24,6 +23,9 @@ responseOk = Response (2,0,0) "OK"
 responseBadRequest x = Response (4,0,0) "Bad Request" [] $ "Bad request: " ++ x
 responseNotFound x = Response (4,0,4) "Not Found" [] $ "File not found: " ++ x
 responseError x = Response (5,0,0) "Internal Server Error" [] $ "Internal server error: " ++ x
+
+
+type Args = [(String, String)]
 
 
 ---------------------------------------------------------------------
@@ -100,7 +102,7 @@ envVariable :: String -> IO (Maybe String)
 envVariable x = catch (fmap Just $ getEnv x) (const $ return Nothing)
 
 
-cgiArgs :: IO (Maybe [(String, String)])
+cgiArgs :: IO (Maybe Args)
 cgiArgs = do
     x <- cgiVariable
     return $ case x of
@@ -111,7 +113,7 @@ cgiArgs = do
 ---------------------------------------------------------------------
 -- HTTP STUFF
 
-parseHttpQueryArgs :: String -> [(String, String)]
+parseHttpQueryArgs :: String -> Args
 parseHttpQueryArgs xs = mapMaybe (f . splitPair "=") $ splitList "&" xs
     where f Nothing = Nothing
           f (Just (a,b)) = Just (unescapeURL a, unescapeURL b)
