@@ -10,17 +10,20 @@ import System.Exit as X
 import System.IO as X
 import System.Mem as X (performGC)
 
-#ifndef mingw32_HOST_OS
-import System.Posix(setFileCreationMask)
-#endif
-
-
 import General.Base
 import qualified Control.Exception as E
 
 #if __GLASGOW_HASKELL__ >= 612
 import GHC.IO.Handle(hDuplicate,hDuplicateTo)
 #endif
+
+#ifndef mingw32_HOST_OS
+import System.Posix(setFileCreationMask)
+#else
+setFileCreationMask :: Int -> IO Int
+setFileCreationMask _ = return 0
+#endif
+
 
 
 withDirectory dir cmd = E.bracket
@@ -30,14 +33,11 @@ withDirectory dir cmd = E.bracket
 
 
 withModeGlobalRead :: IO () -> IO ()
-#ifdef mingw32_HOST_OS
-withModeGlobalRead act = act
-#else
 withModeGlobalRead act = E.bracket
     (setFileCreationMask 0o022)
     (const act)
-    setFileCreationMask
-#endif
+    (\x -> setFileCreationMask x >> return ())
+
 
 -- FIXME: This could use a lot more bracket calls!
 captureOutput :: IO () -> IO (Maybe String)
