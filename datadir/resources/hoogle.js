@@ -7,6 +7,7 @@ var instant = false; // should we search on key presses
 
 var currentSearch; // String
 var oldSearches = cache(100);
+var timeoutId;
 
 $(function(){
     currentSearch = $("#hoogle").focus().keyup(searchBoxChange).val();
@@ -24,11 +25,15 @@ function searchBoxChange()
         bod.html(old);
     else
     {
+        if (timeoutId != undefined) window.clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(function(){timeoutId = undefined; $("h1").text("Still working...");}, 500);
         $.ajax({
             url: '?',
             data: {mode:'ajax', hoogle:now},
             dataType: 'html',
             complete: function(s){return function(e){
+                window.clearTimeout(timeoutId);
+                timeoutId = undefined;
                 if (e.status == 200) {
                     oldSearches.add(s,e.responseText);
                     if (txt.val() == s)
