@@ -18,7 +18,7 @@ import Paths_hoogle
 
 logFile = "log.txt"
 
-
+-- extra is a hack, should be replaced with a local cookie, until it becomes the default
 response :: FilePath -> Args -> CmdLine -> IO (Response String)
 response resources extra q = do
     logMessage q
@@ -102,10 +102,13 @@ runQuery extra ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
         (pre,res2) = splitAt start2 res
         (now,post) = splitAt count2 res2
 
-        also = "<ul><li><b>Packages</b></li>" ++ concat
-            ["<li><a class='minus' href='" ++ searchLink extra (qt ++ " -" ++ x) ++ "'>&nbsp;</a>" ++
-             "<a class='plus' href='" ++ searchLink extra (qt ++ " +" ++ x) ++ "'>" ++ x ++ "</a></li>"
-            | x <- take 5 pkgs] ++ "</ul>"
+        also = "<ul><li><b>Packages</b></li>" ++ concatMap f (take 5 pkgs) ++ "</ul>"
+        f x | PlusPackage x `elem` scope q =
+                let q2 = showTagText $ renderQuery $ q{scope = filter (/= PlusPackage x) $ scope q} in
+                "<li><a class='minus' href='" ++ searchLink extra (q2) ++ "'>" ++ x ++ "</a></li>"
+            | otherwise =
+                "<li><a class='minus' href='" ++ searchLink extra (qt ++ " -" ++ x) ++ "'></a>" ++
+                "<a class='plus' href='" ++ searchLink extra (qt ++ " +" ++ x) ++ "'>" ++ x ++ "</a></li>"
         pkgs = nub [x | (_, (_,x):_)  <- concatMap (locations . snd) $ take (start2+count2) src]
 
         urlMore = searchLink extra qt ++ "&start=" ++ show (start2+count2+1) ++ "#more"

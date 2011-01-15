@@ -81,20 +81,20 @@ form {
 
 #left a {
     text-decoration: none;
-    color: #0E774A;
     background-repeat: no-repeat;
 }
 
 #left .plus {
-    background-image: url(more_small.png);
+    color: #0E7700;
     padding-right: 16px;
+    background-image: url(more_small.png);
     background-position: center right;
 }
 
 #left .minus {
-    padding-right: 13px;
+    color: #770E00;
+    padding-left: 16px;
     background-image: url(less_small.png);
-    background-repeat: no-repeat;
     background-position: center left;
 }
 
