@@ -62,18 +62,16 @@ runSuggest _ = return ""
 
 runQuery :: Bool -> Database -> CmdLine -> [String]
 runQuery ajax dbs Search{queryParsed = Left err} =
-    ["<h1><b>Parse error in user query</b></h1>"
+    ["<h1>" ++ showTagHTMLWith f (parseInput err) ++ "</h1>"
     ,"<p>"
-    ,"  Query: <span id='error'>" ++ showTagHTMLWith f (parseInput err) ++ "</span>"
-    ,"</p><p>"
-    ,"  Error: " ++& errorMessage err
+    ,"  <b>Parse error:</b> " ++& errorMessage err
     ,"</p><p>"
     ,"  For information on what queries should look like, see the"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>user manual</a>."
     ,"</p>"
     ]
     where
-        f (TagEmph x) = Just $ "<u>" ++ showTagHTMLWith f x ++ "</u>"
+        f (TagEmph x) = Just $ "<span class='error'>" ++ showTagHTMLWith f x ++ "</span>"
         f _ = Nothing
 
 

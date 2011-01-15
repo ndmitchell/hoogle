@@ -136,12 +136,10 @@ p {
 *  SPECIAL PAGES
 */
 
-#error {
-    font-family: monospace;
-}
-#error u {
-    border-bottom: 2px dotted red;
+.error {
+    border-bottom: 2px solid red;
     text-decoration: none;
+    white-space: pre;
 }
 
 #example {
