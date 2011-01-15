@@ -34,7 +34,7 @@ function searchBoxChange()
                     if (txt.val() == s)
                         bod.html(e.responseText);
                 } else
-                    bod.html("<h1>Error: status " + e.status + "</h1><p>" + e.responseText + "</p>");
+                    bod.html("<h1><b>Error:</b> status " + e.status + "</h1><p>" + e.responseText + "</p>");
             }}(now)
         });
     }
