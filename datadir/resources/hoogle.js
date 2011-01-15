@@ -29,9 +29,12 @@ function searchBoxChange()
             data: {mode:'ajax', hoogle:now},
             dataType: 'html',
             complete: function(s){return function(e){
-                oldSearches.add(s,e.responseText);
-                if (txt.val() == s)
-                    bod.html(e.responseText);
+                if (e.status == 200) {
+                    oldSearches.add(s,e.responseText);
+                    if (txt.val() == s)
+                        bod.html(e.responseText);
+                } else
+                    bod.html("<h1>Error: status " + e.status + "</h1><p>" + e.responseText + "</p>");
             }}(now)
         });
     }
