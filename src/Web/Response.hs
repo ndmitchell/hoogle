@@ -83,7 +83,7 @@ runQuery extra ajax dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome e
 runQuery extra ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
-        ["<div id='left'>" ++ also ++ "</div>"] ++
+        ["<div id='left'>" ++ also ++ "</div>" | not $ null pkgs] ++
         ["<p>" ++ showTag extra sug ++ "</p>" | Just sug <- [querySuggestions dbs q]] ++
         if null res then
             ["<p>No results found</p>"]
