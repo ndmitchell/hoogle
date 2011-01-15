@@ -1,20 +1,25 @@
 
+var instant = $.getQueryString('ajax');
+
 $(function(){
     if (window.external && ("AddSearchProvider" in window.external))
-        document.getElementById("plugin").style.display = "";
+        $("#plugin").css("display","");
 
-    $("#hoogle").focus();
-    if ($.getQueryString('ajax'))
+
+    var txt = $("#hoogle");
+    var bod = $("#body");
+    txt.focus();
+    if (instant)
     {
         var c = cache(100);
-        var last = $("#hoogle").val();
+        var last = txt.val();
 
-        $("#hoogle").keyup(function(){
-            var now = $("#hoogle").val();
+        txt.keyup(function(){
+            var now = txt.val();
             if (now == last) return; else last = now;
             var old = c.ask(now);
             if (old != undefined)
-                $("#body").html(old);
+                bod.html(old);
             else
             {
                 $.ajax({
@@ -23,8 +28,8 @@ $(function(){
                     dataType: 'html',
                     complete: function(s){return function(e){
                         c.add(s,e.responseText);
-                        if ($("#hoogle").val() == s)
-                            $("#body").html(e.responseText);
+                        if (txt.val() == s)
+                            bod.html(e.responseText);
                     }}(now)
                 });
             }
