@@ -201,7 +201,7 @@ data Bracket = Bracket Char [Bracket] -- Char is one of '(' or '['
 bracketer :: String -> Either ParseError [Bracket]
 bracketer xs = case readBracket (1,xs) of
     Left (msg,from,to) -> f msg from to
-    Right (res,(i,_:_)) -> f "Unexpected closing bracket" i (length xs)
+    Right (res,(i,_:_)) -> f "Unexpected closing bracket" i (1+length xs)
     Right (res,_) -> Right res
     where
         f msg from to = Left $ ParseError 1 from msg $ formatTags xs [((from-1,to-1),TagEmph)]
