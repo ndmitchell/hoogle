@@ -19,6 +19,7 @@ header resources query =
     ,"     <link type='image/png' rel='icon' href='" ++ resources ++ "/favicon.png' />"
     ,"     <link type='application/opensearchdescription+xml' rel='search' href='" ++ resources ++ "/search.xml' title='Hoogle' />"
     ,"     <script type='text/javascript' src='" ++ resources ++ "/jquery-1.4.2.js'> </script>"
+    ,"     <script type='text/javascript' src='" ++ resources ++ "/jquery.cookie.js'> </script>"
     ,"     <script type='text/javascript' src='" ++ resources ++ "/hoogle.js'> </script>"
     ,"  </head>"
     ,"  <body>"
@@ -28,6 +29,8 @@ header resources query =
 
 links =
     ["<div id='links'>"
+    ,"  <span id='instant' style='display:none;'><a href='javascript:setInstant()'>" ++
+          "Instant is <span id='instantVal'>off</span> (&beta;)</a> |</span>"
     ,"  <span id='plugin' style='display:none;'><a href='javascript:searchPlugin()'>Search plugin</a> |</span>"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>Manual</a> |"
     ,"  <a href='http://www.haskell.org/'>haskell.org</a>"

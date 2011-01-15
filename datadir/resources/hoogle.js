@@ -1,40 +1,71 @@
 
-var instant = $.getQueryString('ajax');
+var instant = false; // should we search on key presses
+
+
+/////////////////////////////////////////////////////////////////////
+// SEARCHING
+
+var currentSearch; // String
+var oldSearches = cache(100);
+
+$(function(){
+    currentSearch = $("#hoogle").focus().keyup(searchBoxChange).val();
+});
+
+function searchBoxChange()
+{
+    if (!instant) return;
+    var txt = $("#hoogle");
+    var bod = $("#body");
+    var now = txt.val();
+    if (now == currentSearch) return; else currentSearch = now;
+    var old = oldSearches.ask(now);
+    if (old != undefined)
+        bod.html(old);
+    else
+    {
+        $.ajax({
+            url: '?',
+            data: {mode:'ajax', hoogle:now},
+            dataType: 'html',
+            complete: function(s){return function(e){
+                oldSearches.add(s,e.responseText);
+                if (txt.val() == s)
+                    bod.html(e.responseText);
+            }}(now)
+        });
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////
+// INSTANT
+
+$(function(){
+    setInstant($.getQueryString('ajax') == "1" || $.cookie("instant") == "1");
+    $("#instant").css("display","");
+});
+
+function setInstant(x)
+{
+    instant = x == undefined ? !instant : x ? true : false;
+    $("#instantVal").html(instant ? "on" : "off");
+    if (instant)
+    {
+        $.cookie("instant","1",{expires:365});
+        searchBoxChange();
+    }
+    else
+        $.cookie("instant",null);
+}
+
+
+/////////////////////////////////////////////////////////////////////
+// SEARCH PLUGIN
 
 $(function(){
     if (window.external && ("AddSearchProvider" in window.external))
         $("#plugin").css("display","");
-
-
-    var txt = $("#hoogle");
-    var bod = $("#body");
-    txt.focus();
-    if (instant)
-    {
-        var c = cache(100);
-        var last = txt.val();
-
-        txt.keyup(function(){
-            var now = txt.val();
-            if (now == last) return; else last = now;
-            var old = c.ask(now);
-            if (old != undefined)
-                bod.html(old);
-            else
-            {
-                $.ajax({
-                    url: '?',
-                    data: {mode:'ajax', hoogle:now},
-                    dataType: 'html',
-                    complete: function(s){return function(e){
-                        c.add(s,e.responseText);
-                        if (txt.val() == s)
-                            bod.html(e.responseText);
-                    }}(now)
-                });
-            }
-        });
-    }
 });
 
 function searchPlugin()
@@ -43,6 +74,10 @@ function searchPlugin()
     var url = l.protocol + "//" + l.hostname + l.pathname + $("link[rel=search]").attr("href");
     window.external.AddSearchProvider(url);
 }
+
+
+/////////////////////////////////////////////////////////////////////
+// DOCUMENTATION
 
 function docs(i)
 {
