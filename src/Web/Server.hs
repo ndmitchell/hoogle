@@ -3,7 +3,6 @@
 module Web.Server(server) where
 
 import General.Base
-import General.Util
 import General.Web
 import CmdLine.All
 import Web.Response
@@ -64,7 +63,7 @@ talk Server{..} Request{rqURI=URI{uriPath=path,uriQuery=query}}
     | path `elem` ["/","/hoogle"] = do
         let args = parseHttpQueryArgs $ drop 1 query
         cmd <- cmdLineWeb args
-        r <- response "/res" (reps ("mode","ajax") ("ajax","1") args) cmd{databases=databases}
+        r <- response "/res" cmd{databases=databases}
         return $ if local_ then fmap rewriteFileLinks r else r
     | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
     | local_ && "/file/" `isPrefixOf` path = serveFile False $ drop 6 path

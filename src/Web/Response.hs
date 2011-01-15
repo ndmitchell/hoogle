@@ -18,9 +18,9 @@ import Paths_hoogle
 
 logFile = "log.txt"
 
--- extra is a hack, should be replaced with a local cookie, until it becomes the default
-response :: FilePath -> Args -> CmdLine -> IO (Response String)
-response resources extra q = do
+
+response :: FilePath -> CmdLine -> IO (Response String)
+response resources q = do
     logMessage q
     let response x = responseOk [Header HdrContentType x]
 
@@ -28,7 +28,7 @@ response resources extra q = do
             dbs <- if isRight $ queryParsed q
                    then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
                    else return mempty
-            return $ runQuery extra ajax dbs q
+            return $ runQuery ajax dbs q
 
     case webmode q of
         Just "ajax" -> do
@@ -60,8 +60,8 @@ runSuggest Search{queryText=q} = do
 runSuggest _ = return ""
 
 
-runQuery :: Args -> Bool -> Database -> CmdLine -> [String]
-runQuery extra ajax dbs Search{queryParsed = Left err} =
+runQuery :: Bool -> Database -> CmdLine -> [String]
+runQuery ajax dbs Search{queryParsed = Left err} =
     ["<h1><b>Parse error in user query</b></h1>"
     ,"<p>"
     ,"  Query: <span id='error'>" ++ showTagHTMLWith f (parseInput err) ++ "</span>"
@@ -77,14 +77,14 @@ runQuery extra ajax dbs Search{queryParsed = Left err} =
         f _ = Nothing
 
 
-runQuery extra ajax dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome extra
+runQuery ajax dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome
 
 
-runQuery extra ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
+runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
         ["<div id='left'>" ++ also ++ "</div>" | not $ null pkgs] ++
-        ["<p>" ++ showTag extra sug ++ "</p>" | Just sug <- [querySuggestions dbs q]] ++
+        ["<p>" ++ showTag sug ++ "</p>" | Just sug <- [querySuggestions dbs q]] ++
         if null res then
             ["<p>No results found</p>"]
         else
@@ -98,25 +98,25 @@ runQuery extra ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
         count2 = maybe 20 (max 1) $ count cq
 
         src = search dbs q
-        res = [renderRes extra i (i /= 0 && i == start2 && prefix) x | (i,(_,x)) <- zip [0..] src]
+        res = [renderRes i (i /= 0 && i == start2 && prefix) x | (i,(_,x)) <- zip [0..] src]
         (pre,res2) = splitAt start2 res
         (now,post) = splitAt count2 res2
 
         also = "<ul><li><b>Packages</b></li>" ++ concatMap f (take 5 pkgs) ++ "</ul>"
         f x | PlusPackage x `elem` scope q =
                 let q2 = showTagText $ renderQuery $ q{scope = filter (/= PlusPackage x) $ scope q} in
-                "<li><a class='minus' href='" ++ searchLink extra (q2) ++ "'>" ++ x ++ "</a></li>"
+                "<li><a class='minus' href='" ++ searchLink q2 ++ "'>" ++ x ++ "</a></li>"
             | otherwise =
-                "<li><a class='minus' href='" ++ searchLink extra (qt ++ " -" ++ x) ++ "'></a>" ++
-                "<a class='plus' href='" ++ searchLink extra (qt ++ " +" ++ x) ++ "'>" ++ x ++ "</a></li>"
+                "<li><a class='minus' href='" ++ searchLink (qt ++ " -" ++ x) ++ "'></a>" ++
+                "<a class='plus' href='" ++ searchLink (qt ++ " +" ++ x) ++ "'>" ++ x ++ "</a></li>"
         pkgs = nub [x | (_, (_,x):_)  <- concatMap (locations . snd) $ take (start2+count2) src]
 
-        urlMore = searchLink extra qt ++ "&start=" ++ show (start2+count2+1) ++ "#more"
+        urlMore = searchLink qt ++ "&start=" ++ show (start2+count2+1) ++ "#more"
         qstr = showTagHTML (renderQuery q)
 
 
-renderRes :: Args -> Int -> Bool -> Result -> [String]
-renderRes extra i more Result{..} =
+renderRes :: Int -> Bool -> Result -> [String]
+renderRes i more Result{..} =
         ["<a name='more'></a>" | more] ++
         ["<div class='ans'>" ++ href selfUrl (showTagHTMLWith url self) ++ "</div>"] ++
         ["<div class='from'>" ++ intercalate ", " [unwords $ zipWith (f u) [1..] ps | (u,ps) <- locations] ++ "</div>" | not $ null locations] ++
@@ -128,7 +128,7 @@ renderRes extra i more Result{..} =
 
         docs2 = ("<div id='d" ++ show i ++ "' class='shut'>" ++
                    "<a class='docs' onclick='return docs(" ++ show i ++ ")' href='" ++& selfUrl ++ "'></a>") ++?
-                   showTag extra docs ++?
+                   showTag docs ++?
                "</div>"
 
         url (TagBold x)
@@ -143,9 +143,9 @@ renderRes extra i more Result{..} =
         href url x = if null url then x else "<a class='dull' href='" ++& url ++ "'>" ++ x ++ "</a>"
 
 
-showTag :: Args -> TagStr -> String
-showTag extra = showTagHTML . transform f
+showTag :: TagStr -> String
+showTag = showTagHTML . transform f
     where
-        f (TagLink "" x) = TagLink (if "http:" `isPrefixOf` str then str else searchLink extra str) x
+        f (TagLink "" x) = TagLink (if "http:" `isPrefixOf` str then str else searchLink str) x
             where str = showTagText x
         f x = x

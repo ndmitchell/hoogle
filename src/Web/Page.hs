@@ -5,8 +5,8 @@ import General.Web
 import General.Util
 
 
-searchLink :: Args -> String -> URL
-searchLink extra x = "?" ++ concat [a ++ "=" ++% b ++ "&" | (a,b) <- extra, a /= "hoogle"] ++ "hoogle=" ++% x
+searchLink :: String -> URL
+searchLink x = "?hoogle=" ++% x
 
 
 header resources query =
@@ -56,7 +56,7 @@ footer =
     ]
 
 
-welcome extra =
+welcome =
     ["<h1><b>Welcome to Hoogle</b></h1>"
     ,"<p>"
     ,"  Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries"
@@ -82,4 +82,4 @@ welcome extra =
     ,"</p>"
     ]
     where
-        search x = "<a href='" ++ searchLink extra x ++ "'>" ++& x ++ "</a><br/>"
+        search x = "<a href='" ++ searchLink x ++ "'>" ++& x ++ "</a><br/>"
