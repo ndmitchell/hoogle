@@ -8,6 +8,7 @@ import General.Base
 import General.System
 import General.Util
 import General.Web
+import Control.Exception
 
 
 -- FIXME: This is a list of hack
@@ -56,12 +57,15 @@ makeDefault make local name = do
         when (vc /= vh) $ putStrLn $ "Warning: Version mismatch for " ++ name ++ " (cabal=" ++ vc ++ ", haddock=" ++ vh ++ ")"
         let had = if base then inputBase else inputs </> name </> vh </> "doc" </> "html" </> name <.> "txt"
             cab = cabals </> name </> vc </> name <.> "cabal"
-        had <- readFileUtf8' had
-        cab <- readCabal cab
-        loc <- findLocal local name
-        convertSrc make name $ unlines $
-            ["@depends " ++ a | a <- cabalDepends cab \\ (name:avoid)] ++
-            (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
+        had <- try $ readFileUtf8' had
+        case had of
+            Left e -> putWarning $ "Warning: Exception when reading haddock for " ++ name ++ ", " ++ show (e :: SomeException)
+            Right had -> do
+                cab <- readCabal cab
+                loc <- findLocal local name
+                convertSrc make name $ unlines $
+                    ["@depends " ++ a | a <- cabalDepends cab \\ (name:avoid)] ++
+                    (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
 
 
 -- try and find a local filepath
