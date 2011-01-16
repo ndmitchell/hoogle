@@ -100,7 +100,8 @@ runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
         (pre,res2) = splitAt start2 res
         (now,post) = splitAt count2 res2
 
-        also = "<ul><li><b>Packages</b></li>" ++ concatMap f (nub $ [x | MinusPackage x <- scope q] ++ take 5 pkgs) ++ "</ul>"
+        also = "<ul><li><b>Packages</b></li>" ++ concatMap f (take (5 + length minus) $ nub $ minus ++ pkgs) ++ "</ul>"
+            where minus = [x | MinusPackage x <- scope q]
         f x | PlusPackage lx `elem` scope q =
                 let q2 = showTagText $ renderQuery $ q{scope = filter (/= PlusPackage lx) $ scope q} in
                 "<li><a class='minus' href='" ++ searchLink q2 ++ "'>" ++ x ++ "</a></li>"
