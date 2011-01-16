@@ -1,60 +1,60 @@
 -- these tests use all the databases
 
 -- check ~ is found, bug #280
-~ +keyword
+~ +keyword -n1
 keyword ~
 
 -- check keywords are including in default
-~
+~ -n1
 keyword ~
 
 -- check that keyword links work, bug #309
-! --link
+! --link +keyword -n1
 keyword ! -- http://haskell.org/haskellwiki/Keywords#.21
 
 -- check you find forall, bug #235
-forall
+forall -n10
 keyword forall
 
 -- check you find MonadWriter, bug #249
-MonadWriter +mtl
+MonadWriter +mtl -n1
 class (Monoid w, Monad m) => MonadWriter w m
 
-module
+module -n10
 keyword module
 
-Prelude
+Prelude -n1
 Prelude
 
-even +base
+even +base -n1
 even
 
-tan +base
+tan +base -n1
 tan
 
-log +base
+log +base -n1
 log
 
-seq +base
+seq +base -n1
 seq
 
 -- test that the base type String=[Char] alias is known
-"[Char] -> a -> a"
+"[Char] -> a -> a" -n1
 @now trace
 
 -- test that packages are included
-hlint
+hlint -n1
 package hlint
 
 -- #146, preserve foralls
-everywhere +syb
+everywhere +syb -n1
 everywhere :: (forall a. Data a => a -> a) -> (forall a. Data a => a -> a)
 
 -- #320, make sure it finds system
-system
+system -n10
 System.Cmd system :: String -> IO ExitCode
 
 -- #187, LT not found
-LT +base
+LT +base -n1
 LT :: Ordering
 
