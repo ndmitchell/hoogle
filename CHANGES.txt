@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Stop mode=suggest failing entirely, now cleanly gives no answers
     Combine --web and --webmode
     Complete the command line flag help
     #327, ensure utf8 is found

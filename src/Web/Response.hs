@@ -13,7 +13,6 @@ import Data.Generics.Uniplate
 import Data.Time.Clock
 import Data.Time.Calendar
 import Network.HTTP
-import Paths_hoogle
 
 
 logFile = "log.txt"
@@ -52,9 +51,8 @@ logMessage q = do
 
 
 runSuggest :: CmdLine -> IO String
-runSuggest Search{queryText=q} = do
-    root <- getDataDir
-    db <- loadDatabase $ root </> "default.hoo"
+runSuggest cq@Search{queryText=q} = do
+    (_, db) <- loadQueryDatabases (databases cq) (Query [] Nothing [])
     let res = queryCompletions db q
     return $ "[" ++ show q ++ "," ++ show res ++ "]"
 runSuggest _ = return ""
