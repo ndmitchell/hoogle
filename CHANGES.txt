@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Combine --web and --webmode
     Complete the command line flag help
     #327, ensure utf8 is found
     #187, ensure LT is found

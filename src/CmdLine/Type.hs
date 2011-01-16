@@ -11,7 +11,7 @@ import Data.Version(showVersion)
 import Hoogle
 
 
-isWebCmdLine Search{web=True} = True
+isWebCmdLine Search{web=Just _} = True
 isWebCmdLine Server{} = True
 isWebCmdLine _ = False
 
@@ -24,8 +24,7 @@ data CmdLine
         ,databases :: [FilePath]
         ,start :: Maybe Int
         ,count :: Maybe Int
-        ,web :: Bool
-        ,webmode :: Maybe String
+        ,web :: Maybe String
         ,repeat_ :: Int
         ,queryChunks :: [String]
         
@@ -42,17 +41,16 @@ data CmdLine
       deriving (Data,Typeable,Show)
 
 emptyParseError = ParseError 0 0 "" $ Str ""
-blankSearch = Search False False False [] Nothing Nothing False Nothing 1 [] (Left emptyParseError) ""
+blankSearch = Search False False False [] Nothing Nothing Nothing 1 [] (Left emptyParseError) ""
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,dataa,server,combine,convert,test,dump,rank]
     &= verbosity &= program "hoogle"
     &= summary ("Hoogle v" ++ showVersion version ++ ", (C) Neil Mitchell 2004-2011\nhttp://haskell.org/hoogle")
 
 search_ = Search
-    {web = def &= help "Operate as a web tool"
+    {web = def &= typ "MODE" &= opt "web" &= help "Operate as a web tool"
     ,start = def &= help "Start displaying results from this point on (1 based)"
     ,count = def &= name "n" &= help "Maximum number of results to return"
-    ,webmode = def &= typ "MODE" &= help "Specify a mode when running as a web tool"
     ,queryChunks = def &= args &= typ "QUERY"
     ,info = def &= help "Give extended information about the first result"
     ,link = def &= help "Give URL's for each result"

@@ -30,15 +30,15 @@ response resources q = do
                    else return mempty
             return $ runQuery ajax dbs q
 
-    case webmode q of
+    case web q of
         Just "ajax" -> do
             res <- res True
             return $ response "text/html" $ unlines res
-        Nothing -> do
+        Just "web" -> do
             res <- res False
             return $ response "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ res ++ footer
         Just "suggest" -> fmap (response "application/json") $ runSuggest q
-        Just e -> return $ response "text/html" $ "Unknown webmode: " ++ show e
+        Just e -> return $ response "text/html" $ "Unknown webmode: " ++ e
 
 
 logMessage :: CmdLine -> IO ()

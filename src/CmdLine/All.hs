@@ -92,8 +92,9 @@ cmdLineArgs = cmdLineExpand =<< cmdArgsRun cmdLineMode
 
 
 cmdLineWeb :: [(String,String)] -> IO CmdLine
-cmdLineWeb args = cmdLineExpand $ blankSearch{web=True,
-        start=askInt ["start"], count=askInt ["count"], webmode=ask ["mode"],
-        queryChunks = maybeToList $ ask ["q","hoogle"]}
+cmdLineWeb args = cmdLineExpand $ blankSearch
+        {web=Just $ fromMaybe "web" $ ask ["mode"]
+        ,start=askInt ["start"], count=askInt ["count"]
+        ,queryChunks = maybeToList $ ask ["q","hoogle"]}
     where ask x = listToMaybe [b | (a,b) <- args, a `elem` x]
           askInt x = readMay =<< ask x
