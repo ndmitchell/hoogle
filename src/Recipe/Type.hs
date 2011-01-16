@@ -1,6 +1,6 @@
 
 module Recipe.Type(
-    CmdLine(..), Name, hoo, noDeps, safeEncoding,
+    CmdLine(..), Name, noDeps, safeEncoding,
     keywords, platform, cabals, haddocks, listing, version,
     resetWarnings, putWarning, recapWarnings,
     outStr, outStrLn
@@ -14,9 +14,6 @@ import General.System
 
 
 type Name = String
-
-hoo :: Name -> FilePath
-hoo x = x <.> "hoo"
 
 
 noDeps :: [Name] -> IO ()

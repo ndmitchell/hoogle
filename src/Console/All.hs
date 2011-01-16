@@ -35,6 +35,7 @@ action x@Data{} = recipes x
 
 action (Convert from to) = do
     to <- return $ if null to then replaceExtension from "hoo" else to
+    when (any isUpper $ takeBaseName to) $ putStrLn $ "Warning: Hoogle databases should be all lower case, " ++ takeBaseName to
     putStrLn $ "Converting " ++ from
     src <- readFileUtf8 from
     let (err,db) = createDatabase Haskell [] src

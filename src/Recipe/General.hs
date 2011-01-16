@@ -7,17 +7,20 @@ import General.Base
 import General.System
 import System.Console.CmdArgs.Verbosity
 
+txt x = map toLower x <.> "txt"
+hoo x = map toLower x <.> "hoo"
+
 
 convertSrc :: ([Name] -> IO ()) -> Name -> String -> IO ()
 convertSrc make x src = do
-    writeFileUtf8 (x <.> "txt") src
+    writeFileUtf8 (txt x) src
     convert make x
 
 
 -- convert a single database
 convert :: ([Name] -> IO ()) -> Name -> IO ()
 convert make x = do
-    b <- doesFileExist $ x <.> "txt"
+    b <- doesFileExist $ txt x
     if not b then
         putWarning $ "Warning: " ++ x ++ " couldn't be converted, no input file found"
      else do
@@ -38,7 +41,7 @@ convert make x = do
 
 readInput :: Name -> IO ([Name], String)
 readInput x = do
-    src <- readFileUtf8 $ x <.> "txt"
+    src <- readFileUtf8 $ txt x
     let (a,b) = span ("@depends " `isPrefixOf`) $ lines src
     return (map (drop 9) a, unlines b)
 
