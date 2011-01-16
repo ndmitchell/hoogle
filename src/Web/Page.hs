@@ -3,6 +3,11 @@ module Web.Page(searchLink, header, footer, welcome) where
 
 import General.Web
 import General.Util
+import qualified Paths_hoogle(version)
+import Data.Version(showVersion)
+
+
+version = showVersion Paths_hoogle.version
 
 
 searchLink :: String -> URL
@@ -15,12 +20,12 @@ header resources query =
     ,"  <head profile='http://a9.com/-/spec/opensearch/1.1/'>"
     ,"     <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1' />"
     ,"     <title>" ++ (query ++? " - ") ++ "Hoogle</title>"
-    ,"     <link type='text/css' rel='stylesheet' href='" ++ resources ++ "/hoogle.css' />"
+    ,"     <link type='text/css' rel='stylesheet' href='" ++ resources ++ "/hoogle.css?version=" ++% version ++ "' />"
     ,"     <link type='image/png' rel='icon' href='" ++ resources ++ "/favicon.png' />"
     ,"     <link type='application/opensearchdescription+xml' rel='search' href='" ++ resources ++ "/search.xml' title='Hoogle' />"
     ,"     <script type='text/javascript' src='" ++ resources ++ "/jquery-1.4.2.js'> </script>"
     ,"     <script type='text/javascript' src='" ++ resources ++ "/jquery.cookie.js'> </script>"
-    ,"     <script type='text/javascript' src='" ++ resources ++ "/hoogle.js'> </script>"
+    ,"     <script type='text/javascript' src='" ++ resources ++ "/hoogle.js?version=" ++% version ++ "'> </script>"
     ,"  </head>"
     ,"  <body>"
     ] ++ links ++ search resources query ++
@@ -50,7 +55,7 @@ search resources query =
 
 footer =
     ["</div>"
-    ,"    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2011</p>"
+    ,"    <p id='footer'>&copy; <a href='http://community.haskell.org/~ndm/'>Neil Mitchell</a> 2004-2011, version " ++& version ++ "</p>"
     ,"  </body>"
     ,"</html>"
     ]
