@@ -38,9 +38,9 @@ makePackage = do
         let file = cabals </> name </> ver </> name <.> "cabal"
         src <- readCabal file
         return $ [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
-                 ["--","-- Version " ++ ver, "@package " ++ name]
-    writeFile "package.txt" $ safeEncoding $ unlines $ concat xs
-    convert noDeps "package"
+                 ["--","-- Version " ++ ver, "@url package/" ++ name, "@entry package " ++ name]
+    convertSrc noDeps "package" $ unlines $
+        "@url http://hackage.haskell.org/" : "@package package" : concat xs
 
 
 makeDefault :: ([Name] -> IO ()) -> [FilePath] -> Name -> IO ()

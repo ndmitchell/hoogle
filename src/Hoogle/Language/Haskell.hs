@@ -35,7 +35,7 @@ parseInputHaskell = join . f [] "" . zip [1..] . lines
 parseLine :: Int -> String -> Either ParseError ([Fact],[TextItem])
 parseLine line x | "(##)" `isPrefixOf` x = Left $ parseErrorWith line 1 "Skipping due to HSE bug #206" "(##)"
 parseLine line ('@':str) = case a of
-        "keyword" -> Right $ itemKeyword $ dropWhile isSpace b
+        "entry" -> Right $ itemEntry $ dropWhile isSpace b
         "package" -> Right $ itemPackage $ dropWhile isSpace b
         _ -> Left $ parseErrorWith line 2 ("Unknown attribute: " ++ a) $ '@':str
     where (a,b) = break isSpace str
@@ -76,12 +76,14 @@ textItem = TextItem 2 "" "" Nothing (Str "") "" "" 0
 
 fact x y = (x,[y])
 
-itemPackage x = fact [] $ textItem{itemLevel=0, itemKey=x, itemName=x,
+itemPackage x = fact [] $ textItem{itemLevel=0, itemKey="", itemName=x,
     itemURL="http://hackage.haskell.org/package/" ++ x ++ "/",
     itemDisp=Tags [emph "package",space,bold x]}
 
-itemKeyword x = fact [] $ textItem{itemName=x, itemKey=x,
-    itemDisp=Tags [emph "keyword",space,bold x]}
+itemEntry x = fact [] $ textItem{itemName=ab, itemKey=ab,
+    itemDisp= if null b then bold a else Tags [emph a,space,bold b]}
+    where (a,b) = second (dropWhile isSpace) $ break isSpace x
+          ab = if null b then a else b
 
 itemModule xs = fact [] $ textItem{itemLevel=1, itemKey=last xs, itemName=intercalate "." xs,
     itemURL="",

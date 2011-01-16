@@ -29,7 +29,7 @@ keywordPrefix =
     ]
 
 
-keywordFormat x = concat ["" : docs ++ ["@url #" ++ concatMap g n, "@keyword " ++ noUnderscore n] | n <- name]
+keywordFormat x = concat ["" : docs ++ ["@url #" ++ concatMap g n, "@entry keyword " ++ noUnderscore n] | n <- name]
     where
         noUnderscore "_" = "_"
         noUnderscore xs = map (\x -> if x == '_' then ' ' else x) xs

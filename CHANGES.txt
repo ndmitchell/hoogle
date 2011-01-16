@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Rework packages, entries and keywords
     Make all database files lowercase
     Various javascript/ajax enhancements
 4.1.4
