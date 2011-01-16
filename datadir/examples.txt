@@ -53,3 +53,8 @@ everywhere :: (forall a. Data a => a -> a) -> (forall a. Data a => a -> a)
 -- #320, make sure it finds system
 system
 System.Cmd system :: String -> IO ExitCode
+
+-- #187, LT not found
+LT +base
+LT :: Ordering
+

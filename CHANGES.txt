@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #187, ensure LT is found
     Use the Hoogle tarball direct from Hackage
     Rework packages, entries and keywords
     #87, make all database files lowercase
