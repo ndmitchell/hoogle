@@ -58,3 +58,6 @@ System.Cmd system :: String -> IO ExitCode
 LT +base -n1
 LT :: Ordering
 
+-- #327, utf8 not found
+utf8 -n1
+utf8
