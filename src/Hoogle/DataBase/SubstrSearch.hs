@@ -13,6 +13,7 @@ import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Binary as Bin
 import qualified Data.Binary.Get as Bin
 import qualified Data.Binary.Put as Bin
+import qualified Data.Set as Set
 import General.Base
 import Hoogle.Type.All
 import Hoogle.Score.All
@@ -61,7 +62,7 @@ data S a = S
     }
 
 
-searchSubstrSearch :: Eq a => SubstrSearch a -> String -> [(a, EntryView, Score)]
+searchSubstrSearch :: SubstrSearch a -> String -> [(a, EntryView, Score)]
 searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
     where
         view = FocusOn y
@@ -79,8 +80,20 @@ searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
         addMatch t s = s{sPrefix=(inds x $ sCount s,view,textScore t):sPrefix s}
 
 
+data S2 = S2
+    {_s2Focus :: !BS.ByteString -- where we are in the string
+    ,s2Result :: Set.Set BS.ByteString
+    }
+
 completionsSubstrSearch :: SubstrSearch a -> String -> [String]
-completionsSubstrSearch _ _ = []
+completionsSubstrSearch x y = map (\x -> y ++ drop ny (BSC.unpack x)) $ take 10 $ Set.toAscList $
+                              s2Result $ BS.foldl f (S2 (text x) Set.empty) $ lens x
+    where
+        ny = length y
+        ly = BSC.pack $ map toLower y
+        f (S2 foc res) ii = S2 (BS.unsafeDrop i foc) (if ly `BS.isPrefixOf` x then Set.insert x res else res)
+            where x = BS.unsafeTake i foc
+                  i = fromIntegral ii
 
 
 instance Show a => Show (SubstrSearch a) where
