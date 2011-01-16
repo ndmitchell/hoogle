@@ -38,7 +38,7 @@ data CmdLine
     | Rank {srcfile :: FilePath}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
-    | Data {datadir :: FilePath, threads :: Int, haddock :: Bool, redownload :: Bool, actions :: [String], local :: [String]}
+    | Data {datadir :: FilePath, threads :: Int, redownload :: Bool, actions :: [String], local :: [String]}
       deriving (Data,Typeable,Show)
 
 emptyParseError = ParseError 0 0 "" $ Str ""
@@ -96,7 +96,6 @@ convert = Convert
 
 dataa = Data
     {datadir = def &= typDir &= help "Database directory"
-    ,haddock = def &= help "Get haddock documentation directly from Hackage"
     ,redownload = def &= help "Always redownload files from the web"
     ,threads = def &= typ "INT" &= name "j" &= help "Number of threads to use"
     ,actions = def &= args &= typ "RULE"

@@ -25,7 +25,7 @@ makePlatform make = do
 
 makeAll :: ([Name] -> IO ()) -> IO ()
 makeAll make = do
-    xs <- listing haddocks
+    xs <- listing inputs
     make xs
 
 
@@ -45,28 +45,23 @@ makePackage = do
 
 makeDefault :: ([Name] -> IO ()) -> [FilePath] -> Name -> IO ()
 makeDefault make local name = do
+    let base = name == "base"
     b1 <- doesDirectoryExist $ cabals </> name
-    b2 <- doesDirectoryExist $ haddocks </> name
-    if not b1 || not b2 then
+    b2 <- doesDirectoryExist $ inputs </> name
+    if not base && (not b1 || not b2) then
         putWarning $ "Warning: " ++ name ++ " couldn't find both Cabal and Haddock inputs"
      else do
         vc <- version cabals name
-        vh <- version haddocks name
+        vh <- if base then return vc else version inputs name
         when (vc /= vh) $ putStrLn $ "Warning: Version mismatch for " ++ name ++ " (cabal=" ++ vc ++ ", haddock=" ++ vh ++ ")"
-        let had = haddocks </> name </> vh </> name <.> "txt"
+        let had = if base then inputBase else inputs </> name </> vh </> "doc" </> "html" </> name <.> "txt"
             cab = cabals </> name </> vc </> name <.> "cabal"
-        h <- openFile had ReadMode
-        sz <- hFileSize h
-        hClose h
-        if sz == 0 then
-            putWarning $ "Warning: " ++ name ++ " has no haddock output"
-         else do
-            had <- readFileUtf8' had
-            cab <- readCabal cab
-            loc <- findLocal local name
-            convertSrc make name $ unlines $
-                ["@depends " ++ a | a <- cabalDepends cab \\ (name:avoid)] ++
-                (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
+        had <- readFileUtf8' had
+        cab <- readCabal cab
+        loc <- findLocal local name
+        convertSrc make name $ unlines $
+            ["@depends " ++ a | a <- cabalDepends cab \\ (name:avoid)] ++
+            (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
 
 
 -- try and find a local filepath

@@ -12,9 +12,9 @@ download opt = do
     createDirectoryIfMissing True "download"
     wget opt keywords "http://haskell.org/haskellwiki/Keywords"
     wget opt platform "http://code.haskell.org/haskell-platform/haskell-platform.cabal"
+    wget opt inputBase "http://haskell.org/hoogle/base.txt"
     downloadTarball opt cabals "http://hackage.haskell.org/packages/archive/00-index.tar.gz"
-    if haddock opt then downloadHaddocks opt
-                   else downloadTarball opt haddocks "http://haskell.org/hoogle/hackage-haddock.tar.gz"
+    downloadTarball opt inputs "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz"
 
 
 wgetMay :: CmdLine -> FilePath -> URL -> IO Bool
@@ -42,19 +42,3 @@ downloadTarball opt out url = do
         withDirectory out $
             system_ $ "tar -xzf .." </> takeFileName out <.> "tar.gz"
         writeFile (out <.> "txt") ""
-
-
-downloadHaddocks :: CmdLine -> IO ()
-downloadHaddocks opt = do
-    b <- doesFileExist $ haddocks <.> "txt"
-    unless b $ do
-        xs <- listing cabals
-        forM_ xs $ \name -> do
-            ver <- version cabals name
-            let out = haddocks </> name </> ver </> name <.> "txt"
-                url = "http://hackage.haskell.org/packages/archive/" ++ name ++ "/" ++ ver ++ "/doc/html/" ++ name ++ ".txt"
-            createDirectoryIfMissing True $ takeDirectory out
-            b <- wgetMay opt out url
-            unless b $ writeFile out ""
-        withDirectory haddocks $ system_ "tar -czf../hackage-haddock.tar.gz *"
-        writeFile (haddocks <.> "txt") ""
