@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Various javascript/ajax enhancements
 4.1.4
     Running data on Posix sets all files to global read/execute
     Relax haskell-src-exts to allow 1.10.1
