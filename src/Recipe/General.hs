@@ -1,11 +1,17 @@
 
-module Recipe.General(convert, combine) where
+module Recipe.General(convertSrc, convert, combine) where
 
 import Recipe.Type
 import Hoogle
 import General.Base
 import General.System
 import System.Console.CmdArgs.Verbosity
+
+
+convertSrc :: ([Name] -> IO ()) -> Name -> String -> IO ()
+convertSrc make x src = do
+    writeFileUtf8 (x <.> "txt") src
+    convert make x
 
 
 -- convert a single database

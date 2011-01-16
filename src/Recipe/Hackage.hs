@@ -64,10 +64,9 @@ makeDefault make local name = do
             had <- readFileUtf8' had
             cab <- readCabal cab
             loc <- findLocal local name
-            writeFileUtf8 (name <.> "txt") $ unlines $
+            convertSrc make name $ unlines $
                 ["@depends " ++ a | a <- cabalDepends cab \\ (name:avoid)] ++
                 (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
-            convert make name
 
 
 -- try and find a local filepath
