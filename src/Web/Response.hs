@@ -5,13 +5,15 @@ module Web.Response(response) where
 import CmdLine.All
 import Hoogle
 import General.Base
+import General.System
 import General.Util
 import General.Web
 import Web.Page
 import Data.Generics.Uniplate
 
 import Data.Time.Clock
-import Data.Time.Calendar
+import Data.Time.Format
+import System.Locale
 import Network.HTTP
 
 
@@ -43,11 +45,13 @@ response resources q = do
 logMessage :: CmdLine -> IO ()
 logMessage q = do
     time <- getCurrentTime
-    cgi <- fmap (fromMaybe []) cgiArgs
+    args <- fmap (fromMaybe [("hoogle",queryText q)]) cgiArgs
+    ip <- fmap (fromMaybe "0.0.0.0") $ getEnvVar "REMOTE_ADDR"
+    let shw x = if all isAlphaNum x then x else show x
     appendFile logFile $ (++ "\n") $ unwords $
-        [showGregorian (utctDay time)
-        ,show (queryText q)] ++
-        ["?" ++ a ++ "=" ++ c ++ b ++ c | (a,b) <- cgi, let c = ['\"' | any isSpace b]]
+        [formatTime defaultTimeLocale "%FT%T" time
+        ,ip] ++
+        [shw a ++ "=" ++ shw b | (a,b) <- args]
 
 
 runSuggest :: CmdLine -> IO String
