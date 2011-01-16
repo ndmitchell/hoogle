@@ -20,7 +20,7 @@ createDataBase deps (facts,xs) = DataBase items
     where
         items = createItems xs
         ys = entriesItems items
-        ns = createSubstrSearch [(entryKey $ fromLink y, y) | y <- ys]
+        ns = createSubstrSearch [(k, y) | y <- ys, let k = entryKey $ fromLink y, k /= ""]
         as = createAliases (map aliases deps) facts
         is = createInstances (map instances deps) facts
         tys = [(sig, x) | x <- ys, Just sig <- [entryType $ fromLink x]]
