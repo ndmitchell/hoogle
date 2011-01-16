@@ -2,26 +2,24 @@ This document lists the steps I go through to deploy/update Hoogle on the server
 The intention is to turn this list into a script in the future.
 
 * Delete the contents of datadir/databases
-* Run ghci
-* :opt data --haddock
-* Copy a suitable base.txt into datadir/databases/download/hackage-haddock/base/4.3.0.0
-    [A suitable base should be in Unix format, and lines 8595 and 8188 should not have higher ASCII codes]
-* :opt data default all
-* :testfull
-* cd datadir/databases/download/hackage-haddock && tar -czf../hackage-haddock.tar.gz *
-* Upload datadir/databases/download/hackage-haddock.tar.gz to lambda.haskell.org:/srv/web/haskell.org/hoogle
+* Run ghci locally
+  * :opt data default all
+  * :testfull
+* darcs push
 * Shell into lambda.haskell.org:/home/ndm/hoogle
-* darcs pull
-* cabal clean
-* cabal configure --datadir=/srv/web/haskell.org/hoogle/ --datasubdir=datadir -O2
-* cabal build
+  * darcs pull
+  * cabal clean
+  * cabal configure --datadir=/srv/web/haskell.org/hoogle/ --datasubdir=datadir -O2
+  * cabal build
 
 The following steps must be done as quickly as possible:
 
-* Upload datadir/resources to lambda.haskell.org:/srv/web/haskell.org/hoogle/datadir/resources
-* cp dist/build/hoogle/hoogle /srv/web/haskell.org/hoogle/index.cgi
-* Upload datadir/databases/default.hoo to lambda.haskell.org:/srv/web/haskell.org/hoogle/datadir/databases
+* Upload datadir/resources to /srv/web/haskell.org/hoogle/datadir/resources
+* Delete everything in /srv/web/haskell.org/hoogle/datadir/databases
+* In the lambda shell
+  * cp dist/build/hoogle/hoogle /srv/web/haskell.org/hoogle/index.cgi
+* Upload datadir/databases/default.hoo to /srv/web/haskell.org/hoogle/datadir/databases
 * Test http://haskell.org/hoogle
 * Test the 4 example searches on that page
 
-* Upload datadir/databases/* to lambda.haskell.org:/srv/web/haskell.org/hoogle/datadir/databases
+* Upload datadir/databases/* to /srv/web/haskell.org/hoogle/datadir/databases
