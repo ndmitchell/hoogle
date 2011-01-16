@@ -91,6 +91,10 @@ form {
     background-position: center right;
 }
 
+#left .pad {
+    padding-left: 16px;
+}
+
 #left .minus {
     color: #770E00;
     padding-left: 16px;

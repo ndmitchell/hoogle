@@ -100,15 +100,18 @@ runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
         (pre,res2) = splitAt start2 res
         (now,post) = splitAt count2 res2
 
-        also = "<ul><li><b>Packages</b></li>" ++ concatMap f (take 5 pkgs) ++ "</ul>"
+        also = "<ul><li><b>Packages</b></li>" ++ concatMap f (nub $ [x | MinusPackage x <- scope q] ++ take 5 pkgs) ++ "</ul>"
         f x | PlusPackage lx `elem` scope q =
                 let q2 = showTagText $ renderQuery $ q{scope = filter (/= PlusPackage lx) $ scope q} in
                 "<li><a class='minus' href='" ++ searchLink q2 ++ "'>" ++ x ++ "</a></li>"
+            | MinusPackage lx `elem` scope q =
+                let q2 = showTagText $ renderQuery $ q{scope = filter (/= MinusPackage lx) $ scope q} in
+                "<li><a class='plus pad' href='" ++ searchLink q2 ++ "'>" ++ x ++ "</a></li>"
             | otherwise =
                 "<li><a class='minus' href='" ++ searchLink (qt ++ " -" ++ lx) ++ "'></a>" ++
                 "<a class='plus' href='" ++ searchLink (qt ++ " +" ++ lx) ++ "'>" ++ x ++ "</a></li>"
             where lx = map toLower x
-        pkgs = nub [x | (_, (_,x):_)  <- concatMap (locations . snd) $ take (start2+count2) src]
+        pkgs = [x | (_, (_,x):_)  <- concatMap (locations . snd) $ take (start2+count2) src]
 
         urlMore = searchLink qt ++ "&start=" ++ show (start2+count2+1) ++ "#more"
         qstr = showTagHTML (renderQuery q)
