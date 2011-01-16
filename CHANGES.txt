@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.1.5
     #399, rehabilitate mode=suggest
     Stop mode=suggest failing entirely, now cleanly gives no answers
     Combine --web and --webmode
