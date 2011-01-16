@@ -3,7 +3,7 @@ Changelog for Hoogle
     #327, ensure utf8 is found
     #187, ensure LT is found
     Use the Hoogle tarball direct from Hackage
-    Rework packages, entries and keywords
+    #54, rework packages, entries and keywords
     #87, make all database files lowercase
     Various javascript/ajax enhancements
 4.1.4
