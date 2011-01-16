@@ -6,7 +6,8 @@ The intention is to turn this list into a script in the future.
   * :opt data default all
   * :testfull
 * darcs push
-* Shell into lambda.haskell.org:/home/ndm/hoogle
+* Shell into lambda.haskell.org
+  * cd /home/ndm/hoogle
   * darcs pull
   * cabal clean
   * cabal configure --datadir=/srv/web/haskell.org/hoogle/ --datasubdir=datadir -O2
