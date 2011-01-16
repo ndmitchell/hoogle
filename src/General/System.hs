@@ -69,3 +69,7 @@ system_ x = do
 
 exitMessage :: [String] -> IO a
 exitMessage msg = putStr (unlines msg) >> exitFailure
+
+
+getEnvVar :: String -> IO (Maybe String)
+getEnvVar x = catch (fmap Just $ getEnv x) (const $ return Nothing)

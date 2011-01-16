@@ -92,14 +92,10 @@ a ++% b = a ++ escapeURL b
 -- However, it does always set REQUEST_URI.
 cgiVariable :: IO (Maybe String)
 cgiVariable = do
-    str <- envVariable "QUERY_STRING"
+    str <- getEnvVar "QUERY_STRING"
     if isJust str
         then return str
-        else fmap (fmap $ const "") $ envVariable "REQUEST_URI"
-
-
-envVariable :: String -> IO (Maybe String)
-envVariable x = catch (fmap Just $ getEnv x) (const $ return Nothing)
+        else fmap (fmap $ const "") $ getEnvVar "REQUEST_URI"
 
 
 cgiArgs :: IO (Maybe Args)
