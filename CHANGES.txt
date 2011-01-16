@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Complete the command line flag help
     #327, ensure utf8 is found
     #187, ensure LT is found
     Use the Hoogle tarball direct from Hackage
