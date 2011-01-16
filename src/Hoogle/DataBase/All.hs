@@ -28,6 +28,7 @@ createDataBase deps (facts,xs) = DataBase items
 
 
 combineDataBase :: [DataBase] -> DataBase
+combineDataBase [db] = db
 combineDataBase dbs = DataBase items_
         ns (createTypeSearch as is tys)
         ss as is
