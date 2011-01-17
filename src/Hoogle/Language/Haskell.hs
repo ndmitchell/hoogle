@@ -35,12 +35,11 @@ parseInputHaskell = join . f [] "" . zip [1..] . lines
 parseLine :: Int -> String -> Either ParseError ([Fact],[TextItem])
 parseLine line x | "(##)" `isPrefixOf` x = Left $ parseErrorWith line 1 "Skipping due to HSE bug #206" "(##)"
 parseLine line ('@':str) = case a of
-        "entry" -> Right $ itemEntry $ dropWhile isSpace b
-        "package" -> Right $ itemPackage $ dropWhile isSpace b
+        "entry" | b <- words b, b /= [] -> Right $ itemEntry b
+        "package" | [b] <- words b, b /= "" -> Right $ itemPackage b
         _ -> Left $ parseErrorWith line 2 ("Unknown attribute: " ++ a) $ '@':str
     where (a,b) = break isSpace str
-parseLine line x | a == "module" = Right $ itemModule $ split '.' $ dropWhile isSpace b
-    where (a,b) = break isSpace x
+parseLine line x | ["module",a] <- words x = Right $ itemModule $ split '.' a
 parseLine line x
     | not continue = res
     | otherwise = fromMaybe res $ fmap Right $ parseTuple x `mappend` parseCtor x
@@ -80,10 +79,9 @@ itemPackage x = fact [] $ textItem{itemLevel=0, itemKey="", itemName=x,
     itemURL="http://hackage.haskell.org/package/" ++ x ++ "/",
     itemDisp=Tags [emph "package",space,bold x]}
 
-itemEntry x = fact [] $ textItem{itemName=ab, itemKey=ab,
-    itemDisp= if null b then bold a else Tags [emph a,space,bold b]}
-    where (a,b) = second (dropWhile isSpace) $ break isSpace x
-          ab = if null b then a else b
+itemEntry (x:xs) = fact [] $ textItem{itemName=y, itemKey=y,
+    itemDisp= if null xs then bold x else Tags [emph x,space,bold y]}
+    where y = if null xs then x else unwords xs
 
 itemModule xs = fact [] $ textItem{itemLevel=1, itemKey=last xs, itemName=intercalate "." xs,
     itemURL="",

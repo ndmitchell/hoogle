@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Ignore some whitespace in the input file
     Work around a cabal bug, include jquery.cookie.js
     Add ?version=xxx to .css and .js, to make it auto refresh
 4.1.5
