@@ -32,7 +32,7 @@ even
 tan +base -n1
 tan
 
-log +base -n1
++base log -n1
 log
 
 seq +base -n1
