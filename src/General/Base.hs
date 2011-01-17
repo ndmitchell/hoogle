@@ -101,3 +101,8 @@ chop :: ([a] -> (b, [a])) -> [a] -> [b]
 chop _ [] = []
 chop f as = b : chop f as'
     where (b, as') = f as
+
+
+fromList :: a -> [a] -> a
+fromList x [] = x
+fromList x (y:ys) = y
