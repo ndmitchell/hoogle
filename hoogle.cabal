@@ -26,6 +26,7 @@ data-files:
     resources/*.png
     -- surely a Cabal bug that this isn't picked up by *.js
     resources/jquery-1.4.2.js
+    resources/jquery.cookie.js
 
 library
     hs-source-dirs:     src
