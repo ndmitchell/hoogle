@@ -8,7 +8,9 @@ module Console.Log(logFiles) where
 
 import General.Base
 import qualified Data.ByteString.Lazy.Char8 as BS
+import qualified Data.Map as Map
 
+type BString = BS.ByteString
 
 logFiles :: [FilePath] -> IO ()
 logFiles xs = do
@@ -21,22 +23,32 @@ logFiles xs = do
 data Stats = Stats
     {hits :: !Int
     ,searches :: !Int
+    ,common :: !(Map.Map BString Int)
     }
 
 instance Show Stats where
     show Stats{..} = unlines
         ["Hits:      " ++ show hits
         ,"Searches:  " ++ show searches
+        ,"Unique:    " ++ show (Map.size common)
+        ,"Top:       " ++ fromList "" (map (BS.unpack . fst) top)
         ]
+        where
+            top = take 20 $ sortBy (comparing $ negate . snd) $ Map.toList common
+
 
 instance Monoid Stats where
-    mempty = Stats 0 0
-    mappend (Stats x1 x2) (Stats y1 y2) = Stats (x1+y1) (x2+y2)
+    mempty = Stats 0 0 Map.empty
+    mappend (Stats x1 x2 x3) (Stats y1 y2 y3) = Stats (x1+y1) (x2+y2) (Map.unionWith (+) x3 y3)
 
 stats :: [Entry] -> Stats
 stats = foldl' f mempty
     where
-        f s@Stats{..} Entry{..} = s{hits = 1 + hits, searches = (if null search then 0 else 1) + searches}
+        f s@Stats{..} Entry{..} = s
+            {hits = 1 + hits
+            ,searches = (if BS.null search then 0 else 1) + searches
+            ,common = if BS.null search then common else Map.insertWith' (+) search 1 common
+            }
 
 
 ---------------------------------------------------------------------
@@ -50,14 +62,16 @@ groupEntries = id
 -- READ ENTRIES
 
 data Entry = Entry
-    {search :: String -- the search performed, "" for blank
-    ,extra :: [(String,String)] -- extra parameters
+    {search :: BString -- the search performed, "" for blank
+    ,extra :: [(BString,BString)] -- extra parameters
     ,date :: Maybe (Int,Int,Int) -- date the search was performed
     ,time :: Maybe (Int,Int,Int) -- time the search was performed
     ,unique :: Maybe String -- maybe a uniquely identifying string
+    ,instant :: Maybe Int -- number of times you hit with instant for this query
+    ,suggest :: Maybe Int -- number of times you hit with suggest for this query
     } deriving Show
 
-entry = Entry "" [] Nothing Nothing Nothing
+entry = Entry BS.empty [] Nothing Nothing Nothing Nothing Nothing
 
 
 readEntries :: FilePath -> IO [Entry]
@@ -66,14 +80,16 @@ readEntries x = do
     return $ mapMaybe readEntry $ BS.lines src
 
 
-readEntry :: BS.ByteString -> Maybe Entry
+qstr = map BS.pack ["","q","hoogle"]
+
+readEntry :: BString -> Maybe Entry
 
 -- log format v1
 readEntry x
     | Just ('[',x) <- BS.uncons x
     = do y <- readList x
-         let (a,b) = partition (flip elem ["","q"] . fst) y
-         return entry{search=fromList "" $ map snd a, extra = b}
+         let (a,b) = partition (flip elem qstr . fst) y
+         return entry{search=fromList BS.empty $ map snd a, extra = b}
     where
         readList x = do
             ('(',x) <- BS.uncons x
@@ -97,11 +113,11 @@ readEntry o@x
          (s,x) <- readShowString x
          args <- readArgs $ BS.dropWhile isSpace x
          return entry{search = s, date = Just d,
-             extra = filter (flip notElem ["","q","hoogle"] . fst) args}
+                extra = filter (flip notElem qstr . fst) args}
     where
         readArgs x
             | Just ('?',x) <- BS.uncons x = do
-              (a,x) <- return $ first BS.unpack $ BS.break (== '=') x
+              (a,x) <- return $ BS.break (== '=') x
               ('=',x) <- BS.uncons x
               (b,x) <- readQuoteString x
               x <- return $ BS.dropWhile isSpace x
@@ -117,9 +133,9 @@ readEntry x
          (' ',x) <- BS.uncons x
          (u,x) <- return $ first BS.unpack $ BS.break (== ' ') x
          args <- readArgs $ BS.dropWhile isSpace x
-         let (a,b) = partition (flip elem ["","q","hoogle"] . fst) args
+         let (a,b) = partition (flip elem qstr . fst) args
          return entry{date = Just d, time = Just t, extra = b,
-            search=fromList "" $ map snd a,
+            search=fromList BS.empty $ map snd a,
             unique = if u == "0" then Nothing else Just u}
     where
         readArgs x
@@ -137,7 +153,7 @@ readEntry _ = Nothing
 ---------------------------------------------------------------------
 -- READ UTILITIES
 
-readDate :: BS.ByteString -> Maybe ((Int,Int,Int), BS.ByteString)
+readDate :: BString -> Maybe ((Int,Int,Int), BString)
 readDate x = do
     (d1,x) <- BS.readInt x
     ('-',x) <- BS.uncons x
@@ -146,7 +162,7 @@ readDate x = do
     (d3,x) <- BS.readInt x
     return ((d1,d2,d2),x)
 
-readDateTime :: BS.ByteString -> Maybe (((Int,Int,Int),(Int,Int,Int)), BS.ByteString)
+readDateTime :: BString -> Maybe (((Int,Int,Int),(Int,Int,Int)), BString)
 readDateTime x = do
     (d,x) <- readDate x
     ('T',x) <- BS.uncons x
@@ -159,31 +175,31 @@ readDateTime x = do
 
 
 -- | String, as produced by show
-readShowString :: BS.ByteString -> Maybe (String, BS.ByteString)
+readShowString :: BString -> Maybe (BString, BString)
 readShowString o@x = do
     ('\"',x) <- BS.uncons x
     (a,x) <- return $ BS.break (== '\"') x
     if '\\' `BS.elem` a then do
         [(a,x)] <- return $ reads $ BS.unpack o
-        return (a, BS.pack x)
+        return (BS.pack a, BS.pack x)
      else do
         ('\"',x) <- BS.uncons x
-        return (BS.unpack a, x)
+        return (a, x)
 
 
 -- | Either a string produced by show, or a isAlphaNum terminated chunk
-readShortString :: BS.ByteString -> Maybe (String, BS.ByteString)
+readShortString :: BString -> Maybe (BString, BString)
 readShortString x | Just ('\"',_) <- BS.uncons x = readShowString x
-                  | otherwise = Just $ first BS.unpack $ BS.span isAlphaNum x
+                  | otherwise = Just $ BS.span isAlphaNum x
 
 
 -- | Either a space terminated chunk, or a quote terminated chunk
-readQuoteString :: BS.ByteString -> Maybe (String, BS.ByteString)
+readQuoteString :: BString -> Maybe (BString, BString)
 readQuoteString x | Just ('\"',x) <- BS.uncons x = do
     (a,x) <- return $ BS.break (== '\"') x
     ('\"',x) <- BS.uncons x
-    return (BS.unpack a, BS.dropWhile isSpace x)
+    return (a, BS.dropWhile isSpace x)
 readQuoteString x = do
     (a,x) <- return $ BS.break (== ' ') x
-    return (BS.unpack a, BS.dropWhile isSpace x)
+    return (a, BS.dropWhile isSpace x)
 
