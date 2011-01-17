@@ -3,6 +3,7 @@ module Console.All(action) where
 
 import CmdLine.All
 import Recipe.All
+import Console.Log
 import Console.Search
 import Console.Test
 import Console.Rank
@@ -32,6 +33,8 @@ action (Test files _) = do
 action (Rank file) = rank file
 
 action x@Data{} = recipes x
+
+action (Log files) = logFiles files
 
 action (Convert from to) = do
     to <- return $ if null to then replaceExtension from "hoo" else to

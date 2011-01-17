@@ -46,7 +46,7 @@ logMessage :: CmdLine -> IO ()
 logMessage q = do
     time <- getCurrentTime
     args <- fmap (fromMaybe [("hoogle",queryText q)]) cgiArgs
-    ip <- fmap (fromMaybe "0.0.0.0") $ getEnvVar "REMOTE_ADDR"
+    ip <- fmap (fromMaybe "0") $ getEnvVar "REMOTE_ADDR"
     let shw x = if all isAlphaNum x then x else show x
     appendFile logFile $ (++ "\n") $ unwords $
         [formatTime defaultTimeLocale "%FT%T" time

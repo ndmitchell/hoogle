@@ -114,6 +114,7 @@ executable hoogle
         CmdLine.Load
         CmdLine.Type
         Console.All
+        Console.Log
         Console.Rank
         Console.Search
         Console.Test

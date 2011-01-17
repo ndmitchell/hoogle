@@ -35,6 +35,7 @@ data CmdLine
     | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, nostdin :: Bool}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
+    | Log {logfiles :: [FilePath]}
     | Test {testFiles :: [String], example :: Bool}
     | Dump {database :: String, section :: [String]}
     | Rank {srcfile :: FilePath}
@@ -43,7 +44,7 @@ data CmdLine
 emptyParseError = ParseError 0 0 "" $ Str ""
 blankSearch = Search False False False [] Nothing Nothing Nothing 1 [] (Left emptyParseError) ""
 
-cmdLineMode = cmdArgsMode $ modes [search_ &= auto,dataa,server,combine,convert,test,dump,rank]
+cmdLineMode = cmdArgsMode $ modes [search_ &= auto,data_,server,combine,convert,test,dump,rank,log_]
     &= verbosity &= program "hoogle"
     &= summary ("Hoogle v" ++ showVersion version ++ ", (C) Neil Mitchell 2004-2011\nhttp://haskell.org/hoogle")
 
@@ -92,7 +93,7 @@ convert = Convert
     ,outfile = def &= argPos 1 &= typ "DATABASE" &= opt ""
     } &= help "Convert an input file to a database"
 
-dataa = Data
+data_ = Data
     {datadir = def &= typDir &= help "Database directory"
     ,redownload = def &= help "Redownload all files from the web"
     ,threads = def &= typ "INT" &= name "j" &= help "Number of threads to use" &= ignore -- ignore until it works
@@ -105,3 +106,7 @@ dataa = Data
                  ,"  data default -- equialent to no arguments"
                  ,"  data all"
                  ]
+
+log_ = Log
+    {logfiles = def &= args &= typ "LOGFILE"
+    } &= help "Analyse log files"
