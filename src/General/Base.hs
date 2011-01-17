@@ -31,6 +31,8 @@ snd3 (a,b,c) = b
 thd3 (a,b,c) = c
 
 
+swap (a,b) = (b,a)
+
 fromLeft (Left x) = x
 fromRight (Right x) = x
 
