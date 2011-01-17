@@ -14,7 +14,7 @@ makeKeyword = do
 
 translate :: String -> String
 translate src = unlines $ keywordPrefix ++ items
-    where items = concatMap keywordFormat $ partitions (~== "<a name>") $
+    where items = concatMap keywordFormat $ drop 1 $ partitions (~== "<a name>") $
                   takeWhile (~/= "<div class=printfooter>") $ parseTags src
 
 
