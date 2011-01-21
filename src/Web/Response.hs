@@ -15,6 +15,7 @@ import Data.Time.Clock
 import Data.Time.Format
 import System.Locale
 import Network.HTTP
+import System.IO.Unsafe(unsafeInterleaveIO)
 
 
 logFile = "log.txt"
@@ -23,23 +24,21 @@ logFile = "log.txt"
 response :: FilePath -> CmdLine -> IO (Response String)
 response resources q = do
     logMessage q
-    let response x = responseOk [Header HdrContentType x]
+    let response x ys = responseOk $ [Header HdrContentType x] ++ ys
 
-    let res ajax = do
-            dbs <- if isRight $ queryParsed q
-                   then fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
-                   else return mempty
-            return $ runQuery ajax dbs q
+    dbs <- unsafeInterleaveIO $ case queryParsed q of
+        Left _ -> return mempty
+        Right x -> fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
 
     case web q of
-        Just "ajax" -> do
-            res <- res True
-            return $ response "text/html" $ unlines res
-        Just "web" -> do
-            res <- res False
-            return $ response "text/html" $ unlines $ header resources (escapeHTML $ queryText q) ++ res ++ footer
-        Just "suggest" -> fmap (response "application/json") $ runSuggest q
-        Just e -> return $ response "text/html" $ "Unknown webmode: " ++ e
+        Just "suggest" -> fmap (response "application/json" []) $ runSuggest q
+        Just "embed" -> return $ response "text/html" [hdr] $ unlines $ runEmbed dbs q
+            where hdr = Header (HdrCustom "Access-Control-Allow-Origin") "*"
+        Just "ajax" -> return $ response "text/html" [] $ unlines $ runQuery True dbs q
+        Just "web" -> return $ response "text/html" [] $ unlines $
+            header resources (escapeHTML $ queryText q) ++
+            runQuery False dbs q ++ footer
+        mode -> return $ response "text/html" [] $ "Unknown webmode: " ++ fromMaybe "none" mode
 
 
 logMessage :: CmdLine -> IO ()
@@ -60,6 +59,22 @@ runSuggest cq@Search{queryText=q} = do
     let res = queryCompletions db q
     return $ "[" ++ show q ++ "," ++ show res ++ "]"
 runSuggest _ = return ""
+
+
+runEmbed :: Database -> CmdLine -> [String]
+runEmbed dbs Search{queryParsed = Left err} = ["<i>Parse error: " ++& errorMessage err ++ "</i>"]
+runEmbed dbs Search{queryParsed = Right q}
+    | null now = ["<i>No results found</i>"]
+    | otherwise =
+        ["<a href='" ++ url ++ "'>" ++ showTagHTML (transform f $ self $ snd x) ++ "</a>"
+        | x <- now, let url = fromList "" $ map fst $ locations $ snd x] ++
+        ["<i>Press enter for more results...</i>" | not $ null next]
+    where
+        (now,next) = splitAt 10 $ search dbs q
+
+        f (TagEmph x) = TagBold x
+        f (TagBold x) = x
+        f x = x
 
 
 runQuery :: Bool -> Database -> CmdLine -> [String]

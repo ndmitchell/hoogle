@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Add mode=embed support
     Add some log analysis features
     Ignore some whitespace in the input file
     Work around a cabal bug, include jquery.cookie.js
