@@ -11,7 +11,7 @@ module Hoogle(
     -- * Database
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
-    Query, H.Scope, parseQuery, H.renderQuery,
+    Query, parseQuery, H.renderQuery,
     queryDatabases, queryPackages, querySetPackage,
     -- * Score
     Score, H.scoring,
