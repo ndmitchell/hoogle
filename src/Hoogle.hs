@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 
 -- | The Hoogle API. To perform a search you call 'search' with a 'Database' (obtained by 'loadDatabase') and a
 --   'Query' (obtained by 'parseQuery').
@@ -7,7 +6,7 @@ module Hoogle(
     TagStr(..), showTagText, showTagANSI, showTagHTML, showTagHTMLWith,
     H.ParseError(..),
     URL,
-    Language(..),
+    H.Language(..),
     -- * Database
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
@@ -20,7 +19,6 @@ module Hoogle(
     ) where
 
 import Data.Binary.Defer.Index
-import Data.Data
 import General.Base
 import General.System
 
@@ -35,10 +33,6 @@ import qualified Hoogle.Language.Haskell as H
 import Hoogle.Query.All(Query)
 import Hoogle.Score.All(Score)
 
-
--- | The languages supported by Hoogle.
-data Language = Haskell -- ^ The Haskell language (<http://haskell.org/>), along with many GHC specific extensions.
-    deriving (Enum,Read,Show,Eq,Ord,Bounded,Data,Typeable)
 
 -- * Database
 
@@ -80,7 +74,7 @@ loadDatabase = fmap fromDataBase . H.loadDataBase
 -- | Create a database from an input definition. Source files for Hoogle databases are usually
 --   stored in UTF8 format, and should be read using 'hSetEncoding' and 'utf8'.
 createDatabase
-    :: Language -- ^ Which format the input definition is in.
+    :: H.Language -- ^ Which format the input definition is in.
     -> [Database] -- ^ A list of databases which contain definitions this input definition relies upon (e.g. types, aliases, instances).
     -> String -- ^ The input definitions, usually with one definition per line, in a format specified by the 'Language'.
     -> ([H.ParseError], Database) -- ^ A pair containing any parse errors present in the input definition, and the database ignoring any parse errors.
@@ -99,7 +93,7 @@ showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""
 -- Hoogle.Query
 
 -- | Parse a query for a given language, returning either a parse error, or a query.
-parseQuery :: Language -> String -> Either H.ParseError Query
+parseQuery :: H.Language -> String -> Either H.ParseError Query
 parseQuery _ = H.parseQuery
 
 -- | Given a query, return the list of packages that should be searched. Each package will be

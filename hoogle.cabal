@@ -85,6 +85,7 @@ library
         Hoogle.DataBase.TypeSearch.All
         Hoogle.Type.Documentation
         Hoogle.Type.Item
+        Hoogle.Type.Language
         Hoogle.Type.TagStr
         Hoogle.Type.TypeSig
         Hoogle.Type.ParseError
