@@ -70,8 +70,12 @@ filterResults q = f mods correctModule . f pkgs correctPackage
         f [] act = id
         f xs act = filter (act xs . fromLink . resultEntry)
 
-        mods = filter (\x -> isPlusModule x || isMinusModule x) $ scope q
+        mods = filter isMod $ scope q
         pkgs = [x | MinusPackage x <- scope q]
+
+        isMod PlusModule{}  = True
+        isMod MinusModule{} = True
+        isMod _ = False
 
 
 -- pkgs is a non-empty list of MinusPackage values
@@ -85,7 +89,7 @@ correctModule :: [Scope] -> Entry -> Bool
 correctModule mods x = null myMods || any (maybe True (f base mods . split '.')) myMods
     where
         myMods = map (fmap (entryName . fromLink) . listToMaybe . drop 1 . snd) $ entryLocations x
-        base = isMinusModule $ head mods
+        base = case head mods of MinusModule{} -> True; _ -> False
 
         f z [] y = z
         f z (PlusModule  x:xs) y | doesMatch x y = f True  xs y

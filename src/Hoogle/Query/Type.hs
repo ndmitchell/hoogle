@@ -26,5 +26,26 @@ data Scope = PlusPackage  String
            | MinusModule [String]
            deriving (Eq, Show, Read, Data, Typeable)
 
-isPlusModule  (PlusModule  _) = True; isPlusModule  _ = False
-isMinusModule (MinusModule _) = True; isMinusModule _ = False
+
+-- | Given a query, return the list of packages that should be searched. Each package will be
+--   the name of a database, without any file path or extension included.
+queryDatabases :: Query -> [String]
+queryDatabases x = if null ps then ["default"] else ps
+    where ps = [p | PlusPackage p <- scope x]
+
+
+-- | Return those packages which are explicitly excluded (paired with 'False')
+--   or included (paired with 'True') in the query.
+queryPackages :: Query -> [(Bool, String)]
+queryPackages = concatMap f . scope
+    where f (MinusPackage x) = [(False,x)]
+          f (PlusPackage  x) = [(True ,x)]
+          f _ = []
+
+-- | Set the state of a package within a query. 'Nothing' means delete the package,
+--   'Just' 'True' for add it, and 'Just' 'False' for remove it.
+querySetPackage :: Maybe Bool -> String -> Query -> Query
+querySetPackage b x q = q{scope= filter f (scope q) ++ [if b then PlusPackage x else MinusPackage x | Just b <- [b]]}
+    where f (MinusPackage y) = x /= y
+          f (PlusPackage  y) = x /= y
+          f _ = True

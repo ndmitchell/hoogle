@@ -11,7 +11,7 @@ module Hoogle(
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
     Query, parseQuery, H.renderQuery,
-    queryDatabases, queryPackages, querySetPackage,
+    H.queryDatabases, H.queryPackages, H.querySetPackage,
     -- * Score
     Score, H.scoring,
     -- * Search
@@ -95,29 +95,6 @@ showDatabase x sects = concatMap (`H.showDataBase` toDataBase x) $ fromMaybe [""
 -- | Parse a query for a given language, returning either a parse error, or a query.
 parseQuery :: H.Language -> String -> Either H.ParseError Query
 parseQuery _ = H.parseQuery
-
--- | Given a query, return the list of packages that should be searched. Each package will be
---   the name of a database, without any file path or extension included.
-queryDatabases :: Query -> [String]
-queryDatabases x = if null ps then ["default"] else ps
-    where ps = [p | H.PlusPackage p <- H.scope x]
-
-
--- | Return those packages which are explicitly excluded (paired with 'False')
---   or included (paired with 'True') in the query.
-queryPackages :: Query -> [(Bool, String)]
-queryPackages = concatMap f . H.scope
-    where f (H.MinusPackage x) = [(False,x)]
-          f (H.PlusPackage  x) = [(True ,x)]
-          f _ = []
-
--- | Set the state of a package within a query. 'Nothing' means delete the package,
---   'Just' 'True' for add it, and 'Just' 'False' for remove it.
-querySetPackage :: Maybe Bool -> String -> Query -> Query
-querySetPackage b x q = q{H.scope= filter f (H.scope q) ++ [if b then H.PlusPackage x else H.MinusPackage x | Just b <- [b]]}
-    where f (H.MinusPackage y) = x /= y
-          f (H.PlusPackage  y) = x /= y
-          f _ = True
 
 
 -- Hoogle.Search
