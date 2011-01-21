@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Rename querySuggestions/queryCompletions by dropping the query
     Add mode=embed support
     Add some log analysis features
     Ignore some whitespace in the input file

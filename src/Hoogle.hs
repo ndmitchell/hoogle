@@ -12,11 +12,11 @@ module Hoogle(
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
     Query(..), H.Scope(..), parseQuery, H.renderQuery, H.isBlankQuery,
-    queryDatabases, querySuggestions, queryCompletions,
+    queryDatabases,
     -- * Score
     Score, H.scoring,
     -- * Search
-    Result(..), search
+    Result(..), search, suggestions, completions
     ) where
 
 import Data.Binary.Defer.Index
@@ -108,14 +108,6 @@ queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps
     where ps = [p | H.PlusPackage p <- H.scope x]
 
--- | Given a query and a database optionally give a list of what the user might have meant.
-querySuggestions :: Database -> Query -> Maybe TagStr
-querySuggestions (Database dbs) q = H.suggestQuery dbs q
-
--- | Given a query data a database return a list of the possible completions for the search.
-queryCompletions :: Database -> String -> [String]
-queryCompletions x = H.completions (toDataBase x)
-
 
 -- Hoogle.Search
 
@@ -140,3 +132,11 @@ toResult r@(H.Result entry view score) = (score, Result parents self docs)
 -- | Perform a search. The results are returned lazily.
 search :: Database -> Query -> [(Score,Result)]
 search (Database xs) q = map toResult $ H.search xs q
+
+-- | Given a query and a database optionally give a list of what the user might have meant.
+suggestions :: Database -> Query -> Maybe TagStr
+suggestions (Database dbs) q = H.suggestQuery dbs q
+
+-- | Given a query string and a database return a list of the possible completions for the search.
+completions :: Database -> String -> [String]
+completions x = H.completions (toDataBase x)

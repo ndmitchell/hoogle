@@ -56,7 +56,7 @@ logMessage q = do
 runSuggest :: CmdLine -> IO String
 runSuggest cq@Search{queryText=q} = do
     (_, db) <- loadQueryDatabases (databases cq) (Query [] Nothing [])
-    let res = queryCompletions db q
+    let res = completions db q
     return $ "[" ++ show q ++ "," ++ show res ++ "]"
 runSuggest _ = return ""
 
@@ -99,7 +99,7 @@ runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
         ["<div id='left'>" ++ also ++ "</div>" | not $ null pkgs] ++
-        ["<p>" ++ showTag sug ++ "</p>" | Just sug <- [querySuggestions dbs q]] ++
+        ["<p>" ++ showTag sug ++ "</p>" | Just sug <- [suggestions dbs q]] ++
         if null res then
             ["<p>No results found</p>"]
         else

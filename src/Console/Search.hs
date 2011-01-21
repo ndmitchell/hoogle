@@ -22,7 +22,7 @@ actionSearch flags q = do
                   ["Generate more databases with: hoogle data all" | length n < 100] ++
                   ["Found " ++ show (length n) ++ " databases, including: " ++ unwords (take 5 n) | not $ null n])
 
-    let sug = querySuggestions dbs q
+    let sug = suggestions dbs q
     when (isJust sug) $
         putStrLn $ showTag $ fromJust sug
     verbose <- isLoud
