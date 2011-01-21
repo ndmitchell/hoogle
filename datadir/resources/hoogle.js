@@ -1,4 +1,5 @@
 
+var client = false; // are we running as an embedded search box
 var instant = false; // should we search on key presses
 
 
@@ -10,39 +11,121 @@ var oldSearches = cache(100);
 var timeoutId;
 
 $(function(){
-    currentSearch = $("#hoogle").focus().keyup(searchBoxChange).val();
+    var txt = $("#hoogle");
+    client = !txt.hasClass("NotClient");
+    if (client)
+    {
+        txt.attr("autocomplete","off");
+        var sty = "position:absolute;border:1px solid gray;display:none;";
+        var out = $("<iframe id='hoogle-output' style='" + sty + "' />");
+        out.load(function(){
+            out.contents().find("head").html(
+                "<style type='text/css'>" +
+                "body {font-family: sans-serif; font-size: 13px; background-color: white; padding: 0px; margin: 0px;}" +
+                "a, i {display: block; color: black; padding: 2px 6px; text-decoration: none; white-space: nowrap; overflow: hidden;}" +
+                "a.sel {background-color: #ccc;}" +
+                "</style>");
+        });
+        out.appendTo(txt.parent());
+
+        txt.keydown(function(event){
+            var KeyDown = 40, KeyUp = 38, KeyEnter = 13;
+            if (event.which == KeyEnter)
+            {
+                var sel = out.contents().find(".sel:first");
+                if (sel.size() != 0)
+                {
+                    event.preventDefault();
+                    document.location.href = sel.attr("href");
+                }
+                return;
+            }
+
+            var i = event.which == KeyDown ? 1 :
+                    event.which == KeyUp ? -1 : 0;
+            if (i == 0) return;
+            var all = out.contents().find("a");
+            var sel = out.contents().find(".sel");
+            var now = all.index(sel);
+            if (now == -1)
+            {
+                all.filter(":first").addClass("sel");
+            }
+            else
+            {
+                sel.removeClass("sel");
+                all.filter(":eq(" + (now+i) + ")").addClass("sel");
+            }
+            event.preventDefault();
+        });
+        
+        // txt.blur(function(){out.css("display","none");});
+    }
+    else
+        txt.focus();
+    currentSearch = txt.keyup(searchBoxChange).val();
 });
 
 function searchBoxChange()
 {
-    if (!instant) return;
+    if (!client && !instant) return;
     var txt = $("#hoogle");
-    var bod = $("#body");
     var now = txt.val();
     if (now == currentSearch) return; else currentSearch = now;
     var old = oldSearches.ask(now);
     if (old != undefined)
-        bod.html(old);
+    {
+        if (client)
+            showClient(old);
+        else
+            $("#body").html(old);
+    }
     else
     {
         if (timeoutId != undefined) window.clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(function(){timeoutId = undefined; $("h1").text("Still working...");}, 500);
+        if (client && now == "") {$("#hoogle-output").css("display","none"); return;}
+
+        timeoutId = window.setTimeout(function(){
+            timeoutId = undefined;
+            if (client)
+                showClient("<i>Still working...</i>");
+            else
+                $("h1").text("Still working...");
+        }, 500);
+
         $.ajax({
-            url: '?',
-            data: {mode:'ajax', hoogle:now},
+            url: !client ? '?' : $("#hoogle").parent().attr("action") + "?",
+            data: {mode:client ? 'embed' : 'ajax', hoogle:now},
             dataType: 'html',
             complete: function(s){return function(e){
                 window.clearTimeout(timeoutId);
                 timeoutId = undefined;
-                if (e.status == 200) {
+                if (e.status == 200)
+                {
                     oldSearches.add(s,e.responseText);
                     if (txt.val() == s)
-                        bod.html(e.responseText);
-                } else
-                    bod.html("<h1><b>Error:</b> status " + e.status + "</h1><p>" + e.responseText + "</p>");
+                    {
+                        if (client)
+                            showClient(e.responseText);
+                        else
+                            $("#body").html(e.responseText);
+                    }
+                }
+                else
+                {
+                    if (client)
+                        showClient("<i>Error: status " + e.status + "</i>");
+                    else
+                        $("#body").html("<h1><b>Error:</b> status " + e.status + "</h1><p>" + e.responseText + "</p>");
+                }
             }}(now)
         });
     }
+}
+
+function showClient(x)
+{
+    $("#hoogle-output").css("display","").contents().find("body").empty().append(x).find("a").attr("target","_parent");
 }
 
 
@@ -50,6 +133,7 @@ function searchBoxChange()
 // INSTANT
 
 $(function(){
+    if (client) return;
     setInstant($.getQueryString('ajax') == "1" || $.cookie("instant") == "1");
     $("#instant").css("display","");
 });
@@ -72,6 +156,7 @@ function setInstant(x)
 // SEARCH PLUGIN
 
 $(function(){
+    if (client) return;
     if (window.external && ("AddSearchProvider" in window.external))
         $("#plugin").css("display","");
 });

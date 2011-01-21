@@ -47,7 +47,7 @@ search resources query =
     ,"  <a id='logo' href='http://haskell.org/hoogle/'>" ++
          "<img src='" ++ resources ++ "/hoogle.png' width='160' height='58' alt='Hoogle' />" ++
        "</a>"
-    ,"  <input name='hoogle' id='hoogle' type='text' autocomplete='off' value=\"" ++ query ++ "\" />"
+    ,"  <input name='hoogle' id='hoogle' class='NotClient' type='text' autocomplete='off' value=\"" ++ query ++ "\" />"
     ,"  <input id='submit' type='submit' value='Search' />"
     ,"</form>"
     ]
