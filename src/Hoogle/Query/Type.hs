@@ -19,14 +19,6 @@ instance Monoid Query where
     mappend (Query x1 x2 x3) (Query y1 y2 y3) =
         Query (x1++y1) (x2 `mplus` y2) (x3++y3)
 
--- | Test if a query will result in a search being performed. A query which lists only scopes
---   (e.g. @+base@) will still be reported is blank.
-isBlankQuery :: Query -> Bool
-isBlankQuery query = null (names query) && isNothing (typeSig query)
-
-blankQuery :: Query
-blankQuery = Query [] Nothing []
-
 
 data Scope = PlusPackage  String
            | MinusPackage String

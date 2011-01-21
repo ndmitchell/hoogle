@@ -92,7 +92,7 @@ runQuery ajax dbs Search{queryParsed = Left err} =
         f _ = Nothing
 
 
-runQuery ajax dbs q | isBlankQuery $ fromRight $ queryParsed q = welcome
+runQuery ajax dbs q | fromRight (queryParsed q) == mempty = welcome
 
 
 runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =

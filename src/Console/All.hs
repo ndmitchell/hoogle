@@ -56,7 +56,7 @@ action (Dump file sections) = do
     putStrLn $ "File: " ++ file
     putStr $ showDatabase d $ if null sections then Nothing else Just sections
 
-action q@Search{} | isBlankQuery $ fromRight $ queryParsed q =
+action q@Search{} | fromRight (queryParsed q) == mempty =
     exitMessage ["No query entered"
                 ,"Try --help for command line options"]
 
