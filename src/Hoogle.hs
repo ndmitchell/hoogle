@@ -11,8 +11,8 @@ module Hoogle(
     -- * Database
     Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
     -- * Query
-    Query(..), H.Scope(..), parseQuery, H.renderQuery, H.isBlankQuery,
-    queryDatabases,
+    Query, H.Scope, parseQuery, H.renderQuery, H.isBlankQuery,
+    queryDatabases, queryPackages, querySetPackage,
     -- * Score
     Score, H.scoring,
     -- * Search
@@ -107,6 +107,23 @@ parseQuery _ = H.parseQuery
 queryDatabases :: Query -> [String]
 queryDatabases x = if null ps then ["default"] else ps
     where ps = [p | H.PlusPackage p <- H.scope x]
+
+
+-- | Return those packages which are explicitly excluded (paired with 'False')
+--   or included (paired with 'True') in the query.
+queryPackages :: Query -> [(Bool, String)]
+queryPackages = concatMap f . H.scope
+    where f (H.MinusPackage x) = [(False,x)]
+          f (H.PlusPackage  x) = [(True ,x)]
+          f _ = []
+
+-- | Set the state of a package within a query. 'Nothing' means delete the package,
+--   'Just' 'True' for add it, and 'Just' 'False' for remove it.
+querySetPackage :: Maybe Bool -> String -> Query -> Query
+querySetPackage b x q = q{H.scope= filter f (H.scope q) ++ [if b then H.PlusPackage x else H.MinusPackage x | Just b <- [b]]}
+    where f (H.MinusPackage y) = x /= y
+          f (H.PlusPackage  y) = x /= y
+          f _ = True
 
 
 -- Hoogle.Search

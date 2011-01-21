@@ -2,8 +2,7 @@
 
 module Hoogle.Query.Type where
 
-import Data.Maybe
-import Data.Data
+import General.Base
 import Hoogle.Type.All
 
 
@@ -15,6 +14,10 @@ data Query = Query
     }
     deriving (Data,Typeable,Show,Eq)
 
+instance Monoid Query where
+    mempty = Query [] Nothing []
+    mappend (Query x1 x2 x3) (Query y1 y2 y3) =
+        Query (x1++y1) (x2 `mplus` y2) (x3++y3)
 
 -- | Test if a query will result in a search being performed. A query which lists only scopes
 --   (e.g. @+base@) will still be reported is blank.

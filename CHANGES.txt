@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Make Query abstract, add queryPackages/querySetPackage
     Rename querySuggestions/queryCompletions by dropping the query
     Add mode=embed support
     Add some log analysis features

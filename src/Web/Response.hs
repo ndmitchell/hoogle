@@ -55,7 +55,7 @@ logMessage q = do
 
 runSuggest :: CmdLine -> IO String
 runSuggest cq@Search{queryText=q} = do
-    (_, db) <- loadQueryDatabases (databases cq) (Query [] Nothing [])
+    (_, db) <- loadQueryDatabases (databases cq) mempty
     let res = completions db q
     return $ "[" ++ show q ++ "," ++ show res ++ "]"
 runSuggest _ = return ""
@@ -118,16 +118,17 @@ runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
         (now,post) = splitAt count2 res2
 
         also = "<ul><li><b>Packages</b></li>" ++ concatMap f (take (5 + length minus) $ nub $ minus ++ pkgs) ++ "</ul>"
-            where minus = [x | MinusPackage x <- scope q]
-        f x | PlusPackage lx `elem` scope q =
-                let q2 = showTagText $ renderQuery $ q{scope = filter (/= PlusPackage lx) $ scope q} in
+            where minus = [x | (False,x) <- queryPackages q]
+        f x | (True,lx) `elem` queryPackages q =
+                let q2 = showTagText $ renderQuery $ querySetPackage Nothing lx q in
                 "<li><a class='minus' href='" ++ searchLink q2 ++ "'>" ++ x ++ "</a></li>"
-            | MinusPackage lx `elem` scope q =
-                let q2 = showTagText $ renderQuery $ q{scope = filter (/= MinusPackage lx) $ scope q} in
+            | (False,lx) `elem` queryPackages q =
+                let q2 = showTagText $ renderQuery $ querySetPackage Nothing lx q in
                 "<li><a class='plus pad' href='" ++ searchLink q2 ++ "'>" ++ x ++ "</a></li>"
             | otherwise =
-                "<li><a class='minus' href='" ++ searchLink (qt ++ " -" ++ lx) ++ "'></a>" ++
-                "<a class='plus' href='" ++ searchLink (qt ++ " +" ++ lx) ++ "'>" ++ x ++ "</a></li>"
+                let link b = searchLink $ showTagText $ renderQuery $ querySetPackage (Just b) lx q in
+                "<li><a class='minus' href='" ++ link False ++ "'></a>" ++
+                "<a class='plus' href='" ++ link True ++ "'>" ++ x ++ "</a></li>"
             where lx = map toLower x
         pkgs = [x | (_, (_,x):_)  <- concatMap (locations . snd) $ take (start2+count2) src]
 
