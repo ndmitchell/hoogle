@@ -58,6 +58,7 @@ $(function(){
 function newReal()
 {
     $hoogle.focus();
+    $hoogle.select();
     var $h1 = $("h1");
     var $body = $("#body");
 
