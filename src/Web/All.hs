@@ -13,4 +13,4 @@ action q@Server{} = server q
 -- FIXME: Should use datadir, but not sure how
 action q = do
     res <- response "datadir/resources" q
-    putStrLn $ intercalate "\n" $ map show (rspHeaders res) ++ ["",rspBody res]
+    putStrLn $ intercalate "\n" $ map (takeWhile (`notElem` "\r\n") . show) (rspHeaders res) ++ ["",rspBody res]
