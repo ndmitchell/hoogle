@@ -1,141 +1,164 @@
 
-var client = false; // are we running as an embedded search box
+var embed = false; // are we running as an embedded search box
 var instant = false; // should we search on key presses
+
+var $hoogle; // $("#hoogle") after load
 
 
 /////////////////////////////////////////////////////////////////////
 // SEARCHING
 
-var currentSearch; // String
-var oldSearches = cache(100);
-var timeoutId;
-
 $(function(){
-    var txt = $("#hoogle");
-    client = !txt.hasClass("NotClient");
-    if (client)
-    {
-        txt.attr("autocomplete","off");
-        var sty = "position:absolute;border:1px solid gray;display:none;";
-        var out = $("<iframe id='hoogle-output' style='" + sty + "' />");
-        out.load(function(){
-            out.contents().find("head").html(
-                "<style type='text/css'>" +
-                "body {font-family: sans-serif; font-size: 13px; background-color: white; padding: 0px; margin: 0px;}" +
-                "a, i {display: block; color: black; padding: 2px 6px; text-decoration: none; white-space: nowrap; overflow: hidden;}" +
-                "a.sel {background-color: #ccc;}" +
-                "</style>");
-        });
-        out.appendTo(txt.parent());
+    $hoogle = $("#hoogle");
+    embed = !$hoogle.hasClass("HOOGLE_REAL");
+    var self = embed ? newEmbed() : newReal();
+    var ajaxUrl = !embed ? "?" : $hoogle.parents("form:first").attr("action") + "?";
 
-        txt.keydown(function(event){
-            var KeyDown = 40, KeyUp = 38, KeyEnter = 13;
-            if (event.which == KeyEnter)
-            {
-                var sel = out.contents().find(".sel:first");
-                if (sel.size() != 0)
+    var active = $hoogle.val(); // What is currently being searched for (may not yet be displayed)
+    var past = cache(100); // Cache of previous searches
+    var watch = watchdog(500, function(){self.showWaiting();}); // Timeout of the "Waiting..." callback
+
+    $hoogle.keyup(function(){
+        if (!instant) return;
+
+        var now = $hoogle.val();
+        if (now == active) return;
+        active = now;
+
+        var old = past.ask(now);
+        if (old != undefined){self.showResult(old); return;}
+
+        watch.stop();
+        if (embed && now == ""){self.hide(); return;}
+        watch.start();
+
+        $.ajax({
+            url: ajaxUrl,
+            data: {mode:embed ? 'embed' : 'ajax', hoogle:now},
+            dataType: 'html',
+            complete: function(e){
+                watch.stop();
+                if (e.status == 200)
                 {
-                    event.preventDefault();
-                    document.location.href = sel.attr("href");
+                    past.add(now,e.responseText);
+                    if ($hoogle.val() == now)
+                        self.showResult(e.responseText);
                 }
-                return;
+                else
+                    self.showError(e.status, e.responseText);
             }
+        });
+    });
+})
 
-            var i = event.which == KeyDown ? 1 :
-                    event.which == KeyUp ? -1 : 0;
-            if (i == 0) return;
-            var all = out.contents().find("a");
-            var sel = out.contents().find(".sel");
+function newReal()
+{
+    $hoogle.focus();
+    var $h1 = $("h1");
+    var $body = $("#body");
+
+    return {
+        showWaiting: function(){$h1.text("Still working...");},
+        showError: function(status,text){$body.html("<h1><b>Error:</b> status " + status + "</h1><p>" + text + "</p>")},
+        showResult: function(text){$body.html(text);}
+    }
+}
+
+function newEmbed()
+{
+    $hoogle.attr("autocomplete","off");
+    var $iframe = $("<iframe id='hoogle-output' style='position:absolute;border:1px solid rgb(127,157,185);display:none;' />");
+    var $body;
+    $iframe.load(function(){
+        var $contents = $iframe.contents();
+        $contents.find("head").html(
+            "<style type='text/css'>" +
+            "body {font-family: sans-serif; font-size: 13px; background-color: white; padding: 0px; margin: 0px;}" +
+            "a, i {display: block; color: black; padding: 1px 3px; text-decoration: none; white-space: nowrap; overflow: hidden; cursor: default;}" +
+            "a.sel {background-color: rgb(10,36,106); color: white;}" +
+            "</style>");
+        $body = $("<div>").appendTo($contents.find("body"));
+    });
+    $iframe.insertBefore($hoogle);
+
+    var finishOnBlur = true; // Should a blur hide the box
+
+    function show(x){
+        if (x == undefined)
+            $iframe.css("display","none");
+        else {
+            $body.html(x).find("a").attr("target","_parent")
+                .mousedown(function(){finishOnBlur = false;})
+                .mouseup(function(){finishOnBlur = true;})
+                .mouseenter(function(){
+                    $body.find(".sel").removeClass("sel");
+                    $(this).addClass("sel");
+                });
+
+            var pos = $hoogle.position();
+            $iframe.css(
+                {display:""
+                ,top:px(pos.top + $hoogle.outerHeight() + unpx($hoogle.css("margin-top")))
+                ,left:px(pos.left + unpx($hoogle.css("margin-left")))
+                ,width:px($hoogle.outerWidth() - 2 /* iframe border */)
+                ,height:$body.outerHeight()
+                });
+        }
+    }
+
+    $hoogle.blur(function(){if (finishOnBlur) show();});
+
+    $hoogle.keydown(function(event){
+        switch(event.which)
+        {
+        case Key.Return:
+            var sel = $body.find(".sel:first");
+            if (sel.size() == 0) return;
+            event.preventDefault();
+            document.location.href = sel.attr("href");
+            break;
+
+        case Key.Escape:
+            $body.find(".sel").removeClass("sel");
+            show();
+            break;
+
+        case Key.Down: case Key.Up:
+            var i = event.which == Key.Down ? 1 : -1;
+            var all = $body.find("a");
+            var sel = all.filter(".sel");
             var now = all.index(sel);
             if (now == -1)
-            {
-                all.filter(":first").addClass("sel");
-            }
-            else
-            {
+                all.filter(i == 1 ? ":first" : ":last").addClass("sel");
+            else {
                 sel.removeClass("sel");
                 all.filter(":eq(" + (now+i) + ")").addClass("sel");
             }
             event.preventDefault();
-        });
-        
-        // txt.blur(function(){out.css("display","none");});
+            break;
+        }
+    });
+
+    return {
+        showWaiting: function(){show("<i>Still working...</i>");},
+        showError: function(status,text){show("<i>Error: status " + status + "</i>");},
+        showResult : function(text){show(text);},
+        hide: function(){show();}
     }
-    else
-        txt.focus();
-    currentSearch = txt.keyup(searchBoxChange).val();
-});
-
-function searchBoxChange()
-{
-    if (!client && !instant) return;
-    var txt = $("#hoogle");
-    var now = txt.val();
-    if (now == currentSearch) return; else currentSearch = now;
-    var old = oldSearches.ask(now);
-    if (old != undefined)
-    {
-        if (client)
-            showClient(old);
-        else
-            $("#body").html(old);
-    }
-    else
-    {
-        if (timeoutId != undefined) window.clearTimeout(timeoutId);
-        if (client && now == "") {$("#hoogle-output").css("display","none"); return;}
-
-        timeoutId = window.setTimeout(function(){
-            timeoutId = undefined;
-            if (client)
-                showClient("<i>Still working...</i>");
-            else
-                $("h1").text("Still working...");
-        }, 500);
-
-        $.ajax({
-            url: !client ? '?' : $("#hoogle").parent().attr("action") + "?",
-            data: {mode:client ? 'embed' : 'ajax', hoogle:now},
-            dataType: 'html',
-            complete: function(s){return function(e){
-                window.clearTimeout(timeoutId);
-                timeoutId = undefined;
-                if (e.status == 200)
-                {
-                    oldSearches.add(s,e.responseText);
-                    if (txt.val() == s)
-                    {
-                        if (client)
-                            showClient(e.responseText);
-                        else
-                            $("#body").html(e.responseText);
-                    }
-                }
-                else
-                {
-                    if (client)
-                        showClient("<i>Error: status " + e.status + "</i>");
-                    else
-                        $("#body").html("<h1><b>Error:</b> status " + e.status + "</h1><p>" + e.responseText + "</p>");
-                }
-            }}(now)
-        });
-    }
-}
-
-function showClient(x)
-{
-    $("#hoogle-output").css("display","").contents().find("body").empty().append(x).find("a").attr("target","_parent");
 }
 
 
 /////////////////////////////////////////////////////////////////////
-// INSTANT
+// INSTANT BUTTON
 
 $(function(){
-    if (client) return;
-    setInstant($.getQueryString('ajax') == "1" || $.cookie("instant") == "1");
-    $("#instant").css("display","");
+    if (embed)
+        instant = true;
+    else
+    {
+        setInstant($.getQueryString('ajax') == "1" || $.cookie("instant") == "1");
+        $("#instant").css("display","");
+    }
 });
 
 function setInstant(x)
@@ -145,7 +168,7 @@ function setInstant(x)
     if (instant)
     {
         $.cookie("instant","1",{expires:365});
-        searchBoxChange();
+        $hoogle.keyup();
     }
     else
         $.cookie("instant",null);
@@ -156,7 +179,7 @@ function setInstant(x)
 // SEARCH PLUGIN
 
 $(function(){
-    if (client) return;
+    if (embed) return;
     if (window.external && ("AddSearchProvider" in window.external))
         $("#plugin").css("display","");
 });
@@ -181,31 +204,9 @@ function docs(i)
 
 
 /////////////////////////////////////////////////////////////////////
-// CACHE
+// LIBRARY BITS
 
-function cache(maxElems)
-{
-    // FIXME: Currently does not evict things
-    var contents = {}; // what we have in the cache
-
-    return {
-        add: function(key,val)
-        {
-            contents[key] = val;
-        },
-        
-        ask: function(key)
-        {
-            return contents[key];
-        }
-    };
-}
-
-
-
-/////////////////////////////////////////////////////////////////////
-// EXTERNAL jQUERY BITS
-
+// Access the browser query string
 // From http://stackoverflow.com/questions/901115/get-querystring-values-with-jquery/3867610#3867610
 ;(function ($) {
     $.extend({      
@@ -231,3 +232,43 @@ function cache(maxElems)
         }
     });
 })(jQuery);
+
+
+var Key = {
+    Up: 38,
+    Down: 40,
+    Return: 13,
+    Escape: 27,
+};
+
+
+function unpx(x){return 1 * x.replace("px","");}
+function px(x){return x + "px";}
+
+
+function cache(maxElems)
+{
+    // FIXME: Currently does not evict things
+    var contents = {}; // what we have in the cache
+
+    return {
+        add: function(key,val)
+        {
+            contents[key] = val;
+        },
+        
+        ask: function(key)
+        {
+            return contents[key];
+        }
+    };
+}
+
+
+function watchdog(time, fun)
+{
+    var id = undefined;
+    function stop(){if (id == undefined) return; window.clearTimeout(id); id = undefined;}
+    function start(){stop(); id = window.setTimeout(function(){id = undefined; fun();}, time);}
+    return {start:start, stop:stop}
+}
