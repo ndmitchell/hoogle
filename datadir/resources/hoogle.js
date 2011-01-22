@@ -100,9 +100,9 @@ function newEmbed()
                 });
 
             var pos = $hoogle.position();
-            $iframe.css(
-                {display:""
-                ,top:px(pos.top + $hoogle.outerHeight() + unpx($hoogle.css("margin-top")))
+            // need to display before using $body.outerHeight() on Firefox
+            $iframe.css("display","").css(
+                {top:px(pos.top + $hoogle.outerHeight() + unpx($hoogle.css("margin-top")))
                 ,left:px(pos.left + unpx($hoogle.css("margin-left")))
                 ,width:px($hoogle.outerWidth() - 2 /* iframe border */)
                 ,height:$body.outerHeight()
