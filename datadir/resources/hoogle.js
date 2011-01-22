@@ -72,15 +72,20 @@ function newReal()
 function newEmbed()
 {
     $hoogle.attr("autocomplete","off");
-    var $iframe = $("<iframe id='hoogle-output' style='position:absolute;border:1px solid rgb(127,157,185);display:none;' />");
+    // IE note: unless the div in the iframe contain any border it doesn't calculate the correct outerHeight()
+    //          therefore we put 3 borders on the iframe, and leave one for the bottom div
+    var $iframe = $("<iframe id='hoogle-output' scrolling='no' "+
+                    "style='position:absolute;border:1px solid rgb(127,157,185);border-bottom:0px;display:none;' />");
     var $body;
     $iframe.load(function(){
         var $contents = $iframe.contents();
         $contents.find("head").html(
             "<style type='text/css'>" +
+            "html {border: 0px;}" +
             "body {font-family: sans-serif; font-size: 13px; background-color: white; padding: 0px; margin: 0px;}" +
             "a, i {display: block; color: black; padding: 1px 3px; text-decoration: none; white-space: nowrap; overflow: hidden; cursor: default;}" +
             "a.sel {background-color: rgb(10,36,106); color: white;}" +
+            "div {border-bottom:1px solid rgb(127,157,185);}" +
             "</style>");
         $body = $("<div>").appendTo($contents.find("body"));
     });
@@ -137,7 +142,8 @@ function newEmbed()
                 all.filter(i == 1 ? ":first" : ":last").addClass("sel");
             else {
                 sel.removeClass("sel");
-                all.filter(":eq(" + (now+i) + ")").addClass("sel");
+                // IE treats :eq(-1) as :eq(0), so filter specifically
+                if (now+i >= 0) all.filter(":eq(" + (now+i) + ")").addClass("sel");
             }
             event.preventDefault();
             break;
@@ -243,11 +249,11 @@ var Key = {
     Up: 38,
     Down: 40,
     Return: 13,
-    Escape: 27,
+    Escape: 27
 };
 
 
-function unpx(x){return 1 * x.replace("px","");}
+function unpx(x){var r = 1 * x.replace("px",""); return isNaN(r) ? 0 : r;}
 function px(x){return x + "px";}
 
 
