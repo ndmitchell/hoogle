@@ -63,13 +63,13 @@ runSuggest _ = return ""
 
 runEmbed :: Database -> CmdLine -> [String]
 runEmbed dbs Search{queryParsed = Left err} = ["<i>Parse error: " ++& errorMessage err ++ "</i>"]
-runEmbed dbs Search{queryParsed = Right q}
+runEmbed dbs cq@Search{queryParsed = Right q}
     | null now = ["<i>No results found</i>"]
     | otherwise =
         ["<a href='" ++ url ++ "'>" ++ showTagHTML (transform f $ self $ snd x) ++ "</a>"
         | x <- now, let url = fromList "" $ map fst $ locations $ snd x]
     where
-        now = take 10 $ search dbs q
+        now = take (maybe 10 (max 1) $ count cq) $ search dbs q
         f (TagEmph x) = TagBold x
         f (TagBold x) = x
         f x = x
