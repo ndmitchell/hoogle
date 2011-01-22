@@ -67,11 +67,9 @@ runEmbed dbs Search{queryParsed = Right q}
     | null now = ["<i>No results found</i>"]
     | otherwise =
         ["<a href='" ++ url ++ "'>" ++ showTagHTML (transform f $ self $ snd x) ++ "</a>"
-        | x <- now, let url = fromList "" $ map fst $ locations $ snd x] ++
-        ["<i>Press enter for more results...</i>" | not $ null next]
+        | x <- now, let url = fromList "" $ map fst $ locations $ snd x]
     where
-        (now,next) = splitAt 10 $ search dbs q
-
+        now = take 10 $ search dbs q
         f (TagEmph x) = TagBold x
         f (TagBold x) = x
         f x = x
