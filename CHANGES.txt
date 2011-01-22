@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Accept prefix and suffix web parameters
     Eliminate isBlankQuery, make Query a Monoid
     Make Query abstract, add queryPackages/querySetPackage
     Rename querySuggestions/queryCompletions by dropping the query
