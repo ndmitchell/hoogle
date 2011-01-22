@@ -12,7 +12,11 @@ $(function(){
     $hoogle = $("#hoogle");
     embed = !$hoogle.hasClass("HOOGLE_REAL");
     var self = embed ? newEmbed() : newReal();
-    var ajaxUrl = !embed ? "?" : $hoogle.parents("form:first").attr("action") + "?";
+    var $form = $hoogle.parents("form:first");
+    var ajaxUrl = !embed ? "?" : $form.attr("action") + "?";
+    var ajaxMode = embed ? 'embed' : 'ajax';
+    var ajaxPrefix = $form.find("input[name=prefix]").attr("value");
+    var ajaxSuffix = $form.find("input[name=suffix]").attr("value");
 
     var active = $hoogle.val(); // What is currently being searched for (may not yet be displayed)
     var past = cache(100); // Cache of previous searches
@@ -34,7 +38,7 @@ $(function(){
 
         $.ajax({
             url: ajaxUrl,
-            data: {mode:embed ? 'embed' : 'ajax', hoogle:now},
+            data: {hoogle:now, mode:ajaxMode, prefix:ajaxPrefix, suffix:ajaxSuffix},
             dataType: 'html',
             complete: function(e){
                 watch.stop();
