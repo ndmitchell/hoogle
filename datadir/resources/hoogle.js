@@ -13,6 +13,7 @@ $(function(){
     embed = !$hoogle.hasClass("HOOGLE_REAL");
     var self = embed ? newEmbed() : newReal();
     var $form = $hoogle.parents("form:first");
+
     var ajaxUrl = !embed ? "?" : $form.attr("action") + "?";
     var ajaxMode = embed ? 'embed' : 'ajax';
     var ajaxPrefix = $form.find("input[name=prefix]").attr("value");
@@ -36,22 +37,27 @@ $(function(){
         if (embed && now == ""){self.hide(); return;}
         watch.start();
 
-        $.ajax({
-            url: ajaxUrl,
-            data: {hoogle:now, mode:ajaxMode, prefix:ajaxPrefix, suffix:ajaxSuffix},
-            dataType: 'html',
-            complete: function(e){
-                watch.stop();
-                if (e.status == 200)
-                {
-                    past.add(now,e.responseText);
-                    if ($hoogle.val() == now)
-                        self.showResult(e.responseText);
+        try {
+            $.ajax({
+                url: ajaxUrl,
+                data: {hoogle:now, mode:ajaxMode, prefix:ajaxPrefix, suffix:ajaxSuffix},
+                dataType: 'html',
+                complete: function(e){
+                    watch.stop();
+                    if (e.status == 200)
+                    {
+                        past.add(now,e.responseText);
+                        if ($hoogle.val() == now)
+                            self.showResult(e.responseText);
+                    }
+                    else
+                        self.showError(e.status, e.responseText);
                 }
-                else
-                    self.showError(e.status, e.responseText);
-            }
-        });
+            });
+        } catch (err) {
+            // Probably a permissions error from cross domain scripting...
+            watch.stop();
+        }
     });
 })
 
