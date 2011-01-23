@@ -37,26 +37,31 @@ $(function(){
         if (embed && now == ""){self.hide(); return;}
         watch.start();
 
-        try {
-            $.ajax({
-                url: ajaxUrl,
-                data: {hoogle:now, mode:ajaxMode, prefix:ajaxPrefix, suffix:ajaxSuffix},
-                dataType: 'html',
-                complete: function(e){
-                    watch.stop();
-                    if (e.status == 200)
-                    {
-                        past.add(now,e.responseText);
-                        if ($hoogle.val() == now)
-                            self.showResult(e.responseText);
-                    }
-                    else
-                        self.showError(e.status, e.responseText);
-                }
-            });
-        } catch (err) {
-            // Probably a permissions error from cross domain scripting...
+        var data = {hoogle:now, mode:ajaxMode, prefix:ajaxPrefix, suffix:ajaxSuffix};
+        function complete(e)
+        {
             watch.stop();
+            if (e.status == 200)
+            {
+                past.add(now,e.responseText);
+                if ($hoogle.val() == now)
+                    self.showResult(e.responseText);
+            }
+            else
+                self.showError(e.status, e.responseText);
+        }
+
+        var args = {url:ajaxUrl, data:data, complete:complete, dataType:"html"}
+        try {
+            $.ajax(args);
+        } catch (err) {
+            try {
+                if (!embed) throw err;
+                $.ajaxCrossDomain(args);
+            } catch (err) {
+                // Probably a permissions error from cross domain scripting...
+                watch.stop();
+            }
         }
     });
 })
@@ -288,4 +293,22 @@ function watchdog(time, fun)
     function stop(){if (id == undefined) return; window.clearTimeout(id); id = undefined;}
     function start(){stop(); id = window.setTimeout(function(){id = undefined; fun();}, time);}
     return {start:start, stop:stop}
+}
+
+$.ajaxCrossDomain = function(args)
+{
+    if (!window.XDomainRequest) throw new Error("the XDomainRequest object is not supported in this browser");
+
+    var xdr = new XDomainRequest();
+    xdr.onload = function(){args.complete({status:200, responseText:xdr.responseText});};
+    xdr.onerror = function(){args.complete({status:0, responseText:""});};
+
+    var url = "";
+    for (var i in args.data)
+    {
+        if (args.data[i] == undefined) continue;
+        url += (url == "" ? "" : "&") + encodeURIComponent(i) + "=" + encodeURIComponent(args.data[i]);
+    }
+    xdr.open("get", args.url + url);
+    xdr.send();
 }
