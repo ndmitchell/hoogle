@@ -5,6 +5,41 @@ module Hoogle.Query.Type where
 import General.Base
 import Hoogle.Type.All
 
+{-
+GOALS OF THE QUERY REWRITE:
+
+Query stores enough data to round trip perfectly
+
+package:foo, module:foo, category:foo all work, all as a shortcut for +package:foo, ...
++package:foo, +package:bar
+-package:foo, -package:bar
++bar is a shortcut for +package:bar
++Bar is a shortcut for +module:Bar
+
+Type signatures need extending to contain _, * and ? - all of which mean wildcard
+
+Need a way to "tweak" type signatures.
+
+At it's heart, a query is a list of names, a type sig, and a list of scopes, in order.
+
+Need to augment this with a list of extra information, such that when the extra information
+is replayed, it does the same job.
+
+Should really be [String], Maybe TypeSig, [Scope], those -> 
+
+data QueryInfo = [String] (Maybe TypeSig) [Scope]
+data Query = Query QueryInfo (QueryInfo -> String?)
+
+
+"(a -" is assumed to be "(a -> _)"
+
+"Ord a =" - is assumed to be "Ord a => _"
+
+"(map > 1)" is total garbage... i think parse errors are still needed
+
+Should try and autocomplete at the end where possible
+-}
+
 
 -- | A query, representing a user input.
 data Query = Query
