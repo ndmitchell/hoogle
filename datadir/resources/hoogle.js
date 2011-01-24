@@ -70,11 +70,10 @@ function newReal()
 {
     $hoogle.focus();
     $hoogle.select();
-    var $h1 = $("h1");
     var $body = $("#body");
 
     return {
-        showWaiting: function(){$h1.text("Still working...");},
+        showWaiting: function(){$("h1").text("Still working...");},
         showError: function(status,text){$body.html("<h1><b>Error:</b> status " + status + "</h1><p>" + text + "</p>")},
         showResult: function(text){$body.html(text);}
     }
