@@ -10,8 +10,6 @@ import General.Base
 import qualified Data.ByteString.Lazy.Char8 as BS
 import qualified Data.Map as Map
 
-type BString = BS.ByteString
-
 logFiles :: [FilePath] -> IO ()
 logFiles xs = do
     es <- mapM readEntries xs
@@ -23,7 +21,7 @@ logFiles xs = do
 data Stats = Stats
     {hits :: !Int
     ,searches :: !Int
-    ,common :: !(Map.Map BString Int)
+    ,common :: !(Map.Map LBString Int)
     }
 
 instance Show Stats where
@@ -62,8 +60,8 @@ groupEntries = id
 -- READ ENTRIES
 
 data Entry = Entry
-    {search :: BString -- the search performed, "" for blank
-    ,extra :: [(BString,BString)] -- extra parameters
+    {search :: LBString -- the search performed, "" for blank
+    ,extra :: [(LBString,LBString)] -- extra parameters
     ,date :: Maybe (Int,Int,Int) -- date the search was performed
     ,time :: Maybe (Int,Int,Int) -- time the search was performed
     ,unique :: Maybe String -- maybe a uniquely identifying string
@@ -82,7 +80,7 @@ readEntries x = do
 
 qstr = map BS.pack ["","q","hoogle"]
 
-readEntry :: BString -> Maybe Entry
+readEntry :: LBString -> Maybe Entry
 
 -- log format v1
 readEntry x
@@ -153,7 +151,7 @@ readEntry _ = Nothing
 ---------------------------------------------------------------------
 -- READ UTILITIES
 
-readDate :: BString -> Maybe ((Int,Int,Int), BString)
+readDate :: LBString -> Maybe ((Int,Int,Int), LBString)
 readDate x = do
     (d1,x) <- BS.readInt x
     ('-',x) <- BS.uncons x
@@ -162,7 +160,7 @@ readDate x = do
     (d3,x) <- BS.readInt x
     return ((d1,d2,d2),x)
 
-readDateTime :: BString -> Maybe (((Int,Int,Int),(Int,Int,Int)), BString)
+readDateTime :: LBString -> Maybe (((Int,Int,Int),(Int,Int,Int)), LBString)
 readDateTime x = do
     (d,x) <- readDate x
     ('T',x) <- BS.uncons x
@@ -175,7 +173,7 @@ readDateTime x = do
 
 
 -- | String, as produced by show
-readShowString :: BString -> Maybe (BString, BString)
+readShowString :: LBString -> Maybe (LBString, LBString)
 readShowString o@x = do
     ('\"',x) <- BS.uncons x
     (a,x) <- return $ BS.break (== '\"') x
@@ -188,13 +186,13 @@ readShowString o@x = do
 
 
 -- | Either a string produced by show, or a isAlphaNum terminated chunk
-readShortString :: BString -> Maybe (BString, BString)
+readShortString :: LBString -> Maybe (LBString, LBString)
 readShortString x | Just ('\"',_) <- BS.uncons x = readShowString x
                   | otherwise = Just $ BS.span isAlphaNum x
 
 
 -- | Either a space terminated chunk, or a quote terminated chunk
-readQuoteString :: BString -> Maybe (BString, BString)
+readQuoteString :: LBString -> Maybe (LBString, LBString)
 readQuoteString x | Just ('\"',x) <- BS.uncons x = do
     (a,x) <- return $ BS.break (== '\"') x
     ('\"',x) <- BS.uncons x

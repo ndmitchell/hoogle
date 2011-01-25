@@ -14,12 +14,21 @@ import Data.List as X
 import Data.Maybe as X
 import Data.Monoid as X
 import Data.Ord as X
+import Data.String as X
 import Debug.Trace as X (trace)
 import Numeric as X (readHex,showHex)
 import System.FilePath as X hiding (combine)
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
 
 import Control.Exception(bracket)
 import System.IO
+
+
+type LBString = LBS.ByteString
+type BString = BS.ByteString
+lbsUnpack = LBS.unpack
+bsUnpack = BS.unpack
 
 
 -- | A URL, or internet address. These addresses will usually start with either
