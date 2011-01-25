@@ -124,7 +124,7 @@ cgiArgs = do
 cgiResponse :: Response -> IO ()
 cgiResponse r = do
     (status,headers,body) <- responseFlatten r
-    LBS.putStrLn $ LBS.intercalate (fromString "\n") $
+    LBS.putStr $ LBS.unlines $
         [LBS.fromChunks [ciOriginal a, fromString ": ", b] | (a,b) <- headers] ++
         [fromString "",body]
 
