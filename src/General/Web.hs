@@ -18,6 +18,7 @@ import General.Base
 import Network.Wai
 import Blaze.ByteString.Builder(toLazyByteString)
 import Data.Enumerator.List(consume)
+import qualified Data.ByteString.Lazy.Char8 as LBS
 
 
 type Args = [(String, String)]
@@ -123,7 +124,9 @@ cgiArgs = do
 cgiResponse :: Response -> IO ()
 cgiResponse r = do
     (status,headers,body) <- responseFlatten r
-    putStrLn $ intercalate "\n" $ [bsUnpack (ciOriginal a) ++ ": " ++ bsUnpack b | (a,b) <- headers] ++ ["",lbsUnpack body]
+    LBS.putStrLn $ LBS.intercalate (fromString "\n") $
+        [LBS.fromChunks [ciOriginal a, fromString ": ", b] | (a,b) <- headers] ++
+        [fromString "",body]
 
 
 ---------------------------------------------------------------------
