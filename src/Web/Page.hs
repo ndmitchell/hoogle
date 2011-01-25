@@ -35,7 +35,7 @@ header resources query =
 links =
     ["<div id='links'>"
     ,"  <span id='instant' style='display:none;'><a href='javascript:setInstant()'>" ++
-          "Instant is <span id='instantVal'>off</span> (&beta;)</a> |</span>"
+          "Instant is <span id='instantVal'>off</span></a> |</span>"
     ,"  <span id='plugin' style='display:none;'><a href='javascript:searchPlugin()'>Search plugin</a> |</span>"
     ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>Manual</a> |"
     ,"  <a href='http://www.haskell.org/'>haskell.org</a>"
