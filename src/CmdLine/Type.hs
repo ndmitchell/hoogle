@@ -32,7 +32,7 @@ data CmdLine
         ,queryText :: String
         }
     | Data {redownload :: Bool, local :: [String], datadir :: FilePath, threads :: Int, actions :: [String]}
-    | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, nostdin :: Bool}
+    | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
     | Log {logfiles :: [FilePath]}
@@ -70,7 +70,6 @@ test = Test
 server = Server
     {port = 80 &= typ "INT" &= help "Port number"
     ,resources = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
-    ,nostdin = def &= help "Don't read from stdin"
     ,local_ = def &= help "Rewrite and serve file: links (potential security hole)"
     } &= help "Start a Hoogle server"
 
