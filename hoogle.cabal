@@ -24,7 +24,7 @@ data-files:
     resources/*.ico
     resources/*.js
     resources/*.png
-    -- surely a Cabal bug that this isn't picked up by *.js
+    -- Cabal doesn't find files with . in them, Cabal bug #794
     resources/jquery-1.4.2.js
     resources/jquery.cookie.js
 
