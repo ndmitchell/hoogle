@@ -7,7 +7,7 @@
 module Console.Log(logFiles) where
 
 import General.Base
-import qualified Data.ByteString.Lazy.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Map as Map
 
 logFiles :: [FilePath] -> IO ()
@@ -29,7 +29,7 @@ instance Show Stats where
         ["Hits:      " ++ show hits
         ,"Searches:  " ++ show searches
         ,"Unique:    " ++ show (Map.size common)
-        ,"Top:       " ++ fromList "" (map (BS.unpack . fst) top)
+        ,"Top:       " ++ fromList "" (map (LBS.unpack . fst) top)
         ]
         where
             top = take 20 $ sortBy (comparing $ negate . snd) $ Map.toList common
@@ -44,8 +44,8 @@ stats = foldl' f mempty
     where
         f s@Stats{..} Entry{..} = s
             {hits = 1 + hits
-            ,searches = (if BS.null search then 0 else 1) + searches
-            ,common = if BS.null search then common else Map.insertWith' (+) search 1 common
+            ,searches = (if LBS.null search then 0 else 1) + searches
+            ,common = if LBS.null search then common else Map.insertWith' (+) search 1 common
             }
 
 
@@ -69,33 +69,33 @@ data Entry = Entry
     ,suggest :: Maybe Int -- number of times you hit with suggest for this query
     } deriving Show
 
-entry = Entry BS.empty [] Nothing Nothing Nothing Nothing Nothing
+entry = Entry LBS.empty [] Nothing Nothing Nothing Nothing Nothing
 
 
 readEntries :: FilePath -> IO [Entry]
 readEntries x = do
-    src <- BS.readFile x
-    return $ mapMaybe readEntry $ BS.lines src
+    src <- LBS.readFile x
+    return $ mapMaybe readEntry $ LBS.lines src
 
 
-qstr = map BS.pack ["","q","hoogle"]
+qstr = map LBS.pack ["","q","hoogle"]
 
 readEntry :: LBString -> Maybe Entry
 
 -- log format v1
 readEntry x
-    | Just ('[',x) <- BS.uncons x
+    | Just ('[',x) <- LBS.uncons x
     = do y <- readList x
          let (a,b) = partition (flip elem qstr . fst) y
-         return entry{search=fromList BS.empty $ map snd a, extra = b}
+         return entry{search=fromList LBS.empty $ map snd a, extra = b}
     where
         readList x = do
-            ('(',x) <- BS.uncons x
+            ('(',x) <- LBS.uncons x
             (a,x) <- readShowString x
-            (',',x) <- BS.uncons x
+            (',',x) <- LBS.uncons x
             (b,x) <- readShowString x
-            (')',x) <- BS.uncons x
-            case BS.uncons x of
+            (')',x) <- LBS.uncons x
+            case LBS.uncons x of
                 Just (',',x) -> do
                     ys <- readList x
                     return $ (a,b):ys
@@ -105,20 +105,20 @@ readEntry x
 
 -- log format v2
 readEntry o@x
-    | BS.length x > 10 && BS.index x 10 == ' '
+    | LBS.length x > 10 && LBS.index x 10 == ' '
     = do (d,x) <- readDate x
-         (' ',x) <- BS.uncons x
+         (' ',x) <- LBS.uncons x
          (s,x) <- readShowString x
-         args <- readArgs $ BS.dropWhile isSpace x
+         args <- readArgs $ LBS.dropWhile isSpace x
          return entry{search = s, date = Just d,
                 extra = filter (flip notElem qstr . fst) args}
     where
         readArgs x
-            | Just ('?',x) <- BS.uncons x = do
-              (a,x) <- return $ BS.break (== '=') x
-              ('=',x) <- BS.uncons x
+            | Just ('?',x) <- LBS.uncons x = do
+              (a,x) <- return $ LBS.break (== '=') x
+              ('=',x) <- LBS.uncons x
               (b,x) <- readQuoteString x
-              x <- return $ BS.dropWhile isSpace x
+              x <- return $ LBS.dropWhile isSpace x
               ys <- readArgs x
               return $ (a,b) : ys
             | otherwise = Just []
@@ -126,23 +126,23 @@ readEntry o@x
 
 -- log format v3
 readEntry x
-    | BS.length x > 10 && BS.index x 10 == 'T'
+    | LBS.length x > 10 && LBS.index x 10 == 'T'
     = do ((d,t),x) <- readDateTime x
-         (' ',x) <- BS.uncons x
-         (u,x) <- return $ first BS.unpack $ BS.break (== ' ') x
-         args <- readArgs $ BS.dropWhile isSpace x
+         (' ',x) <- LBS.uncons x
+         (u,x) <- return $ first LBS.unpack $ LBS.break (== ' ') x
+         args <- readArgs $ LBS.dropWhile isSpace x
          let (a,b) = partition (flip elem qstr . fst) args
          return entry{date = Just d, time = Just t, extra = b,
-            search=fromList BS.empty $ map snd a,
+            search=fromList LBS.empty $ map snd a,
             unique = if u == "0" then Nothing else Just u}
     where
         readArgs x
-            | BS.null x = Just []
+            | LBS.null x = Just []
             | otherwise = do
                 (a,x) <- readShortString x
-                ('=',x) <- BS.uncons x
+                ('=',x) <- LBS.uncons x
                 (b,x) <- readShortString x
-                ys <- readArgs $ BS.dropWhile isSpace x
+                ys <- readArgs $ LBS.dropWhile isSpace x
                 return $ (a,b):ys
 
 readEntry _ = Nothing
@@ -153,51 +153,51 @@ readEntry _ = Nothing
 
 readDate :: LBString -> Maybe ((Int,Int,Int), LBString)
 readDate x = do
-    (d1,x) <- BS.readInt x
-    ('-',x) <- BS.uncons x
-    (d2,x) <- BS.readInt x
-    ('-',x) <- BS.uncons x
-    (d3,x) <- BS.readInt x
+    (d1,x) <- LBS.readInt x
+    ('-',x) <- LBS.uncons x
+    (d2,x) <- LBS.readInt x
+    ('-',x) <- LBS.uncons x
+    (d3,x) <- LBS.readInt x
     return ((d1,d2,d2),x)
 
 readDateTime :: LBString -> Maybe (((Int,Int,Int),(Int,Int,Int)), LBString)
 readDateTime x = do
     (d,x) <- readDate x
-    ('T',x) <- BS.uncons x
-    (t1,x) <- BS.readInt x
-    (':',x) <- BS.uncons x
-    (t2,x) <- BS.readInt x
-    (':',x) <- BS.uncons x
-    (t3,x) <- BS.readInt x
+    ('T',x) <- LBS.uncons x
+    (t1,x) <- LBS.readInt x
+    (':',x) <- LBS.uncons x
+    (t2,x) <- LBS.readInt x
+    (':',x) <- LBS.uncons x
+    (t3,x) <- LBS.readInt x
     return ((d,(t1,t2,t3)),x)
 
 
 -- | String, as produced by show
 readShowString :: LBString -> Maybe (LBString, LBString)
 readShowString o@x = do
-    ('\"',x) <- BS.uncons x
-    (a,x) <- return $ BS.break (== '\"') x
-    if '\\' `BS.elem` a then do
-        [(a,x)] <- return $ reads $ BS.unpack o
-        return (BS.pack a, BS.pack x)
+    ('\"',x) <- LBS.uncons x
+    (a,x) <- return $ LBS.break (== '\"') x
+    if '\\' `LBS.elem` a then do
+        [(a,x)] <- return $ reads $ LBS.unpack o
+        return (LBS.pack a, LBS.pack x)
      else do
-        ('\"',x) <- BS.uncons x
+        ('\"',x) <- LBS.uncons x
         return (a, x)
 
 
 -- | Either a string produced by show, or a isAlphaNum terminated chunk
 readShortString :: LBString -> Maybe (LBString, LBString)
-readShortString x | Just ('\"',_) <- BS.uncons x = readShowString x
-                  | otherwise = Just $ BS.span isAlphaNum x
+readShortString x | Just ('\"',_) <- LBS.uncons x = readShowString x
+                  | otherwise = Just $ LBS.span isAlphaNum x
 
 
 -- | Either a space terminated chunk, or a quote terminated chunk
 readQuoteString :: LBString -> Maybe (LBString, LBString)
-readQuoteString x | Just ('\"',x) <- BS.uncons x = do
-    (a,x) <- return $ BS.break (== '\"') x
-    ('\"',x) <- BS.uncons x
-    return (a, BS.dropWhile isSpace x)
+readQuoteString x | Just ('\"',x) <- LBS.uncons x = do
+    (a,x) <- return $ LBS.break (== '\"') x
+    ('\"',x) <- LBS.uncons x
+    return (a, LBS.dropWhile isSpace x)
 readQuoteString x = do
-    (a,x) <- return $ BS.break (== ' ') x
-    return (a, BS.dropWhile isSpace x)
+    (a,x) <- return $ LBS.break (== ' ') x
+    return (a, LBS.dropWhile isSpace x)
 
