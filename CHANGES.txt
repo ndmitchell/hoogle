@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Fix for not sending text/html when serving local files
     Eliminate the --nostdin flag, now unnecessary
     Change to use WAI/Warp instead of HTTP and custom server
     Fix a bug, didn't ever show Waiting... on the real website

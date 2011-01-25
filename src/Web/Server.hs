@@ -60,4 +60,6 @@ rewriteFileLinks r = do
 contentExt ".png" = "image/png"
 contentExt ".css" = "text/css"
 contentExt ".js" = "text/javascript"
+contentExt ".html" = "text/html"
+contentExt ".htm" = "text/html"
 contentExt _ = "text/plain"
