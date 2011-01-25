@@ -83,3 +83,12 @@ Did you mean: :: Maybe a +testdata
 -- check that () is known, not a warning, and is the first result
 :: () +testdata
 @now () :: ()
+
+to +testdata
+No results
+
+a to b +testdata
+Did you mean: a -> b +testdata
+
+a to to b +testdata
+No results
