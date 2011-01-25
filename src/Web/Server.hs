@@ -6,88 +6,55 @@ import General.Base
 import General.Web
 import CmdLine.All
 import Web.Response
-import Control.Concurrent
-import Control.Exception
-import Network
-import Network.HTTP
-import Network.URI
-import Network.Socket
-import Data.Time
+import Control.Monad.IO.Class
 import General.System
+import Control.Concurrent
+
+import Network.Wai
+import Network.Wai.Handler.Warp
 
 
 server :: CmdLine -> IO ()
-server q@Server{..} = withSocketsDo $ do
-    stop <- httpServer port (talk q)
-    flip finally stop $ do
-        putStrLn $ "Started Hoogle Server on port " ++ show port
-        -- must run under nohup, and with input from /dev/null
-        shut <- if nostdin then return True else hIsClosed stdin
-        eof <- if shut then return True else isEOF
-        when eof $ forever $ threadDelay maxBound
+server q@Server{..} = do
+    v <- newMVar ()
+    putStrLn $ "Starting Hoogle Server on port " ++ show port
+    run port $ \r -> liftIO $ do
+        withMVar v $ const $ putStrLn $ bsUnpack (pathInfo r) ++ bsUnpack (queryString r)
+        talk q r
 
 
--- | Given a port and a handler, return an action to shutdown the server
-httpServer :: Int -> (Request String -> IO (Response String)) -> IO (IO ())
-httpServer port handler = do
-    s <- listenOn $ PortNumber $ fromIntegral port
-    forkIO $ forever $ do
-        (sock,host) <- Network.Socket.accept s
-        bracket (socketConnection "" sock) close $ \strm -> do
-            start <- getCurrentTime
-            res <- receiveHTTP strm
-            case res of
-                Left x -> do
-                    putStrLn $ "Bad request: " ++ show x
-                    respondHTTP strm $ responseBadRequest $ show x
-                Right x -> do
-                    let msg = unescapeURL $ show $ rqURI x
-                    res <- try $ handler x
-                    case res of
-                        Left e -> do
-                            let s = show (e :: SomeException)
-                            putStrLn $ "Crash when serving " ++ msg ++ ", " ++ s
-                            respondHTTP strm $ responseError s
-                        Right r -> do
-                            respondHTTP strm r
-                            end <- getCurrentTime
-                            let t = floor $ diffUTCTime end start * 1000
-                            putStrLn $ "Served in " ++ show t ++ "ms: " ++ msg
-    return $ sClose s
-
-
--- FIXME: This should be in terms of Lazy ByteString's, for higher performance
---        serving of local files
-talk :: CmdLine -> Request String -> IO (Response String)
-talk Server{..} Request{rqURI=URI{uriPath=path,uriQuery=query}}
+-- FIXME: Avoid all the conversions to/from LBS
+talk :: CmdLine -> Request -> IO Response
+talk Server{..} Request{pathInfo=path_, queryString=query_}
     | path `elem` ["/","/hoogle"] = do
         let args = parseHttpQueryArgs $ drop 1 query
         cmd <- cmdLineWeb args
         r <- response "/res" cmd{databases=databases}
-        return $ if local_ then fmap rewriteFileLinks r else r
+        if local_ then rewriteFileLinks r else return r
     | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
     | local_ && "/file/" `isPrefixOf` path = serveFile False $ drop 6 path
     | otherwise = return $ responseNotFound $ show path
+    where (path,query) = (bsUnpack path_, bsUnpack query_)
 
 
-serveFile :: Bool -> FilePath -> IO (Response String)
+serveFile :: Bool -> FilePath -> IO Response
 serveFile cache file = do
     b <- doesFileExist file
-    if not b
-        then return $ responseNotFound file
-        else do
-            h <- openBinaryFile file ReadMode
-            src <- hGetContents h
-            return $ responseOk
-                ([Header HdrContentType $ contentExt $ takeExtension file] ++
-                 [Header HdrCacheControl "max-age=604800" {- 1 week -} | cache]) src
+    return $ if not b
+        then responseNotFound file
+        else ResponseFile statusOK hdr file
+    where hdr = [(hdrContentType, fromString $ contentExt $ takeExtension file)] ++
+                [(hdrCacheControl, fromString "max-age=604800" {- 1 week -}) | cache]
 
 
-rewriteFileLinks :: String -> String
-rewriteFileLinks x
-    | "href='file://" `isPrefixOf` x = "href='/file/" ++ rewriteFileLinks (drop (13+1) x)
-    | null x = x
-    | otherwise = head x : rewriteFileLinks (tail x)
+rewriteFileLinks :: Response -> IO Response
+rewriteFileLinks r = do
+    (a,b,c) <- responseFlatten r
+    return $ responseLBS a b $ fromString $ f $ lbsUnpack c
+    where
+        f [] = []
+        f o@(x:xs) | "href='file://" `isPrefixOf` o = "href='/file/" ++ f (drop (13+1) o)
+                   | otherwise = x : f xs
 
 
 contentExt ".png" = "image/png"

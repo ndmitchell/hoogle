@@ -106,8 +106,10 @@ executable hoogle
         time, old-locale,
         cmdargs == 0.6.*,
         tagsoup >= 0.11 && < 0.13,
-        network >= 2.2 && < 2.4,
-        HTTP >= 4000.0 && < 4000.2,
+        enumerator == 0.4.*,
+        blaze-builder == 0.2.*,
+        wai == 0.3.*,
+        warp == 0.3.*,
         Cabal >= 1.8 && < 1.11
 
     other-modules:

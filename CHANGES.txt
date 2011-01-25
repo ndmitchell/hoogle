@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Change to use WAI/Warp instead of HTTP and custom server
     Fix a bug, didn't ever show Waiting... on the real website
     Make embed work in IE8
 4.2

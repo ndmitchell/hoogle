@@ -5,27 +5,41 @@
 -}
 
 module General.Web(
-    responseOk, responseBadRequest, responseNotFound, responseError,
+    statusOK, hdrContentType, hdrCacheControl,
+    responseOK, responseBadRequest, responseNotFound, responseError,
+    responseFlatten,
     URL, filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
     escapeHTML, (++&), htmlTag,
-    Args, cgiArgs, parseHttpQueryArgs
+    Args, cgiArgs, cgiResponse, parseHttpQueryArgs
     ) where
 
 import General.System
 import General.Base
-import Network.HTTP
-
-instance Functor Response where
-    fmap f x = x{rspBody = f $ rspBody x}
-
-
-responseOk = Response (2,0,0) "OK"
-responseBadRequest x = Response (4,0,0) "Bad Request" [] $ "Bad request: " ++ x
-responseNotFound x = Response (4,0,4) "Not Found" [] $ "File not found: " ++ x
-responseError x = Response (5,0,0) "Internal Server Error" [] $ "Internal server error: " ++ x
+import Network.Wai
+import Blaze.ByteString.Builder(toLazyByteString)
+import Data.Enumerator.List(consume)
 
 
 type Args = [(String, String)]
+
+
+---------------------------------------------------------------------
+-- WAI STUFF
+
+statusOK = status200
+hdrContentType = fromString "Content-Type" :: ResponseHeader
+hdrCacheControl = fromString "Cache-Control" :: ResponseHeader
+
+responseOK = responseLBS statusOK
+responseBadRequest x = responseLBS status400 [] $ fromString $ "Bad request: " ++ x
+responseNotFound x = responseLBS status404 [] $ fromString $ "File not found: " ++ x
+responseError x = responseLBS status500 [] $ fromString $ "Internal server error: " ++ x
+
+
+responseFlatten :: Response -> IO (Status, ResponseHeaders, LBString)
+responseFlatten r = responseEnumerator r $ \s hs -> do
+       builders <- consume
+       return (s, hs, toLazyByteString $ mconcat builders)
 
 
 ---------------------------------------------------------------------
@@ -104,6 +118,12 @@ cgiArgs = do
     return $ case x of
         Nothing -> Nothing
         Just y -> Just $ parseHttpQueryArgs $ ['=' | '=' `notElem` y] ++ y
+
+
+cgiResponse :: Response -> IO ()
+cgiResponse r = do
+    (status,headers,body) <- responseFlatten r
+    putStrLn $ intercalate "\n" $ [bsUnpack (ciOriginal a) ++ ": " ++ bsUnpack b | (a,b) <- headers] ++ ["",lbsUnpack body]
 
 
 ---------------------------------------------------------------------

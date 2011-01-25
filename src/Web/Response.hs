@@ -14,17 +14,17 @@ import Data.Generics.Uniplate
 import Data.Time.Clock
 import Data.Time.Format
 import System.Locale
-import Network.HTTP
+import Network.Wai
 import System.IO.Unsafe(unsafeInterleaveIO)
 
 
 logFile = "log.txt"
 
 
-response :: FilePath -> CmdLine -> IO (Response String)
+response :: FilePath -> CmdLine -> IO Response
 response resources q = do
     logMessage q
-    let response x ys = responseOk $ [Header HdrContentType x] ++ ys
+    let response x ys z = responseOK ((hdrContentType,fromString x) : ys) (fromString z)
 
     dbs <- unsafeInterleaveIO $ case queryParsed q of
         Left _ -> return mempty
@@ -33,7 +33,7 @@ response resources q = do
     case web q of
         Just "suggest" -> fmap (response "application/json" []) $ runSuggest q
         Just "embed" -> return $ response "text/html" [hdr] $ unlines $ runEmbed dbs q
-            where hdr = Header (HdrCustom "Access-Control-Allow-Origin") "*"
+            where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
         Just "ajax" -> return $ response "text/html" [] $ unlines $ runQuery True dbs q
         Just "web" -> return $ response "text/html" [] $ unlines $
             header resources (escapeHTML $ queryText q) ++
