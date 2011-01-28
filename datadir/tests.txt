@@ -92,3 +92,11 @@ Did you mean: a -> b +testdata
 
 a to to b +testdata
 No results
+
+-- case insensitive module names
+BAR.bar_foo +testdata
+bar_foo
+
+-- lower case module prefixes via .
+bar.bar_foo +testdata
+bar_foo

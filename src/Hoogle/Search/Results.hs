@@ -98,5 +98,5 @@ correctModule mods x = null myMods || any (maybe True (f base mods . split '.'))
 
         -- match if x is further up the tree than y
         doesMatch [] y = True
-        doesMatch (x:xs) (y:ys) = x == y && doesMatch xs ys
+        doesMatch (x:xs) (y:ys) = map toLower x == map toLower y && doesMatch xs ys
         doesMatch _ _ = False

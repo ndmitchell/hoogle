@@ -43,4 +43,8 @@ class Eq2 a b => Ord2 a b | a -> b
 @entry package pkg1
 @entry package pkg2
 
+module Foo.Bar
+foo_bar :: Unit
 
+module Bar.Foo
+bar_foo :: Unit
