@@ -38,6 +38,26 @@ data Query = Query QueryInfo (QueryInfo -> String?)
 "(map > 1)" is total garbage... i think parse errors are still needed
 
 Should try and autocomplete at the end where possible
+
+Also need to support OR, AND and NOT.
+
+Perhaps have a tree:
+
+data Prop = Or Bool Prop Prop -- True is explicit OR
+          | And Bool Prop Prop -- True is explicit AND
+          | Not Bool Prop -- True is explicit NOT, otherwise is a "-" of the one after you
+          | Module Prefix String -- prefix is a string - "" for Foo.bar, otherwise "+" or "module:"
+          | Package Prefix String -- prefix is a string, "+" or "package"
+          | Name String -- just the name
+          | Type Bool TypeSig -- TypeSig needs extending to be full information, but otherwise the same. True is explicit "::"
+          | Bracket Prop -- explicit brackets
+          | Whitespace Int Prop Int -- explicit whitespace on either side
+
+Can now decompse parts easily and move more logic info the query. Also retain perfect information.
+
+Name and type searches are done separately and merged. Then traverse the tree applying everything else.
+
+Will need some pass at the start to decide which databases to use. That needs to impove anyway.
 -}
 
 
