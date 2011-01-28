@@ -80,8 +80,8 @@ filterResults q = f mods correctModule . f pkgs correctPackage
 
 -- pkgs is a non-empty list of MinusPackage values
 correctPackage :: [String] -> Entry -> Bool
-correctPackage pkgs x = null myPkgs || any (maybe True (`notElem` pkgs)) myPkgs
-    where myPkgs = map (fmap (entryName . fromLink) . listToMaybe . snd) $ entryLocations x
+correctPackage pkgs x = null myPkgs || any (maybe True (`notElem` map (map toLower) pkgs)) myPkgs
+    where myPkgs = map (fmap (map toLower . entryName . fromLink) . listToMaybe . snd) $ entryLocations x
 
 
 -- mods is a non-empty list of PlusModule/MinusModule

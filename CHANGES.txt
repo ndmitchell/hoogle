@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Make package matching case insensitive
     #372, add features to improve module name search
     Make module name searching case insensitive
     Fix for pattern match failure when searching for "to"
