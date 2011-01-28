@@ -100,3 +100,19 @@ bar_foo
 -- lower case module prefixes via .
 bar.bar_foo +testdata
 bar_foo
+
+-- #372, proper searching for modules
+foo.bar_foo +testdata
+bar_foo
+
+bar.foo.bar_foo +testdata
+bar_foo
+
+bar.fo.bar_foo +testdata
+bar_foo
+
+ba.foo.bar_foo +testdata
+@now No results
+
+ar.foo bar_foo +testdata
+@now No results

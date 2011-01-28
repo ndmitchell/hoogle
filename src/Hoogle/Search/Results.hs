@@ -86,17 +86,17 @@ correctPackage pkgs x = null myPkgs || any (maybe True (`notElem` pkgs)) myPkgs
 
 -- mods is a non-empty list of PlusModule/MinusModule
 correctModule :: [Scope] -> Entry -> Bool
-correctModule mods x = null myMods || any (maybe True (f base mods . split '.')) myMods
+correctModule mods x = null myMods || any (maybe True (f base mods)) myMods
     where
-        myMods = map (fmap (entryName . fromLink) . listToMaybe . drop 1 . snd) $ entryLocations x
+        myMods = map (fmap (map toLower . entryName . fromLink) . listToMaybe . drop 1 . snd) $
+                 entryLocations x
         base = case head mods of MinusModule{} -> True; _ -> False
 
         f z [] y = z
-        f z (PlusModule  x:xs) y | doesMatch x y = f True  xs y
-        f z (MinusModule x:xs) y | doesMatch x y = f False xs y
+        f z (PlusModule  x:xs) y | doesMatch (g x) y = f True  xs y
+        f z (MinusModule x:xs) y | doesMatch (g x) y = f False xs y
         f z (x:xs) y = f z xs y
+        g = map toLower . intercalate "."
 
-        -- match if x is further up the tree than y
-        doesMatch [] y = True
-        doesMatch (x:xs) (y:ys) = map toLower x == map toLower y && doesMatch xs ys
-        doesMatch _ _ = False
+        -- match if x is a module starting substring of y
+        doesMatch x y = x `isPrefixOf` y || ('.':x) `isInfixOf` y
