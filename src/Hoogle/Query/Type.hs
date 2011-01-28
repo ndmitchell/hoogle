@@ -57,8 +57,8 @@ instance Monoid Query where
 
 data Scope = PlusPackage  String
            | MinusPackage String
-           | PlusModule  [String]
-           | MinusModule [String]
+           | PlusModule   String
+           | MinusModule  String
            deriving (Eq, Show, Read, Data, Typeable)
 
 

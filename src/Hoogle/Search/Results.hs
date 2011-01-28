@@ -93,10 +93,9 @@ correctModule mods x = null myMods || any (maybe True (f base mods)) myMods
         base = case head mods of MinusModule{} -> True; _ -> False
 
         f z [] y = z
-        f z (PlusModule  x:xs) y | doesMatch (g x) y = f True  xs y
-        f z (MinusModule x:xs) y | doesMatch (g x) y = f False xs y
+        f z (PlusModule  x:xs) y | doesMatch (map toLower x) y = f True  xs y
+        f z (MinusModule x:xs) y | doesMatch (map toLower x) y = f False xs y
         f z (x:xs) y = f z xs y
-        g = map toLower . intercalate "."
 
         -- match if x is a module starting substring of y
         doesMatch x y = x `isPrefixOf` y || ('.':x) `isInfixOf` y

@@ -25,8 +25,8 @@ renderQuery x = Tags $ namesig ++ [Str " " | namesig /= [] && scp /= []] ++ scp
         scp = [Str $ unwords $ map f $ scope x | scope x /= []]
         f (PlusPackage x) = "+" ++ x
         f (MinusPackage x) = "-" ++ x
-        f (PlusModule xs) = "+" ++ intercalate "." xs
-        f (MinusModule xs) = "-" ++ intercalate "." xs
+        f (PlusModule x) = "+" ++ x
+        f (MinusModule x) = "-" ++ x
 
 
 renderTypeSig :: TypeSig -> TagStr

@@ -49,7 +49,7 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
                (do xs <- keyword `sepBy1` (char '.') ; spaces
                    return $ case xs of
                        [x] -> mempty{names=[x]}
-                       xs -> mempty{names=[last xs],scope=[PlusModule (init xs)]}
+                       xs -> mempty{names=[last xs],scope=[PlusModule $ intercalate "." $ init xs]}
                )
         
         operator = between (char '(') (char ')') op <|> op
@@ -78,8 +78,8 @@ parseFlagScope = do
         modname  = keyword `sepBy1` (char '.')
     modu <- modname
     case modu of
-        [x] -> return $ mempty{scope=[if isLower (head x) then aPackage x else aModule [x]]}
-        xs -> return $ mempty{scope=[aModule xs]}
+        [x] -> return $ mempty{scope=[if isLower (head x) then aPackage x else aModule x]}
+        xs -> return $ mempty{scope=[aModule $ intercalate "." xs]}
 
 
 keyword = do
