@@ -3,6 +3,7 @@ Changelog for Hoogle
     Make package matching case insensitive
     #372, add features to improve module name search
     Make module name searching case insensitive
+4.2.1
     Fix for pattern match failure when searching for "to"
     Fix for not sending text/html when serving local files
     Eliminate the --nostdin flag, now unnecessary
