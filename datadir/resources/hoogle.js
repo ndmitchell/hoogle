@@ -229,30 +229,27 @@ function docs(i)
 
 // Access the browser query string
 // From http://stackoverflow.com/questions/901115/get-querystring-values-with-jquery/3867610#3867610
-;(function ($) {
-    $.extend({      
-        getQueryString: function (name) {           
-            function parseParams() {
-                var params = {},
-                    e,
-                    a = /\+/g,  // Regex for replacing addition symbol with a space
-                    r = /([^&=]+)=?([^&]*)/g,
-                    d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
-                    q = window.location.search.substring(1);
+$.getQueryString = function(name)
+{           
+    function parseParams() {
+        var params = {},
+            e,
+            a = /\+/g,  // Regex for replacing addition symbol with a space
+            r = /([^&=]+)=?([^&]*)/g,
+            d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+            q = window.location.search.substring(1);
 
-                while (e = r.exec(q))
-                    params[d(e[1])] = d(e[2]);
+        while (e = r.exec(q))
+            params[d(e[1])] = d(e[2]);
 
-                return params;
-            }
+        return params;
+    }
 
-            if (!this.queryStringParams)
-                this.queryStringParams = parseParams(); 
+    if (!this.queryStringParams)
+        this.queryStringParams = parseParams(); 
 
-            return this.queryStringParams[name];
-        }
-    });
-})(jQuery);
+    return this.queryStringParams[name];
+}
 
 
 var Key = {
