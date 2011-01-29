@@ -259,10 +259,8 @@ var Key = {
     Escape: 27
 };
 
-
 function unpx(x){var r = 1 * x.replace("px",""); return isNaN(r) ? 0 : r;}
 function px(x){return x + "px";}
-
 
 function cache(maxElems)
 {
@@ -281,7 +279,6 @@ function cache(maxElems)
         }
     };
 }
-
 
 function watchdog(time, fun)
 {
