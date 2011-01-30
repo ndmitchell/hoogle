@@ -75,7 +75,7 @@ function newReal()
     return {
         showWaiting: function(){$("h1").text("Still working...");},
         showError: function(status,text){$body.html("<h1><b>Error:</b> status " + status + "</h1><p>" + text + "</p>")},
-        showResult: function(text){$body.html(text);}
+        showResult: function(text){$body.html(text); newDocs();}
     }
 }
 
@@ -216,11 +216,34 @@ function searchPlugin()
 /////////////////////////////////////////////////////////////////////
 // DOCUMENTATION
 
-function docs(i)
+$(function(){
+    if (embed) return;
+    $(window).resize(resizeDocs);
+    newDocs();
+});
+
+function resizeDocs()
 {
-    var e = document.getElementById("d" + i);
-    e.className = (e.className == "shut" ? "open" : "shut");
-    return false;
+    $("#body .doc").each(function(){
+        // If a segment is open, it should remain open forever
+        var $this = $(this);
+        var toosmall = ($.support.preWrap && $this.hasClass("newline")) ||
+                       ($this.height() < $this.children().height());
+        if (toosmall && !$this.hasClass("open"))
+            $this.addClass("shut");
+        else if (!toosmall && $this.hasClass("shut"))
+            $this.removeClass("shut");
+    });
+}
+
+function newDocs()
+{
+    resizeDocs();
+    $("#body .doc").click(function(){
+        var $this = $(this);
+        if ($this.hasClass("open") || $this.hasClass("shut"))
+            $this.toggleClass("open").toggleClass("shut");
+    });
 }
 
 
@@ -251,6 +274,8 @@ $.getQueryString = function(name)
     return this.queryStringParams[name];
 }
 
+// Supports white-space: pre-wrap;
+$.support.preWrap = !($.browser.msie && $.browser.version < 8);
 
 var Key = {
     Up: 38,

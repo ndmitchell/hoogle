@@ -221,32 +221,31 @@ a.dull, a.dull:hover {
 }
 
 /** DOCS **/
+/*
+docs may be in one of three states:
+    .doc - shut and no icon
+    .doc.shut - shut with an icon to expand
+    .doc.open - open with an icon to collapse
+*/
 
 .doc {
-    vertical-align: top;
     font-size: 8pt;
+    background-repeat: no-repeat;
+    background-position: 2px left;
 }
 .doc, .doc a {
     color: #888;
 }
 
-.docs {
-    margin: 2px;
-    margin-right: 4px;
-    width: 10px;
-    height: 10px;
-    display: block;
-    float: left;
-    background-repeat: no-repeat;
-    background-position: center center;
-}
+.open, .shut {padding-left: 13px;}
+.open {background-image: url(less_gray.png);}
+.shut {background-image: url(more_gray.png);}
 
-.shut .docs {background-image: url(more_gray.png);}
-.open .docs {background-image: url(less_gray.png);}
-
-.shut {
+.doc, .shut {
     max-height: 1.5em;
     overflow: hidden;
-    color: #888;
 }
-.shut br {display: none;}
+.open {
+    max-height: 100%;
+    white-space: pre-wrap;
+}
