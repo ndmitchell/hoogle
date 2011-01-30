@@ -20,7 +20,8 @@ server :: CmdLine -> IO ()
 server q@Server{..} = do
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
-    run port $ \r -> liftIO $ do
+    let err x = putStrLn $ "Error: " ++ show x
+    runEx err port $ \r -> liftIO $ do
         withMVar v $ const $ putStrLn $ bsUnpack (pathInfo r) ++ bsUnpack (queryString r)
         talk q r
 

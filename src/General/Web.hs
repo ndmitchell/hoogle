@@ -5,8 +5,8 @@
 -}
 
 module General.Web(
-    statusOK, hdrContentType, hdrCacheControl,
-    responseOK, responseBadRequest, responseNotFound, responseError,
+    hdrContentType, hdrCacheControl,
+    responseOK, responseNotFound,
     responseFlatten,
     URL, filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
     escapeHTML, (++&), htmlTag,
@@ -27,15 +27,11 @@ type Args = [(String, String)]
 ---------------------------------------------------------------------
 -- WAI STUFF
 
-statusOK = status200
 hdrContentType = fromString "Content-Type" :: ResponseHeader
 hdrCacheControl = fromString "Cache-Control" :: ResponseHeader
 
 responseOK = responseLBS statusOK
-responseBadRequest x = responseLBS status400 [] $ fromString $ "Bad request: " ++ x
 responseNotFound x = responseLBS status404 [] $ fromString $ "File not found: " ++ x
-responseError x = responseLBS status500 [] $ fromString $ "Internal server error: " ++ x
-
 
 responseFlatten :: Response -> IO (Status, ResponseHeaders, LBString)
 responseFlatten r = responseEnumerator r $ \s hs -> do
