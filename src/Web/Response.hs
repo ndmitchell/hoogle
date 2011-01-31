@@ -38,7 +38,7 @@ response resources q = do
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
         Just "ajax" -> return $ response "text/html" [] $ runQuery True dbs q
         Just "web" -> return $ response "text/html" [] $
-            header version resources (queryText q) ++
+            header version version resources (queryText q) ++
             runQuery False dbs q ++ footer version
         mode -> return $ response "text/html" [] $ "Unknown webmode: " ++ fromMaybe "none" mode
 
