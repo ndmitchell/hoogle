@@ -51,6 +51,7 @@ generate name xs = unlines $
 
 generateTemplate :: Template -> [String]
 generateTemplate Template{..} = "" :
+        (templateName ++ " :: " ++ concat (replicate (length templateArgs) "String -> ") ++ "String") :
         (unwords (templateName : templateArgs) ++ " = \"\"") :
         map ((++) "  " . f) templateContents
     where
