@@ -21,7 +21,6 @@ import System.FilePath as X hiding (combine)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 
-import Control.Exception(bracket)
 import System.IO
 
 
@@ -97,7 +96,7 @@ writeFileUtf8 :: FilePath -> String -> IO ()
 #if __GLASGOW_HASKELL__ < 612
 writeFileUtf8 x y = writeFile x y
 #else
-writeFileUtf8 x y = bracket (openFile x WriteMode) hClose $ \h -> do
+writeFileUtf8 x y = withFile x WriteMode $ \h -> do
     hSetEncoding h utf8
     hPutStr h y
 #endif
