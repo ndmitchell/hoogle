@@ -79,14 +79,7 @@ runEmbed dbs cq@Search{queryParsed = Right q}
 
 runQuery :: Bool -> Database -> CmdLine -> [String]
 runQuery ajax dbs Search{queryParsed = Left err} =
-    ["<h1>" ++ showTagHTMLWith f (parseInput err) ++ "</h1>"
-    ,"<p>"
-    ,"  <b>Parse error:</b> " ++& errorMessage err
-    ,"</p><p>"
-    ,"  For information on what queries should look like, see the"
-    ,"  <a href='http://www.haskell.org/haskellwiki/Hoogle'>user manual</a>."
-    ,"</p>"
-    ]
+    [parseError (showTagHTMLWith f $ parseInput err) (errorMessage err)]
     where
         f (TagEmph x) = Just $ "<span class='error'>" ++ showTagHTMLWith f x ++ "</span>"
         f _ = Nothing

@@ -33,3 +33,10 @@ footer version = ""
 
 welcome = ""
   ++ "<h1><b>Welcome to Hoogle</b></h1>\n<p>\n    Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries\n    by either function name, or by approximate type signature.\n</p>\n<p id='example'>\n    Example searches:<br/>\n     <a href='?hoogle=map'>map</a>\n<br/>\n     <a href='?hoogle=%28a+-%3e+b%29+-%3e+%5ba%5d+-%3e+%5bb%5d'>(a -&gt; b) -&gt; [a] -&gt; [b]</a>\n<br/>\n     <a href='?hoogle=Ord+a+%3d%3e+%5ba%5d+-%3e+%5ba%5d'>Ord a =&gt; [a] -&gt; [a]</a>\n<br/>\n     <a href='?hoogle=Data%2eMap%2einsert'>Data.Map.insert</a>\n<br/>\n\t<br/>Enter your own search at the top of the page.\n</p>\n<p>\n    The <a href='http://www.haskell.org/haskellwiki/Hoogle'>Hoogle manual</a> contains more details,\n    including further details on search queries, how to install Hoogle as a command line application\n    and how to integrate Hoogle with Firefox/Emacs/Vim etc.\n</p>\n<p>\n    I am very interested in any feedback you may have. Please\n    <a href='http://community.haskell.org/~ndm/contact/'>email me</a>, or add an entry to my\n    <a href='http://code.google.com/p/ndmitchell/issues/list'>bug tracker</a>.\n</p>\n"
+
+parseError errFormat errMessage = ""
+  ++ "<h1>"
+  ++ errFormat
+  ++ "</h1>\n<p>\n\t<b>Parse error:</b> "
+  ++& errMessage
+  ++ "\n</p><p>\n\tFor information on what queries should look like, see the\n\t<a href='http://www.haskell.org/haskellwiki/Hoogle'>user manual</a>.\n</p>\n"
