@@ -34,12 +34,12 @@ response resources q = do
 
     case web q of
         Just "suggest" -> fmap (response "application/json" []) $ runSuggest q
-        Just "embed" -> return $ response "text/html" [hdr] $ unlines $ runEmbed dbs q
+        Just "embed" -> return $ response "text/html" [hdr] $ runEmbed dbs q
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
-        Just "ajax" -> return $ response "text/html" [] $ unlines $ runQuery True dbs q
+        Just "ajax" -> return $ response "text/html" [] $ runQuery True dbs q
         Just "web" -> return $ response "text/html" [] $
             header version resources (queryText q) ++
-            unlines (runQuery False dbs q) ++ footer version
+            runQuery False dbs q ++ footer version
         mode -> return $ response "text/html" [] $ "Unknown webmode: " ++ fromMaybe "none" mode
 
 
@@ -63,11 +63,11 @@ runSuggest cq@Search{queryText=q} = do
 runSuggest _ = return ""
 
 
-runEmbed :: Database -> CmdLine -> [String]
-runEmbed dbs Search{queryParsed = Left err} = ["<i>Parse error: " ++& errorMessage err ++ "</i>"]
+runEmbed :: Database -> CmdLine -> String
+runEmbed dbs Search{queryParsed = Left err} = "<i>Parse error: " ++& errorMessage err ++ "</i>"
 runEmbed dbs cq@Search{queryParsed = Right q}
-    | null now = ["<i>No results found</i>"]
-    | otherwise =
+    | null now = "<i>No results found</i>"
+    | otherwise = unlines
         ["<a href='" ++ url ++ "'>" ++ showTagHTML (transform f $ self $ snd x) ++ "</a>"
         | x <- now, let url = fromList "" $ map fst $ locations $ snd x]
     where
@@ -77,18 +77,18 @@ runEmbed dbs cq@Search{queryParsed = Right q}
         f x = x
 
 
-runQuery :: Bool -> Database -> CmdLine -> [String]
+runQuery :: Bool -> Database -> CmdLine -> String
 runQuery ajax dbs Search{queryParsed = Left err} =
-    [parseError (showTagHTMLWith f $ parseInput err) (errorMessage err)]
+    parseError (showTagHTMLWith f $ parseInput err) (errorMessage err)
     where
         f (TagEmph x) = Just $ "<span class='error'>" ++ showTagHTMLWith f x ++ "</span>"
         f _ = Nothing
 
 
-runQuery ajax dbs q | fromRight (queryParsed q) == mempty = [welcome]
+runQuery ajax dbs q | fromRight (queryParsed q) == mempty = welcome
 
 
-runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
+runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = unlines $
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
         ["<div id='left'>" ++ also ++ "</div>" | not $ null pkgs] ++
