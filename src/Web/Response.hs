@@ -15,9 +15,12 @@ import Data.Time.Format
 import System.Locale
 import Network.Wai
 import System.IO.Unsafe(unsafeInterleaveIO)
+import qualified Paths_hoogle(version)
+import Data.Version(showVersion)
 
 
 logFile = "log.txt"
+version = showVersion Paths_hoogle.version
 
 
 response :: FilePath -> CmdLine -> IO Response
@@ -34,9 +37,9 @@ response resources q = do
         Just "embed" -> return $ response "text/html" [hdr] $ unlines $ runEmbed dbs q
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
         Just "ajax" -> return $ response "text/html" [] $ unlines $ runQuery True dbs q
-        Just "web" -> return $ response "text/html" [] $ unlines $
-            header resources (escapeHTML $ queryText q) ++
-            runQuery False dbs q ++ footer
+        Just "web" -> return $ response "text/html" [] $
+            header version resources (queryText q) ++
+            unlines (runQuery False dbs q) ++ footer version
         mode -> return $ response "text/html" [] $ "Unknown webmode: " ++ fromMaybe "none" mode
 
 
@@ -89,7 +92,7 @@ runQuery ajax dbs Search{queryParsed = Left err} =
         f _ = Nothing
 
 
-runQuery ajax dbs q | fromRight (queryParsed q) == mempty = welcome
+runQuery ajax dbs q | fromRight (queryParsed q) == mempty = [welcome]
 
 
 runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} =
@@ -163,3 +166,7 @@ showTag = showTagHTML . transform f
         f (TagLink "" x) = TagLink (if "http:" `isPrefixOf` str then str else searchLink str) x
             where str = showTagText x
         f x = x
+
+
+searchLink :: String -> URL
+searchLink x = "?hoogle=" ++% x

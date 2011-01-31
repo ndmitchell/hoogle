@@ -7,6 +7,10 @@
 
 :def testfull \x -> return $ ":main test --example " ++ x
 
+:def server const $ return ":main server"
+
+:def template const $ return ":!runhaskell -isrc src/Web/Template.hs datadir/resources/template.html src/Web/Page.hs Web.Page"
+
 :{
 :def hlint const $ return $ unlines
         [":!hlint src --report"
