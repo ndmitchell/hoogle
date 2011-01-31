@@ -102,6 +102,10 @@ writeFileUtf8 x y = withFile x WriteMode $ \h -> do
 #endif
 
 
+writeFileBinary :: FilePath -> String -> IO ()
+writeFileBinary x y = withBinaryFile x WriteMode $ \h -> hPutStr h y
+
+
 ltrim = dropWhile isSpace
 rtrim = reverse . ltrim . reverse
 trim = ltrim . rtrim
