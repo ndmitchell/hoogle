@@ -40,7 +40,9 @@ respArgs Server{..} = do
         getTemplate
             | null template = return $ return defaultTemplates
             | otherwise = do
-                let get = fmap (loadTemplates . unlines) $ mapM readFile' template
+                let get = do x <- fmap (loadTemplates . unlines) $ mapM readFile' template
+                             putStrLn "Templates loaded"
+                             return x
                 if dynamic then  buffer template get else return get
 
         modTime ext = unsafeInterleaveIO $ do
