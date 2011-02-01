@@ -26,21 +26,23 @@ version = showVersion Paths_hoogle.version
 response :: FilePath -> CmdLine -> IO Response
 response resources q = do
     logMessage q
-    let response x ys z = responseOK ((hdrContentType,fromString x) : ys) (fromString z)
+    let response x ys = fmap $ responseOK ((hdrContentType,fromString x) : ys) . fromString
 
     dbs <- unsafeInterleaveIO $ case queryParsed q of
         Left _ -> return mempty
         Right x -> fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
 
     case web q of
-        Just "suggest" -> fmap (response "application/json" []) $ runSuggest q
-        Just "embed" -> return $ response "text/html" [hdr] $ runEmbed dbs q
+        Just "suggest" -> response "application/json" [] $ runSuggest q
+        Just "embed" -> response "text/html" [hdr] $ return $ runEmbed dbs q
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
-        Just "ajax" -> return $ response "text/html" [] $ runQuery True dbs q
-        Just "web" -> return $ response "text/html" [] $
-            header version version resources (queryText q) ++
-            runQuery False dbs q ++ footer version
-        mode -> return $ response "text/html" [] $ "Unknown webmode: " ++ fromMaybe "none" mode
+        Just "ajax" -> response "text/html" [] $ runQuery True dbs q
+        Just "web" -> do
+            hdr <- header version version resources (queryText q)
+            bod <- runQuery False dbs q
+            ftr <- footer version
+            response "text/html" [] $ return $ hdr ++ bod ++ ftr
+        mode -> response "text/html" [] $ return $ "Unknown webmode: " ++ fromMaybe "none" mode
 
 
 logMessage :: CmdLine -> IO ()
@@ -77,7 +79,7 @@ runEmbed dbs cq@Search{queryParsed = Right q}
         f x = x
 
 
-runQuery :: Bool -> Database -> CmdLine -> String
+runQuery :: Bool -> Database -> CmdLine -> IO String
 runQuery ajax dbs Search{queryParsed = Left err} =
     parseError (showTagHTMLWith f $ parseInput err) (errorMessage err)
     where
@@ -88,7 +90,7 @@ runQuery ajax dbs Search{queryParsed = Left err} =
 runQuery ajax dbs q | fromRight (queryParsed q) == mempty = welcome
 
 
-runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = unlines $
+runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = return $ unlines $
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
         ["<div id='left'>" ++ also ++ "</div>" | not $ null pkgs] ++
