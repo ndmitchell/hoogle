@@ -47,7 +47,7 @@ response ResponseArgs{..} q = do
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
         Just "ajax" -> return $ response "text/html" [] $ runQuery templates True dbs q
         Just "web" -> return $ response "text/html" [] $
-            header templates updatedCss updatedJs (queryText q ++ if null $ queryText q then "" else " - ") ++
+            header templates updatedCss updatedJs (queryText q) ['-' | queryText q /= ""] ++
             runQuery templates False dbs q ++ footer templates version
         mode -> return $ response "text/html" [] $ "Unknown webmode: " ++ fromMaybe "none" mode
 

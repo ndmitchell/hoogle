@@ -2,7 +2,7 @@ module Web.Page(Templates(..), defaultTemplates, loadTemplates) where
 import Web.Template
 
 data Templates = Templates
-  {header :: String -> String -> String -> String
+  {header :: String -> String -> String -> String -> String
   ,footer :: String -> String
   ,welcome :: String
   ,parseError :: String -> String -> String
@@ -15,20 +15,22 @@ loadTemplates :: String -> Templates
 loadTemplates x = Templates _header _footer _welcome _parseError
     where
         [__header,__footer,__welcome,__parseError] = reload x $
-            ("header",["css","js","query"]) :
+            ("header",["css","js","query","queryHyphen"]) :
             ("footer",["version"]) :
             ("welcome",[]) :
             ("parseError",["errFormat","errMessage"]) :
             []
-        _header css js query = __header [css,js,query]
+        _header css js query queryHyphen = __header [css,js,query,queryHyphen]
         _footer version = __footer [version]
         _welcome = __welcome []
         _parseError errFormat errMessage = __parseError [errFormat,errMessage]
 
-_header css js query = ""
+_header css js query queryHyphen = ""
   ++ "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>\n    <head profile='http://a9.com/-/spec/opensearch/1.1/'>\n        <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1' />\n        <title>"
   ++ escapeHTML query
-  ++ "Hoogle</title>\n        <link type='text/css' rel='stylesheet' href='res/hoogle.css?version="
+  ++ " "
+  ++ escapeHTML queryHyphen
+  ++ " Hoogle</title>\n        <link type='text/css' rel='stylesheet' href='res/hoogle.css?version="
   ++ escapeURL css
   ++ "' />\n        <link type='image/png' rel='icon' href='res/favicon.png' />\n        <link type='application/opensearchdescription+xml' rel='search' href='res/search.xml' title='Hoogle' />\n        <script type='text/javascript' src='res/jquery-1.4.2.js'> </script>\n        <script type='text/javascript' src='res/jquery.cookie.js'> </script>\n        <script type='text/javascript' src='res/hoogle.js?version="
   ++ escapeURL js
