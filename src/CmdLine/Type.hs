@@ -32,7 +32,7 @@ data CmdLine
         ,queryText :: String
         }
     | Data {redownload :: Bool, local :: [String], datadir :: FilePath, threads :: Int, actions :: [String]}
-    | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, dynamic :: Bool}
+    | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, dynamic :: Bool, template :: [FilePath]}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String}
     | Log {logfiles :: [FilePath]}
@@ -72,6 +72,7 @@ server = Server
     ,resources = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
     ,local_ = def &= help "Rewrite and serve file: links (potential security hole)"
     ,dynamic = def &= name "x" &= help "Allow resource files to change during execution"
+    ,template = def &= typFile &= help "Template files to use instead of default definitions"
     } &= help "Start a Hoogle server"
 
 dump = Dump

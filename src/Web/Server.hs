@@ -6,6 +6,7 @@ import General.Base
 import General.Web
 import CmdLine.All
 import Web.Response
+import Web.Page
 import System.IO.Unsafe(unsafeInterleaveIO)
 import Control.Monad.IO.Class
 import General.System
@@ -30,16 +31,39 @@ server q@Server{..} = do
 
 
 respArgs :: CmdLine -> IO (IO ResponseArgs)
-respArgs Server{..} | dynamic = return args
-                    | otherwise = do x <- args; return $ return x
+respArgs Server{..} = do
+    t <- getTemplate
+    if dynamic
+        then return $ args t
+        else do x <- args t; return $ return x
     where
+        getTemplate
+            | null template = return $ return defaultTemplates
+            | otherwise = do
+                let get = fmap (loadTemplates . unlines) $ mapM readFile template
+                if dynamic then  buffer template get else return get
+
         modTime ext = unsafeInterleaveIO $ do
             TOD a _ <- getModificationTime $ resources </> "hoogle" <.> ext
             return $ show a
 
-        args = do
+        args t = do
             css <- modTime "css"; js <- modTime "js"
-            return $ responseArgs{updatedCss=css, updatedJs=js}
+            t <- t
+            return $ responseArgs{updatedCss=css, updatedJs=js, templates=t}
+
+
+-- | Given a set of paths something relies on, and a value to generate it, return something that generates it minimally
+buffer :: [FilePath] -> IO a -> IO (IO a)
+buffer files act = do
+    val <- act
+    ts <- mapM getModificationTime files
+    ref <- newMVar (ts,val)
+    return $ modifyMVar ref $ \(ts,val) -> do
+        ts2 <- mapM getModificationTime files
+        if ts == ts2 then return ((ts,val),val) else do
+            val <- act
+            return ((ts2,val),val)
 
 
 -- FIXME: Avoid all the conversions to/from LBS

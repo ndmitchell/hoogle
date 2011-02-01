@@ -2,7 +2,8 @@
 
 module Web.Template(
     main,
-    escapeURL, escapeHTML
+    escapeURL, escapeHTML,
+    reload
     ) where
 
 import General.Base
@@ -15,6 +16,7 @@ main = do
     [from,to,modname] <- getArgs
     src <- readFile from
     writeFileBinary to $ generate modname $ resolve $ parse src
+
 
 ---------------------------------------------------------------------
 -- TYPE
@@ -42,12 +44,46 @@ joinOut (Out x:Out y:zs) = joinOut $ Out (x++y) : zs
 joinOut (x:xs) = x : joinOut xs
 joinOut [] = []
 
+
+getTemplate :: [Template] -> String -> Template
+getTemplate ts x = case find ((==) x . templateName) ts of
+    Nothing -> error $ "Could not find template " ++ x
+    Just y -> y
+
+
+---------------------------------------------------------------------
+-- OUTPUT
+
+-- Given a set of templates/args you need available, and a piece of sour
+reload
+    :: String -- ^ The source code
+    -> [(String,[String])] -- ^ A set of templates/args you need avaialble
+    -> [[String] -> String] -- ^ A list of functions which match the templates/args
+reload src want = map f want
+    where
+        ts = resolve $ parse src
+
+        f (name,args)
+            | templateArgs t /= args = error $
+                "Arguments for template " ++ name ++ " differ, expected " ++ show args ++ ", got " ++ show (templateArgs t)
+            | otherwise = reloadTemplate t
+            where t = getTemplate ts name
+
+
+reloadTemplate :: Template -> ([String] -> String)
+reloadTemplate t as = concatMap f $ templateContents t
+    where
+        atts = zip (templateArgs t) as
+        f (Out x) = x
+        f (Att e x) = escape e $ fromJust $ lookup x atts
+
+
 ---------------------------------------------------------------------
 -- OUTPUT
 
 generate :: String -> [Template] -> String
 generate name xs = unlines $
-    ["module " ++ name ++ "(Templates(..), templates) where"
+    ["module " ++ name ++ "(Templates(..), defaultTemplates, loadTemplates) where"
     ,"import Web.Template"
     ,""
     ,"data Templates = Templates"] ++
@@ -55,7 +91,17 @@ generate name xs = unlines $
          [templateName t ++ " :: " ++ intercalate " -> " (replicate (length (templateArgs t) + 1) "String") | t <- ts] ++
     ["  }"
     ,""
-    ,"templates = Templates" ++ concatMap ((++) "  _" . templateName) ts] ++
+    ,"defaultTemplates :: Templates"
+    ,"defaultTemplates = Templates" ++ concatMap ((++) " _" . templateName) ts
+    ,""
+    ,"loadTemplates :: String -> Templates"
+    ,"loadTemplates x = Templates" ++ concatMap ((++) " _" . templateName) ts
+    ,"    where"
+    ,"        [" ++ intercalate "," (map ((++) "__" . templateName) ts) ++ "] = reload x $"] ++
+    ["            " ++ show (templateName t, templateArgs t) ++ " :" | t <- ts] ++
+    ["            []"] ++
+    ["        _" ++ unwords (templateName t:templateArgs t) ++
+        " = __" ++ templateName t ++ " [" ++ intercalate "," (templateArgs t) ++ "]" | t <- ts] ++
     concatMap generateTemplate ts
     where
         ts = nubBy ((==) `on` templateName) $ filter templateExport xs
@@ -89,7 +135,7 @@ resolveSet t = t{templateContents = joinOut $ f [] $ templateContents t}
 
 resolveCall args t = t{templateContents = concatMap f $ templateContents t}
     where
-        f (Call x) | Just t <- find ((==) x . templateName) args = concatMap f $ templateContents t
+        f (Call x) = concatMap f $ templateContents $ getTemplate args x
         f x = [x]
 
 

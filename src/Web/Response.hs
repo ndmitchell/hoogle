@@ -26,10 +26,10 @@ version = showVersion Paths_hoogle.version
 data ResponseArgs = ResponseArgs
     {updatedCss :: String
     ,updatedJs :: String
-    ,template :: Templates
+    ,templates :: Templates
     }
 
-responseArgs = ResponseArgs version version templates
+responseArgs = ResponseArgs version version defaultTemplates
 
 
 response :: ResponseArgs -> CmdLine -> IO Response
@@ -45,10 +45,10 @@ response ResponseArgs{..} q = do
         Just "suggest" -> fmap (response "application/json" []) $ runSuggest q
         Just "embed" -> return $ response "text/html" [hdr] $ runEmbed dbs q
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
-        Just "ajax" -> return $ response "text/html" [] $ runQuery template True dbs q
+        Just "ajax" -> return $ response "text/html" [] $ runQuery templates True dbs q
         Just "web" -> return $ response "text/html" [] $
-            header template updatedCss updatedJs (queryText q) ++
-            runQuery template False dbs q ++ footer template version
+            header templates updatedCss updatedJs (queryText q ++ if null $ queryText q then "" else " - ") ++
+            runQuery templates False dbs q ++ footer templates version
         mode -> return $ response "text/html" [] $ "Unknown webmode: " ++ fromMaybe "none" mode
 
 
@@ -87,17 +87,17 @@ runEmbed dbs cq@Search{queryParsed = Right q}
 
 
 runQuery :: Templates -> Bool -> Database -> CmdLine -> String
-runQuery template ajax dbs Search{queryParsed = Left err} =
-    parseError template (showTagHTMLWith f $ parseInput err) (errorMessage err)
+runQuery templates ajax dbs Search{queryParsed = Left err} =
+    parseError templates (showTagHTMLWith f $ parseInput err) (errorMessage err)
     where
         f (TagEmph x) = Just $ "<span class='error'>" ++ showTagHTMLWith f x ++ "</span>"
         f _ = Nothing
 
 
-runQuery template ajax dbs q | fromRight (queryParsed q) == mempty = welcome template
+runQuery templates ajax dbs q | fromRight (queryParsed q) == mempty = welcome templates
 
 
-runQuery template ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = unlines $
+runQuery templates ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = unlines $
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
         ["<div id='left'>" ++ also ++ "</div>" | not $ null pkgs] ++

@@ -7,7 +7,7 @@
 
 :def testfull \x -> return $ ":main test --example " ++ x
 
-:def server const $ return ":main server --dynamic"
+:def server const $ return ":main server --dynamic --template=datadir/resources/template.html"
 
 :def template const $ return ":!runhaskell -isrc src/Web/Template.hs datadir/resources/template.html src/Web/Page.hs Web.Page"
 

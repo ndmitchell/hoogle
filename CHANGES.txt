@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Add --template to override the templates at runtime
     Add --dynamic flag to server mode, include update stamps
     Upgrade wai and warp, adds an exception handler
     #82, rewrite showing document snippets, better expand/collapse
