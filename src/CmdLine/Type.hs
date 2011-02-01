@@ -22,6 +22,7 @@ data CmdLine
         ,link :: Bool
         ,info :: Bool
         ,databases :: [FilePath]
+        ,resources :: FilePath
         ,start :: Maybe Int
         ,count :: Maybe Int
         ,web :: Maybe String
@@ -42,7 +43,7 @@ data CmdLine
       deriving (Data,Typeable,Show)
 
 emptyParseError = ParseError 0 0 "" $ Str ""
-blankSearch = Search False False False [] Nothing Nothing Nothing 1 [] (Left emptyParseError) ""
+blankSearch = Search False False False [] "" Nothing Nothing Nothing 1 [] (Left emptyParseError) ""
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,data_,server,combine,convert,test,dump,rank,log_]
     &= verbosity &= program "hoogle"
@@ -57,6 +58,7 @@ search_ = Search
     ,link = def &= help "Give URL's for each result"
     ,color = def &= name "colour" &= help "Use colored output (requires ANSI terminal)"
     ,databases = ["."] &= typDir &= help "Directories to search for databases"
+    ,resources = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
     ,repeat_ = 1 &= help "Run the search multiple times (for benchmarking)"
     ,queryParsed = Left emptyParseError &= ignore
     ,queryText = "" &= ignore
@@ -69,7 +71,6 @@ test = Test
 
 server = Server
     {port = 80 &= typ "INT" &= help "Port number"
-    ,resources = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
     ,local_ = def &= help "Rewrite and serve file: links (potential security hole)"
     } &= help "Start a Hoogle server"
 

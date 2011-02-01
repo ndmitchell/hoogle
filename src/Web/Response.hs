@@ -23,8 +23,8 @@ logFile = "log.txt"
 version = showVersion Paths_hoogle.version
 
 
-response :: FilePath -> CmdLine -> IO Response
-response resources q = do
+response :: CmdLine -> IO Response
+response q = do
     logMessage q
     let response x ys = fmap $ responseOK ((hdrContentType,fromString x) : ys) . fromString
 
@@ -38,7 +38,7 @@ response resources q = do
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
         Just "ajax" -> response "text/html" [] $ runQuery True dbs q
         Just "web" -> do
-            hdr <- header version version resources (queryText q)
+            hdr <- header version version (resources q) (queryText q)
             bod <- runQuery False dbs q
             ftr <- footer version
             response "text/html" [] $ return $ hdr ++ bod ++ ftr
