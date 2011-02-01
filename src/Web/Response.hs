@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Web.Response(response) where
+module Web.Response(response, ResponseArgs(..), responseArgs) where
 
 import CmdLine.All
 import Hoogle
@@ -23,8 +23,16 @@ logFile = "log.txt"
 version = showVersion Paths_hoogle.version
 
 
-response :: CmdLine -> IO Response
-response q = do
+data ResponseArgs = ResponseArgs
+    {updatedJs :: IO String
+    ,updatedCss :: IO String
+    }
+
+responseArgs = ResponseArgs (return version) (return version)
+
+
+response :: ResponseArgs -> CmdLine -> IO Response
+response ResponseArgs{..} q = do
     logMessage q
     let response x ys = fmap $ responseOK ((hdrContentType,fromString x) : ys) . fromString
 
@@ -38,7 +46,9 @@ response q = do
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
         Just "ajax" -> response "text/html" [] $ runQuery True dbs q
         Just "web" -> do
-            hdr <- header version version (queryText q)
+            css <- updatedCss
+            js <- updatedJs
+            hdr <- header css js (queryText q)
             bod <- runQuery False dbs q
             ftr <- footer version
             response "text/html" [] $ return $ hdr ++ bod ++ ftr

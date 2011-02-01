@@ -9,4 +9,4 @@ import Web.Response
 
 action :: CmdLine -> IO ()
 action q@Server{} = server q
-action q = cgiResponse =<< response q
+action q = cgiResponse =<< response responseArgs q
