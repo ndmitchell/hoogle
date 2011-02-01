@@ -16,7 +16,6 @@ main = do
     src <- readFile from
     writeFileBinary to $ generate modname $ resolve $ parse src
 
-
 ---------------------------------------------------------------------
 -- TYPE
 
@@ -48,14 +47,22 @@ joinOut [] = []
 
 generate :: String -> [Template] -> String
 generate name xs = unlines $
-    ("module " ++ name ++ " where") :
-    "import Web.Template" :
-    concatMap generateTemplate (filter templateExport xs)
+    ["module " ++ name ++ "(Templates(..), templates) where"
+    ,"import Web.Template"
+    ,""
+    ,"data Templates = Templates"] ++
+    zipWith (++) ("  {":repeat "  ,")
+         [templateName t ++ " :: " ++ intercalate " -> " (replicate (length (templateArgs t) + 1) "String") | t <- ts] ++
+    ["  }"
+    ,""
+    ,"templates = Templates" ++ concatMap ((++) "  _" . templateName) ts] ++
+    concatMap generateTemplate ts
+    where
+        ts = nubBy ((==) `on` templateName) $ filter templateExport xs
 
 generateTemplate :: Template -> [String]
 generateTemplate Template{..} = "" :
-        (templateName ++ " :: " ++ concat (replicate (length templateArgs) "String -> ") ++ "IO String") :
-        (unwords (templateName : templateArgs) ++ " = return $ \"\"") :
+        (unwords (('_':templateName) : templateArgs) ++ " = \"\"") :
         map ((++) "  " . f) templateContents
     where
         f (Out x) = "++ " ++ show x

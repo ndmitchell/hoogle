@@ -24,35 +24,32 @@ version = showVersion Paths_hoogle.version
 
 
 data ResponseArgs = ResponseArgs
-    {updatedJs :: IO String
-    ,updatedCss :: IO String
+    {updatedCss :: String
+    ,updatedJs :: String
+    ,template :: Templates
     }
 
-responseArgs = ResponseArgs (return version) (return version)
+responseArgs = ResponseArgs version version templates
 
 
 response :: ResponseArgs -> CmdLine -> IO Response
 response ResponseArgs{..} q = do
     logMessage q
-    let response x ys = fmap $ responseOK ((hdrContentType,fromString x) : ys) . fromString
+    let response x ys = responseOK ((hdrContentType,fromString x) : ys) . fromString
 
     dbs <- unsafeInterleaveIO $ case queryParsed q of
         Left _ -> return mempty
         Right x -> fmap snd $ loadQueryDatabases (databases q) (fromRight $ queryParsed q)
 
     case web q of
-        Just "suggest" -> response "application/json" [] $ runSuggest q
-        Just "embed" -> response "text/html" [hdr] $ return $ runEmbed dbs q
+        Just "suggest" -> fmap (response "application/json" []) $ runSuggest q
+        Just "embed" -> return $ response "text/html" [hdr] $ runEmbed dbs q
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
-        Just "ajax" -> response "text/html" [] $ runQuery True dbs q
-        Just "web" -> do
-            css <- updatedCss
-            js <- updatedJs
-            hdr <- header css js (queryText q)
-            bod <- runQuery False dbs q
-            ftr <- footer version
-            response "text/html" [] $ return $ hdr ++ bod ++ ftr
-        mode -> response "text/html" [] $ return $ "Unknown webmode: " ++ fromMaybe "none" mode
+        Just "ajax" -> return $ response "text/html" [] $ runQuery template True dbs q
+        Just "web" -> return $ response "text/html" [] $
+            header template updatedCss updatedJs (queryText q) ++
+            runQuery template False dbs q ++ footer template version
+        mode -> return $ response "text/html" [] $ "Unknown webmode: " ++ fromMaybe "none" mode
 
 
 logMessage :: CmdLine -> IO ()
@@ -89,18 +86,18 @@ runEmbed dbs cq@Search{queryParsed = Right q}
         f x = x
 
 
-runQuery :: Bool -> Database -> CmdLine -> IO String
-runQuery ajax dbs Search{queryParsed = Left err} =
-    parseError (showTagHTMLWith f $ parseInput err) (errorMessage err)
+runQuery :: Templates -> Bool -> Database -> CmdLine -> String
+runQuery template ajax dbs Search{queryParsed = Left err} =
+    parseError template (showTagHTMLWith f $ parseInput err) (errorMessage err)
     where
         f (TagEmph x) = Just $ "<span class='error'>" ++ showTagHTMLWith f x ++ "</span>"
         f _ = Nothing
 
 
-runQuery ajax dbs q | fromRight (queryParsed q) == mempty = welcome
+runQuery template ajax dbs q | fromRight (queryParsed q) == mempty = welcome template
 
 
-runQuery ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = return $ unlines $
+runQuery template ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = unlines $
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
         ["<div id='left'>" ++ also ++ "</div>" | not $ null pkgs] ++
