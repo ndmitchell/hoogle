@@ -1,6 +1,9 @@
 {-# LANGUAGE PatternGuards, RecordWildCards #-}
 
-module Web.Template(main) where
+module Web.Template(
+    main,
+    escapeURL, escapeHTML
+    ) where
 
 import General.Base
 import General.System
@@ -32,7 +35,7 @@ data Fragment
 
 data Esc = EscNone | EscHtml | EscUrl deriving Eq
 
-escapeAppend e = case e of EscHtml -> "++&"; EscUrl -> "++%"; _ -> "++"
+escapeStr e = case e of EscHtml -> "escapeHTML "; EscUrl -> "escapeURL "; _ -> ""
 escape e = case e of EscHtml -> escapeHTML; EscUrl -> escapeURL; _ -> id
 
 
@@ -46,7 +49,7 @@ joinOut [] = []
 generate :: String -> [Template] -> String
 generate name xs = unlines $
     ("module " ++ name ++ " where") :
-    "import General.Web" :
+    "import Web.Template" :
     concatMap generateTemplate (filter templateExport xs)
 
 generateTemplate :: Template -> [String]
@@ -56,7 +59,7 @@ generateTemplate Template{..} = "" :
         map ((++) "  " . f) templateContents
     where
         f (Out x) = "++ " ++ show x
-        f (Att e x) = escapeAppend e ++ " " ++ x
+        f (Att e x) = "++ " ++ escapeStr e ++ x
 
 
 ---------------------------------------------------------------------

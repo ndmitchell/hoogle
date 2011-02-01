@@ -137,3 +137,4 @@ executable hoogle
         Web.Page
         Web.Response
         Web.Server
+        Web.Template
