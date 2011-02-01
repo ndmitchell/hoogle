@@ -34,8 +34,7 @@ import Safe
 cmdLineExpand :: CmdLine -> IO CmdLine
 cmdLineExpand x@Search{} = do
     db <- expandDatabases $ databases x
-    res <- if null $ resources x then fmap (</> "resources") getDataDir else return $ resources x
-    return $ x{queryText = s, queryParsed = parseQuery Haskell s, databases = db, resources = res}
+    return $ x{queryText = s, queryParsed = parseQuery Haskell s, databases = db}
     where s = unwords $ queryChunks x
 
 

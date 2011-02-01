@@ -1,29 +1,15 @@
 module Web.Page where
 import General.Web
 
-header :: String -> String -> String -> String -> IO String
-header css js resources query = return $ ""
+header :: String -> String -> String -> IO String
+header css js query = return $ ""
   ++ "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>\n    <head profile='http://a9.com/-/spec/opensearch/1.1/'>\n        <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1' />\n        <title>"
   ++& query
-  ++ "Hoogle</title>\n        <link type='text/css' rel='stylesheet' href='"
-  ++& resources
-  ++ "/hoogle.css?version="
+  ++ "Hoogle</title>\n        <link type='text/css' rel='stylesheet' href='res/hoogle.css?version="
   ++% css
-  ++ "' />\n        <link type='image/png' rel='icon' href='"
-  ++& resources
-  ++ "/favicon.png' />\n        <link type='application/opensearchdescription+xml' rel='search' href='"
-  ++& resources
-  ++ "/search.xml' title='Hoogle' />\n        <script type='text/javascript' src='"
-  ++& resources
-  ++ "/jquery-1.4.2.js'> </script>\n        <script type='text/javascript' src='"
-  ++& resources
-  ++ "/jquery.cookie.js'> </script>\n        <script type='text/javascript' src='"
-  ++& resources
-  ++ "/hoogle.js?version="
+  ++ "' />\n        <link type='image/png' rel='icon' href='res/favicon.png' />\n        <link type='application/opensearchdescription+xml' rel='search' href='res/search.xml' title='Hoogle' />\n        <script type='text/javascript' src='res/jquery-1.4.2.js'> </script>\n        <script type='text/javascript' src='res/jquery.cookie.js'> </script>\n        <script type='text/javascript' src='res/hoogle.js?version="
   ++% js
-  ++ "'> </script>\n    </head>\n    <body>\n<div id='links'>\n    <span id='instant' style='display:none;'><a href='javascript:setInstant()'>\n        Instant is <span id='instantVal'>off</span></a> |</span>\n    <span id='plugin' style='display:none;'><a href='javascript:searchPlugin()'>Search plugin</a> |</span>\n    <a href='http://www.haskell.org/haskellwiki/Hoogle'>Manual</a> |\n    <a href='http://www.haskell.org/'>haskell.org</a>\n\n</div>\n<form action='.' method='get' id='search'>\n    <a id='logo' href='http://haskell.org/hoogle/'>\n        <img src='"
-  ++& resources
-  ++ "/hoogle.png' width='160' height='58' alt='Hoogle' />\n    </a>\n    <input name='hoogle' id='hoogle' class='HOOGLE_REAL' type='text' autocomplete='off' value='"
+  ++ "'> </script>\n    </head>\n    <body>\n<div id='links'>\n    <span id='instant' style='display:none;'><a href='javascript:setInstant()'>\n        Instant is <span id='instantVal'>off</span></a> |</span>\n    <span id='plugin' style='display:none;'><a href='javascript:searchPlugin()'>Search plugin</a> |</span>\n    <a href='http://www.haskell.org/haskellwiki/Hoogle'>Manual</a> |\n    <a href='http://www.haskell.org/'>haskell.org</a>\n\n</div>\n<form action='.' method='get' id='search'>\n    <a id='logo' href='http://haskell.org/hoogle/'>\n        <img src='res/hoogle.png' width='160' height='58' alt='Hoogle' />\n    </a>\n    <input name='hoogle' id='hoogle' class='HOOGLE_REAL' type='text' autocomplete='off' value='"
   ++& query
   ++ "' />\n    <input id='submit' type='submit' value='Search' />\n</form>\n<div id='body'>\n"
 

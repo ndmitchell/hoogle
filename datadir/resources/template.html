@@ -1,16 +1,16 @@
 
-#export header css js resources query
+#export header css js query
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
     <head profile='http://a9.com/-/spec/opensearch/1.1/'>
         <meta http-equiv='Content-Type' content='text/html; charset=iso-8859-1' />
         <title>$&query$Hoogle</title>
-        <link type='text/css' rel='stylesheet' href='$&resources$/hoogle.css?version=$%css$' />
-        <link type='image/png' rel='icon' href='$&resources$/favicon.png' />
-        <link type='application/opensearchdescription+xml' rel='search' href='$&resources$/search.xml' title='Hoogle' />
-        <script type='text/javascript' src='$&resources$/jquery-1.4.2.js'> </script>
-        <script type='text/javascript' src='$&resources$/jquery.cookie.js'> </script>
-        <script type='text/javascript' src='$&resources$/hoogle.js?version=$%js$'> </script>
+        <link type='text/css' rel='stylesheet' href='res/hoogle.css?version=$%css$' />
+        <link type='image/png' rel='icon' href='res/favicon.png' />
+        <link type='application/opensearchdescription+xml' rel='search' href='res/search.xml' title='Hoogle' />
+        <script type='text/javascript' src='res/jquery-1.4.2.js'> </script>
+        <script type='text/javascript' src='res/jquery.cookie.js'> </script>
+        <script type='text/javascript' src='res/hoogle.js?version=$%js$'> </script>
     </head>
     <body>
 <div id='links'>
@@ -22,7 +22,7 @@
 </div>
 <form action='.' method='get' id='search'>
     <a id='logo' href='http://haskell.org/hoogle/'>
-        <img src='$&resources$/hoogle.png' width='160' height='58' alt='Hoogle' />
+        <img src='res/hoogle.png' width='160' height='58' alt='Hoogle' />
     </a>
     <input name='hoogle' id='hoogle' class='HOOGLE_REAL' type='text' autocomplete='off' value='$&query$' />
     <input id='submit' type='submit' value='Search' />

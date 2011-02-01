@@ -38,7 +38,7 @@ response q = do
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
         Just "ajax" -> response "text/html" [] $ runQuery True dbs q
         Just "web" -> do
-            hdr <- header version version (resources q) (queryText q)
+            hdr <- header version version (queryText q)
             bod <- runQuery False dbs q
             ftr <- footer version
             response "text/html" [] $ return $ hdr ++ bod ++ ftr

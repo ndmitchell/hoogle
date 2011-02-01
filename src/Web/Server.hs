@@ -32,7 +32,7 @@ talk Server{..} Request{pathInfo=path_, queryString=query_}
     | path `elem` ["/","/hoogle"] = do
         let args = parseHttpQueryArgs $ drop 1 query
         cmd <- cmdLineWeb args
-        r <- response cmd{databases=databases, resources="/res"}
+        r <- response cmd{databases=databases}
         if local_ then rewriteFileLinks r else return r
     | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
     | local_ && "/file/" `isPrefixOf` path = serveFile False $ drop 6 path
