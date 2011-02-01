@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Add --dynamic flag to server mode, include update stamps
     Upgrade wai and warp, adds an exception handler
     #82, rewrite showing document snippets, better expand/collapse
     Support <em> tags in Haddock output (as well as <i>)

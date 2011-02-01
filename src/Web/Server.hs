@@ -9,6 +9,7 @@ import Web.Response
 import Control.Monad.IO.Class
 import General.System
 import Control.Concurrent
+import System.Time
 
 import Network.Wai
 import Network.Wai.Handler.Warp
@@ -18,21 +19,27 @@ import qualified Data.ByteString.Char8 as BS
 
 server :: CmdLine -> IO ()
 server q@Server{..} = do
+    let updNow ext = do TOD a _ <- getModificationTime $ resources </> "hoogle" <.> ext; return $ show a
+    let upd ext | dynamic = do return $ updNow ext
+                | otherwise = do v <- updNow ext; return $ return v
+    js <- upd "js"; css <- upd "css"
+    let args = responseArgs{updatedJs=js, updatedCss=css}
+
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
     let err x = putStrLn $ "Error: " ++ show x
     runEx err port $ \r -> liftIO $ do
         withMVar v $ const $ putStrLn $ bsUnpack (pathInfo r) ++ bsUnpack (queryString r)
-        talk q r
+        talk args q r
 
 
 -- FIXME: Avoid all the conversions to/from LBS
-talk :: CmdLine -> Request -> IO Response
-talk Server{..} Request{pathInfo=path_, queryString=query_}
+talk :: ResponseArgs -> CmdLine -> Request -> IO Response
+talk resp Server{..} Request{pathInfo=path_, queryString=query_}
     | path `elem` ["/","/hoogle"] = do
         let args = parseHttpQueryArgs $ drop 1 query
         cmd <- cmdLineWeb args
-        r <- response responseArgs cmd{databases=databases}
+        r <- response resp cmd{databases=databases}
         if local_ then rewriteFileLinks r else return r
     | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
     | local_ && "/file/" `isPrefixOf` path = serveFile False $ drop 6 path
