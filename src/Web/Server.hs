@@ -6,6 +6,7 @@ import General.Base
 import General.Web
 import CmdLine.All
 import Web.Response
+import System.IO.Unsafe(unsafeInterleaveIO)
 import Control.Monad.IO.Class
 import General.System
 import Control.Concurrent
@@ -32,7 +33,9 @@ respArgs :: CmdLine -> IO (IO ResponseArgs)
 respArgs Server{..} | dynamic = return args
                     | otherwise = do x <- args; return $ return x
     where
-        modTime ext = do TOD a _ <- getModificationTime $ resources </> "hoogle" <.> ext; return $ show a
+        modTime ext = unsafeInterleaveIO $ do
+            TOD a _ <- getModificationTime $ resources </> "hoogle" <.> ext
+            return $ show a
 
         args = do
             css <- modTime "css"; js <- modTime "js"
