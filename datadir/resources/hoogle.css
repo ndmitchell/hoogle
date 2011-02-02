@@ -6,7 +6,7 @@ body {
     margin: 0px;
     padding: 0px;
     font-family: sans-serif;
-    font-size: 10pt;
+    font-size: 13px;
 }
 
 a img {
@@ -62,14 +62,10 @@ form {
 #left {
     float: left;
     width: 140px;
+    margin: 0px;
+    padding: 0px;
     margin-top: 7px;
     margin-left: 10px;
-    font-size: 13px;
-}
-
-#left ul {
-    padding: 0px;
-    margin: 0px;
 }
 
 #left li {
@@ -80,12 +76,12 @@ form {
 }
 
 #left a {
+    color: #0E7700;
     text-decoration: none;
     background-repeat: no-repeat;
 }
 
 #left .plus {
-    color: #0E7700;
     padding-right: 16px;
     background-image: url(more_small.png);
     background-position: center right;
@@ -109,7 +105,6 @@ form {
 
 #footer {
     text-align: center;
-    font-size: 13px;
 }
 
 
@@ -125,7 +120,7 @@ h1 {
        to make type searching visisble */
     background-color: #e4e4e4;
     border-top: 1px solid #999;
-    text-indent: 165px;
+    padding-left: 170px;
     font-size: 16px;
 }
 
@@ -168,7 +163,7 @@ p {
 
 .ans, .doc, .from {
     margin-left: 170px;
-    margin-right: 10px;
+    margin-right: 20px;
 }
 
 a.dull, a.dull:hover {
@@ -214,7 +209,6 @@ a.dull, a.dull:hover {
 /** PARENTS **/
 
 .p1, .p2 {
-    font-size: 13px;
     white-space: nowrap;
     text-decoration: none;
     color: #0E774A;
@@ -229,7 +223,7 @@ docs may be in one of three states:
 */
 
 .doc {
-    font-size: 8pt;
+    font-size: 11px;
     background-repeat: no-repeat;
     background-position: 2px left;
 }

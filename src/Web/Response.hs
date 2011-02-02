@@ -100,7 +100,7 @@ runQuery templates ajax dbs q | fromRight (queryParsed q) == mempty = welcome te
 runQuery templates ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = unlines $
     (if prefix then
         ["<h1>" ++ qstr ++ "</h1>"] ++
-        ["<div id='left'>" ++ also ++ "</div>" | not $ null pkgs] ++
+        ["<ul id='left'><li><b>Packages</b></li>" ++ also ++ "</ul>" | not $ null pkgs] ++
         ["<p>" ++ showTag sug ++ "</p>" | Just sug <- [suggestions dbs q]] ++
         if null res then
             ["<p>No results found</p>"]
@@ -119,7 +119,7 @@ runQuery templates ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = u
         (pre,res2) = splitAt start2 res
         (now,post) = splitAt count2 res2
 
-        also = "<ul><li><b>Packages</b></li>" ++ concatMap f (take (5 + length minus) $ nub $ minus ++ pkgs) ++ "</ul>"
+        also = concatMap f (take (5 + length minus) $ nub $ minus ++ pkgs)
             where minus = [x | (False,x) <- queryPackages q]
         f x | (True,lx) `elem` queryPackages q =
                 let q2 = showTagText $ renderQuery $ querySetPackage Nothing lx q in
