@@ -49,6 +49,7 @@ escapeHTML = concatMap f
         f '<' = "&lt;"
         f '>' = "&gt;"
         f '&' = "&amp;"
+        f '\"' = "&quot;"
         f  x  = [x]
 
 
