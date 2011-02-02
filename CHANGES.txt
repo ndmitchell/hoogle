@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Some work on #375, add links to the library page
     Add --template to override the templates at runtime
     Add --dynamic flag to server mode, include update stamps
     Upgrade wai and warp, adds an exception handler
