@@ -13,6 +13,7 @@ import General.System
 import Control.Concurrent
 import Control.Exception
 import System.Time
+import Data.Time.Clock
 
 import Network.Wai
 import Network.Wai.Handler.Warp
@@ -26,7 +27,12 @@ server q@Server{..} = do
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
     runEx exception port $ \r -> liftIO $ do
-        withMVar v $ const $ putStrLn $ bsUnpack (pathInfo r) ++ bsUnpack (queryString r)
+        start <- getCurrentTime
+        res <- talk resp q r
+        responseEvaluate res
+        stop <- getCurrentTime
+        let t = floor $ diffUTCTime stop start * 1000
+        withMVar v $ const $ putStrLn $ bsUnpack (pathInfo r) ++ bsUnpack (queryString r) ++ " ms:" ++ show t
         talk resp q r
 
 
