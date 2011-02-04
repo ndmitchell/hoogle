@@ -7,7 +7,7 @@
 module General.Web(
     hdrContentType, hdrCacheControl,
     responseOK, responseNotFound,
-    responseFlatten,
+    responseFlatten, responseEvaluate,
     URL, filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
     escapeHTML, (++&), htmlTag,
     Args, cgiArgs, cgiResponse, parseHttpQueryArgs
@@ -37,6 +37,11 @@ responseFlatten :: Response -> IO (Status, ResponseHeaders, LBString)
 responseFlatten r = responseEnumerator r $ \s hs -> do
        builders <- consume
        return (s, hs, toLazyByteString $ mconcat builders)
+
+
+responseEvaluate :: Response -> IO ()
+responseEvaluate (ResponseBuilder _ _ x) = LBS.length (toLazyByteString x) `seq` return ()
+responseEvaluate _ = return ()
 
 
 ---------------------------------------------------------------------
