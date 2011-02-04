@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 
 module Web.Server(server) where
 
@@ -11,6 +11,7 @@ import System.IO.Unsafe(unsafeInterleaveIO)
 import Control.Monad.IO.Class
 import General.System
 import Control.Concurrent
+import Control.Exception
 import System.Time
 
 import Network.Wai
@@ -24,10 +25,14 @@ server q@Server{..} = do
     resp <- respArgs q
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
-    let err x = putStrLn $ "Error: " ++ show x
-    runEx err port $ \r -> liftIO $ do
+    runEx exception port $ \r -> liftIO $ do
         withMVar v $ const $ putStrLn $ bsUnpack (pathInfo r) ++ bsUnpack (queryString r)
         talk resp q r
+
+
+exception :: SomeException -> IO ()
+exception e | Just (_ :: InvalidRequest) <- fromException e = return ()
+            | otherwise = putStrLn $ "Error: " ++ show e
 
 
 respArgs :: CmdLine -> IO (IO ResponseArgs)
