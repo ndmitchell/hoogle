@@ -4,46 +4,47 @@ module Hoogle.DataBase.Serialise(
     ) where
 
 import Hoogle.Store.All
-import Data.BinaryRaw
 import General.Base
 import General.System
 
 import Hoogle.DataBase.Type
-import Data.Version
 
 
 -- FIXME: Has become hard coded, go back to minor version lumps
-hooVersion :: [Int]
-hooVersion = [4,0,0,5] -- take 4 $ versionBranch version ++ repeat 0
+hooVersion :: (Word8,Word8,Word8,Word8)
+hooVersion = (4,0,0,5)
 
 hooString = "HOOG"
+
+
+data DB = DB String (Word8,Word8,Word8,Word8) (Defer DataBase)
+
+instance BinaryDefer DB where
+    put (DB x1 x2 x3) = put3 x1 x2 x3
+    get = get3 DB
 
 
 saveDataBase :: FilePath -> DataBase -> IO ()
 saveDataBase file db = do
     h <- openBinaryFile file WriteMode
-    mapM_ (hPutChar h) hooString
-    mapM_ (hPutByte h) hooVersion
-    runDeferPut h $ put db
+    runDeferPut h $ put $ DB hooString hooVersion $ Defer db
     hClose h
 
 
 loadDataBase :: FilePath -> IO DataBase
 loadDataBase file = do
-    h <- openBinaryFile file ReadMode
-    size <- hFileSize h
-
-    when (size < 8) $
+    sz <- withFile file ReadMode hFileSize
+    when (sz < 12) $
         error $ "Not a hoogle database: " ++ file
 
-    str <- replicateM 4 (hGetChar h)
+    h <- openBinaryFile file ReadMode
+    DB str ver db <- runDeferGet h get
+
     when (str /= hooString) $
         error $ "Not a hoogle database: " ++ file
 
-    let showVer = showVersion . flip Version []
-    ver <- replicateM 4 (hGetByte h)
     when (ver /= hooVersion) $
-        error $ "Wrong hoogle database version: " ++ showVer ver ++
-                " found, expected " ++ showVer hooVersion
+        error $ "Wrong hoogle database version: " ++ show ver ++
+                " found, expected " ++ show hooVersion
 
-    runDeferGet h get
+    return $ fromDefer db

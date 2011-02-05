@@ -1,8 +1,7 @@
 
 module Hoogle.Store.Class where
 
-import Control.Arrow
-import Control.Monad
+import General.Base
 import Hoogle.Store.Monad
 import Data.BinaryRaw
 import Data.ByteString(ByteString)
@@ -89,6 +88,13 @@ instance BinaryDefer Int where
 instance BinaryDefer Char where
     put = putChr
     get = getChr
+    size _ = 1
+    putFixed = put
+    getFixed = get
+
+instance BinaryDefer Word8 where
+    put = putByte
+    get = getByte
     size _ = 1
     putFixed = put
     getFixed = get
