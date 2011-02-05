@@ -2,14 +2,14 @@
 
 module Hoogle.DataBase.Items(Items, createItems, entriesItems) where
 
-import Data.Binary.Defer.Index
+import Hoogle.Store.Index
 import General.Base
 import General.Util
 import General.Web
 import Hoogle.Type.All
 import qualified Data.Map as Map
-import Data.Binary.Defer hiding (get,put)
-import qualified Data.Binary.Defer as D
+import Hoogle.Store.All hiding (get,put)
+import qualified Hoogle.Store.All as D
 
 -- Invariant: Index Entry is by order of EntryScore
 newtype Items = Items {fromItems :: Index Entry}

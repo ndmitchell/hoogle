@@ -9,8 +9,8 @@ import Hoogle.DataBase.Aliases
 import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.Type.All hiding (Result)
 
-import Data.Binary.Defer
-import Data.Binary.Defer.Index
+import Hoogle.Store.All
+import Hoogle.Store.Index
 import qualified Data.IntMap as IntMap
 import qualified Data.Heap as Heap
 import General.Base

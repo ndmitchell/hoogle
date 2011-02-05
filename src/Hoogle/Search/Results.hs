@@ -6,7 +6,7 @@ module Hoogle.Search.Results(
 import General.Base
 import General.Util
 import qualified Data.IntMap as IntMap
-import Data.Binary.Defer.Index
+import Hoogle.Store.Index
 
 import Hoogle.Type.All
 import Hoogle.Query.All

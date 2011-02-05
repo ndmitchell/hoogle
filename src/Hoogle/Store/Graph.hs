@@ -1,13 +1,13 @@
 
-module Data.Binary.Defer.Graph(
+module Hoogle.Store.Graph(
     Graph, GraphNode, showGraphWith,
     searchDijkstraState, searchDijkstraCycle,
     Graph_(..), newGraph_,
     graphFreeze, graphFollow
     ) where
 
-import Data.Binary.Defer
-import Data.Binary.Defer.Array
+import Hoogle.Store.All
+import Hoogle.Store.Array
 import Data.List
 import General.Base
 import qualified Data.Heap as Heap

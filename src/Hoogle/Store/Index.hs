@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Data.Binary.Defer.Index(
+module Hoogle.Store.Index(
     Id,
     Index, newIndex,
     Link, newLink, fromLink, linkKey, indexLinks
@@ -9,8 +9,8 @@ module Data.Binary.Defer.Index(
 import qualified Data.Binary as Bin
 import qualified Data.Binary.Get as Bin
 import qualified Data.Binary.Put as Bin
-import Data.Binary.Defer
-import Data.Binary.Defer.Array
+import Hoogle.Store.All
+import Hoogle.Store.Array
 import Data.Ord
 import Data.Typeable
 

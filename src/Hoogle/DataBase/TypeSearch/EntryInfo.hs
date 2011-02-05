@@ -2,8 +2,8 @@
 
 module Hoogle.DataBase.TypeSearch.EntryInfo where
 
-import Data.Binary.Defer
-import Data.Binary.Defer.Index
+import Hoogle.Store.All
+import Hoogle.Store.Index
 import Hoogle.Type.All
 import Data.Typeable
 

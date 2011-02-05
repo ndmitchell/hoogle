@@ -4,7 +4,7 @@ module Hoogle.Type.Result where
 import Hoogle.Type.TagStr
 import Hoogle.Type.Item
 import Hoogle.Score.All
-import Data.Binary.Defer.Index
+import Hoogle.Store.Index
 
 
 data Result = Result

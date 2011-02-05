@@ -5,7 +5,7 @@ module Hoogle.Type.Documentation(
 
 import General.Base
 import Hoogle.Type.TagStr
-import Data.Binary.Defer
+import Hoogle.Store.All
 import Data.ByteString.Char8(ByteString,pack,unpack)
 
 

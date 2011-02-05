@@ -14,8 +14,8 @@ import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.Result
 import Hoogle.Type.All
 import Data.Generics.Uniplate
-import Data.Binary.Defer
-import Data.Binary.Defer.Index
+import Hoogle.Store.All
+import Hoogle.Store.Index
 import qualified Data.Map as Map
 import General.Base
 import General.Util

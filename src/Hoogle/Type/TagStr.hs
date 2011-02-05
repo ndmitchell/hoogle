@@ -11,7 +11,7 @@ module Hoogle.Type.TagStr(
 import General.Base
 import General.Web
 import Data.Generics.Uniplate
-import Data.Binary.Defer
+import Hoogle.Store.All
 
 
 data TagStr

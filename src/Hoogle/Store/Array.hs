@@ -1,11 +1,11 @@
 
-module Data.Binary.Defer.Array(
+module Hoogle.Store.Array(
     (!), Array, array, elems, arraySize
     ) where
 
 import Data.Array hiding ((!), Array, array, elems)
 import qualified Data.Array as A
-import Data.Binary.Defer
+import Hoogle.Store.All
 import Data.BinaryRaw
 import System.IO.Unsafe
 import Control.Monad.IO.Class

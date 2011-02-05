@@ -3,8 +3,8 @@
 module Hoogle.Type.Item where
 
 import General.Base
-import Data.Binary.Defer
-import Data.Binary.Defer.Index
+import Hoogle.Store.All
+import Hoogle.Store.Index
 import Hoogle.Type.Documentation
 import Hoogle.Type.TagStr
 import Hoogle.Type.TypeSig

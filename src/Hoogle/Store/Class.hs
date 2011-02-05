@@ -1,9 +1,9 @@
 
-module Data.Binary.Defer.Class where
+module Hoogle.Store.Class where
 
 import Control.Arrow
 import Control.Monad
-import Data.Binary.Defer.Monad
+import Hoogle.Store.Monad
 import Data.BinaryRaw
 import Data.ByteString(ByteString)
 import qualified Data.Map as Map

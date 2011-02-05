@@ -5,7 +5,7 @@ module Hoogle.DataBase.SubstrSearch
     ,completionsSubstrSearch
     ) where
 
-import Data.Binary.Defer
+import Hoogle.Store.All
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.Char8 as BSC

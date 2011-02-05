@@ -7,8 +7,8 @@ import Hoogle.DataBase.Aliases         as X
 import Hoogle.DataBase.Instances       as X
 import Hoogle.DataBase.SubstrSearch    as X
 import Hoogle.DataBase.TypeSearch.All  as X
-import Data.Binary.Defer
-import Data.Binary.Defer.Index
+import Hoogle.Store.All
+import Hoogle.Store.Index
 import Hoogle.Type.All
 import General.Base
 

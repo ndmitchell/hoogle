@@ -18,7 +18,7 @@ module Hoogle(
     Result(..), search, suggestions, completions
     ) where
 
-import Data.Binary.Defer.Index
+import Hoogle.Store.Index
 import General.Base
 import General.System
 

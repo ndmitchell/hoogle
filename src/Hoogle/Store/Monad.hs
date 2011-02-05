@@ -1,5 +1,5 @@
 
-module Data.Binary.Defer.Monad(
+module Hoogle.Store.Monad(
     DeferPut, putDefer, runDeferPut,
     putInt, putByte, putChr, putByteString, putLazyByteString,
     DeferGet, getDefer, runDeferGet,

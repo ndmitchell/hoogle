@@ -5,7 +5,7 @@ module Hoogle.DataBase.All
     ,module Hoogle.DataBase.Serialise
     ) where
 
-import Data.Binary.Defer.Index
+import Hoogle.Store.Index
 import Data.Monoid
 import Hoogle.DataBase.Type
 import Hoogle.Type.All

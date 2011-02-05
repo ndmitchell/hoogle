@@ -1,13 +1,13 @@
 
-module Data.Binary.Defer(
-    module Data.Binary.Defer.Monad,
-    module Data.Binary.Defer.Class,
+module Hoogle.Store.All(
+    module Hoogle.Store.Monad,
+    module Hoogle.Store.Class,
     BinaryDeferGet(..),
     FixedBinary(..)
     ) where
 
-import Data.Binary.Defer.Monad
-import Data.Binary.Defer.Class
+import Hoogle.Store.Monad
+import Hoogle.Store.Class
 import Data.Binary
 
 

@@ -58,11 +58,6 @@ library
         Hoogle.Language.Haskell
 
     other-modules:
-        Data.Binary.Defer
-        Data.Binary.Defer.Array
-        Data.Binary.Defer.Class
-        Data.Binary.Defer.Index
-        Data.Binary.Defer.Monad
         Data.BinaryRaw
         Data.Heap
         Data.TypeMap
@@ -98,6 +93,11 @@ library
         Hoogle.Score.Scoring
         Hoogle.Score.Type
         Hoogle.Search.Results
+        Hoogle.Store.All
+        Hoogle.Store.Array
+        Hoogle.Store.Class
+        Hoogle.Store.Index
+        Hoogle.Store.Monad
 
 executable hoogle
     main-is:            Main.hs

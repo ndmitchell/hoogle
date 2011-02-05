@@ -5,7 +5,7 @@ module Hoogle.DataBase.Aliases(
 
 import Hoogle.Type.All
 import qualified Data.Map as Map
-import Data.Binary.Defer
+import Hoogle.Store.All
 import Data.Generics.Uniplate
 import General.Base
 import Safe

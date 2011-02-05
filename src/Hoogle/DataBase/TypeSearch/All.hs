@@ -11,8 +11,8 @@ import Hoogle.DataBase.TypeSearch.Graphs
 import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
-import Data.Binary.Defer
-import Data.Binary.Defer.Index
+import Hoogle.Store.All
+import Hoogle.Store.Index
 import Hoogle.Type.All
 import Hoogle.Score.All
 

@@ -2,7 +2,7 @@
 
 module Hoogle.Type.TypeSig where
 
-import Data.Binary.Defer
+import Hoogle.Store.All
 import Data.List
 import Data.Data
 import Data.Generics.UniplateOn
