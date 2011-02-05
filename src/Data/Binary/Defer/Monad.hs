@@ -10,7 +10,7 @@ module Data.Binary.Defer.Monad(
 
 import System.IO
 import System.IO.Unsafe
-import Data.Binary.Raw
+import Data.BinaryRaw
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader

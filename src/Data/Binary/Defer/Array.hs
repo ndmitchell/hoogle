@@ -6,7 +6,7 @@ module Data.Binary.Defer.Array(
 import Data.Array hiding ((!), Array, array, elems)
 import qualified Data.Array as A
 import Data.Binary.Defer
-import Data.Binary.Raw
+import Data.BinaryRaw
 import System.IO.Unsafe
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader

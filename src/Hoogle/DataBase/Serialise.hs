@@ -4,7 +4,7 @@ module Hoogle.DataBase.Serialise(
     ) where
 
 import Data.Binary.Defer
-import Data.Binary.Raw
+import Data.BinaryRaw
 import General.Base
 import General.System
 

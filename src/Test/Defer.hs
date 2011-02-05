@@ -5,7 +5,7 @@
 module Test.Defer where
 
 import Control.Monad
-import Data.Binary.Raw
+import Data.BinaryRaw
 import Data.Binary.Defer
 import Data.Binary.Defer.Array
 import Data.Binary.Defer.Trie

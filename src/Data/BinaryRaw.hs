@@ -3,7 +3,7 @@
 -- style have a significant impact on the runtime speed of
 -- unoptimised code, for example hGetPos contributes ~20% extra time
 
-module Data.Binary.Raw(
+module Data.BinaryRaw(
     hGetInt, hPutInt,
     hGetByte, hPutByte, maxByte,
     hGetPos, hSetPos

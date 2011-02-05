@@ -63,7 +63,7 @@ library
         Data.Binary.Defer.Class
         Data.Binary.Defer.Index
         Data.Binary.Defer.Monad
-        Data.Binary.Raw
+        Data.BinaryRaw
         Data.Heap
         Data.TypeMap
         General.Base

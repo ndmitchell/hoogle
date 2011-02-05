@@ -4,7 +4,7 @@ module Data.Binary.Defer.Class where
 import Control.Arrow
 import Control.Monad
 import Data.Binary.Defer.Monad
-import Data.Binary.Raw
+import Data.BinaryRaw
 import Data.ByteString(ByteString)
 import qualified Data.Map as Map
 import General.Util(splitAtLength)
