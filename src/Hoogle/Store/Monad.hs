@@ -10,7 +10,7 @@ module Hoogle.Store.Monad(
 
 import System.IO
 import System.IO.Unsafe
-import Data.BinaryRaw
+import Hoogle.Store.Raw
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader

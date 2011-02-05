@@ -6,7 +6,7 @@ module Hoogle.Store.Array(
 import Data.Array hiding ((!), Array, array, elems)
 import qualified Data.Array as A
 import Hoogle.Store.All
-import Data.BinaryRaw
+import Hoogle.Store.Raw
 import System.IO.Unsafe
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader

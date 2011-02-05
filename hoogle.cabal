@@ -58,7 +58,6 @@ library
         Hoogle.Language.Haskell
 
     other-modules:
-        Data.BinaryRaw
         Data.Heap
         Data.TypeMap
         General.Base
@@ -98,6 +97,7 @@ library
         Hoogle.Store.Class
         Hoogle.Store.Index
         Hoogle.Store.Monad
+        Hoogle.Store.Raw
 
 executable hoogle
     main-is:            Main.hs

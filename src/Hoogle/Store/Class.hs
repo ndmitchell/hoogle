@@ -3,7 +3,7 @@ module Hoogle.Store.Class where
 
 import General.Base
 import Hoogle.Store.Monad
-import Data.BinaryRaw
+import Hoogle.Store.Raw
 import Data.ByteString(ByteString)
 import qualified Data.Map as Map
 import General.Util(splitAtLength)
