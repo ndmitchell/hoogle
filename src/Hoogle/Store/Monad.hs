@@ -209,8 +209,9 @@ getDefer x = do
         hSetPos h (toInteger i)
         runReaderT x s
 
-runDeferGet :: Handle -> DeferGet a -> IO a
-runDeferGet h m = do
+runDeferGet :: FilePath -> DeferGet a -> IO a
+runDeferGet file m = do
+    h <- openBinaryFile file ReadMode
     ref <- newIORef TypeMap.empty
     runReaderT m (h,ref)
 

@@ -45,6 +45,5 @@ loadDataBase file = do
     when (sz < 12) $
         error $ "Not a hoogle database: " ++ file
 
-    h <- openBinaryFile file ReadMode
-    (Identity,db) <- runDeferGet h get
+    (Identity,db) <- runDeferGet file get
     return db
