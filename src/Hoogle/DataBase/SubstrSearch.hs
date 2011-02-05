@@ -18,6 +18,34 @@ import General.Base
 import Hoogle.Type.All
 import Hoogle.Score.All
 
+{-
+Format 2:
+
+-- build a Huffman table
+huffman :: Eq a => [a] -> Huffman a
+
+-- encode a value using the table
+-- return the first 32 bits of the encoding, and a mask (will be all 1's if more than 32 bits)
+encode :: Huffman a -> [a] -> (Word32, Word32)
+
+
+-- We have 4 buckets, one per priority level - Prelude first, then base, then platform, then anything
+data Substr a = Substr [Bucket a]
+
+-- Each bucket contains the encoding of each entry (a pointer to it) along
+-- with the Word32 prefix of each string
+-- the 31'st bit is 1 if the string comes from the start of a string
+-- and the 32'nd bit is 1 if the string contains upper case letters
+-- within each entry, the tree is used to find shifts
+-- items are sorted by prefixes
+data Bucket a = Bucket {answers :: [a], prefixes :: [Word32], tree :: Tree}
+
+-- at each tree point the range is the start/end index where you may find things with that prefix
+-- if the Maybe is Just then all the points in that range are shifted by one bit
+data Tree = Tree {range :: (Int, Int), rest :: Maybe (Tree, Tree)}
+-}
+
+
 
 -- idea for speed improvement
 -- store as one long bytestring with \0 between the words, then do findSubstrings to find the indexes
