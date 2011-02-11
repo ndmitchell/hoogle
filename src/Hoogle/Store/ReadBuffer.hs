@@ -32,6 +32,8 @@ setPos b@Buffer{..} pos = do
 
 getStorable :: forall a . Storable a => Buffer -> IO a
 getStorable Buffer{..} = do
+    let n = sizeOf (undefined :: a)
+    when (n > bufferSize) $ error $ "Buffer size overflow in getStorable"
     withForeignPtr fptr $ \ptr -> do
         hGetBuf handle ptr $ sizeOf (undefined :: a)
         peek $ castPtr ptr
