@@ -39,7 +39,7 @@ instance Uniplate TagStr where
     uniplate x = ([], const x)
 
 
-instance BinaryDefer TagStr where
+instance Store TagStr where
     put (Str x)        = putByte 0 >> put1 x
     put (Tags x)       = putByte 1 >> put1 x
     put (TagBold x)    = putByte 2 >> put1 x

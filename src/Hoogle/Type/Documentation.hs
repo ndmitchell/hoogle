@@ -13,9 +13,9 @@ newtype Documentation = Documentation ByteString
     deriving (Eq,Ord)
 
 
-instance BinaryDefer Documentation where
-    put (Documentation x) = putByteString x
-    get = fmap Documentation getByteString
+instance Store Documentation where
+    put (Documentation x) = put1 x
+    get = get1 Documentation
 
 
 htmlDocumentation :: String -> Documentation

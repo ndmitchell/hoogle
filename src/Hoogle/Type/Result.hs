@@ -4,11 +4,10 @@ module Hoogle.Type.Result where
 import Hoogle.Type.TagStr
 import Hoogle.Type.Item
 import Hoogle.Score.All
-import Hoogle.Store.Index
 
 
 data Result = Result
-    {resultEntry :: Link Entry
+    {resultEntry :: Entry
     ,resultView :: [EntryView]
     ,resultScore :: Score
     }
@@ -17,5 +16,4 @@ data Result = Result
 
 -- return the entry rendered with respect to the EntryView
 renderResult :: Result -> TagStr
-renderResult r = renderEntryText (resultView r) $ entryText e
-    where e = fromLink $ resultEntry r
+renderResult r = renderEntryText (resultView r) $ entryText $ resultEntry r

@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Hoogle.DataBase.Serialise(
     saveDataBase, loadDataBase
@@ -14,12 +15,12 @@ import Hoogle.DataBase.Type
 hooVersion = [4,0,0,5]
 hooString = "HOOG"
 
-data Identity = Identity
+data Identity = Identity deriving (Show, Typeable)
 
-instance BinaryDefer Identity where
-    put Identity = mapM_ putChr hooString >> mapM_ putByte hooVersion
+instance Store Identity where
+    put Identity = mapM_ put hooString >> mapM_ putByte hooVersion
     get = do
-        cs <- replicateM 4 getChr
+        cs <- replicateM 4 get
         vr <- replicateM 4 getByte
         when (cs /= hooString) $
             error $ "Not a hoogle database"
@@ -33,10 +34,7 @@ instance BinaryDefer Identity where
 
 
 saveDataBase :: FilePath -> DataBase -> IO ()
-saveDataBase file db = do
-    h <- openBinaryFile file WriteMode
-    runDeferPut h $ put (Identity, db)
-    hClose h
+saveDataBase file db = runSPut file $ put (Identity, db)
 
 
 loadDataBase :: FilePath -> IO DataBase
@@ -45,5 +43,5 @@ loadDataBase file = do
     when (sz < 12) $
         error $ "Not a hoogle database: " ++ file
 
-    (Identity,db) <- runDeferGet file get
+    (Identity,db) <- runSGet file get
     return db

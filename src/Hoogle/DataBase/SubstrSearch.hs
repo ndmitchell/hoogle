@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Hoogle.DataBase.SubstrSearch
     (SubstrSearch, createSubstrSearch
@@ -6,15 +7,12 @@ module Hoogle.DataBase.SubstrSearch
     ) where
 
 import Hoogle.Store.All
+import qualified Data.Set as Set
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.Char8 as BSC
-import qualified Data.ByteString.Lazy as LBS
-import qualified Data.Binary as Bin
-import qualified Data.Binary.Get as Bin
-import qualified Data.Binary.Put as Bin
-import qualified Data.Set as Set
 import General.Base
+import Data.Array
 import Hoogle.Type.All
 import Hoogle.Score.All
 
@@ -62,18 +60,19 @@ Data is stored flattened. For default we expect ~200Kb of disk usage.
 
 -- keys are sorted after being made lower case
 data SubstrSearch a = SubstrSearch
-    {text :: BS.ByteString -- all the bytestrings, in preference order
-    ,lens :: BS.ByteString -- a list of lengths
-    ,inds :: Int -> a -- a way of retrieving each index
+    {text :: BString  -- all the bytestrings, in preference order
+    ,lens :: BString  -- a list of lengths
+    ,inds :: Array Int a  -- the results
     }
+    deriving Typeable
 
 
 -- | Create a substring search index. Values are returned in order where possible.
 createSubstrSearch :: [(String,a)] -> SubstrSearch a
 createSubstrSearch xs = SubstrSearch
-    (BSC.pack $ concat ts2)
+    (fromString $ concat ts2)
     (BS.pack $ map fromIntegral ls2)
-    (is !!)
+    (listArray (0,length is-1) is)
     where
         (ts,is) = unzip $ map (first $ map toLower) xs
         (ts2,ls2) = f "" ts
@@ -104,8 +103,8 @@ searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
 
         addCount s = s{sCount=sCount s+1}
         moveFocus i s = s{sFocus=BS.unsafeDrop i $ sFocus s}
-        addMatch MatchSubstr s = s{sInfix =(inds x $ sCount s,view,textScore MatchSubstr):sInfix s}
-        addMatch t s = s{sPrefix=(inds x $ sCount s,view,textScore t):sPrefix s}
+        addMatch MatchSubstr s = s{sInfix =(inds x ! sCount s,view,textScore MatchSubstr):sInfix s}
+        addMatch t s = s{sPrefix=(inds x ! sCount s,view,textScore t):sPrefix s}
 
 
 data S2 = S2
@@ -118,7 +117,7 @@ completionsSubstrSearch x y = map (\x -> y ++ drop ny (BSC.unpack x)) $ take 10 
                               s2Result $ BS.foldl f (S2 (text x) Set.empty) $ lens x
     where
         ny = length y
-        ly = BSC.pack $ map toLower y
+        ly = fromString $ map toLower y
         f (S2 foc res) ii = S2 (BS.unsafeDrop i foc) (if ly `BS.isPrefixOf` x then Set.insert x res else res)
             where x = BS.unsafeTake i foc
                   i = fromIntegral ii
@@ -127,37 +126,9 @@ completionsSubstrSearch x y = map (\x -> y ++ drop ny (BSC.unpack x)) $ take 10 
 instance Show a => Show (SubstrSearch a) where
     show x = "SubstrSearch"
 
-instance (Bin.Binary a, BinaryDeferGet a, FixedBinary a) => BinaryDefer (SubstrSearch a) where
-    put x = putDefer $ putLazyByteString $ Bin.runPut $ putBinary Bin.put x
-
-    get = do
-        g <- binaryDeferGet
-        x <- getDefer getLazyByteString
-        return $ Bin.runGet (getBinary (fixedSize $ tyUnGet g) g) x
-        where
-            tyUnGet :: Bin.Get a -> a
-            tyUnGet = undefined
-
-
-putBinary :: (a -> Bin.Put) -> SubstrSearch a -> Bin.Put
-putBinary p x = do
-    Bin.put $ text x
-    Bin.put $ lens x
-    Bin.put $ fromLBS $ Bin.runPut $ mapM_ (p . inds x) [0.. fromIntegral (BS.length $ lens x) - 1]
-
-
-getBinary :: Int -> Bin.Get a -> Bin.Get (SubstrSearch a)
-getBinary size g = do
-    text <- Bin.get
-    lens <- Bin.get
-    indsData <- Bin.get
-    let inds i = Bin.runGet g $ toLBS $ BS.take size $ BS.drop (i * size) indsData
-    return $ SubstrSearch text lens inds
-
-
-fromLBS = BS.concat . LBS.toChunks
-toLBS = LBS.fromChunks . return
-
+instance (Typeable a, Store a) => Store (SubstrSearch a) where
+    put (SubstrSearch a b c) = putDefer $ put3 a b c
+    get = getDefer $ get3 SubstrSearch
 
 
 -- if first word is empty, always return Exact/Prefix

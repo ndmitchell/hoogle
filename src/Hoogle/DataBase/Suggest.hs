@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Hoogle.DataBase.Suggest(Suggest, createSuggest, askSuggest) where
 
@@ -17,6 +18,7 @@ data SuggestItem = SuggestItem
     ,suggestData :: [(String,Int)] -- data type, name (case correct), and possible kinds
     ,suggestClass :: [(String,Int)] -- class, name (case correct), kinds
     }
+    deriving Typeable
 
 
 instance Show Suggest where
@@ -29,11 +31,11 @@ instance Show SuggestItem where
             f msg xs = [msg ++ " " ++ a ++ " " ++ show b | (a,b) <- xs]
 
 
-instance BinaryDefer Suggest where
+instance Store Suggest where
     put (Suggest x) = put x
     get = get1 Suggest
 
-instance BinaryDefer SuggestItem where
+instance Store SuggestItem where
     put (SuggestItem a b c) = put3 a b c
     get = get3 SuggestItem
 

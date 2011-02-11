@@ -5,8 +5,8 @@ module Hoogle.Search.Results(
 
 import General.Base
 import General.Util
-import qualified Data.IntMap as IntMap
-import Hoogle.Store.Index
+import qualified Data.Map as Map
+import Hoogle.Store.All
 
 import Hoogle.Type.All
 import Hoogle.Query.All
@@ -33,7 +33,7 @@ sortWith f = map fromKey . sort . map (toKey f)
 
 mergeDataBaseResults :: [[Result]] -> [Result]
 mergeDataBaseResults = map fromKey . fold [] merge . map (map $ toKey f)
-    where f r = (resultScore r, entryScore $ fromLink $ resultEntry r)
+    where f r = (resultScore r, entryScore $ resultEntry r)
 
 
 ---------------------------------------------------------------------
@@ -45,19 +45,19 @@ mergeQueryResults q = filterResults q . joinResults
 
 
 -- join the results of multiple searches
+-- FIXME: this looks like a disaster - fully strict
 joinResults :: [[Result]] -> [Result]
 joinResults [] = []
 joinResults [x] = x
-joinResults xs = sortWith scr $ IntMap.elems $
-                 fold1 (IntMap.intersectionWith join) $
+joinResults xs = sortWith resultScore $ Map.elems $
+                 fold1 (Map.intersectionWith join) $
                  map asSet xs
     where
-        asSet = IntMap.fromList . map (linkKey . resultEntry &&& id)
+        asSet = Map.fromList . map (entryUnique . resultEntry &&& id)
 
         join r1 r2 = r1{resultScore = mappend (resultScore r1) (resultScore r2)
-                       ,resultView = resultView r1 ++ resultView r2}
-
-        scr = resultScore &&& linkKey . resultEntry
+                       ,resultView = resultView r1 ++ resultView r2
+                       ,resultEntry = resultEntry r1 `entryJoin` resultEntry r2}
 
 
 ---------------------------------------------------------------------
@@ -68,7 +68,7 @@ filterResults :: Query -> [Result] -> [Result]
 filterResults q = f mods correctModule . f pkgs correctPackage
     where
         f [] act = id
-        f xs act = filter (act xs . fromLink . resultEntry)
+        f xs act = filter (act xs . resultEntry)
 
         mods = filter isMod $ scope q
         pkgs = [x | MinusPackage x <- scope q]
@@ -81,14 +81,14 @@ filterResults q = f mods correctModule . f pkgs correctPackage
 -- pkgs is a non-empty list of MinusPackage values
 correctPackage :: [String] -> Entry -> Bool
 correctPackage pkgs x = null myPkgs || any (maybe True (`notElem` map (map toLower) pkgs)) myPkgs
-    where myPkgs = map (fmap (map toLower . entryName . fromLink) . listToMaybe . snd) $ entryLocations x
+    where myPkgs = map (fmap (map toLower . entryName . fromOnce) . listToMaybe . snd) $ entryLocations x
 
 
 -- mods is a non-empty list of PlusModule/MinusModule
 correctModule :: [Scope] -> Entry -> Bool
 correctModule mods x = null myMods || any (maybe True (f base mods)) myMods
     where
-        myMods = map (fmap (map toLower . entryName . fromLink) . listToMaybe . drop 1 . snd) $
+        myMods = map (fmap (map toLower . entryName . fromOnce) . listToMaybe . drop 1 . snd) $
                  entryLocations x
         base = case head mods of MinusModule{} -> True; _ -> False
 

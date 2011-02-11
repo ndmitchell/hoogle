@@ -18,7 +18,7 @@ instance Show Instances where
         where f (v,cs) = "instance " ++ v ++ " <= " ++ unwords cs
 
 
-instance BinaryDefer Instances where
+instance Store Instances where
     put = put1 . fromInstances
     get = get1 Instances
 

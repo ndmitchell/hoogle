@@ -93,11 +93,9 @@ library
         Hoogle.Score.Type
         Hoogle.Search.Results
         Hoogle.Store.All
-        Hoogle.Store.Array
-        Hoogle.Store.Class
-        Hoogle.Store.Index
-        Hoogle.Store.Monad
-        Hoogle.Store.Raw
+        Hoogle.Store.ReadBuffer
+        Hoogle.Store.Type
+        Hoogle.Store.WriteBuffer
 
 executable hoogle
     main-is:            Main.hs

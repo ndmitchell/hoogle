@@ -5,6 +5,7 @@ import Hoogle.DataBase.All
 import Hoogle.Query.All
 import Hoogle.Search.Results
 import Hoogle.Type.All
+import Hoogle.Store.All
 
 
 -- return all the results, lazily
@@ -20,10 +21,10 @@ getResults query = mergeDataBaseResults . map (mergeQueryResults query . f)
 
 
 nameSearch :: DataBase -> String -> [Result]
-nameSearch db query = [Result e [v] s
+nameSearch db query = [Result (fromOnce e) [v] s
                       | (e,v,s) <- searchName db query]
 
 
 typeSearch :: DataBase -> TypeSig -> [Result]
-typeSearch db query = [Result e v s
+typeSearch db query = [Result (fromOnce e) v s
                       | (e,v,s) <- searchType db query]

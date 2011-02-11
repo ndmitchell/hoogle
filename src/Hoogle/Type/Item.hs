@@ -1,10 +1,10 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
 
 module Hoogle.Type.Item where
 
 import General.Base
+import General.Util
 import Hoogle.Store.All
-import Hoogle.Store.Index
 import Hoogle.Type.Documentation
 import Hoogle.Type.TagStr
 import Hoogle.Type.TypeSig
@@ -37,7 +37,7 @@ data Fact
 
 -- Invariant: locations will not be empty
 data Entry = Entry
-    {entryLocations :: [(URL, [Link Entry])]
+    {entryLocations :: [(URL, [Once Entry])]
     ,entryName :: String
     ,entryText :: TagStr
     ,entryDocs :: Documentation
@@ -45,7 +45,19 @@ data Entry = Entry
     ,entryKey :: String -- used only for rebuilding combined databases
     ,entryType :: Maybe TypeSig -- used only for rebuilding combined databases
     }
-    deriving (Typeable)
+    deriving Typeable
+
+
+-- | Figure out what makes this entry different from others
+entryUnique Entry{..} = (entryName, entryText, entryDocs, entryKey, entryType)
+
+
+-- | Join two entries that are equal under entryUnique
+entryJoin e1 e2 = e1
+    {entryPriority = min (entryPriority e1) (entryPriority e2)
+    ,entryLocations = nubOn (map (entryName . fromOnce) . snd) $ concatMap entryLocations $
+        if entryScore e1 < entryScore e2 then [e1,e2] else [e2,e1]}
+
 
 entryURL e = head $ map fst (entryLocations e) ++ [""]
 
@@ -88,6 +100,6 @@ entryScore e = EntryScore (entryPriority e) (map toLower $ entryName e) (entryNa
 instance Show Entry where
     show = showTagText . entryText
 
-instance BinaryDefer Entry where
+instance Store Entry where
     put (Entry a b c d e f g) = put7 a b c d e f g
     get = get7 Entry

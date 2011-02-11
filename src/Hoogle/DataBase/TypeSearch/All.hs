@@ -12,7 +12,6 @@ import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.Instances
 import Hoogle.DataBase.Aliases
 import Hoogle.Store.All
-import Hoogle.Store.Index
 import Hoogle.Type.All
 import Hoogle.Score.All
 
@@ -22,7 +21,7 @@ newtype TypeSearch = TypeSearch Graphs
 instance Show TypeSearch where
     show (TypeSearch x) = show x
 
-instance BinaryDefer TypeSearch where
+instance Store TypeSearch where
     put (TypeSearch x) = put x
     get = get1 TypeSearch
 
@@ -30,13 +29,13 @@ instance BinaryDefer TypeSearch where
 ---------------------------------------------------------------------
 -- CREATION
 
-createTypeSearch :: Aliases -> Instances -> [(TypeSig, Link Entry)] -> TypeSearch
+createTypeSearch :: Aliases -> Instances -> [(TypeSig, Once Entry)] -> TypeSearch
 createTypeSearch aliases instances xs = TypeSearch $ newGraphs aliases instances xs
 
 
 ---------------------------------------------------------------------
 -- SEARCHING
 
-searchTypeSearch :: Aliases -> Instances -> TypeSearch -> TypeSig -> [(Link Entry,[EntryView],Score)]
+searchTypeSearch :: Aliases -> Instances -> TypeSearch -> TypeSig -> [(Once Entry,[EntryView],Score)]
 searchTypeSearch as is (TypeSearch g) t =
     [(a, b, typeScore $ costsTypeScore c) | (a,b,c) <- graphsSearch as is g t]

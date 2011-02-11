@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Hoogle.DataBase.Type(module Hoogle.DataBase.Type, module X) where
 
@@ -8,7 +9,6 @@ import Hoogle.DataBase.Instances       as X
 import Hoogle.DataBase.SubstrSearch    as X
 import Hoogle.DataBase.TypeSearch.All  as X
 import Hoogle.Store.All
-import Hoogle.Store.Index
 import Hoogle.Type.All
 import General.Base
 
@@ -17,15 +17,16 @@ import General.Base
 -- that depend on this database
 data DataBase = DataBase
     {items :: Items
-    ,nameSearch :: SubstrSearch (Link Entry)
+    ,nameSearch :: SubstrSearch (Once Entry)
     ,typeSearch :: TypeSearch
     ,suggest :: Suggest
     ,aliases :: Aliases
     ,instances :: Instances
     }
+    deriving Typeable
 
 
-instance BinaryDefer DataBase where
+instance Store DataBase where
     put (DataBase a b c d e f) = put6 a b c d e f
     get = get6 DataBase
 

@@ -18,7 +18,7 @@ module Hoogle(
     Result(..), search, suggestions, completions
     ) where
 
-import Hoogle.Store.Index
+import Hoogle.Store.All
 import General.Base
 import General.System
 
@@ -107,13 +107,12 @@ data Result = Result
     }
 
 toResult :: H.Result -> (Score,Result)
-toResult r@(H.Result entry view score) = (score, Result parents self docs)
+toResult r@(H.Result ent view score) = (score, Result parents self docs)
     where
-        ent = fromLink entry
         self = H.renderResult r
 
         parents = map (second $ map f) $  H.entryLocations ent
-        f = (H.entryURL &&& H.entryName) . fromLink
+        f = (H.entryURL &&& H.entryName) . fromOnce
         docs = H.renderDocumentation $ H.entryDocs ent
 
 

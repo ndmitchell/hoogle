@@ -10,7 +10,6 @@ import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.Type.All hiding (Result)
 
 import Hoogle.Store.All
-import Hoogle.Store.Index
 import qualified Data.IntMap as IntMap
 import qualified Data.Heap as Heap
 import General.Base
@@ -21,39 +20,38 @@ import Control.Monad.Trans.State
 -- for resGraph, the associated ArgPos is the arity of the function
 
 data Graphs = Graphs
-    {entryInfo :: Index EntryInfo
-    ,argGraph :: Graph -- the arguments
+    {argGraph :: Graph -- the arguments
     ,resGraph :: Graph -- the results
     }
 
 instance Show Graphs where
-    show (Graphs a b c) = "== Arguments ==\n\n" ++ show b ++
-                          "\n== Results ==\n\n" ++ show c
+    show (Graphs a b) = "== Arguments ==\n\n" ++ show a ++
+                        "\n== Results ==\n\n" ++ show b
 
-instance BinaryDefer Graphs where
-    put (Graphs a b c) = put3 a b c
-    get = get3 Graphs
+instance Store Graphs where
+    put (Graphs a b) = put2 a b
+    get = get2 Graphs
 
 
 ---------------------------------------------------------------------
 -- GRAPHS CONSTRUCTION
 
-newGraphs :: Aliases -> Instances -> [(TypeSig, Link Entry)] -> Graphs
-newGraphs as is xs = Graphs (newIndex $ map snd entries) argGraph resGraph
+newGraphs :: Aliases -> Instances -> [(TypeSig, Once Entry)] -> Graphs
+newGraphs as is xs = Graphs argGraph resGraph
     where
-        entries = [ (t2, e2{entryInfoEntries = sortOn linkKey $ map snd ys})
-                  | ys@(((t2,e2),_):_) <- sortGroupFst $ map (\(t,e) -> (normType as is t, e)) xs]
+        entries = [ (t2, e2{entryInfoKey=i, entryInfoEntries=map snd ys})
+                  | (i, ys@(((t2,e2),_):_)) <- zip [0..] $ sortGroupFst $ map (\(t,e) -> (normType as is t, e)) xs]
 
         argGraph = newGraph (concat args)
         resGraph = newGraph res
 
         (args,res) = unzip
             [ initLast $ zipWith (\i t -> (lnk, i, t)) [0..] $ fromTFun t
-            | (i, (t, e)) <- zip [0..] entries, let lnk = newLink i e]
+            | (t, e) <- entries, let lnk = once e]
 
 
 normType :: Aliases -> Instances -> TypeSig -> (Type, EntryInfo)
-normType as is t = (t3, EntryInfo [] (length (fromTFun t3) - 1) c2 a)
+normType as is t = (t3, EntryInfo 0 [] (length (fromTFun t3) - 1) c2 a)
     where TypeSimp c2 t2 = normInstances is t
           (a,t3) = normAliases as t2
 
@@ -75,7 +73,7 @@ graphsSearch as is gs t = resultsCombine is query ans
 
 
 data S = S
-    {infos :: IntMap.IntMap (Maybe ResultAll) -- Int = Link EntryInfo
+    {infos :: IntMap.IntMap (Maybe ResultAll) -- Int = Once EntryInfo
     ,pending :: Heap.Heap Int Result
     ,todo :: [(Maybe ArgPos, ResultArg)]
     ,instances :: Instances
@@ -106,7 +104,7 @@ delResult = do
         f r = do
             infos <- gets infos
             (Just res,infos) <- return $ IntMap.updateLookupWithKey
-                (\_ _ -> Just Nothing) (linkKey $ fst3 r) infos
+                (\_ _ -> Just Nothing) (entryInfoKey $ fromOnce $ fst3 r) infos
             if isNothing res then return [] else do
                 modify $ \s -> s{infos=infos}
                 return [r]
@@ -115,7 +113,7 @@ delResult = do
 -- todo -> heap/info
 addResult :: Maybe ArgPos -> ResultArg -> State S ()
 addResult arg val = do
-    let entId = linkKey $ resultArgEntry val
+    let entId = entryInfoKey $ fromOnce $ resultArgEntry val
     infs <- gets infos
     is <- gets instances
     query <- gets query

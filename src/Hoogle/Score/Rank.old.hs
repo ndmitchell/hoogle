@@ -9,7 +9,7 @@ import Hoogle.TextBase.All
 import Hoogle.DataBase.All
 import Hoogle.TypeSig.All
 import Hoogle.Item.All
-import Hoogle.Store.Index
+import Hoogle.Store.All
 import Hoogle.Operations.RankSolve
 
 -- Privilaged imports

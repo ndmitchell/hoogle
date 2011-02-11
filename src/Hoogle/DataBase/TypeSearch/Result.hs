@@ -8,9 +8,9 @@ import Hoogle.DataBase.TypeSearch.TypeScore
 import Hoogle.DataBase.TypeSearch.Binding
 import Hoogle.DataBase.TypeSearch.EntryInfo
 import Hoogle.DataBase.Instances
-import Hoogle.Store.Index
 import Hoogle.Type.All hiding (Result)
 import General.Base
+import Hoogle.Store.All
 import qualified Data.IntSet as IntSet
 
 
@@ -18,37 +18,37 @@ type ArgPos = Int
 
 
 -- the return from searching a graph, nearly
-type Result = (Link EntryInfo,[EntryView],TypeScore)
+type Result = (Once EntryInfo,[EntryView],TypeScore)
 
-type ResultReal = (Link Entry, [EntryView], TypeScore)
+type ResultReal = (Once Entry, [EntryView], TypeScore)
 
 
-flattenResults :: [Result] -> [(Link Entry, [EntryView], TypeScore)]
-flattenResults xs = [(a,b,c) | (as,b,c) <- xs, a <- entryInfoEntries $ fromLink as]
+flattenResults :: [Result] -> [(Once Entry, [EntryView], TypeScore)]
+flattenResults xs = [(a,b,c) | (as,b,c) <- xs, a <- entryInfoEntries $ fromOnce as]
 
 
 -- the result information from a whole type (many ResultArg)
 -- number of lacking args, entry data, info (result:args)
-data ResultAll = ResultAll Int (Link EntryInfo) [[ResultArg]]
+data ResultAll = ResultAll Int (Once EntryInfo) [[ResultArg]]
                  deriving Show
 
 
 -- the result information from one single type graph (argument/result)
 -- this result points at entry.id, argument, with such a score
 data ResultArg = ResultArg
-    {resultArgEntry :: Link EntryInfo
+    {resultArgEntry :: Once EntryInfo
     ,resultArgPos :: ArgPos
     ,resultArgBind :: Binding
     } deriving Show
 
 
-newResultAll :: EntryInfo -> Link EntryInfo -> Maybe ResultAll
+newResultAll :: EntryInfo -> Once EntryInfo -> Maybe ResultAll
 newResultAll query e
     | bad < 0 || bad > 2 = Nothing
     | otherwise = Just $ ResultAll bad e $ replicate (arityResult + 1) []
     where
         arityQuery = entryInfoArity query
-        arityResult = entryInfoArity $ fromLink e
+        arityResult = entryInfoArity $ fromOnce e
         bad = arityResult - arityQuery
 
 
@@ -78,11 +78,11 @@ addResultAll is query (pos,res) (ResultAll i e info) =
                       , rs <- f bad (IntSet.insert rp set) xs]
 
 
-newGraphsResults :: Instances -> EntryInfo -> Link EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
+newGraphsResults :: Instances -> EntryInfo -> Once EntryInfo -> [ResultArg] -> ResultArg -> Maybe Result
 newGraphsResults is query e args res = do
     b <- mergeBindings $ map resultArgBind $ args ++ [res]
     let aps = map resultArgPos args
-        s = newTypeScore is query (fromLink e) (aps == sort aps) b
+        s = newTypeScore is query (fromOnce e) (aps == sort aps) b
         view = zipWith ArgPosNum [0..] aps
         -- need to fake at least one ArgPosNum, so we know we have some highlight info
         view2 = [ArgPosNum (-1) (-1) | null view] ++ view

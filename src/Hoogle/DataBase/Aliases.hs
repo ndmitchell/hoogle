@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Hoogle.DataBase.Aliases(
     Aliases, createAliases, normAliases
@@ -13,7 +14,7 @@ import Safe
 
 newtype Aliases = Aliases {fromAliases :: Map.Map String Alias}
 
-instance BinaryDefer Aliases where
+instance Store Aliases where
     put = put . fromAliases
     get = get1 Aliases
 
@@ -26,8 +27,9 @@ data Alias = Alias
     {_args :: [String] -- the free variables
     ,rhs :: Type -- the resulting type
     }
+    deriving Typeable
 
-instance BinaryDefer Alias where
+instance Store Alias where
     put (Alias a b) = put2 a b
     get = get2 Alias
 

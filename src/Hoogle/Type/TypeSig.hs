@@ -100,13 +100,13 @@ variablesSig x = [v | TVar v <- universeSig x]
 
 
 ---------------------------------------------------------------------
--- BINARYDEFER INSTANCES
+-- STORE INSTANCES
 
-instance BinaryDefer TypeSig where
+instance Store TypeSig where
     put (TypeSig a b) = put2 a b
     get = get2 TypeSig
 
-instance BinaryDefer Type where
+instance Store Type where
     put (TApp a b) = putByte 0 >> put2 a b
     put (TLit a)   = putByte 1 >> put1 a
     put (TVar a)   = putByte 2 >> put1 a

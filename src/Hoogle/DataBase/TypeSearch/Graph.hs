@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 {-|
     Search for a type signature and context through a graph.
 
@@ -15,7 +16,6 @@ import Hoogle.DataBase.TypeSearch.Result
 import Hoogle.Type.All
 import Data.Generics.Uniplate
 import Hoogle.Store.All
-import Hoogle.Store.Index
 import qualified Data.Map as Map
 import General.Base
 import General.Util
@@ -25,7 +25,8 @@ import General.Util
 newtype Graph = Graph (Map.Map Type [Node])
 
 -- the Type's are stored in reverse, to make box/unbox computations quicker
-data Node = Node [Type] [(Link EntryInfo,ArgPos)]
+data Node = Node [Type] [(Once EntryInfo,ArgPos)]
+            deriving Typeable
 
 
 instance Show Graph where
@@ -34,14 +35,14 @@ instance Show Graph where
               g x = if x == TVar "" then TVar "_" else x
 
 instance Show Node where
-    show (Node t xs) = unwords $ map show t ++ "=" : [show (linkKey a) ++ "." ++ show b | (a,b) <- xs]
+    show (Node t xs) = unwords $ map show t ++ "=" : ["?." ++ show b | (a,b) <- xs]
 
 
-instance BinaryDefer Graph where
+instance Store Graph where
     put (Graph a) = put1 a
     get = get1 Graph
 
-instance BinaryDefer Node where
+instance Store Node where
     put (Node a b) = put2 a b
     get = get2 Node
 
@@ -58,12 +59,12 @@ typeUnstructure :: Type -> [Type]
 typeUnstructure = reverse . filter (\x -> isTLit x || isTVar x) . universe
 
 
-newGraph :: [(Link EntryInfo, ArgPos, Type)] -> Graph
+newGraph :: [(Once EntryInfo, ArgPos, Type)] -> Graph
 newGraph = Graph . Map.map newNode . foldl' f Map.empty 
     where f mp x = Map.insertWith (++) (typeStructure $ thd3 x) [x] mp
 
 
-newNode :: [(Link EntryInfo, ArgPos, Type)] -> [Node]
+newNode :: [(Once EntryInfo, ArgPos, Type)] -> [Node]
 newNode = map (uncurry Node) . sortGroupFsts . map (\(a,b,c) -> (typeUnstructure c,(a,b)))
 
 
@@ -85,7 +86,7 @@ graphSearch (Graph mp) t = [ResultArg e p b | (b,ep) <- sortFst xs, (e,p) <- ep]
         f bind x = mapMaybe (graphCheck bind u) $ Map.findWithDefault [] x mp
 
 
-graphCheck :: Binding -> [Type] -> Node -> Maybe (Binding, [(Link EntryInfo,ArgPos)])
+graphCheck :: Binding -> [Type] -> Node -> Maybe (Binding, [(Once EntryInfo,ArgPos)])
 graphCheck b xs (Node ys res) = do
     b <- f b (zip xs ys)
     return (b, res)
