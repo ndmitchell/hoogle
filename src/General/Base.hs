@@ -15,6 +15,7 @@ import Data.Maybe as X
 import Data.Monoid as X
 import Data.Ord as X
 import Data.String as X
+import Data.Int as X
 import Data.Word as X
 import Debug.Trace as X (trace)
 import Numeric as X (readHex,showHex)
