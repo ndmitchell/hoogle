@@ -66,6 +66,11 @@
 :}
 
 :{
+:def simpl \x -> return $
+        ":!ghc -isrc -c -i.hpc/opt src/" ++ map (\i -> if i == '.' then '/' else i) x ++ ".hs -odir .hpc/opt -hidir .hpc/opt -threaded -O -package transformers -ddump-simpl > simpl.txt"
+:}
+
+:{
 :def deploy const $ return $ unlines
         [":!cabal clean"
         ,":!cabal configure --datadir=/srv/web/haskell.org/hoogle --datasubdir=datadir -O2"
