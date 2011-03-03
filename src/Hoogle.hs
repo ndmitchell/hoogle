@@ -113,7 +113,7 @@ toResult r@(H.Result ent view score) = (score, Result parents self docs)
 
         parents = map (second $ map f) $  H.entryLocations ent
         f = (H.entryURL &&& H.entryName) . fromOnce
-        docs = H.renderDocumentation $ H.entryDocs ent
+        docs = H.renderDocs $ H.entryDocs ent
 
 
 -- | Perform a search. The results are returned lazily.

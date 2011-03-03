@@ -5,7 +5,7 @@ module Hoogle.Type.Item where
 import General.Base
 import General.Util
 import Hoogle.Store.All
-import Hoogle.Type.Documentation
+import Hoogle.Type.Docs
 import Hoogle.Type.TagStr
 import Hoogle.Type.TypeSig
 import Data.Generics.Uniplate
@@ -40,7 +40,7 @@ data Entry = Entry
     {entryLocations :: [(URL, [Once Entry])]
     ,entryName :: String
     ,entryText :: TagStr
-    ,entryDocs :: Documentation
+    ,entryDocs :: Docs
     ,entryPriority :: Int
     ,entryKey :: String -- used only for rebuilding combined databases
     ,entryType :: Maybe TypeSig -- used only for rebuilding combined databases

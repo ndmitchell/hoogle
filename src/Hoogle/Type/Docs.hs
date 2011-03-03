@@ -1,6 +1,6 @@
 
-module Hoogle.Type.Documentation(
-    Documentation, htmlDocumentation, renderDocumentation
+module Hoogle.Type.Docs(
+    Docs, readDocsHTML, renderDocs
     ) where
 
 import General.Base
@@ -9,21 +9,21 @@ import Hoogle.Store.All
 import Data.ByteString.Char8(ByteString,pack,unpack)
 
 
-newtype Documentation = Documentation ByteString
+newtype Docs = Docs ByteString
     deriving (Eq,Ord)
 
 
-instance Store Documentation where
-    put (Documentation x) = put1 x
-    get = get1 Documentation
+instance Store Docs where
+    put (Docs x) = put1 x
+    get = get1 Docs
 
 
-htmlDocumentation :: String -> Documentation
-htmlDocumentation = Documentation . pack
+readDocsHTML :: String -> Docs
+readDocsHTML = Docs . pack
 
 
-renderDocumentation :: Documentation -> TagStr
-renderDocumentation (Documentation xs) = Tags $ f False $ parseHTML $ unpack xs
+renderDocs :: Docs -> TagStr
+renderDocs (Docs xs) = Tags $ f False $ parseHTML $ unpack xs
     where
         nl = Char '\n'
 

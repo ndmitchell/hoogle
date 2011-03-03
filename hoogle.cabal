@@ -78,7 +78,7 @@ library
         Hoogle.DataBase.TypeSearch.Result
         Hoogle.DataBase.TypeSearch.TypeScore
         Hoogle.DataBase.TypeSearch.All
-        Hoogle.Type.Documentation
+        Hoogle.Type.Docs
         Hoogle.Type.Item
         Hoogle.Type.Language
         Hoogle.Type.TagStr
