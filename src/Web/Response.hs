@@ -165,7 +165,7 @@ renderRes i more Result{..} =
 showTag :: TagStr -> String
 showTag = showTagHTML . transform f
     where
-        f (TagLink "" x) = TagLink (if "http:" `isPrefixOf` str then str else searchLink str) x
+        f (TagLink "" x) = TagLink (if any (`isPrefixOf` str) ["http:","https:"] then str else searchLink str) x
             where str = showTagText x
         f x = x
 
