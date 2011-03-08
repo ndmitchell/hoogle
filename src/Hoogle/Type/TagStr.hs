@@ -2,7 +2,7 @@
 
 -- | A module representing strings with formatting.
 module Hoogle.Type.TagStr(
-    TagStr(..),
+    TagStr(..), tags,
     showTagText, showTagANSI,
     showTagHTML, showTagHTMLWith,
     formatTags
@@ -26,8 +26,8 @@ data TagStr
 
 instance Monoid TagStr where
     mempty = Str ""
-    mappend x y = Tags [x,y]
-    mconcat = Tags
+    mappend x y = tags [x,y]
+    mconcat = tags
 
 
 instance Uniplate TagStr where
@@ -55,6 +55,17 @@ instance Store TagStr where
                 3 -> get1 TagEmph
                 4 -> get2 TagLink
                 5 -> get2 TagColor
+
+
+-- | Smart constructor for 'Tags'
+tags :: [TagStr] -> TagStr
+tags xs = case f xs of
+        [x] -> x
+        xs -> Tags xs
+    where
+        f (Str a:Str b:xs) = f $ Str (a++b):xs
+        f (x:xs) = x : f xs
+        f [] = []
 
 
 -- | Show a 'TagStr' as a string, without any formatting.
