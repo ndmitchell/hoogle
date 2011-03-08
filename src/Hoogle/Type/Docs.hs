@@ -23,7 +23,7 @@ readDocsHTML = Docs . pack
 
 
 renderDocs :: Docs -> TagStr
-renderDocs (Docs xs) = Tags $ f False $ parseHTML $ unpack xs
+renderDocs (Docs xs) = tags $ f False $ parseHTML $ unpack xs
     where
         nl = Char '\n'
 
