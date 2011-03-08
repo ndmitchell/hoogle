@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #417, use proper Haddock parsing for package descriptions
     Make sure https: links work through the web mode
     Rewrite the binary defer layer, cleaner and slightly faster
     Eliminate escaping problems when entering "'s in the search

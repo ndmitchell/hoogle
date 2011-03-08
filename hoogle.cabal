@@ -126,6 +126,7 @@ executable hoogle
         Recipe.Download
         Recipe.General
         Recipe.Hackage
+        Recipe.Haddock
         Recipe.Keyword
         Recipe.Type
         Test.All

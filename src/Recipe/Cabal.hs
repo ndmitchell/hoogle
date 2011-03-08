@@ -12,6 +12,7 @@ import Distribution.System
 import Distribution.Text
 import Distribution.Verbosity
 import Distribution.Version
+import Recipe.Haddock
 
 
 ghcVersion = [7,0,1]
@@ -35,5 +36,5 @@ readCabal file = do
     return $ Cabal
         (display $ pkgName $ package pkg)
         (display $ pkgVersion $ package pkg)
-        (lines $ description pkg)
+        (haddockToHTML $ description pkg)
         [display x | Just l <- [library pkg], Dependency x _ <- targetBuildDepends $ libBuildInfo l]
