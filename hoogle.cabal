@@ -129,6 +129,7 @@ executable hoogle
         Recipe.Keyword
         Recipe.Type
         Test.All
+        Test.Docs
         Test.General
         Test.Parse_Query
         Test.Parse_TypeSig
