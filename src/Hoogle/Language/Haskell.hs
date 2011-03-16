@@ -107,12 +107,12 @@ setPriority pkg mod x = x{itemPriority = pri}
           pkg2 = maybe "" itemName pkg
 
 
-setModuleURL pkg _ x
-    | isJust pkg && itemLevel x == 1 = x{itemURL=if null $ itemURL x then f $ itemName x else itemURL x}
-    | otherwise = x
-    where f = if "http:" `isPrefixOf` itemURL (fromJust pkg) then modHackage else modLocal
-          modHackage xs = "http://hackage.haskell.org/packages/archive/" ++ itemName (fromJust pkg) ++ "/latest/doc/html/" ++ reps '.' '-' xs ++ ".html"
-          modLocal xs = takeDirectory (itemURL $ fromJust pkg) ++ "/" ++ reps '.' '-' xs ++ ".html"
+setModuleURL (Just pkg) _ x | itemLevel x == 1 = x{itemURL=if null $ itemURL x then f $ itemName x else itemURL x}
+    where f xs = if "http://hackage.haskell.org/package/" `isPrefixOf` itemURL pkg
+                 then "http://hackage.haskell.org/packages/archive/" ++ itemName pkg ++ "/latest/doc/html/" ++ file
+                 else takeDirectory (itemURL pkg) ++ "/" ++ file
+              where file = reps '.' '-' xs ++ ".html"
+setModuleURL _ _ x = x
 
 
 ---------------------------------------------------------------------
