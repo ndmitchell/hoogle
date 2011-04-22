@@ -23,7 +23,9 @@ wgetMay opt fil url = do
     when (not b || redownload opt) $ do
         res <- system $ "wget " ++ url ++ " -O " ++ fil
         let b = res == ExitSuccess
-        unless b $ removeFile fil
+        unless b $ do
+            b <- doesFileExist fil
+            when b $ removeFile fil
     doesFileExist fil
 
 
