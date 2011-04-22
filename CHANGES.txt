@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow parsec 3, since various people have reported it works
     Default module URL's correctly when not on Hackage
     #417, use proper Haddock parsing for package descriptions
     Make sure https: links work through the web mode

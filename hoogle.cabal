@@ -36,7 +36,7 @@ library
         array, bytestring, containers, directory, filepath, process, random,
         safe,
         binary,
-        parsec == 2.1.*,
+        parsec >= 2.1,
         transformers == 0.2.*,
         uniplate == 1.6.*,
         haskell-src-exts >= 1.9 && < 1.11
