@@ -17,10 +17,20 @@ download opt = do
     downloadTarball opt inputs "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz"
 
 
+check :: String -> URL -> IO ()
+check name url | isWindows = do
+    res <- findExecutable name
+    when (isNothing res) $ putStrLn $
+        "WARNING: Could not find command line program " ++ name ++ ".\n" ++
+        "  You may be able to install it from:\n  " ++ url
+check _ _ = return ()
+
+
 wgetMay :: CmdLine -> FilePath -> URL -> IO Bool
 wgetMay opt fil url = do
     b <- doesFileExist fil
     when (not b || redownload opt) $ do
+        check "wget" "http://gnuwin32.sourceforge.net/packages/wget.htm"
         res <- system $ "wget " ++ url ++ " -O " ++ fil
         let b = res == ExitSuccess
         unless b $ do
@@ -42,6 +52,8 @@ downloadTarball opt out url = do
         wget opt (out <.> "tar.gz") url
         createDirectoryIfMissing True out
         withDirectory out $ do
+            check "gzip" "http://gnuwin32.sourceforge.net/packages/gzip.htm"
+            check "tar" "http://gnuwin32.sourceforge.net/packages/gtar.htm"
             system_ $ "gzip -dk .." </> takeFileName out <.> "tar.gz"
             system_ $ "tar -xf .." </> takeFileName out <.> "tar"
         writeFile (out <.> "txt") ""
