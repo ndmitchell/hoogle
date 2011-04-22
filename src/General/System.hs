@@ -25,6 +25,13 @@ setFileCreationMask _ = return 0
 #endif
 
 
+isWindows :: Bool
+#ifdef mingw32_HOST_OS
+isWindows = True
+#else
+isWindows = False
+#endif
+
 
 withDirectory dir cmd = E.bracket
     (do x <- getCurrentDirectory; setCurrentDirectory dir; return x)
