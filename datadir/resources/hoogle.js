@@ -248,6 +248,15 @@ function newDocs()
 
 
 /////////////////////////////////////////////////////////////////////
+// iOS TWEAKS
+
+$(function(){
+    if ($.support.inputSearch)
+        $("#hoogle")[0].type = "search";
+});
+
+
+/////////////////////////////////////////////////////////////////////
 // LIBRARY BITS
 
 // Access the browser query string
@@ -276,6 +285,14 @@ $.getQueryString = function(name)
 
 // Supports white-space: pre-wrap;
 $.support.preWrap = !($.browser.msie && $.browser.version < 8);
+
+$.support.iOS =
+    (navigator.platform.indexOf("iPhone") != -1) ||
+    (navigator.platform.indexOf("iPod") != -1) ||
+    (navigator.platform.indexOf("iPad") != -1);
+
+// Supports <input type=search />
+$.support.inputSearch = $.support.iOS;
 
 var Key = {
     Up: 38,
