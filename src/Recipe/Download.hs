@@ -11,7 +11,7 @@ download :: CmdLine -> IO ()
 download opt = do
     createDirectoryIfMissing True "download"
     wget opt keywords "http://haskell.org/haskellwiki/Keywords"
-    wget opt platform "http://code.haskell.org/haskell-platform/haskell-platform.cabal"
+    wget opt platform "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal"
     wget opt inputBase "http://haskell.org/hoogle/base.txt"
     downloadTarball opt cabals "http://hackage.haskell.org/packages/archive/00-index.tar.gz"
     downloadTarball opt inputs "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz"
