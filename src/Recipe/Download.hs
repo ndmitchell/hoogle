@@ -41,6 +41,7 @@ downloadTarball opt out url = do
     unless b $ do
         wget opt (out <.> "tar.gz") url
         createDirectoryIfMissing True out
-        withDirectory out $
-            system_ $ "tar -xzf .." </> takeFileName out <.> "tar.gz"
+        withDirectory out $ do
+            system_ $ "gzip -dk .." </> takeFileName out <.> "tar.gz"
+            system_ $ "tar -xf .." </> takeFileName out <.> "tar"
         writeFile (out <.> "txt") ""
