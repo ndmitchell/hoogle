@@ -110,7 +110,7 @@ executable hoogle
         http-types == 0.6.*,
         case-insensitive == 0.2.*,
         wai == 0.4.*,
-        warp == 0.4.*,
+        warp == 0.4.*
 
     other-modules:
         CmdLine.All
