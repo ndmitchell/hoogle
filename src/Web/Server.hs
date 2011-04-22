@@ -6,6 +6,7 @@ import General.Base
 import General.Web
 import CmdLine.All
 import Web.Response
+import Network.HTTP.Types
 import Web.Page
 import System.IO.Unsafe(unsafeInterleaveIO)
 import Control.Monad.IO.Class
@@ -26,13 +27,13 @@ server q@Server{..} = do
     resp <- respArgs q
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
-    runEx exception port $ \r -> liftIO $ do
+    runSettings defaultSettings{settingsOnException=exception, settingsPort=port} $ \r -> liftIO $ do
         start <- getCurrentTime
         res <- talk resp q r
         responseEvaluate res
         stop <- getCurrentTime
         let t = floor $ diffUTCTime stop start * 1000
-        withMVar v $ const $ putStrLn $ bsUnpack (pathInfo r) ++ bsUnpack (queryString r) ++ " ms:" ++ show t
+        withMVar v $ const $ putStrLn $ bsUnpack (rawPathInfo r) ++ bsUnpack (rawQueryString r) ++ " ms:" ++ show t
         talk resp q r
 
 
@@ -81,7 +82,7 @@ buffer files act = do
 
 -- FIXME: Avoid all the conversions to/from LBS
 talk :: IO ResponseArgs -> CmdLine -> Request -> IO Response
-talk resp Server{..} Request{pathInfo=path_, queryString=query_}
+talk resp Server{..} Request{rawPathInfo=path_, rawQueryString=query_}
     | path `elem` ["/","/hoogle"] = do
         let args = parseHttpQueryArgs $ drop 1 query
         cmd <- cmdLineWeb args
@@ -99,9 +100,9 @@ serveFile cache file = do
     b <- doesFileExist file
     return $ if not b
         then responseNotFound file
-        else ResponseFile statusOK hdr file
-    where hdr = [(hdrContentType, fromString $ contentExt $ takeExtension file)] ++
-                [(hdrCacheControl, fromString "max-age=604800" {- 1 week -}) | cache]
+        else ResponseFile statusOK hdr file Nothing
+    where hdr = [headerContentType $ fromString $ contentExt $ takeExtension file] ++
+                [headerCacheControl $ fromString "max-age=604800" {- 1 week -} | cache]
 
 
 rewriteFileLinks :: Response -> IO Response

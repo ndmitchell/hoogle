@@ -106,10 +106,11 @@ executable hoogle
         cmdargs == 0.6.*,
         tagsoup >= 0.11 && < 0.13,
         enumerator == 0.4.*,
-        blaze-builder == 0.2.*,
-        wai >= 0.3.1 && < 0.4,
-        warp >= 0.3.1 && < 0.4,
-        Cabal >= 1.8 && < 1.11
+        blaze-builder >= 0.2 && < 0.4,
+        http-types == 0.6.*,
+        case-insensitive == 0.2.*,
+        wai == 0.4.*,
+        warp == 0.4.*,
 
     other-modules:
         CmdLine.All

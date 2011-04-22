@@ -5,7 +5,6 @@
 -}
 
 module General.Web(
-    hdrContentType, hdrCacheControl,
     responseOK, responseNotFound,
     responseFlatten, responseEvaluate,
     URL, filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
@@ -16,6 +15,8 @@ module General.Web(
 import General.System
 import General.Base
 import Network.Wai
+import Network.HTTP.Types
+import Data.CaseInsensitive(original)
 import Blaze.ByteString.Builder(toLazyByteString)
 import Data.Enumerator.List(consume)
 import qualified Data.ByteString.Lazy.Char8 as LBS
@@ -26,9 +27,6 @@ type Args = [(String, String)]
 
 ---------------------------------------------------------------------
 -- WAI STUFF
-
-hdrContentType = fromString "Content-Type" :: ResponseHeader
-hdrCacheControl = fromString "Cache-Control" :: ResponseHeader
 
 responseOK = responseLBS statusOK
 responseNotFound x = responseLBS status404 [] $ fromString $ "File not found: " ++ x
@@ -127,7 +125,7 @@ cgiResponse :: Response -> IO ()
 cgiResponse r = do
     (status,headers,body) <- responseFlatten r
     LBS.putStr $ LBS.unlines $
-        [LBS.fromChunks [ciOriginal a, fromString ": ", b] | (a,b) <- headers] ++
+        [LBS.fromChunks [original a, fromString ": ", b] | (a,b) <- headers] ++
         [fromString "",body]
 
 
