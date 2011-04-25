@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.2
     Upgrade to WAI==0.4.* and Warp==0.4.*
     Allow parsec 3, since various people have reported it works
     Default module URL's correctly when not on Hackage
