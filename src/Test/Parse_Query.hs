@@ -23,13 +23,13 @@ parse_Query = do
     "a -> b" === q{typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
     "(a b)" === q{typeSig = Just (TypeSig [] (TApp (TVar "a") [TVar "b"]))}
     "map :: a -> b" === q{names = ["map"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
-    "+Data.Map map" === q{scope = [PlusModule "Data.Map"], names = ["map"]}
-    "a -> b +foo" === q{scope = [PlusPackage "foo"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
-    "a -> b +foo-bar" === q{scope = [PlusPackage "foo-bar"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
-    "Data.Map.map" === q{scope = [PlusModule "Data.Map"], names = ["map"]}
+    "+Data.Map map" === q{scope = [Scope True Module "Data.Map"], names = ["map"]}
+    "a -> b +foo" === q{scope = [Scope True Package "foo"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
+    "a -> b +foo-bar" === q{scope = [Scope True Package "foo-bar"], typeSig = Just (TypeSig [] (TFun [TVar "a",TVar "b"]))}
+    "Data.Map.map" === q{scope = [Scope True Module "Data.Map"], names = ["map"]}
     "[a]" === q{typeSig = Just (TypeSig [] (TApp (TLit "[]") [TVar "a"]))}
     "++" === q{names = ["++"]}
     "(++)" === q{names = ["++"]}
     ":+:" === q{names = [":+:"]}
-    "bytestring-cvs +hackage" === q{scope=[PlusPackage "hackage"], names=["bytestring-cvs"]}
+    "bytestring-cvs +hackage" === q{scope=[Scope True Package "hackage"], names=["bytestring-cvs"]}
 
