@@ -7,6 +7,7 @@ The intention is to turn this list into a script in the future.
   * :testfull
 * darcs push
 * Shell into lambda.haskell.org
+  * If necessary, run cabal install --prefix=/home/ndm/cabal <package>, to upgrade packages
   * cd /home/ndm/hoogle
   * darcs pull
   * cabal clean
