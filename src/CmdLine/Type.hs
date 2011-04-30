@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# OPTIONS_GHC -fno-warn-missing-fields #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse #-}
 
 module CmdLine.Type(
     CmdLine(..), cmdLineMode, isWebCmdLine, blankSearch
