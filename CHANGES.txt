@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Give an error if the database is the wrong version
     Add -fno-cse, to make cmdargs work (was losing args annotations)
 4.2.2
     Upgrade to WAI==0.4.* and Warp==0.4.*

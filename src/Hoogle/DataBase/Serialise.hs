@@ -9,10 +9,11 @@ import General.Base
 import General.System
 
 import Hoogle.DataBase.Type
+import Paths_hoogle(version)
+import Data.Version
 
 
--- FIXME: Has become hard coded, go back to minor version lumps
-hooVersion = [4,0,0,5]
+hooVersion = take 4 $ map fromIntegral (versionBranch version) ++ [0..]
 hooString = "HOOG"
 
 data Identity = Identity deriving (Show, Typeable)
@@ -27,8 +28,8 @@ instance Store Identity where
 
         let showVer = intercalate "." . map show
         when (vr /= hooVersion) $
-            error $ "Wrong hoogle database version: " ++ showVer vr ++
-                    " found, expected " ++ showVer hooVersion
+            error $ "Wrong hoogle database version: found " ++ showVer vr ++ ", " ++
+                    "expected " ++ showVer hooVersion
         return Identity
 
 
