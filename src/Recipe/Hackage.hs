@@ -45,6 +45,16 @@ makePackage = do
 
 
 makeDefault :: ([Name] -> IO ()) -> [FilePath] -> Name -> IO ()
+makeDefault make local "ghc" = do
+    had <- try $ readFileUtf8' "download/ghc.txt"
+    case had of
+        Left e -> putWarning $ "Warning: Exception when reading haddock for ghc, " ++ show (e :: SomeException)
+        Right had -> do
+            convertSrc make "ghc" $ unlines $ "@depends base" : concatMap f (haddockHacks $ lines had)
+    where
+        f x | "@package " `isPrefixOf` x = ["@url http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/",x]
+            | otherwise = [x]
+
 makeDefault make local name = do
     let base = name == "base"
     b1 <- doesDirectoryExist $ cabals </> name
@@ -55,7 +65,7 @@ makeDefault make local name = do
         vc <- version cabals name
         vh <- if base then return vc else version inputs name
         when (vc /= vh) $ putStrLn $ "Warning: Version mismatch for " ++ name ++ " (cabal=" ++ vc ++ ", haddock=" ++ vh ++ ")"
-        let had = if base then inputBase else inputs </> name </> vh </> "doc" </> "html" </> name <.> "txt"
+        let had = if base then "download/base.txt" else inputs </> name </> vh </> "doc" </> "html" </> name <.> "txt"
             cab = cabals </> name </> vc </> name <.> "cabal"
         had <- try $ readFileUtf8' had
         case had of

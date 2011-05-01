@@ -1,7 +1,7 @@
 
 module Recipe.Type(
     CmdLine(..), Name, noDeps, safeEncoding,
-    keywords, platform, cabals, inputs, inputBase, listing, version,
+    keywords, platform, cabals, inputs, listing, version,
     resetWarnings, putWarning, recapWarnings,
     outStr, outStrLn
     ) where
@@ -33,7 +33,6 @@ keywords = "download/keyword.txt"
 platform = "download/haskell-platform.cabal"
 cabals = "download/hackage-cabal"
 inputs = "download/hackage-hoogle"
-inputBase = "download/base.txt" -- FIXME: Temporary, until base.txt ends up on Hackage
 
 listing :: FilePath -> IO [Name]
 listing dir = do
