@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.3
     Generate database for ghc internals
     Give an error if the database is the wrong version
     Add -fno-cse, to make cmdargs work (was losing args annotations)
