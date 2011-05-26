@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow haskell-src-exts 1.11.*
     Upgrade to cmdargs==0.7.*
 4.2.3
     Generate database for ghc internals

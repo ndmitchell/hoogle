@@ -39,7 +39,7 @@ library
         parsec >= 2.1,
         transformers == 0.2.*,
         uniplate == 1.6.*,
-        haskell-src-exts >= 1.9 && < 1.11
+        haskell-src-exts >= 1.9 && < 1.12
 
     if !os(mingw32)
         build-depends: unix
