@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Upgrade to cmdargs==0.7.*
 4.2.3
     Generate database for ghc internals
     Give an error if the database is the wrong version
