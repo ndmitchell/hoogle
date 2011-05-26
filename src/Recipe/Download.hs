@@ -32,11 +32,14 @@ wgetMay opt fil url = do
     b <- doesFileExist fil
     when (not b || redownload opt) $ do
         check "wget" "http://gnuwin32.sourceforge.net/packages/wget.htm"
-        res <- system $ "wget " ++ url ++ " -O " ++ fil
-        let b = res == ExitSuccess
-        unless b $ do
-            b <- doesFileExist fil
-            when b $ removeFile fil
+        let sys cmd = do
+                res <- fmap (== ExitSuccess) $ system cmd
+                unless res $ do
+                    b <- doesFileExist fil
+                    when b $ removeFile fil
+                return res
+        b <- sys $ "wget " ++ url ++ " --output-document=" ++ fil
+        unless b $ do sys $ "curl " ++ url ++ " --output " ++ fil; return ()
     doesFileExist fil
 
 

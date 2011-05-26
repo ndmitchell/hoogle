@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #434, use either wget or curl to download the files
     Allow haskell-src-exts 1.11.*
     Upgrade to cmdargs==0.7.*
 4.2.3
