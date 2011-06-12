@@ -125,7 +125,7 @@ transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = transDecl x $ HSE.Typ
 
 transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ textItem{itemName=nam,itemKey=nam,
     itemType=Just typ,
-    itemURL="#v:" ++ nam,
+    itemURL="#v:" ++ esc nam,
     itemDisp=formatTags x $ (cols snam,TagBold) : zipWith (\i a -> (cols a,TagColor i)) [1..] as ++ [(cols b,TagColor 0)]}
     where (snam,nam) = findName name
           (as,b) = initLast $ typeArgsPos tyy
@@ -136,13 +136,13 @@ transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ te
 
 transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
     {itemName=nam, itemKey=nam
-    ,itemURL="#t:" ++ nam
+    ,itemURL="#t:" ++ esc nam
     ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
 transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from++kinds False to) $ textItem
     {itemName=nam, itemKey=nam
-    ,itemURL="#t:" ++ nam
+    ,itemURL="#t:" ++ esc nam
     ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
           from = transDeclHead Nothing hd
@@ -150,7 +150,7 @@ transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from
 
 transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ fact (kinds False $ transDeclHead ctxt hd) $ textItem
     {itemName=nam, itemKey=nam
-    ,itemURL="#t:" ++ nam
+    ,itemURL="#t:" ++ esc nam
     ,itemDisp=x `formatTags` [(cols $ srcInfoSpan $ ann dat, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
@@ -158,6 +158,12 @@ transDecl x (InstDecl _ ctxt hd _) = Just (FactInstance t:kinds True t, [])
     where t = transInstHead ctxt hd
 
 transDecl _ _ = Nothing
+
+
+esc = concatMap f
+    where
+        f x | isAlphaNum x = [x]
+            | otherwise = "-" ++ show (ord x) ++ "-"
 
 
 typeArgsPos :: HSE.Type S -> [SrcSpan]

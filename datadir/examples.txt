@@ -61,3 +61,16 @@ LT :: Ordering
 -- #327, utf8 not found
 utf8 -n1
 utf8
+
+-- check that URL's work
+>>= --link -n1
+http://hackage.haskell.org/packages/archive/base/latest/doc/html/Prelude.html#v:-62--62--61-
+
+False --link -n1
+http://hackage.haskell.org/packages/archive/base/latest/doc/html/Prelude.html#v:False
+
+Ord --link -n1
+http://hackage.haskell.org/packages/archive/base/latest/doc/html/Prelude.html#t:Ord
+
+String --link -n1
+http://hackage.haskell.org/packages/archive/base/latest/doc/html/Prelude.html#t:String

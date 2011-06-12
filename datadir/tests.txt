@@ -66,6 +66,9 @@ pkg1
 map --link +testdata
 Testdata map :: (a -> b) -> [a] -> [b] -- http://hackage.haskell.org/packages/archive/testdata/latest/doc/html/Testdata.html#v:map
 
+== --link +testdata
+Testdata (==) :: Eq a => a -> a -> Bool -- http://hackage.haskell.org/packages/archive/testdata/latest/doc/html/Testdata.html#v:-61--61-
+
 -- check for perservation of forall
 everywhere +testdata
 everywhere :: Data a => (forall local. Data local => local -> local) -> a -> a
