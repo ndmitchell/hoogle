@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Make --redownload work on the tarballs
 4.2.5
     Fix hyperlinks to symbols (i.e. &&) in Haddock
 4.2.4

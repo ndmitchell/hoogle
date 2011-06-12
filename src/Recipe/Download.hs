@@ -52,7 +52,7 @@ wget opt fil url = do
 downloadTarball :: CmdLine -> FilePath -> URL -> IO ()
 downloadTarball opt out url = do
     b <- doesFileExist $ out <.> "txt"
-    unless b $ do
+    when (not b || redownload opt) $ do
         wget opt (out <.> "tar.gz") url
         createDirectoryIfMissing True out
         withDirectory out $ do
