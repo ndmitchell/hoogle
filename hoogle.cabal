@@ -29,6 +29,10 @@ data-files:
     resources/jquery-1.4.2.js
     resources/jquery.cookie.js
 
+source-repository head
+    type:     darcs
+    location: http://community.haskell.org/~ndm/darcs/hoogle/
+
 library
     hs-source-dirs:     src
     build-depends:
