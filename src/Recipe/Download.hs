@@ -58,6 +58,8 @@ downloadTarball opt out url = do
         withDirectory out $ do
             check "gzip" "http://gnuwin32.sourceforge.net/packages/gzip.htm"
             check "tar" "http://gnuwin32.sourceforge.net/packages/gtar.htm"
-            system_ $ "gzip -d .." </> takeFileName out <.> "tar.gz"
+            putStrLn "Extracting tarball... "
+            system_ $ "gzip --decompress --force .." </> takeFileName out <.> "tar.gz"
             system_ $ "tar -xf .." </> takeFileName out <.> "tar"
+            putStrLn "Finished extracting tarball"
         writeFile (out <.> "txt") ""
