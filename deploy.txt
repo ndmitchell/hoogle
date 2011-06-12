@@ -1,6 +1,15 @@
 This document lists the steps I go through to deploy/update Hoogle on the server.
 The intention is to turn this list into a script in the future.
 
+* Shell into lambda.haskell.org
+  * If necessary, run cabal install --prefix=/home/ndm/cabal <package>, to upgrade packages
+* Run deploy.bat
+  * Use --quick if it fails remotely
+
+
+---------------------------------------------------------------------
+-- OLD INSTRUCTIONS
+
 * Delete the contents of datadir/databases
 * Run ghci locally
   * :opt data default all
