@@ -307,17 +307,19 @@ function px(x){return x + "px";}
 function cache(maxElems)
 {
     // FIXME: Currently does not evict things
-    var contents = {}; // what we have in the cache
+    var contents = {}; // what we have in the cache, with # prepended
+    // note that contents[toString] != undefined, since it's a default method
+    // hence the leading #
 
     return {
         add: function(key,val)
         {
-            contents[key] = val;
+            contents["#" + key] = val;
         },
         
         ask: function(key)
         {
-            return contents[key];
+            return contents["#" + key];
         }
     };
 }
