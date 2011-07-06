@@ -163,7 +163,7 @@ function newEmbed()
     return {
         showWaiting: function(){show("<i>Still working...</i>");},
         showError: function(status,text){show("<i>Error: status " + status + "</i>");},
-        showResult : function(text){show(text);},
+        showResult: function(text){show(text);},
         hide: function(){show();}
     }
 }
