@@ -112,7 +112,7 @@ executable hoogle
         enumerator == 0.4.*,
         blaze-builder >= 0.2 && < 0.4,
         http-types == 0.6.*,
-        case-insensitive == 0.2.*,
+        case-insensitive >= 0.2 && < 0.4,
         wai == 0.4.*,
         warp == 0.4.*,
         Cabal >= 1.8 && < 1.11
