@@ -31,7 +31,7 @@ data-files:
 
 source-repository head
     type:     darcs
-    location: http://community.haskell.org/~ndm/darcs/hoogle/
+    location: http://code.haskell.org/hoogle/
 
 library
     hs-source-dirs:     src
