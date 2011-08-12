@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, ScopedTypeVariables #-}
 
 -- | Module for system like things in base/directory/etc, or could plausibly be added.
 module General.System(module General.System, module X) where
@@ -79,4 +79,4 @@ exitMessage msg = putStr (unlines msg) >> exitFailure
 
 
 getEnvVar :: String -> IO (Maybe String)
-getEnvVar x = catch (fmap Just $ getEnv x) (const $ return Nothing)
+getEnvVar x = E.catch (fmap Just $ getEnv x) (\(x :: E.SomeException) -> return Nothing)

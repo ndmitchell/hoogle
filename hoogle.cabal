@@ -36,7 +36,7 @@ source-repository head
 library
     hs-source-dirs:     src
     build-depends:
-        base > 4 && < 4.4,
+        base > 4 && < 5,
         array, bytestring, containers, directory, filepath, process, random,
         safe,
         binary,
@@ -115,7 +115,7 @@ executable hoogle
         case-insensitive >= 0.2 && < 0.4,
         wai == 0.4.*,
         warp == 0.4.*,
-        Cabal >= 1.8 && < 1.11
+        Cabal >= 1.8 && < 1.13
 
     other-modules:
         CmdLine.All

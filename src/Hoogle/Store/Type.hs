@@ -34,7 +34,7 @@ fromOnce = valueOnce
 
 -- | Given how many you would like to allocate, return your base address
 onceKeys :: Int -> IO Int
-onceKeys = unsafePerformIO $ do
+onceKeys = System.IO.Unsafe.unsafePerformIO $ do
     ref <- newIORef 0
     return $ \n -> atomicModifyIORef ref $ \x -> (x+n, x)
 
@@ -93,7 +93,7 @@ putDefer act = do
 
 {-# NOINLINE once #-}
 once :: a -> Once a
-once x = unsafePerformIO $ do
+once x = System.IO.Unsafe.unsafePerformIO $ do
     key <- onceKeys 1
     return $ Once key x
 

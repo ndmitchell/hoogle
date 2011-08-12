@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 
 module Data.TypeMap(
     TypeMap, empty,
@@ -31,8 +32,10 @@ insert :: Typeable a => a -> TypeMap -> TypeMap
 insert a (TypeMap mp) = TypeMap $ Map.insert (typeOf a) (toDyn a) mp
 
 
+#if __GLASGOW_HASKELL__ < 702
 instance Ord TypeRep where
     compare a b = compare (splitTyConApp a) (splitTyConApp b)
 
 instance Ord TyCon where
     compare a b = compare (tyConString a) (tyConString b)
+#endif
