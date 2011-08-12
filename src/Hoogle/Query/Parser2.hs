@@ -1,113 +1,119 @@
+{-# LANGUAGE ViewPatterns, PatternGuards #-}
 
 module Hoogle.Query.Parser2(parseQuery) where
 
 import General.Base
-import Hoogle.Query.Type2
-import Hoogle.Type.All as Hoogle
+import Hoogle.Query.Type
+import Hoogle.Type.All
 
 
-parseQuery :: String -> ([Query], [Query] -> TagStr)
-parseQuery = grouper . lexer
+-- | Given a string entered by the user, return the parsed query, along with the string you are guessing
+--   the user will enter next.
+parseQuery :: String -> (Query, String)
+parseQuery x = (Query nam typ scp, "")
+    where
+        (scp,rest) = scope_ $ lexer x
+        (nam,typ) = divide rest
+
+
+---------------------------------------------------------------------
+-- UTILITY
 
 openBrackets = ["(#","[:","(","["]
 shutBrackets = ["#)",":]",")","]"]
 
+isBracket x = x `elem` (openBrackets ++ shutBrackets)
+isBracketPair x = x `elem` zipWith (++) openBrackets shutBrackets
 
----------------------------------------------------------------------
--- LEXER
+isAlphas (x:xs) = isAlpha x
+isAlphas [] = False
 
-data Lexeme
-    = Symbol String String
-    | Ident String String
-    | Scoped Bool Scope String
-    | Bracket Bool String
+isSym x = x `elem` "->!#$%&*+./<=?@\\^|~:"
 
-
--- Accepts:
--- bar ++ (++)
--- name.bar
--- name.++ name.(++) (name.++)
--- +foo -foo
--- +scope:foo -scope:foo scope:foo
-lexer :: String -> [Lexeme]
-lexer = runLexerEnd $ fmap concat $ many $ choice
-    [do pm <- oneOf "+-"; scope <- modPkg
-        do char ':'; name <- modPkg; return [Scoped (pm=='+') scp name | Just scp <- [readScope scope]] <|>
-            return [Scoped (pm=='+') (if '.' `elem` name || all isUpper (take 1 name) then Module else Package) name]
-    ]
-
-
-modPkg = fmap (intercalate ".") $ ident `sepBy1` char '.'
-
-ident = do
-    x <- satisfy isAlpha
-    xs <- many $ satisfy $ \x -> isAlphaNum x || x `elem` "_'#-"
-    return $ x:xs
-
-
-readScope :: String -> Maybe Scope
-readScope _ = Nothing
+isSyms xs | isBracket xs || isBracketPair xs = False
+isSyms (x:xs) = isSym x
+isSyms [] = False
 
 
 ---------------------------------------------------------------------
--- LEXICAL MONAD
+-- PARSING
 
-sepBy1 a b = liftM2 (:) a (many $ b >> a)
+-- | Split into small lexical chunks.
+--
+-- > "Data.Map.(!)" ==> ["Data",".","Map",".","(","!",")"]
+lexer :: String -> [String]
+lexer ('(':',':xs) | (a,')':b) <- span (== ',') xs = ("(," ++ a ++ ")") : lexer b
+lexer x | Just s <- fmap (bs !!) $ findIndex (`isPrefixOf` x) bs = s : lexer (drop (length s) x)
+    where bs = zipWith (++) openBrackets shutBrackets ++ openBrackets ++ shutBrackets
+lexer (x:xs)
+    | isSpace x = " " : lexer (dropWhile isSpace xs)
+    | isAlpha x = let (a,b) = span (\x -> isAlphaNum x || x `elem` "_'#-") xs in (x:a) : lexer b
+    | isSym x = let (a,b) = span isSym xs in (x:a) : lexer b
+    | x == ',' = "," : lexer xs
+    | otherwise = lexer xs -- drop invalid bits
+lexer [] = []
 
-oneOf xs = satisfy (`elem` xs)
-char x = satisfy (== x)
-string = mapM char
 
-choice :: [Lexer a] -> Lexer a
-choice = foldr1 (<|>)
+-- | Find and extract the scope annotations.
+--
+-- > +package
+-- > +module
+-- > name.bar
+-- > name.++ name.(++) (name.++)
+-- > +foo -foo
+-- > +scope:foo -scope:foo scope:foo
+scope_ :: [String] -> ([Scope], [String])
+scope_ xs = case xs of
+    (readPM -> Just pm):(readCat -> Just cat):":":(readMod -> Just (mod,rest)) -> add pm cat mod rest
+    (readPM -> Just pm):(readMod -> Just (mod,rest)) -> add_ pm mod rest
+    (readCat -> Just cat):":":(readMod -> Just (mod,rest)) -> add True cat mod rest
+    "(":(readDots -> Just (scp,x:")":rest)) -> out ["(",x,")"] $ add_ True scp rest
+    (readDots -> Just (scp,rest)) -> add_ True scp rest
+    x:xs -> out [x] $ scope_ xs
+    [] -> ([], [])
+    where
+        out xs (a,b) = (a,xs++b)
+        add a b c rest = let (x,y) = scope_ rest in (Scope a b c : x, y)
+        add_ a c rest = add a b c rest
+            where b = if '.' `elem` c || any isUpper (take 1 c) then Module else Package
 
-runLexerEnd :: Lexer a -> String -> a
-runLexerEnd f s = case runLexer f s of
-    Just (v,"") -> v
-    _ -> error $ "Lexing failed on: " ++ show s
+        readPM x = case x of "+" -> Just True; "-" -> Just False; _ -> Nothing
 
-newtype Lexer a = Lexer {runLexer :: String -> Maybe (a, String)}
+        readCat x | isAlphas x = Just $ if map toLower x `isPrefixOf` "module" then Module else Package
+                  | otherwise = Nothing
 
-instance Functor Lexer where
-    fmap f (Lexer x) = Lexer $ fmap (first f) . x
+        readMod (x:xs) | isAlphas x = Just $ case xs of
+            ".":ys | Just (a,b) <- readMod ys -> (x ++ "." ++ a, b)
+            _ -> (x,xs)
+        readMod _ = Nothing
 
-instance Monad Lexer where
-    a >>= f = Lexer $ \s -> case runLexer a s of
-        Nothing -> Nothing
-        Just (v,s) -> runLexer (f v) s
-    return x = Lexer $ \s -> Just (x, s)
-    fail _ = Lexer $ const Nothing
+        readDots (x:xs) | isAlphas x = case xs of
+            ".":ys | Just (a,b) <- readDots ys -> Just (x ++ "." ++ a, b)
+            ('.':y):ys -> Just (x, [y | y /= ""] ++ ys)
+            _ -> Nothing
+        readDots _ = Nothing
 
-many a = Lexer $ Just . f
-    where f s = case runLexer a s of
-                    Nothing -> ([], s)
-                    Just (x,s) -> first (x:) $ f s
 
-(<|>) a b = Lexer $ \s -> runLexer a s `mplus` runLexer b s
+-- | If everything is a name, or everything is a symbol, then you only have names.
+divide :: [String] -> ([String], Maybe TypeSig)
+divide xs | all isAlphas ns = (ns, Nothing)
+          | all isSyms ns = (ns, Nothing)
+          | length ns == 1 = (ns, Nothing)
+          | otherwise = case break (== "::") xs of
+                (nam, _:rest) -> (names_ nam, Just $ typeSig_ rest)
+                _ -> ([], Just $ typeSig_ xs)
+    where ns = names_ xs
 
-fails :: Lexer a
-fails = fail ""
 
-eof :: Lexer Bool
-eof = Lexer $ \s -> Just (null s, s)
-
-satisfy :: (Char -> Bool) -> Lexer Char
-satisfy f = Lexer $ \s -> case s of
-    x:xs | f x -> Just (x,xs)
-    _ -> Nothing
+-- | Ignore brackets around symbols, and try to deal with tuple names.
+names_ :: [String] -> [String]
+names_ ("(":x:")":xs) = x : names_ xs
+names_ (x:xs) = [x | x /= " "] ++ names_ xs
+names_ [] = []
 
 
 ---------------------------------------------------------------------
--- GROUPER
+-- TYPES
 
-grouper :: [Lexeme] -> ([Query], [Query] -> TagStr)
-grouper = undefined
---if there is a ::, split and continue that way
---otherwise if there are both symbol and ident names, try it as a type signature
-
-
----------------------------------------------------------------------
--- TYPE SIG
-
-typeSig :: [Lexeme] -> (TypeSig, TypeSig -> TagStr)
-typeSig _ = undefined
+typeSig_ :: [String] -> TypeSig
+typeSig_ xs = error $ "typeSig_ with " ++ show xs
