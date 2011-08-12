@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.6
     Permit GHC 7.2
     Allow case-insensitive-0.3.*
     Fix bug when searching for toString in the embed mode
