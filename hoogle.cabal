@@ -107,7 +107,7 @@ executable hoogle
 
     build-depends:
         time, old-time, old-locale,
-        cmdargs == 0.7.*,
+        cmdargs >= 0.7 && < 0.9,
         tagsoup >= 0.11 && < 0.13,
         enumerator == 0.4.*,
         blaze-builder >= 0.2 && < 0.4,

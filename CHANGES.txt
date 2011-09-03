@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow cmdargs-0.8
 4.2.6
     Permit GHC 7.2
     Allow case-insensitive-0.3.*
