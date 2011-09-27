@@ -80,17 +80,26 @@ buffer files act = do
 
 -- FIXME: Avoid all the conversions to/from LBS
 talk :: IO ResponseArgs -> CmdLine -> Request -> IO Response
-talk resp Server{..} Request{rawPathInfo=path_, rawQueryString=query_}
+talk resp Server{..} r@Request{rawPathInfo=path_, rawQueryString=query_}
     | path `elem` ["/","/hoogle"] = do
         let args = parseHttpQueryArgs $ drop 1 query
         cmd <- cmdLineWeb args
         resp <- resp
         r <- response resp cmd{databases=databases}
         if local_ then rewriteFileLinks r else return r
+    | path == "/res/search.xml" = serveSearch resources (fmap bsUnpack $ join $ lookup (fromString "domain") $ queryString r)
     | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
     | local_ && "/file/" `isPrefixOf` path = serveFile False $ drop 6 path
     | otherwise = return $ responseNotFound $ show path
     where (path,query) = (bsUnpack path_, bsUnpack query_)
+
+
+serveSearch :: FilePath -> Maybe String -> IO Response
+serveSearch resources domain = do
+    r <- serveFile True $ resources </> "search.xml"
+    case domain of
+        Nothing -> return r
+        Just x -> responseRewrite (lbsReplace (fromString "http://haskell.org/hoogle/") (fromString x)) r
 
 
 serveFile :: Bool -> FilePath -> IO Response
@@ -112,4 +121,5 @@ contentExt ".css" = "text/css"
 contentExt ".js" = "text/javascript"
 contentExt ".html" = "text/html"
 contentExt ".htm" = "text/html"
+contentExt ".xml" = "application/opensearchdescription+xml"
 contentExt _ = "text/plain"

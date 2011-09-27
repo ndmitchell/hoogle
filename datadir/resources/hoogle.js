@@ -199,16 +199,25 @@ function setInstant(x)
 /////////////////////////////////////////////////////////////////////
 // SEARCH PLUGIN
 
+var prefixUrl = document.location.protocol + "//" + document.location.hostname + document.location.pathname;
+
 $(function(){
     if (embed) return;
+    if (prefixUrl != "http://haskell.org/hoogle/")
+    {
+        $("link[rel=search]").attr("href", function(){
+            return this.href + "?domain=" + escape(prefixUrl);
+        });
+    }
     if (window.external && ("AddSearchProvider" in window.external))
         $("#plugin").css("display","");
 });
 
 function searchPlugin()
 {
-    var l = document.location;
-    var url = l.protocol + "//" + l.hostname + l.pathname + $("link[rel=search]").attr("href");
+    var url = $("link[rel=search]").attr("href");
+    if (url.substring(0, prefixUrl.length) != prefixUrl)
+        url = prefixUrl + url;
     window.external.AddSearchProvider(url);
 }
 

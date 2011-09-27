@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #407, rewrite OpenSearch plugin to work regardless of the server
 4.2.7
     Allow cmdargs-0.8
 4.2.6
