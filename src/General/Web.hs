@@ -6,7 +6,7 @@
 
 module General.Web(
     responseOK, responseNotFound,
-    responseFlatten, responseEvaluate,
+    responseFlatten, responseEvaluate, responseRewrite,
     URL, filePathToURL, combineURL, escapeURL, (++%), unescapeURL,
     escapeHTML, (++&), htmlTag,
     Args, cgiArgs, cgiResponse, parseHttpQueryArgs
@@ -40,6 +40,12 @@ responseFlatten r = responseEnumerator r $ \s hs -> do
 responseEvaluate :: Response -> IO ()
 responseEvaluate (ResponseBuilder _ _ x) = LBS.length (toLazyByteString x) `seq` return ()
 responseEvaluate _ = return ()
+
+
+responseRewrite :: (LBString -> LBString) -> Response -> IO Response
+responseRewrite f r = do
+    (a,b,c) <- responseFlatten r
+    return $ responseLBS a b $ f c
 
 
 ---------------------------------------------------------------------
