@@ -18,8 +18,6 @@ import Data.Time.Clock
 
 import Network.Wai
 import Network.Wai.Handler.Warp
-import qualified Data.ByteString.Lazy.Char8 as LBS
-import qualified Data.ByteString.Char8 as BS
 
 
 server :: CmdLine -> IO ()
@@ -106,18 +104,7 @@ serveFile cache file = do
 
 
 rewriteFileLinks :: Response -> IO Response
-rewriteFileLinks r = do
-    (a,b,c) <- responseFlatten r
-    let res = LBS.fromChunks $ f $ BS.concat $ LBS.toChunks c
-    return $ responseLBS a b res
-    where
-        f x | BS.null b = [a]
-            | otherwise = a : rep : f (BS.drop nfind b) 
-            where (a,b) = BS.breakSubstring find x
-
-        find = fromString "href='file://"
-        rep = fromString "href='/file/"
-        nfind = BS.length find
+rewriteFileLinks = responseRewrite $ lbsReplace (fromString "href='file://") (fromString "href='/file/")
 
 
 contentExt ".png" = "image/png"
