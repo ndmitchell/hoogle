@@ -32,6 +32,20 @@ lbsUnpack = LBS.unpack
 bsUnpack = BS.unpack
 
 
+bsReplace :: BString -> BString -> BString -> BString
+bsReplace find rep = BS.concat . f
+    where
+        nfind = BS.length find
+
+        f x | BS.null b = [a]
+            | otherwise = a : rep : f (BS.drop nfind b) 
+            where (a,b) = BS.breakSubstring find x
+
+lbsReplace :: LBString -> LBString -> LBString -> LBString
+lbsReplace find rep x = LBS.fromChunks [bsReplace (f find) (f rep) (f x)]
+    where f = BS.concat . LBS.toChunks
+
+
 -- | A URL, or internet address. These addresses will usually start with either
 --   @http:\/\/@ or @file:\/\/@.
 type URL = String
