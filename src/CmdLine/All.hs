@@ -70,9 +70,11 @@ expandDatabases x = do
 
 guessLocal = do
     ghc <- findExecutable "ghc"
+    home <- getHomeDirectory
     lib <- getLibDir
-    let xs = [takeDirectory (takeDirectory lib) </> "doc"] ++
-             [takeDirectory (takeDirectory ghc) </> "doc/html/libraries" | Just ghc <- [ghc]]
+    let xs = [takeDirectory (takeDirectory lib) </> "doc" {- Windows, installed with Cabal -}  ] ++
+             [takeDirectory (takeDirectory ghc) </> "doc/html/libraries" | Just ghc <- [ghc] {- Windows, installed by GHC -} ] ++
+             [home </> ".cabal/share/doc" {- Linux -} ]
     filterM doesDirectoryExist xs
 
 

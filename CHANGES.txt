@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Make data --local have a good default on Linux
     Make server --local work on Windows
     #407, rewrite OpenSearch plugin to work regardless of the server
 4.2.7
