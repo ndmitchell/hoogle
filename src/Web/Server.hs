@@ -89,7 +89,9 @@ talk resp Server{..} r@Request{rawPathInfo=path_, rawQueryString=query_}
         if local_ then rewriteFileLinks r else return r
     | path == "/res/search.xml" = serveSearch resources (fmap bsUnpack $ join $ lookup (fromString "domain") $ queryString r)
     | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
-    | local_ && "/file/" `isPrefixOf` path = serveFile False $ drop 6 path
+    | local_, Just path <- stripPrefix "/file/" path =
+        let hasDrive = "/" `isPrefixOf` path && ":" `isPrefixOf` (drop 2 path)
+        in serveFile False $ if hasDrive then drop 1 path else path
     | otherwise = return $ responseNotFound $ show path
     where (path,query) = (bsUnpack path_, bsUnpack query_)
 
