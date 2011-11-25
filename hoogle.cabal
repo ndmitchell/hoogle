@@ -101,6 +101,7 @@ library
         Hoogle.Store.ReadBuffer
         Hoogle.Store.Type
         Hoogle.Store.WriteBuffer
+        Paths_hoogle
 
 executable hoogle
     main-is:            Main.hs
