@@ -42,8 +42,8 @@ withDirectory dir cmd = E.bracket
 withModeGlobalRead :: IO () -> IO ()
 withModeGlobalRead act = E.bracket
     (setFileCreationMask 0o022)
-    (const act)
     (\x -> setFileCreationMask x >> return ())
+    (const act)
 
 
 -- FIXME: This could use a lot more bracket calls!
