@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Fix setting the global read flags and unsetting them properly
     Allow case-insensitive-0.4.*
     Make data --local have a good default on Linux
     Make server --local work on Windows
