@@ -1,7 +1,7 @@
 cabal-version:      >= 1.6
 build-type:         Simple
 name:               hoogle
-version:            4.2.7
+version:            4.2.8
 license:            GPL
 license-file:       docs/LICENSE
 category:           Development

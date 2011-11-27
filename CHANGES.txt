@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.8
     Allow cmdargs-0.9
     Fix setting the global read flags and unsetting them properly
     Allow case-insensitive-0.4.*
