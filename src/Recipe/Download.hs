@@ -10,9 +10,9 @@ import Recipe.Type
 download :: CmdLine -> IO ()
 download opt = do
     createDirectoryIfMissing True "download"
-    wget opt keywords "http://haskell.org/haskellwiki/Keywords"
+    wget opt keywords "http://www.haskell.org/haskellwiki/Keywords"
     wget opt platform "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal"
-    wget opt "download/base.txt" "http://haskell.org/hoogle/base.txt"
+    wget opt "download/base.txt" "http://www.haskell.org/hoogle/base.txt"
     wget opt "download/ghc.txt" "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt"
     downloadTarball opt cabals "http://hackage.haskell.org/packages/archive/00-index.tar.gz"
     downloadTarball opt inputs "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz"

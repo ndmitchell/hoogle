@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #525, don't rely on a redirect to find files
     Allow Cabal-1.14
 4.2.8
     Allow cmdargs-0.9
