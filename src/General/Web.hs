@@ -17,10 +17,11 @@ import General.Base
 import Network.Wai
 import Network.HTTP.Types
 import Data.CaseInsensitive(original)
-import Blaze.ByteString.Builder(toLazyByteString)
-import Data.Enumerator.List(consume)
 import qualified Data.ByteString.Lazy.Char8 as LBS
 
+import Blaze.ByteString.Builder(toLazyByteString)
+import Data.Conduit.List(consume)
+import Data.Conduit(($$),Flush,runResourceT,Flush(Chunk))
 
 type Args = [(String, String)]
 
@@ -32,9 +33,11 @@ responseOK = responseLBS statusOK
 responseNotFound x = responseLBS status404 [] $ fromString $ "File not found: " ++ x
 
 responseFlatten :: Response -> IO (Status, ResponseHeaders, LBString)
-responseFlatten r = responseEnumerator r $ \s hs -> do
-       builders <- consume
-       return (s, hs, toLazyByteString $ mconcat builders)
+responseFlatten r = do
+    let (s,hs,rest) = responseSource r
+    chunks <- runResourceT $ rest $$ consume
+    let res = toLazyByteString $ mconcat [x | Chunk x <- chunks]
+    return (s,hs,res)
 
 
 responseEvaluate :: Response -> IO ()

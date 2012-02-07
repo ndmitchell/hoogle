@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Upgrade to WAI-1.1 and Warp-1.1
     #525, don't rely on a redirect to find files
     Allow Cabal-1.14
 4.2.8
