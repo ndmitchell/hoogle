@@ -46,7 +46,7 @@ blankSearch = Search False False False [] Nothing Nothing Nothing 1 [] (Left emp
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,data_,server,combine,convert,test,dump,rank,log_]
     &= verbosity &= program "hoogle"
-    &= summary ("Hoogle v" ++ showVersion version ++ ", (C) Neil Mitchell 2004-2011\nhttp://haskell.org/hoogle")
+    &= summary ("Hoogle v" ++ showVersion version ++ ", (C) Neil Mitchell 2004-2012\nhttp://haskell.org/hoogle")
 
 search_ = Search
     {web = def &= typ "MODE" &= opt "web" &= help "Operate as a web tool"
