@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow Cabal-1.14
 4.2.8
     Allow cmdargs-0.9
     Fix setting the global read flags and unsetting them properly

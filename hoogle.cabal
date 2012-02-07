@@ -117,7 +117,7 @@ executable hoogle
         case-insensitive >= 0.2 && < 0.5,
         wai == 0.4.*,
         warp == 0.4.*,
-        Cabal >= 1.8 && < 1.13
+        Cabal >= 1.8 && < 1.15
 
     other-modules:
         CmdLine.All
