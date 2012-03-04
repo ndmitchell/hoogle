@@ -15,7 +15,7 @@ import Distribution.Version
 import Recipe.Haddock
 
 
-ghcVersion = [7,0,1]
+ghcVersion = [7,4,1]
 
 data Cabal = Cabal
     {cabalName :: String
