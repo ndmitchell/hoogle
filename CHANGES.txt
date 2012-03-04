@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.10
     #533, be paranoid when parsing Cabal files
 4.2.9
     Upgrade to WAI-1.1 and Warp-1.1
