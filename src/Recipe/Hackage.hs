@@ -38,8 +38,11 @@ makePackage = do
         ver <- version cabals name
         let file = cabals </> name </> ver </> name <.> "cabal"
         src <- readCabal file
-        return $ [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
-                 ["--","-- Version " ++ ver, "@url package/" ++ name, "@entry package " ++ name]
+        return $ case src of
+            Nothing -> []
+            Just src ->
+                [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
+                ["--","-- Version " ++ ver, "@url package/" ++ name, "@entry package " ++ name]
     convertSrc noDeps "package" $ unlines $
         "@url http://hackage.haskell.org/" : "@package package" : concat xs
 
@@ -71,10 +74,10 @@ makeDefault make local name = do
         case had of
             Left e -> putWarning $ "Warning: Exception when reading haddock for " ++ name ++ ", " ++ show (e :: SomeException)
             Right had -> do
-                cab <- readCabal cab
+                deps <- fmap (maybe [] cabalDepends) $ readCabal cab
                 loc <- findLocal local name
                 convertSrc make name $ unlines $
-                    ["@depends " ++ a | a <- cabalDepends cab \\ (name:avoid)] ++
+                    ["@depends " ++ a | a <- deps \\ (name:avoid)] ++
                     (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
 
 
