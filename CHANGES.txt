@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow haskell-src-exts-1.12 and 1.13
 4.2.10
     #533, be paranoid when parsing Cabal files
 4.2.9
