@@ -42,7 +42,7 @@ library
         safe,
         binary,
         parsec >= 2.1,
-        transformers == 0.2.*,
+        transformers >= 0.2 && < 0.4,
         uniplate == 1.6.*,
         haskell-src-exts >= 1.12 && < 1.14
 

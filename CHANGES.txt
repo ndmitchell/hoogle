@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow transformers-0.3
     Allow conduit-0.4, wai-1.2 and warp-1.2
     Allow haskell-src-exts-1.12 and 1.13
 4.2.10
