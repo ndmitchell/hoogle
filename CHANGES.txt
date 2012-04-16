@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Double the speed of hoogle server responses
 4.2.11
     Allow transformers-0.3
     Allow conduit-0.4, wai-1.2 and warp-1.2

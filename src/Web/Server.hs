@@ -32,7 +32,7 @@ server q@Server{..} = do
         stop <- getCurrentTime
         let t = floor $ diffUTCTime stop start * 1000
         withMVar v $ const $ putStrLn $ bsUnpack (rawPathInfo r) ++ bsUnpack (rawQueryString r) ++ " ms:" ++ show t
-        talk resp q r
+        return res
 
 
 exception :: SomeException -> IO ()
