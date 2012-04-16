@@ -39,7 +39,7 @@ _header css js query queryHyphen = ""
   ++ "\" />\n    <input id=\"submit\" type=\"submit\" value=\"Search\" />\n</form>\n<div id=\"body\">\n"
 
 _footer version = ""
-  ++ "        </div>\n        <p id=\"footer\">&copy; <a href=\"http://community.haskell.org/~ndm/\">Neil Mitchell</a> 2004-2011, version "
+  ++ "        </div>\n        <p id=\"footer\">&copy; <a href=\"http://community.haskell.org/~ndm/\">Neil Mitchell</a> 2004-2012, version "
   ++ escapeHTML version
   ++ "</p>\n    </body>\n</html>\n"
 
