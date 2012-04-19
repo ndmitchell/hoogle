@@ -1,5 +1,7 @@
 Hoogle - a Haskell API search.
 
+This repo is being migrated to git.
+
 Command Line Version
 --------------------
 
