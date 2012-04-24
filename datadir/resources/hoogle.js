@@ -32,6 +32,9 @@ $(function(){
         active = now;
 
         var title = now + (now == "" ? "" : " - ") + "Hoogle";
+        query["hoogle"] = now;
+        if (window.history)
+            window.history.replaceState(null, title, renderQuery(query));
         $("title").text(title);
 
         var old = past.ask(now);
