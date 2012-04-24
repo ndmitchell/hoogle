@@ -30,6 +30,9 @@ $(function(){
         if (now == active) return;
         active = now;
 
+        var title = now + (now == "" ? "" : " - ") + "Hoogle";
+        $("title").text(title);
+
         var old = past.ask(now);
         if (old != undefined){self.showResult(old); return;}
 
