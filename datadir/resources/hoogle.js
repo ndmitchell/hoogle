@@ -282,9 +282,9 @@ $(function(){
 // LIBRARY BITS
 
 // Access the browser query string
-// From http://stackoverflow.com/questions/901115/get-querystring-values-with-jquery/3867610#3867610
-$.getQueryString = function(name)
-{           
+$.getQueryString = function(key)
+{
+    // From http://stackoverflow.com/questions/901115/get-querystring-values-with-jquery/3867610#3867610
     function parseParams() {
         var params = {},
             e,
@@ -302,7 +302,7 @@ $.getQueryString = function(name)
     if (!this.queryStringParams)
         this.queryStringParams = parseParams(); 
 
-    return this.queryStringParams[name];
+    return this.queryStringParams[key];
 }
 
 // Supports white-space: pre-wrap;
