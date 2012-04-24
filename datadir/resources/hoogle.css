@@ -282,7 +282,7 @@ docs may be in one of three states:
     font-size: small;
 }
 
-.phone .ans, .doc, .from {
+.phone .ans, .phone .doc, .phone .from {
     margin-left: 5px;
     margin-right: 5px;
 }
