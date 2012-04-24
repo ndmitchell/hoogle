@@ -243,3 +243,46 @@ docs may be in one of three states:
     max-height: 100%;
     white-space: pre-wrap;
 }
+
+
+/********************************************************************
+*  PHONE SPECIFIC
+*/
+
+.phone #links {
+    float: none;
+    margin-left: 5px;
+}
+
+.phone #search {
+    text-align: center;
+}
+
+.phone #submit {
+    display: none;
+}
+
+.phone #left {
+    display: none;
+}
+
+.phone h1 {
+    padding-left: 5px;
+}
+
+.phone p {
+    margin-left: 5px
+}
+
+.phone #example {
+    width: auto;
+}
+
+.phone #footer {
+    font-size: small;
+}
+
+.phone .ans, .doc, .from {
+    margin-left: 5px;
+    margin-right: 5px;
+}

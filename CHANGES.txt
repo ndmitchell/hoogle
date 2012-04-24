@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Improve iPhone support
     Update the copyright year in the footer
     Double the speed of hoogle server responses
 4.2.11

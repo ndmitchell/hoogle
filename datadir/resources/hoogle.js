@@ -262,6 +262,16 @@ function newDocs()
 $(function(){
     if ($.support.inputSearch)
         $("#hoogle")[0].type = "search";
+
+    var qphone = $.getQueryString("phone");
+    phone =
+        qphone == "0" ? false :
+        qphone == "1" ? true :
+        $.support.phone;
+
+    if (!phone) return;
+    $("body").addClass("phone");
+    $("head").append("<meta name='viewport' content='width=device-width' />");
 });
 
 
@@ -296,9 +306,13 @@ $.getQueryString = function(name)
 $.support.preWrap = !($.browser.msie && $.browser.version < 8);
 
 $.support.iOS =
-    (navigator.platform.indexOf("iPhone") != -1) ||
-    (navigator.platform.indexOf("iPod") != -1) ||
-    (navigator.platform.indexOf("iPad") != -1);
+    (navigator.userAgent.indexOf("iPhone") != -1) ||
+    (navigator.userAgent.indexOf("iPod") != -1) ||
+    (navigator.userAgent.indexOf("iPad") != -1);
+
+$.support.phone =
+    (navigator.userAgent.indexOf("iPhone") != -1) ||
+    (navigator.userAgent.indexOf("iPod") != -1);
 
 // Supports <input type=search />
 $.support.inputSearch = $.support.iOS;
