@@ -1,6 +1,7 @@
 
 var embed = false; // are we running as an embedded search box
 var instant = false; // should we search on key presses
+var query = parseQuery(); // what is the current query string
 
 var $hoogle; // $("#hoogle") after load
 
@@ -180,7 +181,7 @@ $(function(){
         instant = true;
     else
     {
-        setInstant($.getQueryString('ajax') == "1" || $.cookie("instant") == "1");
+        setInstant(query["ajax"] == "1" || $.cookie("instant") == "1");
         $("#instant").css("display","");
     }
 });
@@ -266,7 +267,7 @@ $(function(){
     if ($.support.inputSearch)
         $("#hoogle")[0].type = "search";
 
-    var qphone = $.getQueryString("phone");
+    var qphone = query["phone"];
     phone =
         qphone == "0" ? false :
         qphone == "1" ? true :
@@ -281,29 +282,33 @@ $(function(){
 /////////////////////////////////////////////////////////////////////
 // LIBRARY BITS
 
-// Access the browser query string
-$.getQueryString = function(key)
+function parseQuery() // :: IO (Dict String String)
 {
     // From http://stackoverflow.com/questions/901115/get-querystring-values-with-jquery/3867610#3867610
-    function parseParams() {
-        var params = {},
-            e,
-            a = /\+/g,  // Regex for replacing addition symbol with a space
-            r = /([^&=]+)=?([^&]*)/g,
-            d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
-            q = window.location.search.substring(1);
+    var params = {},
+        e,
+        a = /\+/g,  // Regex for replacing addition symbol with a space
+        r = /([^&=]+)=?([^&]*)/g,
+        d = function (s) { return decodeURIComponent(s.replace(a, " ")); },
+        q = window.location.search.substring(1);
 
-        while (e = r.exec(q))
-            params[d(e[1])] = d(e[2]);
+    while (e = r.exec(q))
+        params[d(e[1])] = d(e[2]);
 
-        return params;
-    }
-
-    if (!this.queryStringParams)
-        this.queryStringParams = parseParams(); 
-
-    return this.queryStringParams[key];
+    return params;
 }
+
+function renderQuery(query) // Dict String String -> IO String
+{
+    var s = "";
+    for (var i in query)
+    {
+        if (query[i] != "")
+            s += (s == "" ? "?" : "&") + i + "=" + encodeURIComponent(query[i]);
+    }
+    return window.location.href.substring(0, window.location.href.length - window.location.search.length) + s;
+}
+
 
 // Supports white-space: pre-wrap;
 $.support.preWrap = !($.browser.msie && $.browser.version < 8);
