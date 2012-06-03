@@ -119,9 +119,10 @@ listPlatform = do
 -- Change instance [overlap ok] to instance, Haddock bug
 -- Change instance [incoherent] to instance, Haddock bug
 -- Change !Int to Int, HSE bug
+-- Drop everything after where, Haddock bug
 
 haddockHacks :: [String] -> [String]
-haddockHacks = map (unwords . map f . words) . filter (not . isPrefixOf "@version ")
+haddockHacks = map (unwords . g . map f . words) . filter (not . isPrefixOf "@version ")
     where
         f "::" = "::"
         f (':':xs) = "(:" ++ xs ++ ")"
@@ -130,6 +131,9 @@ haddockHacks = map (unwords . map f . words) . filter (not . isPrefixOf "@versio
         f x | x `elem` ["[overlap","ok]","[incoherent]"] = ""
         f x = x
 
+        g ("where":xs) = []
+        g (x:xs) = x : g xs
+        g [] = []
 
 haddockPackageUrl :: URL -> [String] -> [String]
 haddockPackageUrl x = concatMap f
