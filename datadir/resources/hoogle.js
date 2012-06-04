@@ -323,7 +323,8 @@ $.support.iOS =
 
 $.support.phone =
     (navigator.userAgent.indexOf("iPhone") != -1) ||
-    (navigator.userAgent.indexOf("iPod") != -1);
+    (navigator.userAgent.indexOf("iPod") != -1) ||
+    (navigator.userAgent.indexOf("Android") != -1);
 
 // Supports <input type=search />
 $.support.inputSearch = $.support.iOS;
