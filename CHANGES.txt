@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #89, add a format=json output mode
     #476, update the URL as you type
     Improve iPhone support
     Update the copyright year in the footer
