@@ -47,7 +47,7 @@ response ResponseArgs{..} q = do
         Just "embed" -> return $ response "text/html" [hdr] $ runEmbed dbs q
             where hdr = (fromString "Access-Control-Allow-Origin", fromString "*")
         Just "ajax" -> return $ response "text/html" [] $ runQuery templates True dbs q
-        Just "json" -> return $ response "application/json" [] $ "{version:" ++ show version ++ "," ++ runJson dbs q ++ "}"
+        Just "json" -> return $ response "application/json" [] $ "{\"version\":" ++ show version ++ "," ++ runJson dbs q ++ "}"
         Just "web" -> return $ response "text/html" [] $
             header templates updatedCss updatedJs (queryText q) ['-' | queryText q /= ""] ++
             runQuery templates False dbs q ++ footer templates version
@@ -89,18 +89,18 @@ runEmbed dbs cq@Search{queryParsed = Right q}
 
 
 runJson :: Database -> CmdLine -> String
-runJson dbs Search{queryParsed = Left err} = "parseError: " ++ show err
+runJson dbs Search{queryParsed = Left err} = "\"parseError\": " ++ show err
 runJson dbs cq@Search{queryParsed = Right q}
-    | q == mempty = "results: []"
-    | otherwise = "results: [" ++ intercalate "," now ++ "]"
+    | q == mempty = "\"results\": []"
+    | otherwise = "\"results\": [" ++ intercalate "," now ++ "]"
         where
             start2 = maybe 0 (subtract 1 . max 0) $ start cq
             count2 = maybe 20 (max 1) $ count cq
             now = map (f . snd) $ take count2 $ drop start2 $ search dbs q
 
-            f Result{..} = "{location:" ++ show (head $ map fst locations ++ [""]) ++
-                           ",self:" ++ show (showTagText self) ++
-                           ",docs:" ++ show (showTagText docs) ++ "}"
+            f Result{..} = "{\"location\":" ++ show (head $ map fst locations ++ [""]) ++
+                           ",\"self\":" ++ show (showTagText self) ++
+                           ",\"docs\":" ++ show (showTagText docs) ++ "}"
 
 
 runQuery :: Templates -> Bool -> Database -> CmdLine -> String
