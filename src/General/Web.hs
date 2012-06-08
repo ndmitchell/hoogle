@@ -29,7 +29,7 @@ type Args = [(String, String)]
 ---------------------------------------------------------------------
 -- WAI STUFF
 
-responseOK = responseLBS statusOK
+responseOK = responseLBS status200
 responseNotFound x = responseLBS status404 [] $ fromString $ "File not found: " ++ x
 
 responseFlatten :: Response -> IO (Status, ResponseHeaders, LBString)
