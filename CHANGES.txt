@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    In embedded mode, don't hijack the URL bar or title
     Upgrade to jQuery 1.7.2
     #89, add a format=json output mode
     #476, update the URL as you type
