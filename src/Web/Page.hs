@@ -32,7 +32,11 @@ _header css js query queryHyphen = ""
   ++ escapeHTML queryHyphen
   ++ " Hoogle</title>\n        <link type=\"text/css\" rel=\"stylesheet\" href=\"res/hoogle.css?version="
   ++ escapeURL css
-  ++ "\" />\n        <link type=\"image/png\" rel=\"icon\" href=\"res/favicon.png\" />\n\t\t<link type=\"image/png\" rel=\"apple-touch-icon\" href=\"res/favicon57.png\" />\n        <link type=\"application/opensearchdescription+xml\" rel=\"search\" href=\"res/search.xml\" title=\"Hoogle\" />\n        <script type=\"text/javascript\" src=\"res/jquery-1.4.2.js\"> </script>\n        <script type=\"text/javascript\" src=\"res/jquery.cookie.js\"> </script>\n        <script type=\"text/javascript\" src=\"res/hoogle.js?version="
+  ++ "\" />\n        <link type=\"image/png\" rel=\"icon\" href=\"res/favicon.png\" />\n\t\t<link type=\"image/png\" rel=\"apple-touch-icon\" href=\"res/favicon57.png\" />\n        <link type=\"application/opensearchdescription+xml\" rel=\"search\" href=\"res/search.xml\" title=\"Hoogle\" />\n        <script type=\"text/javascript\" src=\"res/jquery.js?version="
+  ++ escapeURL js
+  ++ "\"> </script>\n        <script type=\"text/javascript\" src=\"res/jquery.cookie.js?version="
+  ++ escapeURL js
+  ++ "\"> </script>\n        <script type=\"text/javascript\" src=\"res/hoogle.js?version="
   ++ escapeURL js
   ++ "\"> </script>\n    </head>\n    <body>\n<div id=\"links\">\n    <span id=\"instant\" style=\"display:none;\"><a href=\"javascript:setInstant()\">\n        Instant is <span id=\"instantVal\">off</span></a> |</span>\n    <span id=\"plugin\" style=\"display:none;\"><a href=\"javascript:searchPlugin()\">Search plugin</a> |</span>\n    <a href=\"http://www.haskell.org/haskellwiki/Hoogle\">Manual</a> |\n    <a href=\"http://www.haskell.org/\">haskell.org</a>\n\n</div>\n<form action=\".\" method=\"get\" id=\"search\">\n    <a id=\"logo\" href=\"http://haskell.org/hoogle/\">\n        <img src=\"res/hoogle.png\" width=\"160\" height=\"58\" alt=\"Hoogle\"\n    /></a>\n    <input name=\"hoogle\" id=\"hoogle\" class=\"HOOGLE_REAL\" type=\"text\" autocomplete=\"off\" accesskey=\"1\" value=\""
   ++ escapeHTML query
