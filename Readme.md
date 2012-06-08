@@ -65,6 +65,8 @@ If you want to search for special symbols in Firefox keyword search, modify the 
 
 # Background
 
+Hoogle work is licensed under the [GPL version 2.0](https://github.com/ndmitchell/hoogle/blob/master/docs/LICENSE). Any patches are assumed to be dual licensed under the BSD license and the GPL, to allow re-licensing Hoogle under the BSD license in future, if that proves beneficial to the Haskell community. The work is intended to be helpful, open and free. If the license doesn't meet your needs then talk to me.
+
 ## Theoretical Foundations
 
 A lot of related work was done by Rittri [1] and Runciman [2] in the late 80's. Since then Di Cosmo [3] has produced a book on type isomorphisms. Unfortunately the implementations that accompanied the earlier works were for functional languages that have since become less popular.
