@@ -11,8 +11,8 @@ Hoogle can be used in several ways:
 
 * **Online**, with the web interface at http://haskell.org/hoogle
 * **In [IRC](http://haskell.org/haskellwiki/Haskell_IRC_channel)**, using the [Lambdabot](http://haskell.org/haskellwiki/Lambdabot) plugin with `@hoogle` and `@hoogle+`
-* **[Installed locally]((http://github.com/ndmitchell/hoogle/docs/Local-Install.md)**, with either a command line or in a browser
-* **[As a developer](http://github.com/ndmitchell/hoogle/docs/Developers.md)**, through Haskell or JSON APIs.
+* **[Installed locally]((https://github.com/ndmitchell/hoogle/blob/master/docs/Local-Install.md)**, with either a command line or in a browser
+* **[As a developer](https://github.com/ndmitchell/hoogle/blob/master/docs/Developers.md)**, through Haskell or JSON APIs.
 
 # Searches
 
@@ -60,7 +60,7 @@ If you want to search for special symbols in Firefox keyword search, modify the 
 
 ## Firefox Ubiquity Integration
 
-[Ubiquity https://wiki.mozilla.org/Labs/Ubiquity] provides a graphical command-line for Firefox. To install the Ubiquity Hoogle command, visit the [this page](http://www.randomhacks.net/git/ubiquity/hoogle/) and click "Subscribe..." when asked whether you want to install it. Further information is available [here](http://www.randomhacks.net/articles/2008/09/01/ubiquitous-hoogle).
+[Ubiquity](https://wiki.mozilla.org/Labs/Ubiquity) provides a graphical command-line for Firefox. To install the Ubiquity Hoogle command, visit the [this page](http://www.randomhacks.net/git/ubiquity/hoogle/) and click "Subscribe..." when asked whether you want to install it. Further information is available [here](http://www.randomhacks.net/articles/2008/09/01/ubiquitous-hoogle).
 
 
 # Background
