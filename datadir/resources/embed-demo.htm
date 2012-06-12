@@ -1,0 +1,28 @@
+<html>
+<head>
+<title>Hoogle Embed Demo</title>
+<style type="text/css">
+p, h1 {font-family: sans-serif;}
+</style>
+</head>
+<body>
+
+<h1>Hoogle Embed Demo</h1>
+
+<p>
+Search below to query Hoogle in embedded mode, as described in
+<a href="https://github.com/ndmitchell/hoogle/blob/master/docs/Developers.md">the documentation</a>.
+</p>
+
+<form action="../" method="get">
+	<script type="text/javascript" src="jquery.js"></script>
+	<script type="text/javascript" src="hoogle.js"></script>
+	<input type="text" name="hoogle" id="hoogle" accesskey="1" />
+	<input type="hidden" name="prefix" value="+base" />
+	<input type="submit" value="Search" />
+</form>
+
+
+</body>
+</html>
+
