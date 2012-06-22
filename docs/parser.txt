@@ -1,0 +1,51 @@
+These are provisional notes on the new parser:
+
+-- Quick and dirty lexer testing
+testLex (i,o) = if r == o then Right r else Left (r, o)
+    where r = lexer i
+
+runTests = (show (length tests) ++ " ran: " ++ show (length f) ++ " failed.", f)
+   where f = filter isLeft $ map testLex tests
+         tests = [
+-- contiguous spaces are conflated
+           ("   ", [" "])
+-- Prefix names
+          ,("a", ["a"])
+          ,("one two", ["one", " ", "two"])
+          ,("foo'", ["foo'"])
+          ,("foo'_23#", ["foo'_23#"])
+-- Operator names
+          ,("+", ["+"])
+          ,("+-", ["+-"])
+          ,("+ -", ["+", " ", "-"])
+-- Mixed names
+          ,("foo+++", ["foo", "+++"])
+          ,("package-name", ["package", "-", "name"])
+-- Type Signatures
+          ,("a->b", ["a", "->", "b"])
+          ,("a -> b", ["a", " ", "->", " ", "b"])
+-- Implicit module names (implicit scope)
+          ,( "Foo.Bar.baz", [    "Foo",".","Bar",".","baz"])
+          ,(" Foo.Bar.baz", [" ","Foo",".","Bar",".","baz"])
+          ,("+Foo.Bar.baz", ["+","Foo",".","Bar",".","baz"])
+-- Explicit scope
+          ,("module:Foo", ["module",":","Foo"])
+          ,("+module:Foo", ["+","module",":","Foo"])
+--
+          ,("()", ["()"])
+          ,("(,)", ["(,)"])
+          ,("(,,,,,)", ["(,,,,,)"])
+          ,("[", ["["])
+          ,("(", ["("])
+          ,("[:", ["[:"])
+          ,("(##)", ["(##)"])
+          ,("[]", ["[]"])
+          ,("()", ["()"])
+          ,("[::]", ["[::]"])
+          ,("(##)", ["(##)"])
+          ,("]", ["]"])
+          ,(")", [")"])
+          ,(":]", [":]"])
+          ,("#)", ["#)"])
+          ,("[       ]", ["[", " ", "]"])
+          ]
