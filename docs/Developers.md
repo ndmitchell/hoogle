@@ -5,8 +5,8 @@ Hoogle can be integrated into other projects in several ways.
 Embedded Hoogle lets you include a small interactive Hoogle search box on your web page. As an example:
 
 <form action="http://www.haskell.org/hoogle/" method="get">
-  <script type="text/javascript" src="http://haskell.org/hoogle/res/jquery.js"></script>
-  <script type="text/javascript" src="http://haskell.org/hoogle/res/hoogle.js"></script>
+  <script type="text/javascript" src="http://www.haskell.org/hoogle/res/jquery.js"></script>
+  <script type="text/javascript" src="http://www.haskell.org/hoogle/res/hoogle.js"></script>
   <input type="text"   name="hoogle" id="hoogle" accesskey="1" />
   <input type="submit" value="Search" />
 </form>
@@ -16,8 +16,8 @@ Try entering searches into the box above, for example "filter". As you type, the
 To use Embedded Hoogle on your page add:
 
     <form action="http://www.haskell.org/hoogle/" method="get">
-        <script type="text/javascript" src="http://haskell.org/hoogle/res/jquery.js"></script>
-        <script type="text/javascript" src="http://haskell.org/hoogle/res/hoogle.js"></script>
+        <script type="text/javascript" src="http://www.haskell.org/hoogle/res/jquery.js"></script>
+        <script type="text/javascript" src="http://www.haskell.org/hoogle/res/hoogle.js"></script>
         <input type="text"   name="hoogle" id="hoogle" accesskey="1" />
         <input type="submit" value="Search" />
     </form>
