@@ -14,7 +14,7 @@ import Data.Time.Clock
 import Data.Time.Format
 import System.Locale
 import Network.Wai
-import Network.HTTP.Types(headerContentType)
+import Network.HTTP.Types(hContentType)
 import System.IO.Unsafe(unsafeInterleaveIO)
 import qualified Paths_hoogle(version)
 import Data.Version(showVersion)
@@ -36,7 +36,7 @@ responseArgs = ResponseArgs version version defaultTemplates
 response :: ResponseArgs -> CmdLine -> IO Response
 response ResponseArgs{..} q = do
     logMessage q
-    let response x ys = responseOK (headerContentType (fromString x) : ys) . fromString
+    let response x ys = responseOK ((hContentType, fromString x) : ys) . fromString
 
     dbs <- unsafeInterleaveIO $ case queryParsed q of
         Left _ -> return mempty

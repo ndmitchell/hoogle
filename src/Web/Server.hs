@@ -109,9 +109,9 @@ serveFile cache file = do
     b <- doesFileExist file
     return $ if not b
         then responseNotFound file
-        else ResponseFile statusOK hdr file Nothing
-    where hdr = [headerContentType $ fromString $ contentExt $ takeExtension file] ++
-                [headerCacheControl $ fromString "max-age=604800" {- 1 week -} | cache]
+        else ResponseFile ok200 hdr file Nothing
+    where hdr = [(hContentType, fromString $ contentExt $ takeExtension file)] ++
+                [(hCacheControl, fromString "max-age=604800" {- 1 week -}) | cache]
 
 
 rewriteFileLinks :: Response -> IO Response
