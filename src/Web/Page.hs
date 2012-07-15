@@ -34,7 +34,7 @@ _header css js query queryHyphen = ""
   ++ escapeURL css
   ++ "\" />\n        <link type=\"image/png\" rel=\"icon\" href=\"res/favicon.png\" />\n\t\t<link type=\"image/png\" rel=\"apple-touch-icon\" href=\"res/favicon57.png\" />\n        <link type=\"application/opensearchdescription+xml\" rel=\"search\" href=\"res/search.xml\" title=\"Hoogle\" />\n        <script type=\"text/javascript\" src=\"res/jquery.js?version="
   ++ escapeURL js
-  ++ "\"> </script>\n        <script type=\"text/javascript\" src=\"res/jquery.cookie.js?version="
+  ++ "\"> </script>\n        <script type=\"text/javascript\" src=\"res/jquery-cookie.js?version="
   ++ escapeURL js
   ++ "\"> </script>\n        <script type=\"text/javascript\" src=\"res/hoogle.js?version="
   ++ escapeURL js

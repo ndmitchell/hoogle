@@ -25,9 +25,6 @@ data-files:
     resources/*.js
     resources/*.png
     resources/*.html
-    -- Cabal doesn't find files with . in them, Cabal bug #794
-    resources/jquery-1.4.2.js
-    resources/jquery.cookie.js
     resources/search.xml
 
 source-repository head
