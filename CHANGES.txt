@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow conduit-0.5, wai-1.3 and warp-1.3
     Upgrade to http-types-0.7.*
     In embedded mode, don't hijack the URL bar or title
     Upgrade to jQuery 1.7.2
