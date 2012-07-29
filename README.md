@@ -35,6 +35,7 @@ By default, searches look at the [Haskell Platform](http://hackage.haskell.org/p
 * `mode +cmdargs` searches only the "cmdargs" package
 * `file -base` searches the Haskell Platform, excluding the "base" package
 * `mode +platform +cmdargs` searches both the Haskell Platform and the "cmdargs" package
+* `count +missingh` searches only the "MissingH" package - all packages are written in lower-case
 
 With the set of packages you are searching, you can also restrict the set of modules searched:
 
