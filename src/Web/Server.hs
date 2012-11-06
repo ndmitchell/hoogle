@@ -13,7 +13,6 @@ import Control.Monad.IO.Class
 import General.System
 import Control.Concurrent
 import Control.Exception
-import System.Time
 import Data.Time.Clock
 
 import Network.Wai
@@ -56,8 +55,8 @@ respArgs Server{..} = do
                 if dynamic then  buffer template get else return get
 
         modTime ext = unsafeInterleaveIO $ do
-            TOD a _ <- getModificationTime $ resources </> "hoogle" <.> ext
-            return $ show a
+            x <- getModificationTime $ resources </> "hoogle" <.> ext
+            return $ map (\x -> if isSpace x then '_' else x) $ show x
 
         args t = do
             css <- modTime "css"; js <- modTime "js"
