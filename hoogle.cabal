@@ -2,7 +2,7 @@ cabal-version:      >= 1.6
 build-type:         Simple
 name:               hoogle
 version:            4.2.13
-license:            GPL
+license:            BSD3
 license-file:       docs/LICENSE
 category:           Development
 author:             Neil Mitchell <ndmitchell@gmail.com>

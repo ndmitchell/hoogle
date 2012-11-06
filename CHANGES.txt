@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Switch license from GPL to BSD3
     GHC 7.6 fixes
     ##4, Allow Cabal-1.16.*
 4.2.13
