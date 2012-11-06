@@ -107,3 +107,10 @@ compareChar x y = case (compare x y, compare (toLower x) (toLower y)) of
     (EQ, _) -> EQ
     (x, EQ) -> if x == GT then LT else GT
     (_, x ) -> x
+
+
+findM :: Monad m => (a -> m Bool) -> [a] -> m (Maybe a)
+findM p [] = return Nothing
+findM p (x:xs) = do
+    v <- p x
+    if v then return $ Just x else findM p xs

@@ -11,6 +11,7 @@ import General.System
 --   need, and return a list of those that you couldn't find
 loadQueryDatabases :: [FilePath] -> Query -> IO ([String],Database)
 loadQueryDatabases paths q = do
+    let findFile = findM doesFileExist
     let xs = queryDatabases q
     fmap (second mconcat . partitionEithers) $ forM xs $ \x -> do
         r <- findFile [p </> x <.> "hoo" | p <- paths]
@@ -23,13 +24,6 @@ loadQueryDatabases paths q = do
                         src <- readFileUtf8 x
                         return $ Right $ snd $ createDatabase Haskell [] src
             Just x -> fmap Right $ loadDatabase x
-
-
-findFile :: [FilePath] -> IO (Maybe FilePath)
-findFile [] = return Nothing
-findFile (x:xs) = do
-    b <- doesFileExist x
-    if b then return $ Just x else findFile xs
 
 
 availableDatabases :: [FilePath] -> IO [String]
