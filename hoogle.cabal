@@ -114,7 +114,7 @@ executable hoogle
         conduit >= 0.2 && < 0.6,
         wai >= 1.1 && < 1.4,
         warp >= 1.1 && < 1.4,
-        Cabal >= 1.8 && < 1.15
+        Cabal >= 1.8 && < 1.17
 
     other-modules:
         CmdLine.All
