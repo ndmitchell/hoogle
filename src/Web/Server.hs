@@ -87,28 +87,30 @@ talk resp Server{..} r@Request{rawPathInfo=path_, rawQueryString=query_}
         r <- response resp cmd{databases=databases}
         if local_ then rewriteFileLinks r else return r
     | path == "/res/search.xml" = serveSearch resources (fmap bsUnpack $ join $ lookup (fromString "domain") $ queryString r)
-    | takeDirectory path == "/res" = serveFile True $ resources </> takeFileName path
+    | takeDirectory path == "/res" = serveFile True (resources </> takeFileName path) False
     | local_, Just path <- stripPrefix "/file/" path =
         let hasDrive = "/" `isPrefixOf` path && ":" `isPrefixOf` (drop 2 path)
-        in serveFile False $ if hasDrive then drop 1 path else path
+        in serveFile False (if hasDrive then drop 1 path else path) local_
     | otherwise = return $ responseNotFound $ show path
     where (path,query) = (bsUnpack path_, bsUnpack query_)
 
 
 serveSearch :: FilePath -> Maybe String -> IO Response
 serveSearch resources domain = do
-    r <- serveFile True $ resources </> "search.xml"
+    r <- serveFile True (resources </> "search.xml") False
     case domain of
         Nothing -> return r
         Just x -> responseRewrite (lbsReplace (fromString "http://haskell.org/hoogle/") (fromString x)) r
 
 
-serveFile :: Bool -> FilePath -> IO Response
-serveFile cache file = do
+serveFile :: Bool -> FilePath -> Bool -> IO Response
+serveFile cache file rewriteLinks = do
     b <- doesFileExist file
-    return $ if not b
-        then responseNotFound file
-        else ResponseFile ok200 hdr file Nothing
+    if not b
+	then return $ responseNotFound file
+	else (if rewriteLinks then rewriteHaddockFileLinks else return) $ ResponseFile ok200 hdr file Nothing
+	    
+
     where hdr = [(hContentType, fromString $ contentExt $ takeExtension file)] ++
                 [(hCacheControl, fromString "max-age=604800" {- 1 week -}) | cache]
 
@@ -116,6 +118,17 @@ serveFile cache file = do
 rewriteFileLinks :: Response -> IO Response
 rewriteFileLinks = responseRewrite $ lbsReplace (fromString "href='file://") (fromString "href='/file/")
 
+replaceLetter :: LBString -> Char -> LBString
+replaceLetter lbs letter = lbsReplace (fromString $ "href=\""++[letter]++":") (fromString $ "href=\"/file/"++[letter]++":") lbs
+
+replaceDriveLetters :: LBString -> LBString
+replaceDriveLetters lbs = foldl replaceLetter lbs (['A' .. 'Z'] ++ ['a' .. 'z'])
+
+replaceLeadingSlash :: LBString -> LBString
+replaceLeadingSlash = lbsReplace (fromString "href=\"/") (fromString "href=\"/file//")
+
+rewriteHaddockFileLinks :: Response -> IO Response
+rewriteHaddockFileLinks = responseRewrite $ replaceDriveLetters . replaceLeadingSlash
 
 contentExt ".png" = "image/png"
 contentExt ".css" = "text/css"
