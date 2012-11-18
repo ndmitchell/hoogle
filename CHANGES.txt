@@ -1,5 +1,7 @@
 Changelog for Hoogle
 
+    Support --local for GHC docs
+    #568, rewrite Haddock links in --local
 4.2.14
     Switch license from GPL to BSD3
     GHC 7.6 fixes
