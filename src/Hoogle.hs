@@ -102,8 +102,8 @@ parseQuery _ = H.parseQuery
 -- Invariant: locations will not be empty
 data Result = Result
     {locations :: [(URL, [(URL, String)])] -- your location, your parents
-    ,self :: TagStr
-    ,docs :: TagStr
+    ,self :: TagStr -- ^ Rendered view for the entry, including name/keywords/type as appropriate, colors matching 'renderQuery'
+    ,docs :: TagStr -- ^ Documentation for the entry
     }
 
 toResult :: H.Result -> (Score,Result)
