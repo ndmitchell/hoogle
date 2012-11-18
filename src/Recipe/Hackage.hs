@@ -53,10 +53,9 @@ makeDefault make local "ghc" = do
     case had of
         Left e -> putWarning $ "Warning: Exception when reading haddock for ghc, " ++ show (e :: SomeException)
         Right had -> do
-            convertSrc make "ghc" $ unlines $ "@depends base" : concatMap f (haddockHacks $ lines had)
-    where
-        f x | "@package " `isPrefixOf` x = ["@url http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/",x]
-            | otherwise = [x]
+	    loc <- findLocal local "ghc"
+            convertSrc make "ghc" $ unlines $ "@depends base" :  (f loc) (haddockHacks $ lines had)
+    where f loc = haddockPackageUrl $ maybe "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/" id loc
 
 makeDefault make local name = do
     let base = name == "base"
