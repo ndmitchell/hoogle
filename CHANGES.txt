@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow case-insensitive-1.0
     Support --local for GHC docs
     #568, rewrite Haddock links in --local
 4.2.14
