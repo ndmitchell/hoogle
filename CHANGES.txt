@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow http-types-0.8
     Allow case-insensitive-1.0
     Support --local for GHC docs
     #568, rewrite Haddock links in --local
