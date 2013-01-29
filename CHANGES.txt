@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.15
     Allow http-types-0.8
     Allow case-insensitive-1.0
     Support --local for GHC docs
