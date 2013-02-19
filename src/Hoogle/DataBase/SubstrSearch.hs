@@ -12,6 +12,7 @@ import qualified Data.Set as Set
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.Char as C
 import General.Base
 import Data.Array
 import Hoogle.Type.All
@@ -75,7 +76,7 @@ createSubstrSearch xs = SubstrSearch
     (BS.pack $ map fromIntegral ls2)
     (listArray (0,length is-1) is)
     where
-        (ts,is) = unzip $ map (first $ map toLower) xs
+        (ts,is) = unzip $ map (first id) xs
         (ts2,ls2) = f "" ts
 
         f x (y:ys) = first (y:) $ second (length y:) $ f y ys
@@ -90,6 +91,14 @@ data S a = S
     }
 
 
+toChar :: Word8 -> Char
+toChar = C.chr . fromIntegral
+
+-- | Unsafe version of 'fromChar'
+ascii :: Char -> Word8
+ascii = fromIntegral . C.ord
+{-# INLINE ascii #-}
+
 searchSubstrSearch :: SubstrSearch a -> String -> [(a, EntryView, Score)]
 searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
     where
@@ -99,7 +108,8 @@ searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
         s0 = S 0 (text x) [] []
 
         f s ii = addCount $ moveFocus i $ maybe id addMatch t s
-            where t = match i $ BS.unsafeTake i $ sFocus s
+            where t = match i $ BS.map (ascii . toLower . toChar)
+                      $ BS.unsafeTake i $ sFocus s
                   i = fromIntegral ii
 
         addCount s = s{sCount=sCount s+1}
@@ -137,7 +147,7 @@ completionsSubstrSearch x y = map (\x -> y ++ drop ny (BSC.unpack x)) $ take 10 
         ny = length y
         ly = fromString $ map toLower y
         f (S2 foc res) ii = S2 (BS.unsafeDrop i foc) (if ly `BS.isPrefixOf` x then Set.insert x res else res)
-            where x = BS.unsafeTake i foc
+            where x = BS.map (ascii . toLower . toChar) $ BS.unsafeTake i foc
                   i = fromIntegral ii
 
 
