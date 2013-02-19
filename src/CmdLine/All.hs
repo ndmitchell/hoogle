@@ -23,6 +23,7 @@ import CmdLine.Load
 import General.Web
 import System.Console.CmdArgs
 import Hoogle
+import Hoogle.Query.Type
 import GHC.Conc(numCapabilities)
 import Paths_hoogle
 import Safe
@@ -34,7 +35,11 @@ import Safe
 cmdLineExpand :: CmdLine -> IO CmdLine
 cmdLineExpand x@Search{} = do
     db <- expandDatabases $ databases x
-    return $ x{queryText = s, queryParsed = parseQuery Haskell s, databases = db}
+    return $ x { queryText = s
+               , queryParsed = (\q -> q { exactSearch = exact x })
+                               `fmap` parseQuery Haskell s
+               , databases = db
+               }
     where s = unwords $ queryChunks x
 
 

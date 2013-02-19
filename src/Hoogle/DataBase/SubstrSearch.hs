@@ -3,6 +3,7 @@
 module Hoogle.DataBase.SubstrSearch
     (SubstrSearch, createSubstrSearch
     ,searchSubstrSearch
+    ,searchExactSearch
     ,completionsSubstrSearch
     ) where
 
@@ -105,6 +106,23 @@ searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
         moveFocus i s = s{sFocus=BS.unsafeDrop i $ sFocus s}
         addMatch MatchSubstr s = s{sInfix =(inds x ! sCount s,view,textScore MatchSubstr):sInfix s}
         addMatch t s = s{sPrefix=(inds x ! sCount s,view,textScore t):sPrefix s}
+
+searchExactSearch :: SubstrSearch a -> String -> [(a, EntryView, Score)]
+searchExactSearch x y = reverse (sPrefix sN)
+    where
+        view = FocusOn y
+        match = bsMatch (BSC.pack y)
+        sN = BS.foldl f s0 $ lens x
+        s0 = S 0 (text x) [] []
+
+        f s ii = addCount $ moveFocus i $ maybe id addMatch t s
+            where t = match i $ BS.unsafeTake i $ sFocus s
+                  i = fromIntegral ii
+
+        addCount s = s{sCount=sCount s+1}
+        moveFocus i s = s{sFocus=BS.unsafeDrop i $ sFocus s}
+        addMatch MatchExact s = s{sPrefix=(inds x ! sCount s,view,textScore MatchExact):sPrefix s}
+        addMatch _ s = s
 
 
 data S2 = S2
