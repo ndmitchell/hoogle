@@ -39,8 +39,8 @@ library
         safe,
         binary,
         parsec >= 2.1,
-        transformers >= 0.2 && < 0.4,
-        uniplate == 1.6.*,
+        transformers >= 0.2,
+        uniplate >= 1.6,
         haskell-src-exts >= 1.12 && < 1.14
 
     if !os(mingw32)
@@ -106,15 +106,15 @@ executable hoogle
 
     build-depends:
         time, old-time, old-locale,
-        cmdargs >= 0.7 && < 0.11,
-        tagsoup >= 0.11 && < 0.13,
-        blaze-builder >= 0.2 && < 0.4,
-        http-types >= 0.7 && < 0.9,
-        case-insensitive >= 0.2 && < 1.1,
-        conduit >= 0.2 && < 0.6,
-        wai >= 1.1 && < 1.4,
-        warp >= 1.1 && < 1.4,
-        Cabal >= 1.8 && < 1.17
+        cmdargs >= 0.7,
+        tagsoup >= 0.11,
+        blaze-builder >= 0.2,
+        http-types >= 0.7,
+        case-insensitive >= 0.2,
+        conduit >= 0.2,
+        wai >= 1.1,
+        warp >= 1.1,
+        Cabal >= 1.8
 
     other-modules:
         CmdLine.All
