@@ -76,7 +76,7 @@ createSubstrSearch xs = SubstrSearch
     (BS.pack $ map fromIntegral ls2)
     (listArray (0,length is-1) is)
     where
-        (ts,is) = unzip $ map (first id) xs
+        (ts,is) = unzip xs
         (ts2,ls2) = f "" ts
 
         f x (y:ys) = first (y:) $ second (length y:) $ f y ys
@@ -170,6 +170,6 @@ bsMatch x
         Nothing -> Nothing
         Just 0 -> Just $ if ny == 1 then MatchExact else MatchPrefix
         Just _ -> Just MatchSubstr
-    | otherwise = \ny y -> if BS.isPrefixOf x y then Just (if nx == nx then MatchExact else MatchPrefix)
+    | otherwise = \ny y -> if BS.isPrefixOf x y then Just (if nx == ny then MatchExact else MatchPrefix)
                            else if BS.isInfixOf x y then Just MatchSubstr else Nothing
     where nx = BS.length x
