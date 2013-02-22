@@ -15,12 +15,13 @@ module Hoogle(
     -- * Score
     Score, H.scoring,
     -- * Search
-    Result(..), search, suggestions, completions, queryExact
+    Result(..), search, suggestions, completions, queryExact, H.ItemKind(..)
     ) where
 
 import Hoogle.Store.All
 import General.Base
 import General.System
+import Debug.Trace
 
 import Hoogle.Type.TagStr
 import qualified Hoogle.DataBase.All as H
@@ -129,5 +130,5 @@ completions :: Database -> String -> [String]
 completions x = H.completions (toDataBase x)
 
 -- | Given a query, set whether it is an exact query.
-queryExact :: Bool -> Query -> Query
-queryExact flag q = q { exactSearch = flag }
+queryExact :: Maybe H.ItemKind -> Query -> Query
+queryExact kind q = q { exactSearch = kind }
