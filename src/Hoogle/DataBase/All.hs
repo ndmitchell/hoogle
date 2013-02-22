@@ -45,6 +45,9 @@ combineDataBase dbs = DataBase items_
 searchName :: DataBase -> String -> [(Once Entry,EntryView,Score)]
 searchName db = searchSubstrSearch (nameSearch db)
 
+searchExactName :: DataBase -> String -> [(Once Entry,EntryView,Score)]
+searchExactName db = searchExactSearch (nameSearch db)
+
 
 searchType :: DataBase -> TypeSig -> [(Once Entry,[EntryView],Score)]
 -- although aliases and instances are given, they are usually not used
