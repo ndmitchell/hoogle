@@ -16,7 +16,6 @@ type Input = ([Fact], [TextItem])
 data ItemKind = PackageItem
               | ModuleItem
               | FunctionItem
-              | ValueItem
               | DataCtorItem
               | TypeCtorItem
               | TypeSynonymItem
@@ -138,7 +137,6 @@ instance Store ItemKind where
     put PackageItem      = putByte 0
     put ModuleItem       = putByte 1
     put FunctionItem     = putByte 2
-    put ValueItem        = putByte 3
     put DataCtorItem     = putByte 4
     put TypeCtorItem     = putByte 5
     put TypeSynonymItem  = putByte 6
@@ -151,7 +149,6 @@ instance Store ItemKind where
                 0 -> get0 PackageItem
                 1 -> get0 ModuleItem
                 2 -> get0 FunctionItem
-                3 -> get0 ValueItem
                 4 -> get0 DataCtorItem
                 5 -> get0 TypeCtorItem
                 6 -> get0 TypeSynonymItem

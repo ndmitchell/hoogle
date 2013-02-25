@@ -135,8 +135,7 @@ transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ te
 
           ctorStart x = isUpper x || x `elem` ":("
           kind | ctorStart $ head nam = DataCtorItem
-               | length (kinds False typ) > 1 = FunctionItem
-               | otherwise = ValueItem
+               | otherwise = FunctionItem
 
 transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
     {itemName=nam, itemKey=nam, itemKind=ClassItem
