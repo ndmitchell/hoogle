@@ -36,8 +36,12 @@ cmdLineExpand :: CmdLine -> IO CmdLine
 cmdLineExpand x@Search{} = do
     db <- expandDatabases $ databases x
     return $ x { queryText = s
-               , queryParsed = (\q -> q { exactSearch = exact x })
-                               `fmap` parseQuery Haskell s
+               , queryParsed =
+                   (\q -> q { exactSearch =
+                                   if exact x
+                                   then Just UnclassifiedItem
+                                   else Nothing })
+                   `fmap` parseQuery Haskell s
                , databases = db
                }
     where s = unwords $ queryChunks x

@@ -13,9 +13,20 @@ import Data.Generics.Uniplate
 
 type Input = ([Fact], [TextItem])
 
+data ItemKind = PackageItem
+              | ModuleItem
+              | FunctionItem
+              | DataCtorItem
+              | TypeCtorItem
+              | TypeSynonymItem
+              | ClassItem
+              | InstanceItem
+              | UnclassifiedItem
+              deriving (Data,Typeable,Show,Eq,Enum)
 
 data TextItem = TextItem
     {itemLevel :: Int -- 0 = package, 1 = module, >2 = entry
+    ,itemKind :: ItemKind
     ,itemKey :: String -- how i should be searched for (name for most things, last module component for modules)
     ,itemName :: String -- what is the full text representation of me (key for most things, A.B.C for modules)
     ,itemType :: Maybe TypeSig
@@ -38,6 +49,8 @@ data Fact
 -- Invariant: locations will not be empty
 data Entry = Entry
     {entryLocations :: [(URL, [Once Entry])]
+    ,entryKind :: ItemKind
+    ,entryLevel :: Int
     ,entryName :: String
     ,entryText :: TagStr
     ,entryDocs :: Docs
@@ -101,5 +114,45 @@ instance Show Entry where
     show = showTagText . entryText
 
 instance Store Entry where
-    put (Entry a b c d e f g) = put7 a b c d e f g
-    get = get7 Entry
+    put (Entry a b c d e f g h i) = put9 a b c d e f g h i
+    get = get9 Entry
+
+
+instance Store Fact where
+    put (FactAlias x y)     = putByte 0 >> put2 x y
+    put (FactInstance x)    = putByte 1 >> put1 x
+    put (FactDataKind x y)  = putByte 2 >> put2 x y
+    put (FactClassKind x y) = putByte 3 >> put2 x y
+    put (FactCtorType x y)  = putByte 4 >> put2 x y
+
+    get = do i <- getByte
+             case i of
+                0 -> get2 FactAlias
+                1 -> get1 FactInstance
+                2 -> get2 FactDataKind
+                3 -> get2 FactClassKind
+                4 -> get2 FactCtorType
+
+instance Store ItemKind where
+    put PackageItem      = putByte 0
+    put ModuleItem       = putByte 1
+    put FunctionItem     = putByte 2
+    put DataCtorItem     = putByte 4
+    put TypeCtorItem     = putByte 5
+    put TypeSynonymItem  = putByte 6
+    put ClassItem        = putByte 7
+    put InstanceItem     = putByte 8
+    put UnclassifiedItem = putByte 9
+
+    get = do i <- getByte
+             case i of
+                0 -> get0 PackageItem
+                1 -> get0 ModuleItem
+                2 -> get0 FunctionItem
+                3 -> get0 FunctionItem
+                4 -> get0 DataCtorItem
+                5 -> get0 TypeCtorItem
+                6 -> get0 TypeSynonymItem
+                7 -> get0 ClassItem
+                8 -> get0 InstanceItem
+                9 -> get0 UnclassifiedItem

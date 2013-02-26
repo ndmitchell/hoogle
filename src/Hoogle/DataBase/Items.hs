@@ -40,7 +40,7 @@ createItems xs = mergeItems [Items $ Defer $ fs Nothing Nothing xs]
                   pkg2 = if itemLevel x == 0 then Just r else pkg
                   mod2 = if itemLevel x == 1 then Just r else mod
 
-        f pkg mod TextItem{..} = once $ Entry [(url, catMaybes [pkg,mod])] itemName itemDisp
+        f pkg mod TextItem{..} = once $ Entry [(url, catMaybes [pkg,mod])] itemKind itemLevel itemName itemDisp
             (readDocsHTML itemDocs) itemPriority itemKey itemType
             where url | Just pkg <- pkg, itemLevel == 1 || (itemLevel > 1 && isNothing mod) = entryURL (fromOnce pkg) `combineURL` itemURL
                       | Just mod <- mod, itemLevel > 1 = entryURL (fromOnce mod) `combineURL` itemURL
