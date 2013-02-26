@@ -149,6 +149,7 @@ instance Store ItemKind where
                 0 -> get0 PackageItem
                 1 -> get0 ModuleItem
                 2 -> get0 FunctionItem
+                3 -> get0 FunctionItem
                 4 -> get0 DataCtorItem
                 5 -> get0 TypeCtorItem
                 6 -> get0 TypeSynonymItem
