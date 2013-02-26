@@ -21,6 +21,7 @@ data CmdLine
         {color :: Bool
         ,link :: Bool
         ,info :: Bool
+        ,exact :: Bool
         ,databases :: [FilePath]
         ,start :: Maybe Int
         ,count :: Maybe Int
@@ -42,7 +43,7 @@ data CmdLine
       deriving (Data,Typeable,Show)
 
 emptyParseError = ParseError 0 0 "" $ Str ""
-blankSearch = Search False False False [] Nothing Nothing Nothing 1 [] (Left emptyParseError) ""
+blankSearch = Search False False False False [] Nothing Nothing Nothing 1 [] (Left emptyParseError) ""
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,data_,server,combine,convert,test,dump,rank,log_]
     &= verbosity &= program "hoogle"
@@ -54,6 +55,7 @@ search_ = Search
     ,count = def &= name "n" &= help "Maximum number of results to return"
     ,queryChunks = def &= args &= typ "QUERY"
     ,info = def &= help "Give extended information about the first result"
+    ,exact = def &= help "Match names exactly when searching"
     ,link = def &= help "Give URL's for each result"
     ,color = def &= name "colour" &= help "Use colored output (requires ANSI terminal)"
     ,databases = ["."] &= typDir &= help "Directories to search for databases"

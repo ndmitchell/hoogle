@@ -16,13 +16,15 @@ search databases query = getResults query databases
 getResults :: Query -> [DataBase] -> [Result]
 getResults query = mergeDataBaseResults . map (mergeQueryResults query . f)
     where
-        f d = [typeSearch d q | Just q <- [typeSig query]] ++
-              map (nameSearch d) (names query)
+        f d = [ typeSearch d q
+              | Just q <- [typeSig query], not (exactSearch query) ] ++
+              map (nameSearch d (exactSearch query)) (names query)
 
 
-nameSearch :: DataBase -> String -> [Result]
-nameSearch db query = [Result (fromOnce e) [v] s
-                      | (e,v,s) <- searchName db query]
+nameSearch :: DataBase -> Bool -> String -> [Result]
+nameSearch db exact query =
+    [ Result (fromOnce e) [v] s
+    | (e,v,s) <- (if exact then searchExactName else searchName) db query ]
 
 
 typeSearch :: DataBase -> TypeSig -> [Result]

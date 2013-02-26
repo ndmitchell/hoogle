@@ -65,7 +65,7 @@ joinResults xs = sortWith resultScore $ Map.elems $
 
 -- | Apply the PlusModule, MinusModule and MinusPackage modes
 filterResults :: Query -> [Result] -> [Result]
-filterResults q = f mods correctModule . f pkgs correctPackage
+filterResults q = f mods (correctModule (exactSearch q)) . f pkgs correctPackage
     where
         f [] act = id
         f xs act = filter (act xs . resultEntry)
@@ -81,16 +81,20 @@ correctPackage pkgs x = null myPkgs || any (maybe True (`notElem` map (map toLow
 
 
 -- mods is a non-empty list of PlusModule/MinusModule
-correctModule :: [Scope] -> Entry -> Bool
-correctModule mods x = null myMods || any (maybe True (f base mods)) myMods
+correctModule :: Bool -> [Scope] -> Entry -> Bool
+correctModule exact mods x = null myMods || any (maybe True (f base mods)) myMods
     where
-        myMods = map (fmap (map toLower . entryName . fromOnce) . listToMaybe . drop 1 . snd) $
-                 entryLocations x
+        myMods = map (fmap (map (if exact then id else toLower)
+                            . entryName . fromOnce)
+                      . listToMaybe . drop 1 . snd) $ entryLocations x
         base = case head mods of Scope False Module _ -> True; _ -> False
 
         f z [] y = z
-        f z (Scope b Module x:xs) y | doesMatch (map toLower x) y = f b xs y
+        f z (Scope b Module x:xs) y
+            | doesMatch (map (if exact then id else toLower) x) y = f b xs y
         f z (x:xs) y = f z xs y
 
         -- match if x is a module starting substring of y
-        doesMatch x y = x `isPrefixOf` y || ('.':x) `isInfixOf` y
+        doesMatch x y = if exact
+                        then x `isPrefixOf` y
+                        else x `isPrefixOf` y || ('.':x) `isInfixOf` y
