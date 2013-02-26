@@ -45,8 +45,11 @@ combineDataBase dbs = DataBase items_
 searchName :: DataBase -> String -> [(Once Entry,EntryView,Score)]
 searchName db = searchSubstrSearch (nameSearch db)
 
-searchExactName :: DataBase -> String -> [(Once Entry,EntryView,Score)]
-searchExactName db = searchExactSearch (nameSearch db)
+searchExactName :: ItemKind -> DataBase -> String -> [(Once Entry,EntryView,Score)]
+searchExactName kind db = filter' . searchExactSearch (nameSearch db)
+  where filter' = if kind == UnclassifiedItem
+                  then id
+                  else filter (\(ent,_,_) -> kind == entryKind (fromOnce ent))
 
 
 searchType :: DataBase -> TypeSig -> [(Once Entry,[EntryView],Score)]

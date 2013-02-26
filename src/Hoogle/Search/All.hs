@@ -1,6 +1,7 @@
 
 module Hoogle.Search.All(search) where
 
+import Data.Maybe
 import Hoogle.DataBase.All
 import Hoogle.Query.All
 import Hoogle.Search.Results
@@ -17,14 +18,14 @@ getResults :: Query -> [DataBase] -> [Result]
 getResults query = mergeDataBaseResults . map (mergeQueryResults query . f)
     where
         f d = [ typeSearch d q
-              | Just q <- [typeSig query], not (exactSearch query) ] ++
+              | Just q <- [typeSig query], isNothing (exactSearch query) ] ++
               map (nameSearch d (exactSearch query)) (names query)
 
 
-nameSearch :: DataBase -> Bool -> String -> [Result]
-nameSearch db exact query =
+nameSearch :: DataBase -> Maybe ItemKind -> String -> [Result]
+nameSearch db kind query =
     [ Result (fromOnce e) [v] s
-    | (e,v,s) <- (if exact then searchExactName else searchName) db query ]
+    | (e,v,s) <- (maybe searchName searchExactName kind) db query ]
 
 
 typeSearch :: DataBase -> TypeSig -> [Result]

@@ -71,11 +71,12 @@ subtractCols n (SrcSpanInfo x xs) = SrcSpanInfo (f x) (map f xs)
     where f x = x{srcSpanStartColumn=srcSpanStartColumn x - n, srcSpanEndColumn=srcSpanEndColumn x - n}
 
 
-textItem = TextItem 2 "" "" Nothing (Str "") "" "" 0
+textItem = TextItem 2 UnclassifiedItem "" "" Nothing (Str "") "" "" 0
 
 fact x y = (x,[y])
 
 itemPackage x = fact [] $ textItem{itemLevel=0, itemKey="", itemName=x,
+    itemKind=PackageItem,
     itemURL="http://hackage.haskell.org/package/" ++ x ++ "/",
     itemDisp=Tags [emph "package",space,bold x]}
 
@@ -84,7 +85,7 @@ itemEntry (x:xs) = fact [] $ textItem{itemName=y, itemKey=y,
     where y = if null xs then x else unwords xs
 
 itemModule xs = fact [] $ textItem{itemLevel=1, itemKey=last xs, itemName=intercalate "." xs,
-    itemURL="",
+    itemURL="", itemKind=ModuleItem,
     itemDisp=Tags [emph "module",Str $ " " ++ concatMap (++".") (init xs),bold $ last xs]}
 
 
@@ -124,7 +125,7 @@ transDecl x (GDataDecl s dat ctxt hd _ [] _) = transDecl x $ DataDecl s dat ctxt
 transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = transDecl x $ HSE.TypeSig s [name] ty
 
 transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ textItem{itemName=nam,itemKey=nam,
-    itemType=Just typ,
+    itemType=Just typ, itemKind=kind,
     itemURL="#v:" ++ esc nam,
     itemDisp=formatTags x $ (cols snam,TagBold) : zipWith (\i a -> (cols a,TagColor i)) [1..] as ++ [(cols b,TagColor 0)]}
     where (snam,nam) = findName name
@@ -133,15 +134,17 @@ transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ te
           typ@(TypeSig _ ty) = transTypeSig tyy
 
           ctorStart x = isUpper x || x `elem` ":("
+          kind | ctorStart $ head nam = DataCtorItem
+               | otherwise = FunctionItem
 
 transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
-    {itemName=nam, itemKey=nam
+    {itemName=nam, itemKey=nam, itemKind=ClassItem
     ,itemURL="#t:" ++ esc nam
     ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
 transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from++kinds False to) $ textItem
-    {itemName=nam, itemKey=nam
+    {itemName=nam, itemKey=nam, itemKind=TypeSynonymItem
     ,itemURL="#t:" ++ esc nam
     ,itemDisp=x `formatTags` [(cols $ head $ srcInfoPoints s, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
@@ -149,7 +152,7 @@ transDecl x (TypeDecl s hd ty) = Just $ fact (FactAlias from to:kinds False from
           to = transTypeSig ty
 
 transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ fact (kinds False $ transDeclHead ctxt hd) $ textItem
-    {itemName=nam, itemKey=nam
+    {itemName=nam, itemKey=nam, itemKind=TypeCtorItem
     ,itemURL="#t:" ++ esc nam
     ,itemDisp=x `formatTags` [(cols $ srcInfoSpan $ ann dat, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
