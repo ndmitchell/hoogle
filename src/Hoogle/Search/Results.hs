@@ -96,5 +96,5 @@ correctModule kind mods x = null myMods || any (maybe True (f base mods)) myMods
 
         -- match if x is a module starting substring of y
         doesMatch x y = if isJust kind
-                        then x `isPrefixOf` y
+                        then x == y
                         else x `isPrefixOf` y || ('.':x) `isInfixOf` y
