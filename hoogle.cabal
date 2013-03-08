@@ -1,4 +1,4 @@
-cabal-version:      >= 1.6
+cabal-version:      >= 1.10
 build-type:         Simple
 name:               hoogle
 version:            4.2.15
@@ -32,15 +32,22 @@ source-repository head
     location: http://code.haskell.org/hoogle/
 
 library
-    hs-source-dirs:     src
+    hs-source-dirs: src
+    default-language: Haskell98
+
     build-depends:
         base > 4 && < 5,
         array, bytestring, containers, directory, filepath, process, random,
         safe,
         binary,
+        conduit >= 0.2,
         parsec >= 2.1,
         transformers >= 0.2,
         uniplate >= 1.6,
+        blaze-builder >= 0.2,
+        case-insensitive >= 0.2,
+        http-types >= 0.7,
+        wai >= 1.1,
         haskell-src-exts >= 1.12 && < 1.14
 
     if !os(mingw32)
@@ -103,18 +110,26 @@ library
 executable hoogle
     main-is:            Main.hs
     hs-source-dirs:     src
+    default-language: Haskell98
 
     build-depends:
-        time, old-time, old-locale,
+        base > 4 && < 5,
+        hoogle, bytestring, filepath, unix, directory, process, random,
+        array, containers, time, old-time, old-locale,
+        safe,
         cmdargs >= 0.7,
         tagsoup >= 0.11,
         blaze-builder >= 0.2,
         http-types >= 0.7,
         case-insensitive >= 0.2,
+        transformers >= 0.2,
+        uniplate >= 1.6,
         conduit >= 0.2,
+        parsec >= 2.1,
         wai >= 1.1,
         warp >= 1.1,
-        Cabal >= 1.8
+        Cabal >= 1.8,
+        haskell-src-exts >= 1.12 && < 1.14
 
     other-modules:
         CmdLine.All
@@ -144,3 +159,19 @@ executable hoogle
         Web.Response
         Web.Server
         Web.Template
+
+test-suite hoogle-test
+    main-is: HoogleSpec.hs
+    hs-source-dirs: test
+    default-language: Haskell98
+
+    type: exitcode-stdio-1.0
+    build-depends:
+        base >=3,
+        hoogle,
+        conduit >= 0.2,
+        system-fileio >= 0.3.11,
+        transformers >= 0.2,
+        HUnit >= 1.2.5,
+        hspec >= 1.4.4,
+        hspec-expectations >= 0.3
