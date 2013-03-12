@@ -58,7 +58,7 @@ data Entry = Entry
     ,entryKey :: String -- used only for rebuilding combined databases
     ,entryType :: Maybe TypeSig -- used only for rebuilding combined databases
     }
-    deriving Typeable
+    deriving (Eq, Typeable)
 
 
 -- | Figure out what makes this entry different from others
@@ -77,7 +77,7 @@ entryURL e = head $ map fst (entryLocations e) ++ [""]
 
 data EntryView = FocusOn String -- characters in the range should be focused
                | ArgPosNum Int Int -- argument a b, a is remapped to b
-                 deriving Show
+                 deriving (Eq, Show)
 
 
 renderEntryText :: [EntryView] -> TagStr -> TagStr

@@ -11,7 +11,7 @@ data Result = Result
     ,resultView :: [EntryView]
     ,resultScore :: Score
     }
-    deriving Show
+    deriving (Eq, Show)
 
 
 -- return the entry rendered with respect to the EntryView

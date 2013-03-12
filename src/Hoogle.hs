@@ -106,6 +106,7 @@ data Result = Result
     ,self :: TagStr -- ^ Rendered view for the entry, including name/keywords/type as appropriate, colors matching 'renderQuery'
     ,docs :: TagStr -- ^ Documentation for the entry
     }
+    deriving (Eq, Show)
 
 toResult :: H.Result -> (Score,Result)
 toResult r@(H.Result ent view score) = (score, Result parents self docs)

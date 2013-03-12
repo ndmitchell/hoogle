@@ -45,6 +45,9 @@ class Eq2 a b => Ord2 a b | a -> b
 
 module Foo.Bar
 foo_bar :: Unit
+fst :: (Unit,Unit) -> Unit
+fst2 :: (Unit,Unit) -> Unit
 
 module Bar.Foo
 bar_foo :: Unit
+fst :: (Bar,Bar) -> Bar
