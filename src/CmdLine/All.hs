@@ -106,6 +106,7 @@ cmdLineWeb :: [(String,String)] -> IO CmdLine
 cmdLineWeb args = cmdLineExpand $ blankSearch
         {web=Just $ fromMaybe "web" $ ask ["mode"]
         ,start=askInt ["start"], count=askInt ["count"]
+        ,exact=fromMaybe 0 (askInt ["exact"]) == 1
         ,queryChunks = mapMaybe ask [["prefix"],["q","hoogle"],["suffix"]]}
     where ask x = listToMaybe [b | (a,b) <- args, a `elem` x]
           askInt x = readMay =<< ask x
