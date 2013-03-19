@@ -25,7 +25,6 @@ instance Ord k => Ord (Key k v) where
 
 toKey f v = Key (f v) v
 fromKey (Key k v) = v
-sortWith f = map fromKey . sort . map (toKey f)
 
 
 ---------------------------------------------------------------------
@@ -49,13 +48,12 @@ mergeQueryResults q = filterResults q . joinResults
 joinResults :: [[Result]] -> [Result]
 joinResults [] = []
 joinResults [x] = x
-joinResults xs = sortWith resultScore $ Map.elems $
-                 fold1 (Map.intersectionWith join) $
+joinResults xs = Map.elems $ fold1 (Map.intersectionWith join) $
                  map asSet xs
     where
         asSet = Map.fromList . map (entryUnique . resultEntry &&& id)
 
-        join r1 r2 = r1{resultScore = mappend (resultScore r1) (resultScore r2)
+        join r1 r2 = r1{resultScore = resultScore r1 <> resultScore r2
                        ,resultView = resultView r1 ++ resultView r2
                        ,resultEntry = resultEntry r1 `entryJoin` resultEntry r2}
 

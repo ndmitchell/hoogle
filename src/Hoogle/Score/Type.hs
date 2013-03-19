@@ -42,6 +42,8 @@ cost CostArgReorder   =    1  -- 1..1000
 data TextMatch
     = MatchExact
     | MatchPrefix
+    | MatchExactCI              -- exact letter match, but case mismatch
+    | MatchPrefixCI
     | MatchSubstr
       deriving (Show,Eq,Ord,Enum,Bounded)
 
@@ -51,7 +53,8 @@ data Score = Score Int [TypeCost] [TextMatch]
 
 instance Monoid Score where
     mempty = Score 0 [] []
-    mappend (Score x1 x2 x3) (Score y1 y2 y3) = Score (x1+y1) (sort $ x2++y2) (sort $ x3++y3)
+    mappend (Score x1 x2 x3) (Score y1 y2 y3) =
+        Score (x1+y1) (sort $ x2++y2) (sort $ x3++y3)
 
 textScore :: TextMatch -> Score
 textScore x = Score 0 [] [x]
@@ -64,10 +67,13 @@ scoreCosts (Score _ x _) = x
 
 
 instance Show Score where
-    show (Score _ a b) = intercalate "+" $ map (drop 4 . show) a ++ map (drop 5 . show) b
+    show (Score _ a b) =
+        intercalate "+" $ map (drop 4 . show) a ++ map (drop 5 . show) b
 
 instance Eq Score where
-    Score x1 x2 x3 == Score y1 y2 y3 = x1 == y1 && x3 == y3
+    Score x1 x2 [] == Score y1 y2 y3 = [] == y3 || x1 == y1
+    Score x1 x2 x3 == Score y1 y2 [] = x3 == [] || x1 == y1
+    Score x1 x2 x3 == Score y1 y2 y3 = head x3 == head y3 || x1 == y1
 
 instance Ord Score where
-    compare (Score x1 x2 x3) (Score y1 y2 y3) = compare (x1,x3) (y1,y3)
+    compare (Score x1 x2 x3) (Score y1 y2 y3) = compare (x3,x1) (y3,y1)
