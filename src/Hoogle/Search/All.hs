@@ -1,7 +1,9 @@
 
 module Hoogle.Search.All(search) where
 
+import Data.List (sortBy)
 import Data.Maybe
+import Data.Ord (comparing)
 import Hoogle.DataBase.All
 import Hoogle.Query.All
 import Hoogle.Search.Results
@@ -15,7 +17,8 @@ search databases query = getResults query databases
 
 
 getResults :: Query -> [DataBase] -> [Result]
-getResults query = mergeDataBaseResults . map (mergeQueryResults query . f)
+getResults query = sortBy (comparing resultScore) .
+                   mergeDataBaseResults . map (mergeQueryResults query . f)
     where
         f d = [ typeSearch d q
               | Just q <- [typeSig query], isNothing (exactSearch query) ] ++
