@@ -103,12 +103,12 @@ searchSubstrSearch :: SubstrSearch a -> String -> [(a, EntryView, Score)]
 searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
     where
         view = FocusOn y
-        match = bsMatch (BSC.pack $ map toLower y)
+        match = bsMatch (BSC.pack y)
         sN = BS.foldl f s0 $ lens x
         s0 = S 0 (text x) [] []
 
         f s ii = addCount $ moveFocus i $ maybe id addMatch t s
-            where t = match i $ BS.map (ascii . toLower . toChar)
+            where t = match i $ BS.map (ascii . toChar)
                       $ BS.unsafeTake i $ sFocus s
                   i = fromIntegral ii
 
@@ -166,10 +166,34 @@ instance (Typeable a, Store a) => Store (SubstrSearch a) where
 bsMatch :: BS.ByteString -> Int -> BS.ByteString -> Maybe TextMatch
 bsMatch x
     | nx == 0 = \ny _ -> Just $ if ny == 0 then MatchExact else MatchPrefix
-    | nx == 1 = let c = BS.head x in \ny y -> case BS.elemIndex c y of
-        Nothing -> Nothing
-        Just 0 -> Just $ if ny == 1 then MatchExact else MatchPrefix
-        Just _ -> Just MatchSubstr
-    | otherwise = \ny y -> if BS.isPrefixOf x y then Just (if nx == ny then MatchExact else MatchPrefix)
-                           else if BS.isInfixOf x y then Just MatchSubstr else Nothing
-    where nx = BS.length x
+    | nx == 1 = let c = BS.head x
+                in \ny y ->
+                maybe (bsCharMatch MatchExactCI MatchPrefixCI False
+                           (BS.head (bsLower x)) ny (bsLower y))
+                    Just (bsCharMatch MatchExact MatchPrefix True
+                              (BS.head x) ny y)
+    | otherwise = \ny y ->
+        maybe (bsWordMatch MatchExactCI MatchPrefixCI False
+                   (bsLower x) ny (bsLower y))
+            Just (bsWordMatch MatchExact MatchPrefix True x ny y)
+ where
+    nx = BS.length x
+
+    bsLower = BS.map (ascii . toLower . toChar)
+
+    bsCharMatch exactKind prefixKind ignoreSubstr c ny y =
+        case BS.elemIndex c y of
+            Nothing -> Nothing
+            Just 0 -> Just $ if ny == 1
+                             then exactKind
+                             else prefixKind
+            Just _
+                | ignoreSubstr -> Nothing
+                | otherwise    -> Just MatchSubstr
+
+    bsWordMatch exactKind prefixKind ignoreSubstr x' ny y =
+        if BS.isPrefixOf x' y
+        then Just (if nx == ny then exactKind else prefixKind)
+        else if not ignoreSubstr && BS.isInfixOf x' y
+             then Just MatchSubstr
+             else Nothing
