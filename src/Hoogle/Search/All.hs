@@ -17,7 +17,8 @@ search databases query = getResults query databases
 
 
 getResults :: Query -> [DataBase] -> [Result]
-getResults query = sortBy (comparing resultScore) .
+getResults query = sortBy ((if invertResults query then flip else id)
+                           $ comparing resultScore) .
                    mergeDataBaseResults . map (mergeQueryResults query . f)
     where
         f d = [ typeSearch d q

@@ -1,6 +1,7 @@
 
 module Hoogle.Query.Parser(parseQuery) where
 
+import Control.Applicative ((*>))
 import General.Base
 import Hoogle.Query.Type
 import Hoogle.Type.All as Hoogle
@@ -43,13 +44,19 @@ parsecQuery = do spaces ; try (end names) <|> (end types)
                    if op /= [] && nop /= []
                        then fail "Combination of operators and names"
                        else return res
-        
-        name = (do x <- operator ; spaces ; return mempty{names=[x]})
+
+        handleMatch xs = case xs of
+            [x] -> mempty{names=[x]}
+            xs -> mempty{names=[last xs]
+                        ,scope=[Scope True Module $ intercalate "." $ init xs]}
+
+        name = (do xs <- char '*' *> keyword `sepBy1` (char '.') ; spaces
+                   return $ (handleMatch xs) { invertResults = True }
+               <|>
+               do x <- operator ; spaces ; return mempty{names=[x]})
                <|>
                (do xs <- keyword `sepBy1` (char '.') ; spaces
-                   return $ case xs of
-                       [x] -> mempty{names=[x]}
-                       xs -> mempty{names=[last xs],scope=[Scope True Module $ intercalate "." $ init xs]}
+                   return $ handleMatch xs
                )
         
         operator = between (char '(') (char ')') op <|> op
