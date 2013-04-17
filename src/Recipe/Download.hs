@@ -5,61 +5,74 @@ import General.Base
 import General.System
 import Recipe.Type
 
+type Downloader = FilePath -> URL -> String
+
+wget :: Downloader
+wget fp url = "wget -nv " ++ url ++ " --output-document=" ++ fp
+curl :: Downloader
+curl fp url = "curl -sSL " ++ url ++ " --output " ++ fp
+
+findDownloader :: IO Downloader
+findDownloader = do
+    dl <- liftM2 mplus (check "wget") (check "curl")
+    when (isNothing dl) $ error "Coult not find downloader"
+    return $ matchDl (fromJust dl)
+    where matchDl d | "wget" `isInfixOf` d = wget
+                    | "curl" `isInfixOf` d = curl
+
+withDownloader :: CmdLine -> Downloader -> [(FilePath, FilePath, URL)] -> IO ()
+withDownloader opt downloader items =
+    let sys = fmap (== ExitSuccess) . system
+        download (f, f', u) = do
+            b <- doesFileExist f
+            when (not b || redownload opt) $ do
+                res <- sys (downloader f' u)
+                unless res $ do
+                    b <- doesFileExist f'
+                    when b $ removeFile f'
+                    error $ "Failed to download: " ++ u
+            doesFileExist f'
+    in forM_ items download
 
 -- download everything required for the recipes
 download :: CmdLine -> IO ()
 download opt = do
     createDirectoryIfMissing True "download"
-    wget opt keywords "http://www.haskell.org/haskellwiki/Keywords"
-    wget opt platform "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal"
-    wget opt "download/base.txt" "http://www.haskell.org/hoogle/base.txt"
-    wget opt "download/ghc.txt" "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt"
-    downloadTarball opt cabals "http://hackage.haskell.org/packages/archive/00-index.tar.gz"
-    downloadTarball opt inputs "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz"
+    downloader <- findDownloader
+    let items = [ (keywords, keywords, "http://www.haskell.org/haskellwiki/Keywords")
+                , (platform, platform, "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal")
+                , ("download/base.txt", "download/base.txt", "http://www.haskell.org/hoogle/base.txt")
+                , ("download/ghc.txt",  "download/ghc.txt", "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt")
+                , (cabals <.> "txt", cabals <.> "tar.gz", "http://hackage.haskell.org/packages/archive/00-index.tar.gz")
+                , (inputs <.> "txt", inputs <.> "tar.gz", "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz")
+                ]
+    withDownloader opt downloader items
+    extractTarball cabals
+    extractTarball inputs
 
 
-check :: String -> URL -> IO ()
-check name url | isWindows = do
+check :: String -> IO (Maybe FilePath)
+check name = do
     res <- findExecutable name
-    when (isNothing res) $ putStrLn $
-        "WARNING: Could not find command line program " ++ name ++ ".\n" ++
-        "  You may be able to install it from:\n  " ++ url
-check _ _ = return ()
+    when (isNothing res) $ do
+        putStrLn $ "WARNING: Could not find command line program " ++ name ++ "."
+        when isWindows $ putStrLn $ "  You may be able to install it from:\n  " ++ url
+    return res
+    where
+        srcList = [ ("gzip", "http://gnuwin32.sourceforge.net/packages/gzip.htm")
+                  , ("tar",  "http://gnuwin32.sourceforge.net/packages/gtar.htm")
+                  , ("wget", "http://gnuwin32.sourceforge.net/packages/wget.htm")
+                  , ("curl", "http://curl.haxx.se/download.html")
+                  ]
+        url = fromJust . lookup name $ srcList
 
-
-wgetMay :: CmdLine -> FilePath -> URL -> IO Bool
-wgetMay opt fil url = do
-    b <- doesFileExist fil
-    when (not b || redownload opt) $ do
-        check "wget" "http://gnuwin32.sourceforge.net/packages/wget.htm"
-        let sys cmd = do
-                let cmd' | isWindows = cmd ++ " 2> NUL"
-                         | otherwise = cmd ++ " 2> /dev/null"
-                res <- fmap (== ExitSuccess) $ system cmd'
-                unless res $ do
-                    b <- doesFileExist fil
-                    when b $ removeFile fil
-                return res
-        b <- sys $ "wget -q " ++ url ++ " --output-document=" ++ fil
-        unless b $ do sys $ "curl -s " ++ url ++ " --output " ++ fil; return ()
-    doesFileExist fil
-
-
-wget :: CmdLine -> FilePath -> URL -> IO ()
-wget opt fil url = do
-    b <- wgetMay opt fil url
-    unless b $ error $ "Failed to download " ++ url
-
-
-downloadTarball :: CmdLine -> FilePath -> URL -> IO ()
-downloadTarball opt out url = do
-    b <- doesFileExist $ out <.> "txt"
-    when (not b || redownload opt) $ do
-        wget opt (out <.> "tar.gz") url
+extractTarball :: FilePath -> IO ()
+extractTarball out = do
         createDirectoryIfMissing True out
         withDirectory out $ do
-            check "gzip" "http://gnuwin32.sourceforge.net/packages/gzip.htm"
-            check "tar" "http://gnuwin32.sourceforge.net/packages/gtar.htm"
+            hasGzip <- check "gzip"
+            hasTar  <- check "tar"
+            when (any isNothing [hasGzip, hasTar]) $ error "Could not extract tarball(s)."
             putStrLn "Extracting tarball... "
             system_ $ "gzip --decompress --force .." </> takeFileName out <.> "tar.gz"
             system_ $ "tar -xf .." </> takeFileName out <.> "tar"
