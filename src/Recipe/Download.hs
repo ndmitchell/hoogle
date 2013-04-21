@@ -15,7 +15,7 @@ curl fp url = "curl -sSL " ++ url ++ " --output " ++ fp
 findDownloader :: IO Downloader
 findDownloader = do
     dl <- liftM2 mplus (check "wget") (check "curl")
-    when (isNothing dl) $ error "Coult not find downloader"
+    when (isNothing dl) $ error "Could not find downloader, neither curl nor wget are on the $PATH."
     return $ matchDl (fromJust dl)
     where matchDl d | "wget" `isInfixOf` d = wget
                     | "curl" `isInfixOf` d = curl
@@ -72,7 +72,7 @@ extractTarball out = do
         withDirectory out $ do
             hasGzip <- check "gzip"
             hasTar  <- check "tar"
-            when (any isNothing [hasGzip, hasTar]) $ error "Could not extract tarball(s)."
+            when (any isNothing [hasGzip, hasTar]) $ error "Could not extract tarball(s), could not find either gzip or tar on the $PATH."
             putStrLn "Extracting tarball... "
             system_ $ "gzip --decompress --force .." </> takeFileName out <.> "tar.gz"
             system_ $ "tar -xf .." </> takeFileName out <.> "tar"
