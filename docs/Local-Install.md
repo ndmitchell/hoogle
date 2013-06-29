@@ -20,62 +20,65 @@ Multiple binary databases can be merged with <tt>hoogle --combine=file1.hoo --co
 
 The following script (from Matt Brown) may be helpful:
 
- #!/bin/bash
- 
- function combines {
-   for f in ~/.hoogle/*.hoo
-   do
-     echo -n " $(readlink -f $f)"
-   done
- }
- 
- hoogle combine --outfile=$(readlink -f ~/.hoogle.hoo) $(combines)
+```
+#!/bin/bash
+
+function combines {
+  for f in ~/.hoogle/*.hoo
+  do
+    echo -n " $(readlink -f $f)"
+  done
+}
+
+hoogle combine --outfile=$(readlink -f ~/.hoogle.hoo) $(combines)
+```
 
 Simon Michaels suggests: 
 
- #!/bin/bash
- #
- # Search for hoogle databases in or under the directories/files specified
- # as arguments or hard-coded below (see allHoogleDbs), and combine them as
- # ~/.hoogle/default.hoo.  Lets you search all your code (and installed
- # haskell libs) at once.
- #
- # Usage:
- # $ hoogle-update-db
- # $ alias hoogle="hoogle --i=$HOME/.hoogle"
- # $ hoogle something
- 
- # nb current hoogle cli quirks: path options should have two hyphens, one
- # equals, and no tildes, eg: --d=NOTILDEFILEPATH
- 
- #set -x
- 
- ARGS=$*
- 
- function allHoogleDbs {
-  for p in $ARGS ~/src/ ~/.cabal/share/ # add paths here
-  do
-      echo -n " $(findHoogleDbs $p)"
-  done
- }
- 
- function findHoogleDbs {
-  find $1 -name '*.hoo'
- }
- 
- function combineOpts {
- for f in $*
- do
-  echo -n " $(readlink -f $f)"
- done
- }
- 
- dbs=$(allHoogleDbs)
- echo Found $dbs
- mkdir -p ~/.hoogle
- hoogle combine --outfile=$(readlink -f ~/.hoogle/default.hoo) $(combineOpts $dbs)
- echo Created ~/.hoogle/default.hoo
+```
+#!/bin/bash
+#
+# Search for hoogle databases in or under the directories/files specified
+# as arguments or hard-coded below (see allHoogleDbs), and combine them as
+# ~/.hoogle/default.hoo.  Lets you search all your code (and installed
+# haskell libs) at once.
+#
+# Usage:
+# $ hoogle-update-db
+# $ alias hoogle="hoogle --i=$HOME/.hoogle"
+# $ hoogle something
 
+# nb current hoogle cli quirks: path options should have two hyphens, one
+# equals, and no tildes, eg: --d=NOTILDEFILEPATH
+
+#set -x
+
+ARGS=$*
+
+function allHoogleDbs {
+ for p in $ARGS ~/src/ ~/.cabal/share/ # add paths here
+ do
+     echo -n " $(findHoogleDbs $p)"
+ done
+}
+
+function findHoogleDbs {
+ find $1 -name '*.hoo'
+}
+
+function combineOpts {
+for f in $*
+do
+ echo -n " $(readlink -f $f)"
+done
+}
+
+dbs=$(allHoogleDbs)
+echo Found $dbs
+mkdir -p ~/.hoogle
+hoogle combine --outfile=$(readlink -f ~/.hoogle/default.hoo) $(combineOpts $dbs)
+echo Created ~/.hoogle/default.hoo
+```
 
 ### GHCi Integration
 
@@ -129,13 +132,16 @@ Contributed by [[User:DavidHouse|DavidHouse]]
 ### Emacs Integration
 [[Haskell_mode_for_Emacs|haskell-mode]] from versions 2.4 onwards have the function haskell-hoogle, which will hoogle the identifier at point. Setup:
 
- (require 'haskell-mode)
- (define-key haskell-mode-map "\C-ch" 'haskell-hoogle)
- ;(setq haskell-hoogle-command "hoogle")
+```
+(require 'haskell-mode)
+(define-key haskell-mode-map "\C-ch" 'haskell-hoogle)
+;(setq haskell-hoogle-command "hoogle")
+```
 
 You will need a web browser configured for best results. Here's an example setup for Safari:
 
- (setq browse-url-browser-function 'browse-url-safari)
+```
+(setq browse-url-browser-function 'browse-url-safari)
  (defun browse-url-safari (url &optional new-window)
   "Open URL in a new Safari window."
   (interactive (browse-url-interactive-arg "URL: "))
@@ -146,6 +152,7 @@ You will need a web browser configured for best results. Here's an example setup
     (message "Starting Safari...")
     (start-process (concat "open -a Safari " url) nil "open -a Safari " url)
     (message "Starting Safari... done")))
+```
 
 Alternately, you can build the command-line hoogle (darcs repo below) and uncomment the third line above, then results will appear in a buffer.
 
