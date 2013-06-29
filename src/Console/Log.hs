@@ -67,7 +67,7 @@ data Entry = Entry
     ,unique :: Maybe String -- maybe a uniquely identifying string
     ,instant :: Maybe Int -- number of times you hit with instant for this query
     ,suggest :: Maybe Int -- number of times you hit with suggest for this query
-    } deriving Show
+    } deriving (Eq, Show)
 
 entry = Entry LBS.empty [] Nothing Nothing Nothing Nothing Nothing
 

@@ -11,13 +11,21 @@ data Query = Query
     {names :: [String]
     ,typeSig :: Maybe TypeSig
     ,scope :: [Scope]
+    ,exactSearch :: Maybe ItemKind
+    ,invertResults :: Bool
     }
     deriving (Data,Typeable,Show,Eq)
 
 instance Monoid Query where
-    mempty = Query [] Nothing []
-    mappend (Query x1 x2 x3) (Query y1 y2 y3) =
-        Query (x1++y1) (x2 `mplus` y2) (x3++y3)
+    mempty = Query [] Nothing [] Nothing False
+    mappend (Query x1 x2 x3 x4 x5) (Query y1 y2 y3 y4 y5) =
+        Query (x1++y1) (x2 `mplus` y2) (x3++y3) (merge x4 y4) (x5 || y5)
+      where merge Nothing Nothing = Nothing
+            merge (Just x) Nothing = Just x
+            merge Nothing (Just y) = Just y
+            merge (Just UnclassifiedItem) (Just y) = Just y
+            merge (Just x) (Just UnclassifiedItem) = Just x
+            merge (Just x) (Just _) = Just x
 
 data Scope = Scope Bool Category String deriving (Data,Typeable,Show,Eq)
 data Category = Module | Package deriving (Data,Typeable,Show,Eq)

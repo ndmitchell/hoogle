@@ -25,7 +25,6 @@ instance Ord k => Ord (Key k v) where
 
 toKey f v = Key (f v) v
 fromKey (Key k v) = v
-sortWith f = map fromKey . sort . map (toKey f)
 
 
 ---------------------------------------------------------------------
@@ -49,13 +48,12 @@ mergeQueryResults q = filterResults q . joinResults
 joinResults :: [[Result]] -> [Result]
 joinResults [] = []
 joinResults [x] = x
-joinResults xs = sortWith resultScore $ Map.elems $
-                 fold1 (Map.intersectionWith join) $
+joinResults xs = Map.elems $ fold1 (Map.intersectionWith join) $
                  map asSet xs
     where
         asSet = Map.fromList . map (entryUnique . resultEntry &&& id)
 
-        join r1 r2 = r1{resultScore = mappend (resultScore r1) (resultScore r2)
+        join r1 r2 = r1{resultScore = resultScore r1 <> resultScore r2
                        ,resultView = resultView r1 ++ resultView r2
                        ,resultEntry = resultEntry r1 `entryJoin` resultEntry r2}
 
@@ -65,7 +63,7 @@ joinResults xs = sortWith resultScore $ Map.elems $
 
 -- | Apply the PlusModule, MinusModule and MinusPackage modes
 filterResults :: Query -> [Result] -> [Result]
-filterResults q = f mods correctModule . f pkgs correctPackage
+filterResults q = f mods (correctModule (exactSearch q)) . f pkgs correctPackage
     where
         f [] act = id
         f xs act = filter (act xs . resultEntry)
@@ -81,16 +79,20 @@ correctPackage pkgs x = null myPkgs || any (maybe True (`notElem` map (map toLow
 
 
 -- mods is a non-empty list of PlusModule/MinusModule
-correctModule :: [Scope] -> Entry -> Bool
-correctModule mods x = null myMods || any (maybe True (f base mods)) myMods
+correctModule :: Maybe ItemKind -> [Scope] -> Entry -> Bool
+correctModule kind mods x = null myMods || any (maybe True (f base mods)) myMods
     where
-        myMods = map (fmap (map toLower . entryName . fromOnce) . listToMaybe . drop 1 . snd) $
-                 entryLocations x
+        myMods = map (fmap (map (if isJust kind then id else toLower)
+                            . entryName . fromOnce)
+                      . listToMaybe . drop 1 . snd) $ entryLocations x
         base = case head mods of Scope False Module _ -> True; _ -> False
 
         f z [] y = z
-        f z (Scope b Module x:xs) y | doesMatch (map toLower x) y = f b xs y
+        f z (Scope b Module x:xs) y
+            | doesMatch (map (if isJust kind then id else toLower) x) y = f b xs y
         f z (x:xs) y = f z xs y
 
         -- match if x is a module starting substring of y
-        doesMatch x y = x `isPrefixOf` y || ('.':x) `isInfixOf` y
+        doesMatch x y = if isJust kind
+                        then x == y
+                        else x `isPrefixOf` y || ('.':x) `isInfixOf` y

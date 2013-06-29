@@ -3,6 +3,7 @@
 module Hoogle.DataBase.SubstrSearch
     (SubstrSearch, createSubstrSearch
     ,searchSubstrSearch
+    ,searchExactSearch
     ,completionsSubstrSearch
     ) where
 
@@ -11,6 +12,7 @@ import qualified Data.Set as Set
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.Char as C
 import General.Base
 import Data.Array
 import Hoogle.Type.All
@@ -74,7 +76,7 @@ createSubstrSearch xs = SubstrSearch
     (BS.pack $ map fromIntegral ls2)
     (listArray (0,length is-1) is)
     where
-        (ts,is) = unzip $ map (first $ map toLower) xs
+        (ts,is) = unzip xs
         (ts2,ls2) = f "" ts
 
         f x (y:ys) = first (y:) $ second (length y:) $ f y ys
@@ -89,11 +91,37 @@ data S a = S
     }
 
 
+toChar :: Word8 -> Char
+toChar = C.chr . fromIntegral
+
+-- | Unsafe version of 'fromChar'
+ascii :: Char -> Word8
+ascii = fromIntegral . C.ord
+{-# INLINE ascii #-}
+
 searchSubstrSearch :: SubstrSearch a -> String -> [(a, EntryView, Score)]
 searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
     where
         view = FocusOn y
-        match = bsMatch (BSC.pack $ map toLower y)
+        match = bsMatch (BSC.pack y)
+        sN = BS.foldl f s0 $ lens x
+        s0 = S 0 (text x) [] []
+
+        f s ii = addCount $ moveFocus i $ maybe id addMatch t s
+            where t = match i $ BS.map (ascii . toChar)
+                      $ BS.unsafeTake i $ sFocus s
+                  i = fromIntegral ii
+
+        addCount s = s{sCount=sCount s+1}
+        moveFocus i s = s{sFocus=BS.unsafeDrop i $ sFocus s}
+        addMatch MatchSubstr s = s{sInfix =(inds x ! sCount s,view,textScore MatchSubstr):sInfix s}
+        addMatch t s = s{sPrefix=(inds x ! sCount s,view,textScore t):sPrefix s}
+
+searchExactSearch :: SubstrSearch a -> String -> [(a, EntryView, Score)]
+searchExactSearch x y = reverse (sPrefix sN)
+    where
+        view = FocusOn y
+        match = bsMatch (BSC.pack y)
         sN = BS.foldl f s0 $ lens x
         s0 = S 0 (text x) [] []
 
@@ -103,8 +131,8 @@ searchSubstrSearch x y = reverse (sPrefix sN) ++ reverse (sInfix sN)
 
         addCount s = s{sCount=sCount s+1}
         moveFocus i s = s{sFocus=BS.unsafeDrop i $ sFocus s}
-        addMatch MatchSubstr s = s{sInfix =(inds x ! sCount s,view,textScore MatchSubstr):sInfix s}
-        addMatch t s = s{sPrefix=(inds x ! sCount s,view,textScore t):sPrefix s}
+        addMatch MatchExact s = s{sPrefix=(inds x ! sCount s,view,textScore MatchExact):sPrefix s}
+        addMatch _ s = s
 
 
 data S2 = S2
@@ -119,7 +147,7 @@ completionsSubstrSearch x y = map (\x -> y ++ drop ny (BSC.unpack x)) $ take 10 
         ny = length y
         ly = fromString $ map toLower y
         f (S2 foc res) ii = S2 (BS.unsafeDrop i foc) (if ly `BS.isPrefixOf` x then Set.insert x res else res)
-            where x = BS.unsafeTake i foc
+            where x = BS.map (ascii . toLower . toChar) $ BS.unsafeTake i foc
                   i = fromIntegral ii
 
 
@@ -138,10 +166,34 @@ instance (Typeable a, Store a) => Store (SubstrSearch a) where
 bsMatch :: BS.ByteString -> Int -> BS.ByteString -> Maybe TextMatch
 bsMatch x
     | nx == 0 = \ny _ -> Just $ if ny == 0 then MatchExact else MatchPrefix
-    | nx == 1 = let c = BS.head x in \ny y -> case BS.elemIndex c y of
-        Nothing -> Nothing
-        Just 0 -> Just $ if ny == 1 then MatchExact else MatchPrefix
-        Just _ -> Just MatchSubstr
-    | otherwise = \ny y -> if BS.isPrefixOf x y then Just (if nx == nx then MatchExact else MatchPrefix)
-                           else if BS.isInfixOf x y then Just MatchSubstr else Nothing
-    where nx = BS.length x
+    | nx == 1 = let c = BS.head x
+                in \ny y ->
+                maybe (bsCharMatch MatchExactCI MatchPrefixCI False
+                           (BS.head (bsLower x)) ny (bsLower y))
+                    Just (bsCharMatch MatchExact MatchPrefix True
+                              (BS.head x) ny y)
+    | otherwise = \ny y ->
+        maybe (bsWordMatch MatchExactCI MatchPrefixCI False
+                   (bsLower x) ny (bsLower y))
+            Just (bsWordMatch MatchExact MatchPrefix True x ny y)
+ where
+    nx = BS.length x
+
+    bsLower = BS.map (ascii . toLower . toChar)
+
+    bsCharMatch exactKind prefixKind ignoreSubstr c ny y =
+        case BS.elemIndex c y of
+            Nothing -> Nothing
+            Just 0 -> Just $ if ny == 1
+                             then exactKind
+                             else prefixKind
+            Just _
+                | ignoreSubstr -> Nothing
+                | otherwise    -> Just MatchSubstr
+
+    bsWordMatch exactKind prefixKind ignoreSubstr x' ny y =
+        if BS.isPrefixOf x' y
+        then Just (if nx == ny then exactKind else prefixKind)
+        else if not ignoreSubstr && BS.isInfixOf x' y
+             then Just MatchSubstr
+             else Nothing

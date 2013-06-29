@@ -23,6 +23,7 @@ import CmdLine.Load
 import General.Web
 import System.Console.CmdArgs
 import Hoogle
+import Hoogle.Query.Type
 import GHC.Conc(numCapabilities)
 import Paths_hoogle
 import Safe
@@ -34,7 +35,15 @@ import Safe
 cmdLineExpand :: CmdLine -> IO CmdLine
 cmdLineExpand x@Search{} = do
     db <- expandDatabases $ databases x
-    return $ x{queryText = s, queryParsed = parseQuery Haskell s, databases = db}
+    return $ x { queryText = s
+               , queryParsed =
+                   (\q -> q { exactSearch =
+                                   if exact x
+                                   then Just UnclassifiedItem
+                                   else Nothing })
+                   `fmap` parseQuery Haskell s
+               , databases = db
+               }
     where s = unwords $ queryChunks x
 
 
@@ -97,6 +106,7 @@ cmdLineWeb :: [(String,String)] -> IO CmdLine
 cmdLineWeb args = cmdLineExpand $ blankSearch
         {web=Just $ fromMaybe "web" $ ask ["mode"]
         ,start=askInt ["start"], count=askInt ["count"]
+        ,exact=fromMaybe 0 (askInt ["exact"]) == 1
         ,queryChunks = mapMaybe ask [["prefix"],["q","hoogle"],["suffix"]]}
     where ask x = listToMaybe [b | (a,b) <- args, a `elem` x]
           askInt x = readMay =<< ask x
