@@ -29,6 +29,9 @@ stats = False
 data Once a = Once {_onceKey :: Int, valueOnce :: a}
               deriving Typeable
 
+instance NFData a => NFData (Once a) where
+    rnf (Once a b) = rnf (a,b)
+
 fromOnce :: Once a -> a
 fromOnce = valueOnce
 

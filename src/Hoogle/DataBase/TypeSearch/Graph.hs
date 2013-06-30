@@ -29,6 +29,12 @@ data Node = Node [Type] [(Once EntryInfo,ArgPos)]
             deriving Typeable
 
 
+instance NFData Graph where
+    rnf (Graph a) = rnf a
+
+instance NFData Node where
+    rnf (Node a b) = rnf (a,b)
+
 instance Show Graph where
     show (Graph mp) = unlines $ concatMap f $ Map.toList mp
         where f (t,ns) = show (transform g t) : map (("  "++) . show) ns

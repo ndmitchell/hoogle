@@ -32,6 +32,7 @@ class Store a where
 
 newtype Defer a = Defer {fromDefer :: a}
 
+instance NFData a => NFData (Defer a) where rnf = rnf . fromDefer
 instance Eq a => Eq (Defer a) where a == b = fromDefer a == fromDefer b
 instance Ord a => Ord (Defer a) where compare a b = compare (fromDefer a) (fromDefer b)
 instance Show a => Show (Defer a) where show = show . fromDefer

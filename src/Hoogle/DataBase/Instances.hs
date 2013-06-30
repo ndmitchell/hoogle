@@ -13,6 +13,9 @@ import qualified Data.Map as Map
 -- Map type [classes]
 newtype Instances = Instances {fromInstances :: Map.Map String [String]}
 
+instance NFData Instances where
+    rnf (Instances a) = rnf a
+
 instance Show Instances where
     show (Instances mp) = unlines $ map f $ Map.toList mp
         where f (v,cs) = "instance " ++ v ++ " <= " ++ unwords cs

@@ -5,6 +5,7 @@
 module General.Base(module General.Base, module X) where
 
 import Control.Arrow as X
+import Control.DeepSeq as X
 import Control.Monad as X
 import Data.Char as X
 import Data.Data as X (Data,Typeable)

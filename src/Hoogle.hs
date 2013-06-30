@@ -51,6 +51,9 @@ newtype Database = Database [H.DataBase]
 toDataBase (Database x) = H.combineDataBase x
 fromDataBase x = Database [x]
 
+instance NFData Database where
+    rnf (Database a) = rnf a
+
 instance Monoid Database where
     mempty = Database []
     mappend (Database xs) (Database ys) = Database $ xs ++ ys

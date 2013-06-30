@@ -25,6 +25,8 @@ data DataBase = DataBase
     }
     deriving Typeable
 
+instance NFData DataBase where
+    rnf (DataBase a b c d e f) = rnf (a,b,c,d,e,f)
 
 instance Store DataBase where
     put (DataBase a b c d e f) = put6 a b c d e f

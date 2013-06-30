@@ -12,6 +12,9 @@ import Hoogle.Store.All
 -- Invariant: items are by order of EntryScore
 newtype Items = Items {fromItems :: Defer [Once Entry]}
 
+instance NFData Items where
+    rnf (Items a) = rnf a
+
 entriesItems :: Items -> [Once Entry]
 entriesItems = fromDefer . fromItems
 

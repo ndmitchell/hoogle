@@ -4,7 +4,7 @@ module Hoogle.DataBase.TypeSearch.EntryInfo where
 
 import Hoogle.Store.All
 import Hoogle.Type.All
-import Data.Typeable
+import General.Base
 
 
 -- the information about an entry, including the arity
@@ -15,6 +15,9 @@ data EntryInfo = EntryInfo
     ,entryInfoContext :: TypeContext
     ,entryInfoAlias :: [String]
     } deriving (Show,Typeable)
+
+instance NFData EntryInfo where
+    rnf (EntryInfo a b c d e) = rnf (a,b,c,d,e)
 
 instance Ord EntryInfo where
     compare (EntryInfo _ [] x1 x2 x3) (EntryInfo _ [] y1 y2 y3) = compare (x1,x2,x3) (y1,y2,y3)

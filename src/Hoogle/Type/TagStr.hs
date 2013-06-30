@@ -23,6 +23,13 @@ data TagStr
     | TagColor Int TagStr -- ^ Colored text. Index into a 0-based palette. Text without any 'TagColor' should be black.
       deriving (Data,Typeable,Ord,Show,Eq)
 
+instance NFData TagStr where
+    rnf (Str a) = rnf a
+    rnf (Tags a) = rnf a
+    rnf (TagBold a) = rnf a
+    rnf (TagEmph a) = rnf a
+    rnf (TagLink a b) = rnf (a,b)
+    rnf (TagColor a b) = rnf (a,b)
 
 instance Monoid TagStr where
     mempty = Str ""

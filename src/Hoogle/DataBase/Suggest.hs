@@ -21,6 +21,12 @@ data SuggestItem = SuggestItem
     deriving Typeable
 
 
+instance NFData Suggest where
+    rnf (Suggest a) = rnf a
+
+instance NFData SuggestItem where
+    rnf (SuggestItem a b c) = rnf (a,b,c)
+
 instance Show Suggest where
     show (Suggest x) = show x
 

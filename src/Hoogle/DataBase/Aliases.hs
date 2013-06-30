@@ -14,6 +14,9 @@ import Safe
 
 newtype Aliases = Aliases {fromAliases :: Map.Map String Alias}
 
+instance NFData Aliases where
+    rnf (Aliases a) = rnf a
+
 instance Store Aliases where
     put = put . fromAliases
     get = get1 Aliases
@@ -28,6 +31,9 @@ data Alias = Alias
     ,rhs :: Type -- the resulting type
     }
     deriving Typeable
+
+instance NFData Alias where
+    rnf (Alias a b) = rnf (a,b)
 
 instance Store Alias where
     put (Alias a b) = put2 a b

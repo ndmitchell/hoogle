@@ -3,8 +3,7 @@
 module Hoogle.Type.TypeSig where
 
 import Hoogle.Store.All
-import Data.List
-import Data.Data
+import General.Base
 import Data.Generics.UniplateOn
 
 
@@ -15,6 +14,9 @@ import Data.Generics.UniplateOn
 -- FULL TYPE
 data TypeSig = TypeSig Constraint Type
                deriving (Eq,Ord,Data,Typeable)
+
+instance NFData TypeSig where
+    rnf (TypeSig a b) = rnf (a,b)
 
 type Constraint = [Type]
 
@@ -38,6 +40,11 @@ data Type = TApp Type [Type] -- a list of types, first one being the constructor
           | TFun [Type]
           deriving (Eq,Ord,Data,Typeable)
 
+instance NFData Type where
+    rnf (TApp a b) = rnf (a,b)
+    rnf (TLit a) = rnf a
+    rnf (TVar a) = rnf a
+    rnf (TFun a) = rnf a
 
 tApp :: Type -> [Type] -> Type
 tApp t [] = t

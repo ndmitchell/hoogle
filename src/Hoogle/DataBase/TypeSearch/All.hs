@@ -14,9 +14,13 @@ import Hoogle.DataBase.Aliases
 import Hoogle.Store.All
 import Hoogle.Type.All
 import Hoogle.Score.All
+import General.Base
 
 
 newtype TypeSearch = TypeSearch Graphs
+
+instance NFData TypeSearch where
+    rnf (TypeSearch a) = rnf a
 
 instance Show TypeSearch where
     show (TypeSearch x) = show x

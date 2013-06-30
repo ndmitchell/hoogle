@@ -24,6 +24,9 @@ data Graphs = Graphs
     ,resGraph :: Graph -- the results
     }
 
+instance NFData Graphs where
+    rnf (Graphs a b) = rnf (a,b)
+
 instance Show Graphs where
     show (Graphs a b) = "== Arguments ==\n\n" ++ show a ++
                         "\n== Results ==\n\n" ++ show b
