@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Require bytestring-0.10 or above, due to NFData instances
     Add NFData instance to Database
 4.2.16
     Remove lots of explicit upper bounds
