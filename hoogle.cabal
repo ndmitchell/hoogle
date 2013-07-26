@@ -120,6 +120,7 @@ executable hoogle
         hoogle, bytestring, filepath, unix, directory, process, random,
         array, containers, time, old-time, old-locale,
         safe,
+        aeson >= 0.6.1,
         cmdargs >= 0.7,
         deepseq >= 1.1,
         tagsoup >= 0.11,
