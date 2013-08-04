@@ -1,3 +1,4 @@
+-- AUTO GENERATED - do not modify
 module Web.Page(Templates(..), defaultTemplates, loadTemplates) where
 import Web.Template
 
