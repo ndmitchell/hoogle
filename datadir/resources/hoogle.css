@@ -2,11 +2,17 @@
 *  GENERAL ELEMENTS
 */
 
+html {
+    height: 100%;
+}
+
 body {
     margin: 0px;
     padding: 0px;
     font-family: sans-serif;
     font-size: 13px;
+    position: relative;
+    min-height: 100%;
 }
 
 a img {
@@ -19,14 +25,54 @@ a:hover {
     background-color: #ffb;
 }
 
+a {
+    color: #C4451D;
+    text-decoration: none;
+}
+
+.push {
+    height: 4em;
+}
+
 /********************************************************************
 *  TOP - LINKS AND SEARCH
 */
 
 #links {
-    float: right;
-    margin-right: 10px;
-    margin-top: 5px;
+    position: relative;
+    background: none repeat scroll 0 0 #293845;
+    border-top: 5px solid #4E6272;
+    color: #DDDDDD;
+    text-align: right;
+    padding: 0.2em;
+}
+
+#top-menu {
+    display: inline-table;
+    list-style: none outside none;
+    margin: 0 0 0 1em;
+    text-align: left;
+}
+
+#top-menu li {
+    border-left: 1px solid #D5D5D5;
+    display: inline;
+    padding: 0;
+    white-space: nowrap;
+}
+
+#top-menu li a,
+#top-menu li a:link, 
+#top-menu li a:visited {
+    font-size: 85%;
+    color: white;
+    text-decoration: none;
+    padding: 0.2em 0.5em;
+}
+
+#top-menu li a:hover {
+    background-color: #4e6272;
+    text-decoration: underline;
 }
 
 form {
@@ -76,7 +122,7 @@ form {
 }
 
 #left a {
-    color: #0E7700;
+    color: #C4451D;
     text-decoration: none;
     background-repeat: no-repeat;
 }
@@ -104,6 +150,13 @@ form {
 */
 
 #footer {
+    background: none repeat scroll 0 0 #DDDDDD;
+    border-top: 1px solid #AAAAAA;
+    color: #666666;
+    width: 100%;
+    padding: 1.3em 0;
+    position: absolute;
+    bottom: 0;
     text-align: center;
 }
 
@@ -116,10 +169,6 @@ h1 {
     padding: 5px;
     margin-top: 0px;
     font-weight: normal;
-    /* background for the heading must be gray,
-       to make type searching visisble */
-    background-color: #e4e4e4;
-    border-top: 1px solid #999;
     padding-left: 170px;
     font-size: 16px;
 }
@@ -148,7 +197,8 @@ p {
     padding: 3px;
     width: 400px;
     border: 2px solid #cc0;
-    background-color: #ffc;
+    background-color: #F5F5F5;
+    border: 1px solid #E5E5E5;
     text-align: left;
 }
 
@@ -166,8 +216,11 @@ p {
     margin-right: 20px;
 }
 
+.from, .doc {
+    margin-top: 0.8em;
+}
+
 a.dull, a.dull:hover {
-    background-color: white;
     text-decoration: none;
 }
 
@@ -179,12 +232,22 @@ a.dull, a.dull:hover {
 }
 
 .ans {
+    background: none repeat scroll 0 0 #F0F0F0;
+    border-top: 1px solid #CCCCCC;
     font-size: 16px;
-    margin-top: 15px;
+    padding: 0.2em 0.5em;
+}
+
+.from + .ans {
+    margin-top: 2em;
+}
+
+.doc + .ans {
+    margin-top: 2em;
 }
 
 .ans .a {
-    color: #2200C1;
+    color: #C4451D;
 }
 
 .ans a.dull {
@@ -203,7 +266,6 @@ a.dull, a.dull:hover {
     background-image: url(more_blue.png);
     background-repeat: no-repeat;
     background-position: center left;
-    color: blue;
 }
 
 /** PARENTS **/
