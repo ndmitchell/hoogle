@@ -11,6 +11,8 @@ import Foreign(sizeOf)
 import Hoogle.Store.Type
 import qualified Data.Map as Map
 import qualified Data.ByteString as BS
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.Array
 
 
@@ -108,12 +110,23 @@ instance Store Int where
     size _ = size (0 :: Int32)
 
 instance Store Char where
-    put = putByte . fromIntegral . ord
-    get = fmap (chr . fromIntegral) getByte
-    size _ = size (0 :: Word8)
+    put x | x < '\x80' = putByte . fromIntegral . ord $ x -- ASCII
+          | otherwise  = putByteString . T.encodeUtf8 . T.singleton $ x
+    get = do c0 <- getByte
+             n <- case c0 of
+               _ | c0 < 0x80 -> return 0 -- ASCII
+               _ | c0 < 0xc0 -> fail "invalid UTF8 sequence"
+               _ | c0 < 0xe0 -> return 1
+               _ | c0 < 0xf0 -> return 2
+               _ | c0 < 0xf8 -> return 3
+               _ | c0 < 0xfc -> return 4
+               _ | c0 < 0xfe -> return 5
 
-    getList = fmap bsUnpack . getByteString . fromIntegral
+             if n > 0
+              then fmap (T.head . T.decodeUtf8 . BS.cons c0) $ getByteString n
+              else return $ chr $ fromIntegral $ c0 -- ASCII
 
+    putList = putByteString . T.encodeUtf8 . T.pack
 
 instance Store Bool where
     put x = put $ if x then '1' else '0'
