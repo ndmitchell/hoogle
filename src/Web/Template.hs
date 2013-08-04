@@ -83,7 +83,8 @@ reloadTemplate t as = concatMap f $ templateContents t
 
 generate :: String -> [Template] -> String
 generate name xs = unlines $
-    ["module " ++ name ++ "(Templates(..), defaultTemplates, loadTemplates) where"
+    ["-- AUTO GENERATED - do not modify"
+    ,"module " ++ name ++ "(Templates(..), defaultTemplates, loadTemplates) where"
     ,"import Web.Template"
     ,""
     ,"data Templates = Templates"] ++
