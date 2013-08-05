@@ -110,7 +110,6 @@ form {
     width: 140px;
     margin: 0px;
     padding: 0px;
-    margin-top: 7px;
     margin-left: 10px;
 }
 
@@ -131,6 +130,7 @@ form {
     padding-right: 16px;
     background-image: url(more_small.png);
     background-position: center right;
+    color: #0E774A;
 }
 
 #left .pad {
@@ -266,6 +266,7 @@ a.dull, a.dull:hover {
     background-image: url(more_blue.png);
     background-repeat: no-repeat;
     background-position: center left;
+    color: blue;
 }
 
 /** PARENTS **/
