@@ -217,7 +217,7 @@ p {
 }
 
 .from, .doc {
-    margin-top: 0.8em;
+    margin-top: 0.4em;
 }
 
 a.dull, a.dull:hover {
@@ -239,11 +239,11 @@ a.dull, a.dull:hover {
 }
 
 .from + .ans {
-    margin-top: 2em;
+    margin-top: 1.5em;
 }
 
 .doc + .ans {
-    margin-top: 2em;
+    margin-top: 1.5em;
 }
 
 .ans .a {
