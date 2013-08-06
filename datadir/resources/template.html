@@ -15,11 +15,14 @@
     </head>
     <body>
 <div id="links">
-    <span id="instant" style="display:none;"><a href="javascript:setInstant()">
-        Instant is <span id="instantVal">off</span></a> |</span>
-    <span id="plugin" style="display:none;"><a href="javascript:searchPlugin()">Search plugin</a> |</span>
-    <a href="https://github.com/ndmitchell/hoogle/blob/master/README.md">Manual</a> |
-    $#homepage$
+    <ul id="top-menu">
+        <li id="instant" style="display:none;">
+            <a href="javascript:setInstant()">Instant is <span id="instantVal">off</span></a>
+        </li>
+        <li id="plugin" style="display:none;"><a href="javascript:searchPlugin()">Search plugin</a></li>
+        <li><a href="https://github.com/ndmitchell/hoogle/blob/master/README.md">Manual</a></li>
+        <li>$#homepage$</li>
+    </ul>
 </div>
 <form action="." method="get" id="search">
     <a id="logo" href="http://haskell.org/hoogle/">
@@ -36,8 +39,9 @@
 
 
 #export footer version
+            <div class="push"></div>
         </div>
-        <p id="footer">&copy; <a href="http://community.haskell.org/~ndm/">Neil Mitchell</a> 2004-2012, version $&version$</p>
+        <div id="footer">&copy; <a href="http://community.haskell.org/~ndm/">Neil Mitchell</a> 2004-2012, version $&version$</div>
     </body>
 </html>
 
