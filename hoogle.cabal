@@ -135,7 +135,7 @@ executable hoogle
         wai >= 1.1,
         warp >= 1.1,
         Cabal >= 1.8,
-        haskell-src-exts >= 1.12 && < 1.14
+        haskell-src-exts >= 1.14 && < 1.15
 
     other-modules:
         CmdLine.All
