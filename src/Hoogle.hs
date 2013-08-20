@@ -21,7 +21,6 @@ module Hoogle(
 import Hoogle.Store.All
 import General.Base
 import General.System
-import Debug.Trace
 
 import Hoogle.Type.TagStr
 import qualified Hoogle.DataBase.All as H
