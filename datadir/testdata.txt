@@ -44,6 +44,8 @@ class Eq2 a b => Ord2 a b | a -> b
 @entry package pkg2
 
 module Foo.Bar
+
+-- | Documentation for <i>foo_bar</i>
 foo_bar :: Unit
 fst :: (Unit,Unit) -> Unit
 fst2 :: (Unit,Unit) -> Unit
