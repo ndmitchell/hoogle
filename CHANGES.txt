@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.19
     Fix version bounds
 4.2.18
     Allow bytestring-0.9
