@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.17
     Upgrade to haskell-src-exts-1.14
     Visual redesign
     Require bytestring-0.10 or above, due to NFData instances
