@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow bytestring-0.9
 4.2.17
     Upgrade to haskell-src-exts-1.14
     Visual redesign

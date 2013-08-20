@@ -69,7 +69,7 @@ data SubstrSearch a = SubstrSearch
     deriving Typeable
 
 instance NFData a => NFData (SubstrSearch a) where
-    rnf (SubstrSearch a b c) = rnf (a,b,c)
+    rnf (SubstrSearch a b c) = rnf (a `seq` (),b `seq` (),c)
 
 -- | Create a substring search index. Values are returned in order where possible.
 createSubstrSearch :: [(String,a)] -> SubstrSearch a

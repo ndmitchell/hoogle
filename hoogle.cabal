@@ -40,7 +40,7 @@ library
         array, containers, directory, filepath, process, random,
         safe,
         binary,
-        bytestring >= 0.10,
+        bytestring >= 0.9,
         conduit >= 0.2,
         parsec >= 2.1,
         deepseq >= 1.1,
