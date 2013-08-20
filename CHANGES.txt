@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Upgrade to haskell-src-exts-1.14
     Require bytestring-0.10 or above, due to NFData instances
     Add NFData instance to Database
 4.2.16

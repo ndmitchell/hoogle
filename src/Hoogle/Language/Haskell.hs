@@ -62,8 +62,9 @@ parseCtor x = case parseDeclWithMode defaultParseMode{extensions=exts} $ "data D
         ParseOk y -> transDecl x $ fmap (subtractCols 16) y
         _ -> Nothing
 
-exts = [EmptyDataDecls,TypeOperators,ExplicitForAll,GADTs,KindSignatures,MultiParamTypeClasses
-       ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples]
+exts = map EnableExtension
+    [EmptyDataDecls,TypeOperators,ExplicitForAll,GADTs,KindSignatures,MultiParamTypeClasses
+    ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples]
 
 
 subtractCols :: Int -> SrcSpanInfo -> SrcSpanInfo
