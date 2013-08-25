@@ -137,6 +137,9 @@ executable hoogle
         Cabal >= 1.8,
         haskell-src-exts >= 1.14 && < 1.15
 
+    if !os(mingw32)
+        build-depends: unix
+
     other-modules:
         CmdLine.All
         CmdLine.Load
