@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Ensure alias resolution is bottom-up and recursive
 4.2.20
     #619, do not depend on unix on Windows
 4.2.19

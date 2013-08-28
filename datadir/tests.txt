@@ -119,3 +119,9 @@ ba.foo.bar_foo +testdata
 
 ar.foo bar_foo +testdata
 @now No results
+
+"Alias1 (Alias1 a) -> a" +testdata
+aliases
+
+"Alias2 (Alias2 a) -> a" +testdata
+aliases

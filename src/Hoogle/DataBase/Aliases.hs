@@ -95,7 +95,10 @@ followAlias _ _ = Nothing
 normAliases :: Aliases -> Type -> ([String], Type)
 normAliases as t = first (sort . nub) $ f t
     where
-        f t = case followAlias as t of
-                  Just (s,t) -> ([s],t)
-                  Nothing -> (concat *** gen) $ unzip $ map f cs
-            where (cs, gen) = uniplate t
+        f t = case followAlias as t2 of
+                   Nothing -> (concat ss, t2)
+                   Just (s,t2) -> (s : concat ss, t2)
+            where
+                (cs, gen) = uniplate t
+                (ss, css) = unzip $ map f cs
+                t2 = gen css

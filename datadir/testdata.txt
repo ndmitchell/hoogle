@@ -53,3 +53,6 @@ fst2 :: (Unit,Unit) -> Unit
 module Bar.Foo
 bar_foo :: Unit
 fst :: (Bar,Bar) -> Bar
+
+type Alias1 a = Alias2 a
+aliases :: Alias1 (Alias1 a) -> a
