@@ -9,7 +9,7 @@ import Control.DeepSeq as X
 import Control.Monad as X
 import Data.Char as X
 import Data.Data as X (Data,Typeable)
-import Data.Either as X
+import Data.Either as X (partitionEithers)
 import Data.Function as X
 import Data.List as X
 import Data.Maybe as X
