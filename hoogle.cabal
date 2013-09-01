@@ -33,10 +33,6 @@ source-repository head
     type:     git
     location: https://github.com/ndmitchell/hoogle.git
 
-source-repository head
-    type:     darcs
-    location: http://code.haskell.org/hoogle/
-
 library
     hs-source-dirs: src
     default-language: Haskell98
