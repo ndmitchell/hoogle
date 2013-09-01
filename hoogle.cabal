@@ -17,6 +17,7 @@ homepage:           http://www.haskell.org/hoogle/
 bug-reports:        https://github.com/ndmitchell/hoogle/issues
 stability:          Beta
 extra-source-files: README.txt
+                    datadir/*.txt
 
 data-dir: datadir
 data-files:
