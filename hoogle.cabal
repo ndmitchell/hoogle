@@ -14,8 +14,10 @@ description:
     search many standard Haskell libraries by either function name,
     or by approximate type signature.
 homepage:           http://www.haskell.org/hoogle/
+bug-reports:        https://github.com/ndmitchell/hoogle/issues
 stability:          Beta
 extra-source-files: README.txt
+                    datadir/*.txt
 
 data-dir: datadir
 data-files:
@@ -26,6 +28,10 @@ data-files:
     resources/*.png
     resources/*.html
     resources/search.xml
+
+source-repository head
+    type:     git
+    location: https://github.com/ndmitchell/hoogle.git
 
 source-repository head
     type:     darcs
