@@ -74,7 +74,7 @@ extractTarball out = do
             hasTar  <- check "tar"
             when (any isNothing [hasGzip, hasTar]) $ error "Could not extract tarball(s), could not find either gzip or tar on the $PATH."
             putStrLn "Extracting tarball... "
-            system_ $ "gzip --decompress --force .." </> takeFileName out <.> "tar.gz"
+            system_ $ "gzip --decompress --stdout --force .." </> takeFileName out <.> "tar.gz > .." </> takeFileName out <.> "tar"
             system_ $ "tar -xf .." </> takeFileName out <.> "tar"
             putStrLn "Finished extracting tarball"
         writeFile (out <.> "txt") ""
