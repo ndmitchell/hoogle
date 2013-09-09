@@ -8,8 +8,7 @@ import Recipe.General
 
 
 makeKeyword :: IO ()
-makeKeyword = do
-    convertSrc noDeps "keyword" . translate =<< readFileUtf8' keywords
+makeKeyword = convertSrc noDeps [] "keyword" . translate =<< readFileUtf8' keywords
 
 
 translate :: String -> String

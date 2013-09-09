@@ -35,7 +35,7 @@ import Safe
 cmdLineExpand :: CmdLine -> IO CmdLine
 cmdLineExpand x@Search{} = do
     db <- expandDatabases $ databases x
-    return $ x { queryText = s
+    return x { queryText = s
                , queryParsed =
                    (\q -> q { exactSearch =
                                    if exact x
@@ -51,7 +51,7 @@ cmdLineExpand x@Server{} = do
     dat <- getDataDir
     db <- expandDatabases $ databases x
     let res = if null $ resources x then dat </> "resources" else resources x
-    return $ x{databases=db, resources=res}
+    return x{databases=db, resources=res}
 
 cmdLineExpand x@Test{} = do
     dat <- getDataDir
@@ -68,6 +68,10 @@ cmdLineExpand x@Data{} = do
     let thrd = if threads x == 0 then numCapabilities else threads x
     loc <- if all null (local x) && not (null $ local x) then guessLocal else return $ local x
     return x{datadir=dir, threads=thrd, local=loc}
+
+cmdLineExpand x@Convert{} =
+  return x{haddock = haddock x || isJust (doc x),
+    outfile = if null (outfile x) then replaceExtension (srcfile x) "hoo" else outfile x}
 
 cmdLineExpand x = return x
 

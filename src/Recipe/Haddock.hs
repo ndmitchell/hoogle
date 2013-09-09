@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 
 module Recipe.Haddock(
-    haddockToHTML
+    haddockToHTML, haddockHacks
     ) where
 
 import General.Base
@@ -106,3 +106,37 @@ isQName xs = case R.readPrec_to_S R.lexP 0 xs of
                   [(R.Ident ys, "")]                     -> True
                   [(R.Symbol ys, "")]                    -> True
                   _                                      -> False
+
+
+---------------------------------------------------------------------
+-- HADDOCK HACKS
+
+-- Eliminate @version
+-- Change :*: to (:*:), Haddock bug
+-- Change !!Int to !Int, Haddock bug
+-- Change instance [overlap ok] to instance, Haddock bug
+-- Change instance [incoherent] to instance, Haddock bug
+-- Change !Int to Int, HSE bug
+-- Drop everything after where, Haddock bug
+
+haddockHacks :: Maybe URL -> [String] -> [String]
+haddockHacks loc src = maybe id haddockPackageUrl loc (translate src)
+    where
+        translate :: [String] -> [String]
+        translate = map (unwords . g . map f . words) . filter (not . isPrefixOf "@version ")
+
+        f "::" = "::"
+        f (':':xs) = "(:" ++ xs ++ ")"
+        f ('!':'!':x:xs) | isAlpha x = xs
+        f ('!':x:xs) | isAlpha x || x `elem` "[(" = x:xs
+        f x | x `elem` ["[overlap","ok]","[incoherent]"] = ""
+        f x = x
+
+        g ("where":xs) = []
+        g (x:xs) = x : g xs
+        g [] = []
+
+haddockPackageUrl :: URL -> [String] -> [String]
+haddockPackageUrl x = concatMap f
+    where f y | "@package " `isPrefixOf` y = ["@url " ++ x, y]
+              | otherwise = [y]
