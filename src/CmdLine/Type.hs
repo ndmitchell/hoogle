@@ -109,7 +109,7 @@ data_ = Data
       &= details ["Each argument should be the name of a database you want to generate"
                  ,"optionally followed by which files to combine. Common options:"
                  ,""
-                 ,"  data default -- equialent to no arguments"
+                 ,"  data default -- equivalent to no arguments"
                  ,"  data all"
                  ]
 
