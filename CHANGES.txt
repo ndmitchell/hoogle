@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.22
     Download Hoogle data from the old Hackage server
 4.2.21
     #25, make the tarball pass the tests
