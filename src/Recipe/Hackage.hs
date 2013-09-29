@@ -4,6 +4,7 @@ module Recipe.Hackage(makePlatform, makeDefault, makePackage, makeAll) where
 import Recipe.Type
 import Recipe.Cabal
 import Recipe.General
+import Recipe.Haddock
 import General.Base
 import General.System
 import General.Util
@@ -43,7 +44,7 @@ makePackage = do
             Just src ->
                 [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
                 ["--","-- Version " ++ ver, "@url package/" ++ name, "@entry package " ++ name]
-    convertSrc noDeps "package" $ unlines $
+    convertSrc noDeps [] "package" $ unlines $
         "@url http://hackage.haskell.org/" : "@package package" : concat xs
 
 
@@ -54,8 +55,10 @@ makeDefault make local "ghc" = do
         Left e -> putWarning $ "Warning: Exception when reading haddock for ghc, " ++ show (e :: SomeException)
         Right had -> do
 	    loc <- findLocal local "ghc"
-            convertSrc make "ghc" $ unlines $ "@depends base" :  (f loc) (haddockHacks $ lines had)
-    where f loc = haddockPackageUrl $ maybe "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/" id loc
+            convertSrc make ["base"] "ghc" $ unlines $ "@depends base" : haddockHacks (url loc) (lines had)
+            where url loc = if isNothing loc
+                              then Just "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/"
+                              else loc
 
 makeDefault make local name = do
     let base = name == "base"
@@ -74,10 +77,10 @@ makeDefault make local name = do
             Left e -> putWarning $ "Warning: Exception when reading haddock for " ++ name ++ ", " ++ show (e :: SomeException)
             Right had -> do
                 deps <- fmap (maybe [] cabalDepends) $ readCabal cab
+                let cleanDeps = deps \\ (name:avoid)
                 loc <- findLocal local name
-                convertSrc make name $ unlines $
-                    ["@depends " ++ a | a <- deps \\ (name:avoid)] ++
-                    (maybe id haddockPackageUrl loc) (haddockHacks $ lines had)
+                convertSrc make cleanDeps name $ unlines $
+                    ["@depends " ++ a | a <- cleanDeps] ++ haddockHacks loc (lines had)
 
 
 -- try and find a local filepath
@@ -107,34 +110,3 @@ listPlatform = do
     where
         avoid x = ("haskell" `isPrefixOf` x && all isDigit (drop 7 x)) ||
                   (x `elem` words "Cabal hpc Win32")
-
-
----------------------------------------------------------------------
--- HADDOCK HACKS
-
--- Eliminate @version
--- Change :*: to (:*:), Haddock bug
--- Change !!Int to !Int, Haddock bug
--- Change instance [overlap ok] to instance, Haddock bug
--- Change instance [incoherent] to instance, Haddock bug
--- Change !Int to Int, HSE bug
--- Drop everything after where, Haddock bug
-
-haddockHacks :: [String] -> [String]
-haddockHacks = map (unwords . g . map f . words) . filter (not . isPrefixOf "@version ")
-    where
-        f "::" = "::"
-        f (':':xs) = "(:" ++ xs ++ ")"
-        f ('!':'!':x:xs) | isAlpha x = xs
-        f ('!':x:xs) | isAlpha x || x `elem` "[(" = x:xs
-        f x | x `elem` ["[overlap","ok]","[incoherent]"] = ""
-        f x = x
-
-        g ("where":xs) = []
-        g (x:xs) = x : g xs
-        g [] = []
-
-haddockPackageUrl :: URL -> [String] -> [String]
-haddockPackageUrl x = concatMap f
-    where f y | "@package " `isPrefixOf` y = ["@url " ++ x, y]
-              | otherwise = [y]
