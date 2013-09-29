@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Improvements to Haddock conversion
 4.2.22
     Download Hoogle data from the old Hackage server
 4.2.21
