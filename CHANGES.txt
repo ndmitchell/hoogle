@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Download Hoogle data from the old Hackage server
 4.2.21
     #25, make the tarball pass the tests
     #26, GHC 7.8 compatibility
