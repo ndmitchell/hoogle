@@ -47,8 +47,8 @@ download opt = do
                 , (inputs <.> "txt", inputs <.> "tar.gz", "http://old.hackage.haskell.org/packages/archive/00-hoogle.tar.gz")
                 ]
     withDownloader opt downloader items
-    extractTarball cabals
-    extractTarball inputs
+    doesFileExist (cabals <.> "tar.gz") >>= \b -> when b $ extractTarball cabals
+    doesFileExist (inputs <.> "tar.gz") >>= \b -> when b $ extractTarball inputs
 
 
 check :: String -> IO (Maybe FilePath)
