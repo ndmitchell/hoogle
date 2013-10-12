@@ -35,7 +35,7 @@ data CmdLine
     | Data {redownload :: Bool, local :: [String], datadir :: FilePath, threads :: Int, actions :: [String]}
     | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, dynamic :: Bool, template :: [FilePath]}
     | Combine {srcfiles :: [FilePath], outfile :: String}
-    | Convert {srcfile :: String, outfile :: String}
+    | Convert {srcfile :: String, outfile :: String, doc :: Maybe String, merge :: [String], haddock :: Bool}
     | Log {logfiles :: [FilePath]}
     | Test {testFiles :: [String], example :: Bool}
     | Dump {database :: String, section :: [String]}
@@ -94,6 +94,9 @@ combine = Combine
 convert = Convert
     {srcfile = def &= argPos 0 &= typ "INPUT"
     ,outfile = def &= argPos 1 &= typ "DATABASE" &= opt ""
+    ,doc = def &= typDir &= help "Path to the root of local or Hackage documentation for the package (implies --haddock)"
+    ,merge = def &= typ "DATABASE" &= help "Merge other databases"
+    ,haddock = def &= help "Apply haddock-specific hacks"
     } &= help "Convert an input file to a database"
 
 data_ = Data
@@ -106,7 +109,7 @@ data_ = Data
       &= details ["Each argument should be the name of a database you want to generate"
                  ,"optionally followed by which files to combine. Common options:"
                  ,""
-                 ,"  data default -- equialent to no arguments"
+                 ,"  data default -- equivalent to no arguments"
                  ,"  data all"
                  ]
 

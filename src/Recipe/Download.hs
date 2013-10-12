@@ -44,11 +44,11 @@ download opt = do
                 , ("download/base.txt", "download/base.txt", "http://www.haskell.org/hoogle/base.txt")
                 , ("download/ghc.txt",  "download/ghc.txt", "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt")
                 , (cabals <.> "txt", cabals <.> "tar.gz", "http://hackage.haskell.org/packages/archive/00-index.tar.gz")
-                , (inputs <.> "txt", inputs <.> "tar.gz", "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz")
+                , (inputs <.> "txt", inputs <.> "tar.gz", "http://old.hackage.haskell.org/packages/archive/00-hoogle.tar.gz")
                 ]
     withDownloader opt downloader items
-    extractTarball cabals
-    extractTarball inputs
+    doesFileExist (cabals <.> "tar.gz") >>= \b -> when b $ extractTarball cabals
+    doesFileExist (inputs <.> "tar.gz") >>= \b -> when b $ extractTarball inputs
 
 
 check :: String -> IO (Maybe FilePath)
@@ -74,7 +74,7 @@ extractTarball out = do
             hasTar  <- check "tar"
             when (any isNothing [hasGzip, hasTar]) $ error "Could not extract tarball(s), could not find either gzip or tar on the $PATH."
             putStrLn "Extracting tarball... "
-            system_ $ "gzip --decompress --force .." </> takeFileName out <.> "tar.gz"
+            system_ $ "gzip --decompress --stdout --force .." </> takeFileName out <.> "tar.gz > .." </> takeFileName out <.> "tar"
             system_ $ "tar -xf .." </> takeFileName out <.> "tar"
             putStrLn "Finished extracting tarball"
         writeFile (out <.> "txt") ""

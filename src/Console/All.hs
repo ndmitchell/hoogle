@@ -3,12 +3,15 @@ module Console.All(action) where
 
 import CmdLine.All
 import Recipe.All
+import Recipe.General
+import Recipe.Haddock
 import Console.Log
 import Console.Search
 import Console.Test
 import Console.Rank
 import General.Base
 import General.System
+import General.Web
 import Hoogle
 
 
@@ -26,9 +29,10 @@ action x@Search{queryParsed = Left err} =
 action (Test files _) = do
     testPrepare
     fails <- fmap sum $ mapM (testFile action) files
-    if fails == 0
-        then putStrLn "Tests passed"
-        else putStrLn $ "TEST FAILURES (" ++ show fails ++ ")"
+    putStrLn $
+      if fails == 0
+        then "Tests passed"
+        else "TEST FAILURES (" ++ show fails ++ ")"
 
 action (Rank file) = rank file
 
@@ -36,15 +40,25 @@ action x@Data{} = recipes x
 
 action (Log files) = logFiles files
 
-action (Convert from to) = do
-    to <- return $ if null to then replaceExtension from "hoo" else to
+action (Convert from to doc merge haddock) = do
     when (any isUpper $ takeBaseName to) $ putStrLn $ "Warning: Hoogle databases should be all lower case, " ++ takeBaseName to
     putStrLn $ "Converting " ++ from
     src <- readFileUtf8 from
-    let (err,db) = createDatabase Haskell [] src
-    unless (null err) $ putStr $ unlines $ "Warning: parse errors" : map show err
-    saveDatabase to db
-    putStrLn $ "Written " ++ to
+    convert merge (takeBaseName from) to $ unlines $ addLocalDoc doc (lines src)
+    where
+      addLocalDoc :: Maybe FilePath -> [String] -> [String]
+      addLocalDoc doc = if haddock
+                          then haddockHacks $ addDoc doc
+                          else id
+
+      addDoc :: Maybe FilePath -> Maybe URL
+      addDoc = addGhcDoc . fmap (\x -> if "http://" `isPrefixOf` x then x else filePathToURL $ x </> "index.html")
+
+      addGhcDoc :: Maybe URL -> Maybe URL
+      addGhcDoc x = if isNothing x && takeBaseName from == "ghc"
+                      then Just "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/"
+                      else x
+
 
 action (Combine from to) = do
     putStrLn $ "Combining " ++ show (length from) ++ " databases"

@@ -11,40 +11,26 @@ txt x = map toLower x <.> "txt"
 hoo x = map toLower x <.> "hoo"
 
 
-convertSrc :: ([Name] -> IO ()) -> Name -> String -> IO ()
-convertSrc make x src = do
+convertSrc :: ([Name] -> IO ()) -> [Name] -> Name -> String -> IO ()
+convertSrc make deps x src = do
     writeFileUtf8 (txt x) src
-    convert make x
+    make deps
+    convert (map hoo deps) x (hoo x) src
 
 
--- convert a single database
-convert :: ([Name] -> IO ()) -> Name -> IO ()
-convert make x = do
-    b <- doesFileExist $ txt x
-    if not b then
-        putWarning $ "Warning: " ++ x ++ " couldn't be converted, no input file found"
-     else do
-        (deps,src) <- readInput x
-        make deps
-        let deps2 = map hoo deps
-        deps3 <- filterM doesFileExist deps2
-        when (deps2 /= deps3) $ putWarning $ "Warning: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps2 \\ deps3)
-        dbs <- mapM loadDatabase deps3
-        let (err,db) = createDatabase Haskell dbs src
-        unless (null err) $ outStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x
-        whenLoud $ outStr $ unlines $ map show err
-        outStr $ "Converting " ++ x ++ "... "
-        performGC
-        saveDatabase (hoo x) db
-        outStrLn "done"
-
-
-readInput :: Name -> IO ([Name], String)
-readInput x = do
-    src <- readFileUtf8 $ txt x
-    let (a,b) = span ("@depends " `isPrefixOf`) $ lines src
-    return (map (drop 9) a, unlines b)
-
+---- convert a single database
+convert :: [FilePath] -> Name -> FilePath -> String -> IO ()
+convert deps x out src = do
+    deps2 <- filterM doesFileExist deps
+    when (deps /= deps2) $ putWarning $ "Warning: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps \\ deps2)
+    dbs <- mapM loadDatabase deps2
+    let (err,db) = createDatabase Haskell dbs src
+    unless (null err) $ outStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x
+    whenLoud $ outStr $ unlines $ map show err
+    outStr $ "Converting " ++ x ++ "... "
+    performGC
+    saveDatabase out db
+    outStrLn "done"
 
 
 -- combine multiple databases
