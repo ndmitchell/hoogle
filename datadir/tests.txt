@@ -125,3 +125,12 @@ aliases
 
 "Alias2 (Alias2 a) -> a" +testdata
 aliases
+
+snd +testdata
+snd :: (a, b) -> b
+
+fst +testdata
+fst
+fst
+fst
+fst
