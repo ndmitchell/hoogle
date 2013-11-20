@@ -172,17 +172,9 @@ executable hoogle
         Web.Template
 
 test-suite hoogle-test
-    main-is: HoogleSpec.hs
-    hs-source-dirs: test
+    main-is: Test.hs
+    hs-source-dirs: src
     default-language: Haskell98
 
     type: exitcode-stdio-1.0
-    build-depends:
-        base >=3,
-        hoogle,
-        conduit >= 0.2,
-        system-fileio >= 0.3.11,
-        transformers >= 0.2,
-        HUnit >= 1.2.5,
-        hspec >= 1.4.4,
-        hspec-expectations >= 0.3
+    build-depends: base >= 3
