@@ -1,3 +1,5 @@
+# Hoogle [![Build Status](https://travis-ci.org/ndmitchell/hoogle.png)](https://travis-ci.org/ndmitchell/hoogle)
+
 Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries by either function name, or by approximate type signature. To experiment, visit the online version at http://haskell.org/hoogle.
 
 * **Online version:** http://haskell.org/hoogle
