@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 
-module Data.TypeMap(
+module General.TypeMap(
     TypeMap, empty,
     lookup, insert, find
     ) where
@@ -25,7 +25,7 @@ lookup (TypeMap mp) = res
 find :: Typeable a => TypeMap -> a
 find mp = res
     where res = fromMaybe (error msg) $ lookup mp
-          msg = "Data.TypeMap.find, couldn't find " ++ show (typeOf res)
+          msg = "General.TypeMap.find, couldn't find " ++ show (typeOf res)
 
 
 insert :: Typeable a => a -> TypeMap -> TypeMap

@@ -72,8 +72,8 @@ library
         Hoogle.Language.Haskell
 
     other-modules:
-        Data.Heap
-        Data.TypeMap
+        General.Heap
+        General.TypeMap
         General.Base
         General.System
         General.Util

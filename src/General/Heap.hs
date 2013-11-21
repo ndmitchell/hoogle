@@ -1,5 +1,5 @@
 
-module Data.Heap(
+module General.Heap(
     Heap, empty,
     fromList, toList, elems,
     singleton,
