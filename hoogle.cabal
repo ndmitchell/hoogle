@@ -177,4 +177,6 @@ test-suite hoogle-test
     default-language: Haskell98
 
     type: exitcode-stdio-1.0
-    build-depends: base >= 3
+    build-depends:
+        base >= 3,
+        process >= 1
