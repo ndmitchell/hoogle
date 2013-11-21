@@ -22,6 +22,7 @@ testPrepare = do
     putStrLn "Converting testdata"
     performGC -- clean up the databases
     dat <- getDataDir
+    createDirectoryIfMissing True $ dat </> "databases"
     src <- readFileUtf8 $ dat </> "testdata.txt"
     let (errs, dbOld) = createDatabase Haskell [] src
     unless (null errs) $ error $ unlines $ "Couldn't convert testdata database:" : map show errs
