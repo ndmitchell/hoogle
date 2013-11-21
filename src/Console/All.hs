@@ -29,10 +29,9 @@ action x@Search{queryParsed = Left err} =
 action (Test files _) = do
     testPrepare
     fails <- fmap sum $ mapM (testFile action) files
-    putStrLn $
-      if fails == 0
-        then "Tests passed"
-        else "TEST FAILURES (" ++ show fails ++ ")"
+    if fails == 0 then putStrLn "Tests passed" else do
+        putStrLn $ "TEST FAILURES (" ++ show fails ++ ")"
+        exitFailure
 
 action (Rank file) = rank file
 
