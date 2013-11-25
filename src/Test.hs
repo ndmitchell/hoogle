@@ -14,5 +14,10 @@ main = do
                 ,"./hoogle.exe","./hoogle"
                 ,"../hoogle/hoogle.exe","../hoogle/hoogle"]
     found <- filterM doesFileExist files
-    res <- system $ normalise (head (found ++ ["hoogle"])) ++ " test"
-    exitWith res
+    let hoogle args = do
+            let cmd = normalise (head (found ++ ["hoogle"])) ++ " " ++ args
+            res <- system cmd
+            when (res /= ExitSuccess) $ error $ "Command: " ++ cmd ++ "\nFailed with: " ++ show res
+
+    hoogle "data"
+    hoogle "test --example"
