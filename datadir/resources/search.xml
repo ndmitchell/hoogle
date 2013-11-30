@@ -11,8 +11,8 @@
     <Url type="text/html" template="http://haskell.org/hoogle/?hoogle={searchTerms}"/>
     <Url type="application/x-suggestions+json" template="http://haskell.org/hoogle/?hoogle={searchTerms}&amp;mode=suggest"/>
 
-    <Image height="16" width="16" type="image/png">http://haskell.org/hoogle/datadir/resources/favicon.png</Image>
-    <Image height="64" width="64" type="image/png">http://haskell.org/hoogle/datadir/resources/favicon64.png</Image>
+    <Image height="16" width="16" type="image/png">http://haskell.org/hoogle/res/favicon.png</Image>
+    <Image height="64" width="64" type="image/png">http://haskell.org/hoogle/res/favicon64.png</Image>
     <Developer>Neil Mitchell</Developer>
     <AdultContent>false</AdultContent>
     <Language>en-us</Language>
