@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE RecordWildCards, ScopedTypeVariables, PatternGuards, CPP #-}
 
 module Web.Server(server) where
 
@@ -16,6 +16,9 @@ import Control.Exception
 import Data.Time.Clock
 
 import Network.Wai
+#if MIN_VERSION_wai(2, 0, 0)
+import Network.Wai.Internal
+#endif
 import Network.Wai.Handler.Warp
 
 
@@ -34,9 +37,15 @@ server q@Server{..} = do
         return res
 
 
+#if MIN_VERSION_wai(2, 0, 0)
+exception :: Maybe Request -> SomeException -> IO ()
+exception _ e | Just (_ :: InvalidRequest) <- fromException e = return ()
+              | otherwise = putStrLn $ "Error: " ++ show e
+#else
 exception :: SomeException -> IO ()
 exception e | Just (_ :: InvalidRequest) <- fromException e = return ()
             | otherwise = putStrLn $ "Error: " ++ show e
+#endif
 
 
 respArgs :: CmdLine -> IO (IO ResponseArgs)
