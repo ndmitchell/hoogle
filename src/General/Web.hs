@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
 
 {- |
@@ -15,6 +16,9 @@ module General.Web(
 import General.System
 import General.Base
 import Network.Wai
+#if MIN_VERSION_wai(2, 0, 0)
+import Network.Wai.Internal
+#endif
 import Network.HTTP.Types
 import Data.CaseInsensitive(original)
 import qualified Data.ByteString.Lazy.Char8 as LBS
@@ -34,10 +38,17 @@ responseNotFound x = responseLBS status404 [] $ fromString $ "File not found: " 
 
 responseFlatten :: Response -> IO (Status, ResponseHeaders, LBString)
 responseFlatten r = do
+#if MIN_VERSION_wai(2, 0, 0)
+    let (s,hs,withSrc) = responseToSource r
+    chunks <- withSrc $ \src -> src $$ consume
+    let res = toLazyByteString $ mconcat [x | Chunk x <- chunks]
+    return (s,hs,res)
+#else
     let (s,hs,rest) = responseSource r
     chunks <- runResourceT $ rest $$ consume
     let res = toLazyByteString $ mconcat [x | Chunk x <- chunks]
     return (s,hs,res)
+#endif
 
 
 responseEvaluate :: Response -> IO ()
