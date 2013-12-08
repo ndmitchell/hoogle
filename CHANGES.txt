@@ -1,5 +1,7 @@
 Changelog for Hoogle
 
+    Allow WAI 2.0
+    Fix the Keyword generator
 4.2.23
     Improvements to Haddock conversion
 4.2.22
