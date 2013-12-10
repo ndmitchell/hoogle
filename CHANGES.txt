@@ -1,5 +1,7 @@
 Changelog for Hoogle
 
+4.2.26
+    Fix omission of the Test file
 4.2.25
     Fix timestamps in .tar.gz dist file
 4.2.24
