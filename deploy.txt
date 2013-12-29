@@ -1,10 +1,13 @@
 This document lists the steps I go through to deploy/update Hoogle on the server.
 The intention is to turn this list into a script in the future.
 
-* Shell into lambda.haskell.org
-  * If necessary, run cabal install --prefix=/home/ndm/cabal <package>, to upgrade packages
-* Run deploy.bat
-  * Use --quick if it fails remotely
+* Shell into new-www.haskell.org
+* cd hoogle
+* git pull
+* cabal install --datadir=/home/web/haskell.org/hoogle/ --datasubdir=datadir -O2 --prefix=/home/neil
+* nice dist/build/hoogle/hoogle data default all ghc --redownload --datadir=/home/web/haskell.org/hoogle/datadir2/databases || true
+* cp -R datadir/resources /home/web/haskell.org/hoogle/res2
+* cp dist/build/hoogle/hoogle /home/web/haskell.org/hoogle/index2.cgi
 
 
 ---------------------------------------------------------------------
