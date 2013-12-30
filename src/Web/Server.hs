@@ -2,6 +2,10 @@
 
 module Web.Server(server) where
 
+#ifndef MIN_VERSION_wai
+#define MIN_VERSION_wai(a,b,c) 0
+#endif
+
 import General.Base
 import General.Web
 import System.FilePath

@@ -13,6 +13,10 @@ module General.Web(
     Args, cgiArgs, cgiResponse, parseHttpQueryArgs
     ) where
 
+#ifndef MIN_VERSION_wai
+#define MIN_VERSION_wai(a,b,c) 0
+#endif
+
 import General.System
 import General.Base
 import System.FilePath
