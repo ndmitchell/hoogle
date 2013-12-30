@@ -5,6 +5,7 @@ import Hoogle
 import General.Base
 import General.Util
 import General.System
+import System.FilePath
 
 
 -- | Given a list of search directories, and a query, load the databases you

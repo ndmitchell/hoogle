@@ -5,6 +5,7 @@ import Recipe.Type
 import Hoogle
 import General.Base
 import General.System
+import System.FilePath hiding (combine)
 import System.Console.CmdArgs.Verbosity
 
 txt x = map toLower x <.> "txt"

@@ -9,6 +9,7 @@ module Recipe.Type(
 import CmdLine.All
 import Control.Concurrent
 import System.IO.Unsafe
+import System.FilePath
 import General.Base
 import General.System
 

@@ -4,6 +4,7 @@ module Recipe.Download(download) where
 import General.Base
 import General.System
 import Recipe.Type
+import System.FilePath
 
 type Downloader = FilePath -> URL -> String
 

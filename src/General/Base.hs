@@ -20,7 +20,6 @@ import Data.Int as X
 import Data.Word as X
 import Debug.Trace as X (trace)
 import Numeric as X (readHex,showHex)
-import System.FilePath as X hiding (combine)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 

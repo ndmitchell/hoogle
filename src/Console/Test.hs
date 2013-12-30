@@ -7,6 +7,7 @@ module Console.Test(testPrepare, testFile) where
 import Hoogle
 import General.Base
 import General.System
+import System.FilePath
 import Paths_hoogle
 import CmdLine.All
 import Test.All

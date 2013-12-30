@@ -15,6 +15,7 @@ module General.Web(
 
 import General.System
 import General.Base
+import System.FilePath
 import Network.Wai
 #if MIN_VERSION_wai(2, 0, 0)
 import Network.Wai.Internal

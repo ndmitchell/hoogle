@@ -4,6 +4,7 @@ module Web.Server(server) where
 
 import General.Base
 import General.Web
+import System.FilePath
 import CmdLine.All
 import Web.Response
 import Network.HTTP.Types

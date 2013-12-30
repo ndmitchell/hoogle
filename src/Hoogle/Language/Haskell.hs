@@ -4,6 +4,7 @@ module Hoogle.Language.Haskell(parseInputHaskell) where
 
 import General.Base
 import General.Util
+import System.FilePath
 import Hoogle.Type.All
 import Language.Haskell.Exts.Annotated hiding (TypeSig,Type)
 import qualified Language.Haskell.Exts.Annotated as HSE

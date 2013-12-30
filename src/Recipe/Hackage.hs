@@ -10,6 +10,7 @@ import General.System
 import General.Util
 import General.Web
 import Control.Exception
+import System.FilePath hiding (combine)
 
 
 -- FIXME: This is a list of hack

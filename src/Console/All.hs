@@ -12,6 +12,7 @@ import Console.Rank
 import General.Base
 import General.System
 import General.Web
+import System.FilePath
 import Hoogle
 
 

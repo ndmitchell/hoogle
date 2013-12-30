@@ -18,6 +18,7 @@ module CmdLine.All(
 
 import General.Base
 import General.System
+import System.FilePath
 import CmdLine.Type
 import CmdLine.Load
 import General.Web
