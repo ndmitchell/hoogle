@@ -156,7 +156,6 @@ executable hoogle
         Recipe.All
         Recipe.Cabal
         Recipe.Download
-        Recipe.General
         Recipe.Hackage
         Recipe.Haddock
         Recipe.Keyword
