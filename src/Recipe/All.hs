@@ -10,7 +10,7 @@ import Development.Shake.FilePath
 import Recipe.Haddock
 
 import Recipe.Type
-import Recipe.Download
+import Recipe.Command
 import Recipe.Keyword
 import Recipe.Hackage
 import Recipe.Cabal

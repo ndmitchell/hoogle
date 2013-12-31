@@ -1,5 +1,5 @@
 
-module Recipe.Download(wget, ungzip, untar) where
+module Recipe.Command(wget, ungzip, untar) where
 
 import General.Base
 import General.System

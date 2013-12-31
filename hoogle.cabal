@@ -155,7 +155,7 @@ executable hoogle
         Paths_hoogle
         Recipe.All
         Recipe.Cabal
-        Recipe.Download
+        Recipe.Command
         Recipe.Hackage
         Recipe.Haddock
         Recipe.Keyword
