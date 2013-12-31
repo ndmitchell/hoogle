@@ -6,6 +6,7 @@ import System.Cmd
 import System.Directory
 import System.Exit
 import System.FilePath
+import System.Environment
 
 
 main :: IO ()
