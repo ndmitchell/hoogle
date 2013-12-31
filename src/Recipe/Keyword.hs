@@ -1,5 +1,5 @@
 
-module Recipe.Keyword(makeKeyword) where
+module Recipe.Keyword(makeKeyword, translateKeywords) where
 
 import General.Base
 import Text.HTML.TagSoup
@@ -8,11 +8,10 @@ import Recipe.General
 
 
 makeKeyword :: IO ()
-makeKeyword = convertSrc noDeps [] "keyword" . translate =<< readFileUtf8' keywords
+makeKeyword = convertSrc noDeps [] "keyword" . translateKeywords =<< readFileUtf8' keywords
 
-
-translate :: String -> String
-translate src = unlines $ keywordPrefix ++ items
+translateKeywords :: String -> String
+translateKeywords src = unlines $ keywordPrefix ++ items
     where items = concatMap keywordFormat $ partitions (~== "<span class='mw-headline' id>") $
                   takeWhile (~/= "<div class=printfooter>") $ parseTags src
 
