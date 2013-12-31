@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Add a dependency on Shake
 4.2.26
     Fix omission of the Test file
 4.2.25
