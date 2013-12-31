@@ -1,10 +1,34 @@
 
-module Recipe.Download(download) where
+module Recipe.Download(download, wget, ungzip, untar) where
 
 import General.Base
 import General.System
 import Recipe.Type
 import System.FilePath
+import Development.Shake(Action, command, CmdOption(..), liftIO)
+
+
+wget :: URL -> FilePath -> Action ()
+wget from to = do
+    dl <- liftIO findDownloader
+    command [Shell] (dl to from) []
+
+
+ungzip :: FilePath -> FilePath -> Action ()
+ungzip from to = do
+    hasGzip <- liftIO $ check "gzip"
+    when (isNothing hasGzip) $ error "Could not extract tarballs, could not find tar on the $PATH."
+    command [Shell] ("gzip --decompress --stdout --force " ++ from ++ " > " ++ to) []
+
+untar :: FilePath -> Action ()
+untar from = do
+    hasTar  <- liftIO $ check "tar"
+    when (isNothing hasTar) $ error "Could not extract tarballs, could not find tar on the $PATH."
+    liftIO $ createDirectoryIfMissing True $ dropExtension from
+    command [Shell, Cwd $ dropExtension from] ("tar -xf ../" ++ takeFileName from) []
+
+
+
 
 type Downloader = FilePath -> URL -> String
 
