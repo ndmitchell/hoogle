@@ -29,7 +29,7 @@ recipes opt@Data{..} = withModeGlobalRead $ do
         resetWarnings
         when redownload $ do
             forM_ urls $ \(file,_) -> removeFile_ $ "downloads" </> file
-        shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads} $ do
+        shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads, shakeProgress=progressSimple} $ do
             want $ map (<.> "hoo") $ if null actions then ["default"] else actions
             rules opt
         recapWarnings

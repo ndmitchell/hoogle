@@ -139,7 +139,7 @@ executable hoogle
         wai >= 1.1,
         warp >= 1.1,
         Cabal >= 1.8,
-        shake >= 0.10.6,
+        shake >= 0.10.7,
         haskell-src-exts >= 1.14 && < 1.15
 
     if !os(mingw32)
