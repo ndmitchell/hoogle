@@ -1,7 +1,6 @@
 
 module Recipe.Hackage(platformPackages, avoid, findLocal) where
 
-import Recipe.Type
 import General.Base
 import General.System
 import General.Util
@@ -14,7 +13,7 @@ avoid = words "ghc-prim integer integer-simple integer-gmp rts ghc Win32"
 
 
 -- try and find a local filepath
-findLocal :: [FilePath] -> Name -> IO (Maybe URL)
+findLocal :: [FilePath] -> String -> IO (Maybe URL)
 findLocal paths name = fmap (listToMaybe . concat . concat) $ forM paths $ \p -> do
     xs <- getDirectoryContents p
     xs <- return [p </> x | x <- reverse $ sort xs, name == fst (rbreak (== '-') x)] -- make sure highest version comes first

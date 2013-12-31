@@ -1,6 +1,6 @@
 
 module Recipe.Type(
-    CmdLine(..), Name,
+    CmdLine(..),
     listing, version,
     resetWarnings, putWarning, recapWarnings
     ) where
@@ -13,14 +13,12 @@ import General.Base
 import General.System
 
 
-type Name = String
-
-listing :: FilePath -> IO [Name]
+listing :: FilePath -> IO [String]
 listing dir = do
     xs <- getDirectoryContents dir
     return $ sortBy (comparing $ map toLower) $ filter (`notElem` [".","..","preferred-versions"]) xs
 
-version :: FilePath -> Name -> IO String
+version :: FilePath -> String -> IO String
 version dir x = do
     ys <- getDirectoryContents $ dir </> x
     when (null ys) $ error $ "Couldn't find version for " ++ x ++ " in " ++ dir
