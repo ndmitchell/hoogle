@@ -102,7 +102,7 @@ convert = Convert
 data_ = Data
     {datadir = def &= typDir &= help "Database directory"
     ,redownload = def &= help "Redownload all files from the web"
-    ,threads = def &= typ "INT" &= name "j" &= help "Number of threads to use" &= ignore -- ignore until it works
+    ,threads = 1 &= typ "INT" &= name "j" &= help "Number of threads to use"
     ,actions = def &= args &= typ "RULE"
     ,local = def &= opt "" &= typ "FILEPATH" &= help "Use local documentation if available"
     } &= help "Generate Hoogle databases"
