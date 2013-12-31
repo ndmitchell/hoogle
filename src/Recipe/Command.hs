@@ -38,7 +38,8 @@ curl fp url = "curl -sSL " ++ url ++ " --output " ++ fp
 
 findDownloader :: IO Downloader
 findDownloader = do
-    dl <- liftM2 mplus (check "wget") (check "curl")
+    dl <- check "wget"
+    dl <- maybe (check "curl") (return . Just) dl
     when (isNothing dl) $ error "Could not find downloader, neither curl nor wget are on the $PATH."
     return $ matchDl (fromJust dl)
     where matchDl d | "wget" `isInfixOf` d = wget2
