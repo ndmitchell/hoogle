@@ -33,6 +33,9 @@ isWindows = False
 #endif
 
 
+removeFile_ x = removeFile x `E.catch` \(_ :: E.SomeException) -> return ()
+
+
 withDirectory dir cmd = E.bracket
     (do x <- getCurrentDirectory; setCurrentDirectory dir; return x)
     setCurrentDirectory
