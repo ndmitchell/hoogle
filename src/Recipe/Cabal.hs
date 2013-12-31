@@ -13,7 +13,7 @@ import Distribution.Text
 import Distribution.Verbosity
 import Distribution.Version
 import Recipe.Haddock
-import Recipe.Type
+import Recipe.Warning
 import Control.Exception
 
 

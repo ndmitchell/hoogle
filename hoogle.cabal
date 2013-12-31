@@ -159,7 +159,7 @@ executable hoogle
         Recipe.Hackage
         Recipe.Haddock
         Recipe.Keyword
-        Recipe.Type
+        Recipe.Warning
         Test.All
         Test.Docs
         Test.General

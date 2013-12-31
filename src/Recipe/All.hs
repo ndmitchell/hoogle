@@ -9,7 +9,7 @@ import Development.Shake
 import Development.Shake.FilePath
 import Recipe.Haddock
 
-import Recipe.Type
+import Recipe.Warning
 import Recipe.Command
 import Recipe.Keyword
 import Recipe.Hackage

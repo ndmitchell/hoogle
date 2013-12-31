@@ -1,5 +1,5 @@
 
-module Recipe.Type(
+module Recipe.Warning(
     resetWarnings, putWarning, recapWarnings
     ) where
 
