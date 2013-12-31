@@ -1,9 +1,8 @@
 
-module Recipe.Download(download, wget, ungzip, untar) where
+module Recipe.Download(wget, ungzip, untar) where
 
 import General.Base
 import General.System
-import Recipe.Type
 import System.FilePath
 import Development.Shake(Action, command, CmdOption(..), liftIO)
 
@@ -45,36 +44,6 @@ findDownloader = do
     where matchDl d | "wget" `isInfixOf` d = wget2
                     | "curl" `isInfixOf` d = curl
 
-withDownloader :: CmdLine -> Downloader -> [(FilePath, FilePath, URL)] -> IO ()
-withDownloader opt downloader items =
-    let sys = fmap (== ExitSuccess) . system
-        download (f, f', u) = do
-            b <- doesFileExist f
-            when (not b || redownload opt) $ do
-                res <- sys (downloader f' u)
-                unless res $ do
-                    b <- doesFileExist f'
-                    when b $ removeFile f'
-                    error $ "Failed to download: " ++ u
-            doesFileExist f'
-    in forM_ items download
-
--- download everything required for the recipes
-download :: CmdLine -> IO ()
-download opt = do
-    createDirectoryIfMissing True "download"
-    downloader <- findDownloader
-    let items = [ (keywords, keywords, "http://www.haskell.org/haskellwiki/Keywords")
-                , (platform, platform, "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal")
-                , ("download/base.txt", "download/base.txt", "http://www.haskell.org/hoogle/base.txt")
-                , ("download/ghc.txt",  "download/ghc.txt", "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt")
-                , (cabals <.> "txt", cabals <.> "tar.gz", "http://hackage.haskell.org/packages/archive/00-index.tar.gz")
-                , (inputs <.> "txt", inputs <.> "tar.gz", "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz")
-                ]
-    withDownloader opt downloader items
-    doesFileExist (cabals <.> "tar.gz") >>= \b -> when b $ extractTarball cabals
-    doesFileExist (inputs <.> "tar.gz") >>= \b -> when b $ extractTarball inputs
-
 
 check :: String -> IO (Maybe FilePath)
 check name = do
@@ -90,16 +59,3 @@ check name = do
                   , ("curl", "http://curl.haxx.se/download.html")
                   ]
         url = fromJust . lookup name $ srcList
-
-extractTarball :: FilePath -> IO ()
-extractTarball out = do
-        createDirectoryIfMissing True out
-        withDirectory out $ do
-            hasGzip <- check "gzip"
-            hasTar  <- check "tar"
-            when (any isNothing [hasGzip, hasTar]) $ error "Could not extract tarball(s), could not find either gzip or tar on the $PATH."
-            putStrLn "Extracting tarball... "
-            system_ $ "gzip --decompress --stdout --force .." </> takeFileName out <.> "tar.gz > .." </> takeFileName out <.> "tar"
-            system_ $ "tar -xf .." </> takeFileName out <.> "tar"
-            putStrLn "Finished extracting tarball"
-        writeFile (out <.> "txt") ""
