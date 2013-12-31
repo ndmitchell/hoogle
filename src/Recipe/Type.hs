@@ -4,7 +4,6 @@ module Recipe.Type(
     resetWarnings, putWarning, recapWarnings
     ) where
 
-import CmdLine.All
 import Control.Concurrent
 import System.IO.Unsafe
 import System.FilePath
