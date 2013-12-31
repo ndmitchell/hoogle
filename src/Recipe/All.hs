@@ -146,8 +146,8 @@ urls = let (*) = (,) in
     ,"platform.cabal" * "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal"
     ,"base.txt" * "http://www.haskell.org/hoogle/base.txt"
     ,"ghc.txt" * "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt"
-    ,"cabal.tar.gz" * "http://hackage.haskell.org/packages/archive/00-index.tar.gz"
-    ,"hoogle.tar.gz" * "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz"]
+    ,"cabal.tar.gz" * "http://hackage.haskell.org/packages/index.tar.gz"
+    ,"hoogle.tar.gz" * "http://hackage.haskell.org/packages/hoogle.tar.gz"]
 
 
 listing :: FilePath -> IO [String]
