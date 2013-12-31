@@ -102,13 +102,13 @@ rules Data{..} = do
         return [x | x <- lines xs, takeWhile (not . isSpace) x `elem` ["type","data","newtype","class","instance","@depends"]]
     let listDeps = map (drop 9) . takeWhile ("@depends " `isPrefixOf`)
 
-    let genImported seen [] = return []
-        genImported seen (t:odo)
-            | t `elem` seen = genImported seen odo
+    let genImported pkgs seen [] = return []
+        genImported pkgs seen (t:odo)
+            | t `Set.member` seen || not (t `Set.member` pkgs) = genImported pkgs seen odo
             | otherwise = do
                 i <- imported $ t <.> "txt"
                 let deps = listDeps i
-                fmap (i++) $ genImported (t:seen) (deps++odo)
+                fmap (i++) $ genImported pkgs (Set.insert t seen) (deps++odo)
 
     (\x -> "*.hoo" ?== x && x /= "all.hoo") ?> \out -> do
         let src = out -<.> "txt"
@@ -122,7 +122,8 @@ rules Data{..} = do
             liftIO $ performGC
             liftIO $ saveDatabase out $ mconcat dbs
          else do
-            deps <- genImported [takeBaseName out] $ listDeps contents
+            pkgs <- packages
+            deps <- genImported pkgs (Set.singleton $ takeBaseName out) $ listDeps contents
             let (err,db) = createDatabase Haskell [snd $ createDatabase Haskell [] $ unlines deps] $ unlines contents
             unless (null err) $ putNormal $ "Skipped " ++ show (length err) ++ " warnings in " ++ out
             putLoud $ unlines $ map show err
