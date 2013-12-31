@@ -19,5 +19,9 @@ main = do
             res <- system cmd
             when (res /= ExitSuccess) $ error $ "Command: " ++ cmd ++ "\nFailed with: " ++ show res
 
-    hoogle "data"
-    hoogle "test --example"
+    args <- getArgs
+    if "--no-net" `elem` args then
+        hoogle "test"
+     else do
+        hoogle "data"
+        hoogle "test --example"
