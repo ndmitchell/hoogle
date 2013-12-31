@@ -3,7 +3,6 @@ module Console.All(action) where
 
 import CmdLine.All
 import Recipe.All
-import Recipe.General
 import Recipe.Haddock
 import Console.Log
 import Console.Search
@@ -76,3 +75,16 @@ action q@Search{} | fromRight (queryParsed q) == mempty =
 
 action q@Search{} = actionSearch q (fromRight $ queryParsed q)
 
+
+--- convert a single database
+convert :: [FilePath] -> String -> FilePath -> String -> IO ()
+convert deps x out src = do
+    deps2 <- filterM doesFileExist deps
+    when (deps /= deps2) $ putStrLn $ "Warning: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps \\ deps2)
+    dbs <- mapM loadDatabase deps2
+    let (err,db) = createDatabase Haskell dbs src
+    unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x
+    putStr $ "Converting " ++ x ++ "... "
+    performGC
+    saveDatabase out db
+    putStrLn "done"
