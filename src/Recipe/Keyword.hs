@@ -1,14 +1,9 @@
 
-module Recipe.Keyword(makeKeyword, translateKeywords) where
+module Recipe.Keyword(translateKeywords) where
 
 import General.Base
 import Text.HTML.TagSoup
-import Recipe.Type
-import Recipe.General
 
-
-makeKeyword :: IO ()
-makeKeyword = convertSrc noDeps [] "keyword" . translateKeywords =<< readFileUtf8' keywords
 
 translateKeywords :: String -> String
 translateKeywords src = unlines $ keywordPrefix ++ items
