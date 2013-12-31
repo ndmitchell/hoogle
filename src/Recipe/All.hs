@@ -147,3 +147,16 @@ urls = let (*) = (,) in
     ,"ghc.txt" * "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt"
     ,"cabal.tar.gz" * "http://hackage.haskell.org/packages/archive/00-index.tar.gz"
     ,"hoogle.tar.gz" * "http://hackage.haskell.org/packages/archive/00-hoogle.tar.gz"]
+
+
+listing :: FilePath -> IO [String]
+listing dir = do
+    xs <- Sys.getDirectoryContents dir
+    return $ sortBy (comparing $ map toLower) $ filter (`notElem` [".","..","preferred-versions"]) xs
+
+version :: FilePath -> String -> IO String
+version dir x = do
+    ys <- Sys.getDirectoryContents $ dir </> x
+    when (null ys) $ error $ "Couldn't find version for " ++ x ++ " in " ++ dir
+    let f = map (read :: String -> Int) . words . map (\x -> if x == '.' then ' ' else x)
+    return $ maximumBy (comparing f) $ filter (all (not . isAlpha)) ys
