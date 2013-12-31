@@ -1,9 +1,10 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, ScopedTypeVariables #-}
 
 module Recipe.All(recipes) where
 
 import General.Base hiding (readFile')
 import General.System as Sys
+import Control.Exception as E
 import qualified Data.Set as Set
 import Development.Shake
 import Development.Shake.FilePath
@@ -82,7 +83,7 @@ rules Data{..} = do
         let hoo = if base then "downloads/base.txt" else "downloads/hoogle" </> name </> vh </> "doc" </> "html" </> name <.> "txt"
             cab = "downloads/cabal" </> name </> vc </> name <.> "cabal"
         need [hoo, cab]
-        hoo <- liftIO $ readFileUtf8' hoo
+        hoo <- liftIO $ readFileUtf8' hoo `E.catch` \(_ :: SomeException) -> readFile hoo
         deps <- liftIO $ fmap (maybe [] cabalDepends) $ readCabal cab
         let cleanDeps = deps \\ (name:avoid)
         loc <- liftIO $ findLocal local name
