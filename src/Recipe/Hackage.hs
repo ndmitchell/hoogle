@@ -1,5 +1,5 @@
 
-module Recipe.Hackage(makePlatform, makeDefault, makePackage, makeAll) where
+module Recipe.Hackage(makePlatform, makeDefault, makePackage, makeAll, platformPackages) where
 
 import Recipe.Type
 import Recipe.Cabal
@@ -99,15 +99,19 @@ findLocal paths name = fmap (listToMaybe . concat . concat) $ forM paths $ \p ->
 ---------------------------------------------------------------------
 -- READ PLATFORM
 
+platformPackages :: String -> [String]
+platformPackages = map fst . parsePlatform
+
 listPlatform :: IO [(Name,String)]
-listPlatform = do
-    src <- readFile platform
+listPlatform = fmap parsePlatform $ readFile platform
+
+parsePlatform src =
     let xs = takeWhile (not . isPrefixOf "build-tools:" . ltrim) $
              dropWhile (not . isPrefixOf "build-depends:" . ltrim) $
              lines src
-    return [(name, takeWhile (\x -> x == '.' || isDigit x) $ drop 1 b)
-           | x <- xs, (a,_:b) <- [break (== '=') x], let name = trim $ dropWhile (== '-') $ trim a
-           , not $ avoid name]
+    in [(name, takeWhile (\x -> x == '.' || isDigit x) $ drop 1 b)
+       | x <- xs, (a,_:b) <- [break (== '=') x], let name = trim $ dropWhile (== '-') $ trim a
+       , not $ avoid name]
     where
         avoid x = ("haskell" `isPrefixOf` x && all isDigit (drop 7 x)) ||
                   (x `elem` words "Cabal hpc Win32")
