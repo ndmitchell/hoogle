@@ -13,7 +13,6 @@ import System.FilePath hiding (combine)
 avoid = words "ghc-prim integer integer-simple integer-gmp rts ghc Win32"
 
 
-
 -- try and find a local filepath
 findLocal :: [FilePath] -> Name -> IO (Maybe URL)
 findLocal paths name = fmap (listToMaybe . concat . concat) $ forM paths $ \p -> do
