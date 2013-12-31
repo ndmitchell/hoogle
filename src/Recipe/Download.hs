@@ -8,8 +8,8 @@ import System.FilePath
 
 type Downloader = FilePath -> URL -> String
 
-wget :: Downloader
-wget fp url = "wget -nv " ++ url ++ " --output-document=" ++ fp
+wget2 :: Downloader
+wget2 fp url = "wget -nv " ++ url ++ " --output-document=" ++ fp
 curl :: Downloader
 curl fp url = "curl -sSL " ++ url ++ " --output " ++ fp
 
@@ -18,7 +18,7 @@ findDownloader = do
     dl <- liftM2 mplus (check "wget") (check "curl")
     when (isNothing dl) $ error "Could not find downloader, neither curl nor wget are on the $PATH."
     return $ matchDl (fromJust dl)
-    where matchDl d | "wget" `isInfixOf` d = wget
+    where matchDl d | "wget" `isInfixOf` d = wget2
                     | "curl" `isInfixOf` d = curl
 
 withDownloader :: CmdLine -> Downloader -> [(FilePath, FilePath, URL)] -> IO ()
