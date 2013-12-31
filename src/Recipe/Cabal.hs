@@ -17,7 +17,7 @@ import Recipe.Warning
 import Control.Exception
 
 
-ghcVersion = [7,4,1]
+ghcVersion = [7,6,3]
 
 data Cabal = Cabal
     {cabalName :: String
