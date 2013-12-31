@@ -39,12 +39,19 @@ recipes opt@Data{..} = withModeGlobalRead $ do
 
 rules :: CmdLine -> Rules ()
 rules Data{..} = do
-    phony "all.hoo" $ do
+    "downloads/packages.txt" *> \out -> do
         need ["downloads/hoogle.untar","downloads/cabal.untar"]
         as <- liftIO $ listing "downloads/hoogle"
         bs <- liftIO $ listing "downloads/cabal"
-        let abs = Set.toList $ Set.fromList as `Set.intersection` Set.fromList bs
-        need $ map (<.> "hoo") $ "default":abs
+        writeFileLines out $ Set.toList $ Set.fromList as `Set.intersection` Set.fromList bs
+
+    packages <- do
+        cache <- newCache $ fmap (Set.fromList . lines) . readFile
+        return $ cache "downloads/packages.txt"
+
+    phony "all.hoo" $ do
+        pkgs <- packages
+        need $ map (<.> "hoo") $ "default" : Set.toList pkgs
 
     "keyword.txt" *> \out -> do
         let src = "downloads/keyword.htm"
