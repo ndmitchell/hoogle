@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #45, if you are building all, also depend on default
     #47, switch to using Shake to build the recipes
     Add a dependency on Shake
 4.2.26
