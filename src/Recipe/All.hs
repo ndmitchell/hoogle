@@ -103,7 +103,7 @@ rules Data{..} = do
                 let deps = listDeps i
                 fmap (i++) $ genImported (t:seen) (deps++odo)
 
-    "*.hoo" *> \out -> do
+    (\x -> "*.hoo" ?== x && x /= "all.hoo") ?> \out -> do
         let src = out -<.> "txt"
         need [src]
         contents <- liftIO $ fmap lines $ readFileUtf8' src
