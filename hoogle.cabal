@@ -18,6 +18,7 @@ bug-reports:        https://github.com/ndmitchell/hoogle/issues
 tested-with:        GHC==7.6.3, GHC==7.4.2
 extra-source-files:
     README.txt
+    CHANGES.txt
     datadir/*.txt
 
 data-dir: datadir
