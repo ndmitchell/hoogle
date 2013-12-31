@@ -1,6 +1,5 @@
 
 module Recipe.Type(
-    CmdLine(..),
     listing, version,
     resetWarnings, putWarning, recapWarnings
     ) where

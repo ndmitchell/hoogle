@@ -17,6 +17,7 @@ import Recipe.Cabal
 import Hoogle
 import qualified Paths_hoogle as V
 import Data.Version
+import CmdLine.All
 
 
 -- CmdLine is guaranteed to be a constructor of type Data
