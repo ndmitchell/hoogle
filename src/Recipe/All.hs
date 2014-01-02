@@ -45,12 +45,10 @@ rules Data{..} = do
         bs <- liftIO $ listing "downloads/cabal"
         writeFileLines out $ Set.toList $ Set.fromList as `Set.intersection` Set.fromList bs
 
-    packages <- do
-        cache <- newCache $ fmap (Set.fromList . lines) . readFile'
-        return $ cache "downloads/packages.txt"
+    packages <- newCache $ \() -> fmap (Set.fromList . lines) $ readFile' "downloads/packages.txt"
 
     phony "all.hoo" $ do
-        pkgs <- packages
+        pkgs <- packages ()
         need $ map (<.> "hoo") $ "default" : Set.toList pkgs
 
     "keyword.txt" *> \out -> do
@@ -123,7 +121,7 @@ rules Data{..} = do
             liftIO $ performGC
             liftIO $ saveDatabase out $ mconcat dbs
          else do
-            pkgs <- packages
+            pkgs <- packages ()
             deps <- genImported pkgs (Set.singleton $ takeBaseName out) $ listDeps contents
             let (err,db) = createDatabase Haskell [snd $ createDatabase Haskell [] $ unlines deps] $ unlines contents
             unless (null err) $ putNormal $ "Skipped " ++ show (length err) ++ " warnings in " ++ out
