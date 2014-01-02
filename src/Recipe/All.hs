@@ -46,7 +46,7 @@ rules Data{..} = do
         writeFileLines out $ Set.toList $ Set.fromList as `Set.intersection` Set.fromList bs
 
     packages <- do
-        cache <- newCache $ fmap (Set.fromList . lines) . readFile
+        cache <- newCache $ fmap (Set.fromList . lines) . readFile'
         return $ cache "downloads/packages.txt"
 
     phony "all.hoo" $ do
@@ -98,7 +98,8 @@ rules Data{..} = do
             ["@depends " ++ a | a <- cleanDeps] ++ haddockHacks loc (lines hoo)
 
     imported <- newCache $ \file -> do
-        xs <- readFileUtf8' file
+        need [file]
+        xs <- liftIO $ readFileUtf8' file
         return [x | x <- lines xs, takeWhile (not . isSpace) x `elem` ["type","data","newtype","class","instance","@depends"]]
     let listDeps = map (drop 9) . takeWhile ("@depends " `isPrefixOf`)
 
