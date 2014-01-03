@@ -55,7 +55,7 @@ rules Data{..} = do
     "//*.untar" *> \out -> do
         let src = out -<.> "tar"
         need [src]
-        untar src
+        tarExtract src
         writeFile' out ""
 
     (\x -> "downloads/*" ?== x && isJust (lookup (takeFileName x) urls)) ?> \out -> do

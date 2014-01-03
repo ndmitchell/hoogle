@@ -1,5 +1,5 @@
 
-module Recipe.Command(wget, ungzip, untar) where
+module Recipe.Command(wget, ungzip, tarExtract) where
 
 import General.Base
 import General.System
@@ -19,8 +19,8 @@ ungzip from to = do
     when (isNothing hasGzip) $ error "Could not extract tarballs, could not find tar on the $PATH."
     command [Shell] ("gzip --decompress --stdout --force " ++ from ++ " > " ++ to) []
 
-untar :: FilePath -> Action ()
-untar from = do
+tarExtract :: FilePath -> Action ()
+tarExtract from = do
     hasTar  <- liftIO $ check "tar"
     when (isNothing hasTar) $ error "Could not extract tarballs, could not find tar on the $PATH."
     liftIO $ createDirectoryIfMissing True $ dropExtension from
