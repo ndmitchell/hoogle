@@ -131,14 +131,14 @@ rules Data{..} warn = do
             need [file]
             xs <- liftIO $ readFileUtf8' file
             return [x | x <- lines xs, takeWhile (not . isSpace) x `elem` ["type","data","newtype","class","instance","@depends"]]
-        let listDeps = map (drop 9) . takeWhile ("@depends " `isPrefixOf`)
+        let splitDeps = first (map $ drop 9) . span ("@depends " `isPrefixOf`)
 
         let genImported seen [] = return []
             genImported seen (t:odo) = do
                 v <- if t `Set.member` seen then return Nothing else verHoogle $ HoogleVersion t
                 if isNothing v then genImported seen odo else do
                     i <- imported $ t <.> "txt"
-                    fmap (i++) $ genImported (Set.insert t seen) (listDeps i++odo)
+                    fmap (i++) $ genImported (Set.insert t seen) (fst (splitDeps i) ++ odo)
 
         "*.hoo" *> \out -> do
             let src = out -<.> "txt"
@@ -152,7 +152,8 @@ rules Data{..} warn = do
                 liftIO $ performGC
                 liftIO $ saveDatabase out $ mconcat dbs
              else do
-                deps <- genImported (Set.singleton $ takeBaseName out) $ listDeps contents
+                (deps, contents) <- return $ splitDeps contents
+                deps <- genImported (Set.singleton $ takeBaseName out) deps
                 let (err,db) = createDatabase Haskell [snd $ createDatabase Haskell [] $ unlines deps] $ unlines contents
                 liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
                 putNormal $ "Creating " ++ out ++ "... "
