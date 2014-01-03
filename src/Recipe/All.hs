@@ -1,12 +1,14 @@
-{-# LANGUAGE RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, GeneralizedNewtypeDeriving #-}
 
 module Recipe.All(recipes) where
 
 import General.Base hiding (readFile')
 import General.System as Sys
 import Control.Exception as E
+import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Development.Shake
+import Development.Shake.Classes
 import Development.Shake.FilePath
 import Recipe.Haddock
 
@@ -37,31 +39,42 @@ recipes opt@Data{..} = withModeGlobalRead $ do
         putStrLn "Data generation complete"
 
 
+newtype CabalVersion = CabalVersion String deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+newtype HoogleVersion = HoogleVersion String deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
+
 rules :: CmdLine -> Rules ()
 rules Data{..} = do
-    "downloads/packages.txt" *> \out -> do
-        need ["downloads/hoogle.untar","downloads/cabal.untar"]
-        as <- liftIO $ listing "downloads/hoogle"
-        bs <- liftIO $ listing "downloads/cabal"
-        writeFileLines out $ Set.toList $ Set.fromList as `Set.intersection` Set.fromList bs
+    let srcCabal name ver = "downloads/cabal" </> name </> ver </> name <.> "cabal"
+    let srcHoogle name ver = "downloads/hoogle" </> name </> ver </> "doc" </> "html" </> name <.> "txt"
 
-    packages <- newCache $ \() -> fmap (Set.fromList . lines) $ readFile' "downloads/packages.txt"
+    (\x -> "downloads/*" ?== x && isJust (lookup (takeFileName x) urls)) ?> \out -> do
+        let Just url = lookup (takeFileName out) urls
+        putNormal $ "Downloading " ++ out
+        -- liftIO $ copyFile ("C:/spacework/hoogle/cache" </> takeFileName out) out
+        wget url out
+        putNormal $ "Downloaded " ++ out
 
     "//*.tar" *> \out -> do
         let src = out <.> "gz"
         need [src]
         ungzip src out
 
-    "//*.untar" *> \out -> do
+    "//*.index" *> \out -> do
         let src = out -<.> "tar"
         need [src]
+        putNormal $ "Extracting tar file " ++ out
         tarExtract src
-        writeFile' out ""
+        putNormal $ "Finished extracting tar file " ++ out
+        writeFileLines out =<< tarList src
 
-    (\x -> "downloads/*" ?== x && isJust (lookup (takeFileName x) urls)) ?> \out -> do
-        let Just url = lookup (takeFileName out) urls
-        -- liftIO $ copyFile ("C:/spacework/hoogle/cache" </> takeFileName out) out
-        wget url out
+    index <- newCache $ \index -> do
+        xs <- readFileLines index
+        let asVer = map (read :: String -> Int) . words . map (\x -> if x == '.' then ' ' else x)
+        return $ Map.fromListWith (\a b -> if asVer a > asVer b then a else b)
+            [(name, ver) | x <- xs, let name = takeDirectory1 x, let ver = takeDirectory1 $ dropDirectory1 x, all (\x -> isDigit x || x == '.') ver]
+
+    verCabal  <- addOracle $ \(CabalVersion  x) -> fmap (Map.lookup x) $ index "downloads/cabal.index"
+    verHoogle <- addOracle $ \(HoogleVersion x) -> fmap (Map.lookup x) $ index "downloads/hoogle.index"
 
     alternatives $ do -- *.txt
         "keyword.txt" *> \out -> do
@@ -74,17 +87,13 @@ rules Data{..} = do
             writeFileLines out ["@combine keyword","@combine package","@combine platform"]
 
         "platform.txt" *> \out -> do
-            let src = "downloads/platform.cabal"
-            contents <- readFile' src
+            contents <- readFile' "downloads/platform.cabal"
             writeFileLines out ["@combine " ++ x | x <- platformPackages contents]
 
         "package.txt" *> \out -> do
-            need ["downloads/cabal.untar"]
-            xs <- liftIO $ listing "downloads/cabal"
-            xs <- liftIO $ forM xs $ \name -> do
-                ver <- version "downloads/cabal" name
-                let file = "downloads/cabal" </> name </> ver </> name <.> "cabal"
-                src <- readCabal file
+            cabs <- index "downloads/cabal.index"
+            xs <- liftIO $ forM (Map.toList cabs) $ \(name,ver) -> do
+                src <- readCabal $ srcCabal name ver
                 return $ case src of
                     Nothing -> []
                     Just src ->
@@ -93,16 +102,15 @@ rules Data{..} = do
             liftIO $ writeFileUtf8 out $ unlines $ "@url http://hackage.haskell.org/" : "@package package" : concat xs
 
         "*.txt" *> \out -> do
-            need ["downloads/hoogle.untar","downloads/cabal.untar"]
             let name = takeBaseName out
                 base = name == "base"
-            vc <- liftIO $ version "downloads/cabal" name
-            vh <- liftIO $ if base then return vc else version "downloads/hoogle" name
-            let hoo = if base then "downloads/base.txt" else "downloads/hoogle" </> name </> vh </> "doc" </> "html" </> name <.> "txt"
-                cab = "downloads/cabal" </> name </> vc </> name <.> "cabal"
-            need [hoo, cab]
+            cab <- fmap (fmap $ srcCabal name) $ verCabal (CabalVersion name)
+            hoo <- if base
+                   then need ["downloads/base.txt"] >> return (Just "downloads/base.txt")
+                   else fmap (fmap $ srcHoogle name) $ verHoogle (HoogleVersion name)
+            hoo <- return $ fromMaybe (error $ "Couldn't find hoogle file for " ++ name) hoo
             hoo <- liftIO $ readFileUtf8' hoo `E.catch` \(_ :: SomeException) -> readFile hoo
-            deps <- liftIO $ fmap (maybe [] cabalDepends) $ readCabal cab
+            deps <- liftIO $ case cab of Nothing -> return []; Just x -> fmap (maybe [] cabalDepends) $ readCabal x
             let cleanDeps = deps \\ (name:avoid)
             loc <- liftIO $ findLocal local name
             liftIO $ writeFileUtf8 out $ unlines $
@@ -110,8 +118,8 @@ rules Data{..} = do
 
     alternatives $ do -- *.hoo
         phony "all.hoo" $ do
-            pkgs <- packages ()
-            need $ map (<.> "hoo") $ "default" : Set.toList pkgs
+            pkgs <- index "downloads/hoogle.index"
+            need $ map (<.> "hoo") $ "default" : Map.keys pkgs
 
         imported <- newCache $ \file -> do
             need [file]
@@ -119,13 +127,12 @@ rules Data{..} = do
             return [x | x <- lines xs, takeWhile (not . isSpace) x `elem` ["type","data","newtype","class","instance","@depends"]]
         let listDeps = map (drop 9) . takeWhile ("@depends " `isPrefixOf`)
 
-        let genImported pkgs seen [] = return []
-            genImported pkgs seen (t:odo)
-                | t `Set.member` seen || not (t `Set.member` pkgs) = genImported pkgs seen odo
-                | otherwise = do
+        let genImported seen [] = return []
+            genImported seen (t:odo) = do
+                v <- if t `Set.member` seen then return Nothing else verHoogle $ HoogleVersion t
+                if isNothing v then genImported seen odo else do
                     i <- imported $ t <.> "txt"
-                    let deps = listDeps i
-                    fmap (i++) $ genImported pkgs (Set.insert t seen) (deps++odo)
+                    fmap (i++) $ genImported (Set.insert t seen) (listDeps i++odo)
 
         "*.hoo" *> \out -> do
             let src = out -<.> "txt"
@@ -139,8 +146,7 @@ rules Data{..} = do
                 liftIO $ performGC
                 liftIO $ saveDatabase out $ mconcat dbs
              else do
-                pkgs <- packages ()
-                deps <- genImported pkgs (Set.singleton $ takeBaseName out) $ listDeps contents
+                deps <- genImported (Set.singleton $ takeBaseName out) $ listDeps contents
                 let (err,db) = createDatabase Haskell [snd $ createDatabase Haskell [] $ unlines deps] $ unlines contents
                 unless (null err) $ putNormal $ "Skipped " ++ show (length err) ++ " warnings in " ++ out
                 putLoud $ unlines $ map show err
@@ -157,16 +163,3 @@ urls = let (*) = (,) in
     ,"ghc.txt" * "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt"
     ,"cabal.tar.gz" * "http://hackage.haskell.org/packages/index.tar.gz"
     ,"hoogle.tar.gz" * "http://hackage.haskell.org/packages/hoogle.tar.gz"]
-
-
-listing :: FilePath -> IO [String]
-listing dir = do
-    xs <- Sys.getDirectoryContents dir
-    return $ sortBy (comparing $ map toLower) $ filter (`notElem` [".","..","preferred-versions"]) xs
-
-version :: FilePath -> String -> IO String
-version dir x = do
-    ys <- Sys.getDirectoryContents $ dir </> x
-    when (null ys) $ error $ "Couldn't find version for " ++ x ++ " in " ++ dir
-    let f = map (read :: String -> Int) . words . map (\x -> if x == '.' then ' ' else x)
-    return $ maximumBy (comparing f) $ filter (all (not . isAlpha)) ys
