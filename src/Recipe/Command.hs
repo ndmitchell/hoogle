@@ -1,10 +1,10 @@
 
-module Recipe.Command(wget, ungzip, tarExtract) where
+module Recipe.Command(wget, ungzip, tarExtract, tarList) where
 
 import General.Base
 import General.System
-import System.FilePath
-import Development.Shake(Action, command, CmdOption(..), liftIO)
+import Development.Shake
+import Development.Shake.FilePath
 
 
 wget :: URL -> FilePath -> Action ()
@@ -26,7 +26,11 @@ tarExtract from = do
     liftIO $ createDirectoryIfMissing True $ dropExtension from
     command [Shell, Cwd $ dropExtension from] ("tar -xf ../" ++ takeFileName from) []
 
-
+tarList :: FilePath -> Action [String]
+tarList from = do
+    hasTar  <- liftIO $ check "tar"
+    when (isNothing hasTar) $ error "Could not extract tarballs, could not find tar on the $PATH."
+    fmap (lines . fromStdout) $ command [Shell] ("tar -tf " ++ from) []
 
 
 type Downloader = FilePath -> URL -> String
