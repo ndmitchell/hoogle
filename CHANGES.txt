@@ -1,5 +1,7 @@
 Changelog for Hoogle
 
+    Upgrade to shake-0.11
+    #49, update "hoogle data" to be incremental
 4.2.27
     Rewrite how "hoogle data" works
     #45, if you are building all, also depend on default
