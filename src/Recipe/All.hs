@@ -4,6 +4,7 @@ module Recipe.All(recipes) where
 
 import General.Base hiding (readFile')
 import General.System as Sys
+import Control.Concurrent
 import Control.Exception as E
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -12,7 +13,6 @@ import Development.Shake.Classes
 import Development.Shake.FilePath
 import Recipe.Haddock
 
-import Recipe.Warning
 import Recipe.Command
 import Recipe.Keyword
 import Recipe.Hackage
@@ -169,3 +169,15 @@ urls = let (*) = (,) in
     ,"ghc.txt" * "http://www.haskell.org/ghc/docs/latest/html/libraries/ghc/ghc.txt"
     ,"cabal.tar.gz" * "http://hackage.haskell.org/packages/index.tar.gz"
     ,"hoogle.tar.gz" * "http://hackage.haskell.org/packages/hoogle.tar.gz"]
+
+
+withWarnings :: (([String] -> IO ()) -> IO ()) -> IO (Int, FilePath)
+withWarnings act = do
+    count <- newMVar 0
+    let file = ".warnings"
+    writeFile file ""
+    act $ \xs -> modifyMVar_ count $ \i -> do
+        appendFile file $ unlines xs
+        return $! i + length xs
+    i <- readMVar count
+    return (i, file)
