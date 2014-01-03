@@ -86,7 +86,7 @@ rules Data{..} warn = do
     verCabal  <- addOracle $ \(CabalVersion  x) -> fmap (Map.lookup x) $ index "downloads/cabal.index"
     verHoogle <- addOracle $ \(HoogleVersion x) -> fmap (Map.lookup x) $ index "downloads/hoogle.index"
 
-    alternatives $ do -- *.txt
+    alternatives $ do -- Match *.txt
         "keyword.txt" *> \out -> do
             let src = "downloads/keyword.htm.cache"
             need [src]
@@ -132,7 +132,7 @@ rules Data{..} warn = do
             liftIO $ writeFileUtf8 out $ unlines $
                 ["@depends " ++ a | a <- cleanDeps] ++ haddockHacks loc (lines hoo)
 
-    alternatives $ do -- *.hoo
+    alternatives $ do -- Match *.hoo
         phony "all.hoo" $ do
             pkgs <- index "downloads/hoogle.index"
             need $ map (<.> "hoo") $ "default" : Map.keys pkgs
