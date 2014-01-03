@@ -55,6 +55,15 @@ rules Data{..} warn = do
         wget url out
         putNormal $ "Downloaded " ++ out
 
+    "downloads/*.cache" *> \out -> do
+        let src = dropExtension out
+        need [src]
+        src <- liftIO $ readFileUtf8' src
+        b <- liftIO $ Sys.doesFileExist out
+        liftIO $ if not b then writeFileUtf8 out src else do
+            old <- readFileUtf8' out
+            when (src /= old) $ writeFileUtf8 out src
+
     "//*.tar" *> \out -> do
         let src = out <.> "gz"
         need [src]
@@ -66,7 +75,7 @@ rules Data{..} warn = do
         putNormal $ "Extracting tar file " ++ out
         tarExtract src
         putNormal $ "Finished extracting tar file " ++ out
-        writeFileLines out =<< tarList src
+        writeFileChanged out . unlines =<< tarList src
 
     index <- newCache $ \index -> do
         xs <- readFileLines index
@@ -79,7 +88,7 @@ rules Data{..} warn = do
 
     alternatives $ do -- *.txt
         "keyword.txt" *> \out -> do
-            let src = "downloads/keyword.htm"
+            let src = "downloads/keyword.htm.cache"
             need [src]
             contents <- liftIO $ readFileUtf8' src
             liftIO $ writeFileUtf8 out $ translateKeywords contents
@@ -88,7 +97,7 @@ rules Data{..} warn = do
             writeFileLines out ["@combine keyword","@combine package","@combine platform"]
 
         "platform.txt" *> \out -> do
-            contents <- readFile' "downloads/platform.cabal"
+            contents <- readFile' "downloads/platform.cabal.cache"
             writeFileLines out ["@combine " ++ x | x <- platformPackages contents]
 
         "package.txt" *> \out -> do
@@ -107,7 +116,7 @@ rules Data{..} warn = do
                 base = name == "base"
             cab <- fmap (fmap $ srcCabal name) $ verCabal (CabalVersion name)
             hoo <- if base
-                   then need ["downloads/base.txt"] >> return (Just "downloads/base.txt")
+                   then need ["downloads/base.txt.cache"] >> return (Just "downloads/base.txt.cache")
                    else fmap (fmap $ srcHoogle name) $ verHoogle (HoogleVersion name)
             hoo <- return $ fromMaybe (error $ "Couldn't find hoogle file for " ++ name) hoo
             hoo <- liftIO $ readFileUtf8' hoo `E.catch` \(_ :: SomeException) -> readFile hoo
