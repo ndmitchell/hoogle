@@ -118,6 +118,7 @@ isQName xs = case R.readPrec_to_S R.lexP 0 xs of
 -- Change instance [incoherent] to instance, Haddock bug
 -- Change instance [safe] to instance, Haddock bug
 -- Change !Int to Int, HSE bug
+-- Drop {-# UNPACK #-}, Haddock bug
 -- Drop everything after where, Haddock bug
 
 haddockHacks :: Maybe URL -> [String] -> [String]
@@ -131,6 +132,7 @@ haddockHacks loc src = maybe id haddockPackageUrl loc (translate src)
         f ('!':'!':x:xs) | isAlpha x = xs
         f ('!':x:xs) | isAlpha x || x `elem` "[(" = x:xs
         f x | x `elem` ["[overlap","ok]","[incoherent]","[safe]"] = ""
+        f x | x `elem` ["{-#","UNPACK","#-}"] = ""
         f x = x
 
         g ("where":xs) = []
