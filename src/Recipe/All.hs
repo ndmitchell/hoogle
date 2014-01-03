@@ -93,10 +93,10 @@ rules Data{..} = do
         "package.txt" *> \out -> do
             cabs <- index "downloads/cabal.index"
             xs <- liftIO $ forM (Map.toList cabs) $ \(name,ver) -> do
-                src <- readCabal $ srcCabal name ver
+                src <- try $ readCabal $ srcCabal name ver
                 return $ case src of
-                    Nothing -> []
-                    Just src ->
+                    Left (_ :: SomeException) -> []
+                    Right src ->
                         [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
                         ["--","-- Version " ++ ver, "@url package/" ++ name, "@entry package " ++ name]
             liftIO $ writeFileUtf8 out $ unlines $ "@url http://hackage.haskell.org/" : "@package package" : concat xs
@@ -110,7 +110,13 @@ rules Data{..} = do
                    else fmap (fmap $ srcHoogle name) $ verHoogle (HoogleVersion name)
             hoo <- return $ fromMaybe (error $ "Couldn't find hoogle file for " ++ name) hoo
             hoo <- liftIO $ readFileUtf8' hoo `E.catch` \(_ :: SomeException) -> readFile hoo
-            deps <- liftIO $ case cab of Nothing -> return []; Just x -> fmap (maybe [] cabalDepends) $ readCabal x
+            deps <- liftIO $ case cab of
+                Nothing -> return []
+                Just cab -> do
+                    res <- try $ readCabal cab
+                    case res of
+                        Left (err :: SomeException) -> do putWarning $ "Failed to read cabal file, " ++ cab ++ ", " ++ show err; return []
+                        Right x -> return $ cabalDepends x
             let cleanDeps = deps \\ (name:avoid)
             loc <- liftIO $ findLocal local name
             liftIO $ writeFileUtf8 out $ unlines $
