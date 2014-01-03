@@ -31,6 +31,7 @@ recipes opt@Data{..} = withModeGlobalRead $ do
     withDirectory datadir $ do
         when redownload $ do
             forM_ urls $ \(file,_) -> removeFile_ $ "downloads" </> file
+        when rebuild $ removeFile ".shake.database"
         (count, file) <- withWarnings $ \warn ->
             shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads, shakeProgress=progressSimple} $ do
                 want $ map (<.> "hoo") $ if null actions then ["default"] else actions

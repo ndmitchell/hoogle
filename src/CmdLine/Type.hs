@@ -32,7 +32,7 @@ data CmdLine
         ,queryParsed :: Either ParseError Query
         ,queryText :: String
         }
-    | Data {redownload :: Bool, local :: [String], datadir :: FilePath, threads :: Int, actions :: [String]}
+    | Data {redownload :: Bool, rebuild :: Bool, local :: [String], datadir :: FilePath, threads :: Int, actions :: [String]}
     | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, dynamic :: Bool, template :: [FilePath]}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {srcfile :: String, outfile :: String, doc :: Maybe String, merge :: [String], haddock :: Bool}
@@ -102,6 +102,7 @@ convert = Convert
 data_ = Data
     {datadir = def &= typDir &= help "Database directory"
     ,redownload = def &= help "Redownload all files from the web"
+    ,rebuild = def &= help "Rebuild everything"
     ,threads = 1 &= typ "INT" &= name "j" &= help "Number of threads to use"
     ,actions = def &= args &= typ "RULE"
     ,local = def &= opt "" &= typ "FILEPATH" &= help "Use local documentation if available"
