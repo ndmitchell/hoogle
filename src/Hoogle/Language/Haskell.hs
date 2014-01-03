@@ -138,6 +138,8 @@ transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ te
           ctorStart x = isUpper x || x `elem` ":("
           kind | ctorStart $ head nam = DataCtorItem
                | otherwise = FunctionItem
+transDecl x (HSE.TypeSig o names tyy) = fmap f $ sequence [transDecl x $ HSE.TypeSig o [name] tyy | name <- names]
+    where f xs = (concatMap fst xs, concatMap snd xs)
 
 transDecl x (ClassDecl s ctxt hd _ _) = Just $ fact (kinds True $ transDeclHead ctxt hd) $ textItem
     {itemName=nam, itemKey=nam, itemKind=ClassItem
