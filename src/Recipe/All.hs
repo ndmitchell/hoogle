@@ -29,21 +29,21 @@ recipes opt@Data{..} = withModeGlobalRead $ do
     hSetBuffering stdout NoBuffering
     createDirectoryIfMissing True datadir
     withDirectory datadir $ do
-        resetWarnings
         when redownload $ do
             forM_ urls $ \(file,_) -> removeFile_ $ "downloads" </> file
-        shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads, shakeProgress=progressSimple} $ do
-            want $ map (<.> "hoo") $ if null actions then ["default"] else actions
-            rules opt
-        recapWarnings
+        (count, file) <- withWarnings $ \warn ->
+            shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads, shakeProgress=progressSimple} $ do
+                want $ map (<.> "hoo") $ if null actions then ["default"] else actions
+                rules opt warn
+        putStrLn $ show count ++ " warnings, saved to " ++ file
         putStrLn "Data generation complete"
 
 
 newtype CabalVersion = CabalVersion String deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
 newtype HoogleVersion = HoogleVersion String deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
 
-rules :: CmdLine -> Rules ()
-rules Data{..} = do
+rules :: CmdLine -> ([String] -> IO ()) -> Rules ()
+rules Data{..} warn = do
     let srcCabal name ver = "downloads/cabal" </> name </> ver </> name <.> "cabal"
     let srcHoogle name ver = "downloads/hoogle" </> name </> ver </> "doc" </> "html" </> name <.> "txt"
 
@@ -115,7 +115,7 @@ rules Data{..} = do
                 Just cab -> do
                     res <- try $ readCabal cab
                     case res of
-                        Left (err :: SomeException) -> do putWarning $ "Failed to read cabal file, " ++ cab ++ ", " ++ show err; return []
+                        Left (err :: SomeException) -> do warn [takeBaseName cab ++ ": failed to read cabal file, " ++ cab ++ ", " ++ show err]; return []
                         Right x -> return $ cabalDepends x
             let cleanDeps = deps \\ (name:avoid)
             loc <- liftIO $ findLocal local name
@@ -154,8 +154,7 @@ rules Data{..} = do
              else do
                 deps <- genImported (Set.singleton $ takeBaseName out) $ listDeps contents
                 let (err,db) = createDatabase Haskell [snd $ createDatabase Haskell [] $ unlines deps] $ unlines contents
-                unless (null err) $ putNormal $ "Skipped " ++ show (length err) ++ " warnings in " ++ out
-                putLoud $ unlines $ map show err
+                liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
                 putNormal $ "Creating " ++ out ++ "... "
                 liftIO $ performGC
                 liftIO $ saveDatabase out db

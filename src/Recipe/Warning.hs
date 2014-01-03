@@ -1,25 +1,19 @@
 
 module Recipe.Warning(
-    resetWarnings, putWarning, recapWarnings
+    withWarnings
     ) where
 
+import General.System
 import Control.Concurrent
-import System.IO.Unsafe
 
 
-{-# NOINLINE warnings #-}
-warnings :: MVar [String]
-warnings = unsafePerformIO $ newMVar []
-
-putWarning :: String -> IO ()
-putWarning x = do
-    putStrLn x
-    modifyMVar_ warnings $ return . (x:)
-
-recapWarnings :: IO ()
-recapWarnings = do
-    xs <- readMVar warnings
-    mapM_ putStrLn $ reverse xs
-
-resetWarnings :: IO ()
-resetWarnings = modifyMVar_ warnings $ const $ return []
+withWarnings :: (([String] -> IO ()) -> IO ()) -> IO (Int, FilePath)
+withWarnings act = do
+    count <- newMVar 0
+    (file, handle) <- openTempFile "" "hoogle_errors_.txt"
+    hClose handle
+    act $ \xs -> modifyMVar_ count $ \i -> do
+        appendFile file $ unlines xs
+        return $! i + length xs
+    i <- readMVar count
+    return (i, file)
