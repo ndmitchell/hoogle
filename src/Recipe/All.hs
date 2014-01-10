@@ -159,7 +159,6 @@ rules Data{..} warn = do
                 need deps
                 dbs <- liftIO $ mapM loadDatabase deps
                 putNormal $ "Creating " ++ out ++ " from " ++ show (length deps) ++ " databases... "
-                liftIO $ performGC
                 liftIO $ saveDatabase out $ mconcat dbs
              else do
                 (deps, contents) <- return $ splitDeps contents
@@ -167,7 +166,6 @@ rules Data{..} warn = do
                 let (err,db) = createDatabase Haskell [snd $ createDatabase Haskell [] $ unlines deps] $ unlines contents
                 liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
                 putNormal $ "Creating " ++ out ++ "... "
-                liftIO $ performGC
                 liftIO $ saveDatabase out db
 
 
