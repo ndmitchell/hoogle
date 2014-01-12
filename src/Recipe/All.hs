@@ -4,6 +4,7 @@ module Recipe.All(recipes) where
 
 import General.Base hiding (readFile')
 import General.System as Sys
+import General.Util
 import Control.Concurrent
 import Control.Exception as E
 import qualified Data.Map as Map
@@ -33,8 +34,7 @@ recipes opt@Data{..} = withModeGlobalRead $ do
             forM_ urls $ \(file,_) -> removeFile_ $ "downloads" </> file
         when rebuild $ removeFile ".shake.database"
         (count, file) <- withWarnings $ \warn ->
-            shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads, shakeProgress=progressSimple} $ do
-                want $ map (<.> "hoo") $ if null actions then ["default"] else actions
+            shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads, shakeProgress=progressSimple} $
                 rules opt warn
         putStrLn $ show count ++ " warnings, saved to " ++ file
         putStrLn "Data generation complete"
@@ -85,6 +85,11 @@ rules Data{..} warn = do
 
     verCabal  <- addOracle $ \(CabalVersion  x) -> fmap (Map.lookup x) $ index "downloads/cabal.index"
     verHoogle <- addOracle $ \(HoogleVersion x) -> fmap (Map.lookup x) $ index "downloads/hoogle.index"
+
+    if null actions then want ["default.hoo"] else action $ do
+        (good,bad) <- partitionM (fmap isJust . verHoogle . HoogleVersion) actions
+        forM_ (delete "all" bad) $ \x -> putNormal $ "Couldn't generate database for " ++ x ++ ", no Hoogle docs available"
+        need $ map (<.> "hoo") $ ["all" | "all" `elem` bad] ++ good
 
     alternatives $ do -- Match *.txt
         "keyword.txt" *> \out -> do
