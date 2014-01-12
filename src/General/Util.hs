@@ -114,3 +114,10 @@ findM p [] = return Nothing
 findM p (x:xs) = do
     v <- p x
     if v then return $ Just x else findM p xs
+
+partitionM :: Monad m => (a -> m Bool) -> [a] -> m ([a], [a])
+partitionM f [] = return ([], [])
+partitionM f (x:xs) = do
+    res <- f x
+    (as,bs) <- partitionM f xs
+    return ([x | res]++as, [x | not res]++bs)
