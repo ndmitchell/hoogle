@@ -82,9 +82,7 @@ convert deps x out src = do
     deps2 <- filterM doesFileExist deps
     when (deps /= deps2) $ putStrLn $ "Warning: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps \\ deps2)
     dbs <- mapM loadDatabase deps2
-    let (err,db) = createDatabase Haskell dbs src
-    unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x
     putStr $ "Converting " ++ x ++ "... "
-    performGC
-    saveDatabase out db
+    err <- createDatabase Haskell dbs src out
     putStrLn "done"
+    unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x

@@ -168,10 +168,11 @@ rules Data{..} warn = do
              else do
                 (deps, contents) <- return $ splitDeps contents
                 deps <- genImported (Set.singleton $ takeBaseName out) deps
-                let (err,db) = createDatabase Haskell [snd $ createDatabase Haskell [] $ unlines deps] $ unlines contents
-                liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
                 putNormal $ "Creating " ++ out ++ "... "
-                liftIO $ saveDatabase out db
+                liftIO $ createDatabase Haskell [] (unlines deps) $ out -<.> "txt"
+                deps <- liftIO $ loadDatabase $ out -<.> "txt"
+                err <- liftIO $ createDatabase Haskell [deps] (unlines contents) out
+                liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
 
 
 urls :: [(FilePath, URL)]

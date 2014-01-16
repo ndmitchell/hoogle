@@ -80,8 +80,11 @@ createDatabase
     :: H.Language -- ^ Which format the input definition is in.
     -> [Database] -- ^ A list of databases which contain definitions this input definition relies upon (e.g. types, aliases, instances).
     -> String -- ^ The input definitions, usually with one definition per line, in a format specified by the 'Language'.
-    -> ([H.ParseError], Database) -- ^ A pair containing any parse errors present in the input definition, and the database ignoring any parse errors.
-createDatabase _ dbs src = (err, fromDataBase $ H.createDataBase xs res)
+    -> FilePath -- ^ Output file
+    -> IO [H.ParseError] -- ^ A pair containing any parse errors present in the input definition, and the database ignoring any parse errors.
+createDatabase _ dbs src out = do
+        saveDatabase out $ fromDataBase $ H.createDataBase xs res
+        return err
     where
         (err,res) = H.parseInputHaskell src
         xs = concat [x | Database x <- dbs]
