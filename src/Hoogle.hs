@@ -8,7 +8,7 @@ module Hoogle(
     URL,
     H.Language(..),
     -- * Database
-    Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
+    Database, loadDatabase, saveDatabase, createDatabase, mergeDatabase, showDatabase,
     -- * Query
     Query, parseQuery, H.renderQuery,
     H.queryDatabases, H.queryPackages, H.querySetPackage,
@@ -66,6 +66,12 @@ saveDatabase :: FilePath -> Database -> IO ()
 saveDatabase file x = do
     performGC
     H.saveDataBase file $ toDataBase x
+
+
+mergeDatabase :: [FilePath] -> FilePath -> IO ()
+mergeDatabase src out = do
+    x <- mapM loadDatabase src
+    saveDatabase out $ mconcat x
 
 
 -- | Load a database from a file. If the database was not saved with the same version of Hoogle,
