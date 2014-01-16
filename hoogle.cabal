@@ -124,6 +124,7 @@ executable hoogle
         bytestring, filepath, directory, process, random,
         array, containers, time, old-locale,
         safe,
+        binary,
         aeson >= 0.6.1,
         cmdargs >= 0.7,
         deepseq >= 1.1,
