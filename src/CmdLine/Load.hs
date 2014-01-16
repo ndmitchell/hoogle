@@ -17,13 +17,7 @@ loadQueryDatabases paths q = do
     fmap (second mconcat . partitionEithers) $ forM xs $ \x -> do
         r <- findFile [p </> x <.> "hoo" | p <- paths]
         case r of
-            Nothing -> do
-                r <- findFile [p </> x <.> "txt" | p <- paths]
-                case r of
-                    Nothing -> return $ Left x
-                    Just x -> do
-                        src <- readFileUtf8 x
-                        return $ Right $ snd $ createDatabase Haskell [] src
+            Nothing -> return $ Left x
             Just x -> fmap Right $ loadDatabase x
 
 

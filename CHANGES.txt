@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Remove running a hoogle query without converting the database
     Ignore packages without documentation to hoogle data
 4.2.28
     Upgrade to shake-0.11
