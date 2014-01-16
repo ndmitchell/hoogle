@@ -45,10 +45,9 @@ import Hoogle.Score.All(Score)
 --   [Serialization] A database is saved to disk with 'saveDatabase' and loaded from disk with 'loadDatabase'.
 --
 --   [Searching] A database is searched using 'search'.
-newtype Database = Database [H.DataBase]
+newtype Database = Database [(FilePath, H.DataBase)]
 
-toDataBase (Database x) = H.combineDataBase x
-fromDataBase x = Database [x]
+toDataBase (Database x) = H.combineDataBase $ map snd x
 
 instance NFData Database where
     rnf (Database a) = rnf a
@@ -77,7 +76,7 @@ mergeDatabase src out = do
 -- | Load a database from a file. If the database was not saved with the same version of Hoogle,
 --   it will probably throw an error.
 loadDatabase :: FilePath -> IO Database
-loadDatabase = fmap fromDataBase . H.loadDataBase
+loadDatabase x = do db <- H.loadDataBase x; return $ Database [(x, db)]
 
 
 -- | Create a database from an input definition. Source files for Hoogle databases are usually
@@ -89,11 +88,10 @@ createDatabase
     -> FilePath -- ^ Output file
     -> IO [H.ParseError] -- ^ A pair containing any parse errors present in the input definition, and the database ignoring any parse errors.
 createDatabase _ dbs src out = do
-        saveDatabase out $ fromDataBase $ H.createDataBase xs res
+        let (err,res) = H.parseInputHaskell src
+        let xs = concat [map snd x | Database x <- dbs]
+        saveDatabase out $ Database [("",H.createDataBase xs res)]
         return err
-    where
-        (err,res) = H.parseInputHaskell src
-        xs = concat [x | Database x <- dbs]
 
 
 -- | Show debugging information on some parts of the database. If the second argument
@@ -131,11 +129,11 @@ toResult r@(H.Result ent view score) = (score, Result parents self docs)
 
 -- | Perform a search. The results are returned lazily.
 search :: Database -> Query -> [(Score,Result)]
-search (Database xs) q = map toResult $ H.search xs q
+search (Database xs) q = map toResult $ H.search (map snd xs) q
 
 -- | Given a query and a database optionally give a list of what the user might have meant.
 suggestions :: Database -> Query -> Maybe TagStr
-suggestions (Database dbs) q = H.suggestQuery dbs q
+suggestions (Database dbs) q = H.suggestQuery (map snd dbs) q
 
 -- | Given a query string and a database return a list of the possible completions for the search.
 completions :: Database -> String -> [String]
