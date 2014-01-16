@@ -90,7 +90,8 @@ createDatabase
 createDatabase _ dbs src out = do
     let (err,res) = H.parseInputHaskell src
     let xs = concat [map snd x | Database x <- dbs]
-    saveDatabase out $ Database [("",H.createDataBase xs res)]
+    let db = H.createDataBase xs res
+    saveDatabase out $ Database [("",db)]
     return err
 
 
