@@ -1,6 +1,6 @@
 Changelog for Hoogle
 
-    Change createDatabase to immediately save the file
+    Change createDatabase to also save the file
     Disable rank feature
     Remove running a hoogle query without converting the database
     Ignore packages without documentation to hoogle data
