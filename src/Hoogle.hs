@@ -139,7 +139,7 @@ suggestions (Database dbs) q = H.suggestQuery dbs q
 
 -- | Given a query string and a database return a list of the possible completions for the search.
 completions :: Database -> String -> [String]
-completions x = H.completions (toDataBase x)
+completions x = H.completions (toDataBase x) -- FIXME: Doing a merge on completions? Bad idea.
 
 -- | Given a query, set whether it is an exact query.
 queryExact :: Maybe H.ItemKind -> Query -> Query
