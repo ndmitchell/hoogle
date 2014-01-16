@@ -86,7 +86,7 @@ createDatabase
     -> [Database] -- ^ A list of databases which contain definitions this input definition relies upon (e.g. types, aliases, instances).
     -> String -- ^ The input definitions, usually with one definition per line, in a format specified by the 'Language'.
     -> FilePath -- ^ Output file
-    -> IO [H.ParseError] -- ^ A pair containing any parse errors present in the input definition, and the database ignoring any parse errors.
+    -> IO [H.ParseError] -- ^ A list of any parse errors present in the input definition that were skipped.
 createDatabase _ dbs src out = do
         let (err,res) = H.parseInputHaskell src
         let xs = concat [map snd x | Database x <- dbs]
