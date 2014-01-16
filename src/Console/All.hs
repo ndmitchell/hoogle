@@ -61,8 +61,7 @@ action (Convert from to doc merge haddock) = do
 
 action (Combine from to) = do
     putStrLn $ "Combining " ++ show (length from) ++ " databases"
-    xs <- mapM loadDatabase from
-    saveDatabase to $ mconcat xs
+    mergeDatabase from to
 
 action (Dump file sections) = do
     d <- loadDatabase file

@@ -162,9 +162,8 @@ rules Data{..} warn = do
             if not (null contents) && "@combine " `isPrefixOf` head contents then do
                 let deps = [x <.> "hoo" | x <- contents, Just x <- [stripPrefix "@combine " x]]
                 need deps
-                dbs <- liftIO $ mapM loadDatabase deps
                 putNormal $ "Creating " ++ out ++ " from " ++ show (length deps) ++ " databases... "
-                liftIO $ saveDatabase out $ mconcat dbs
+                liftIO $ mergeDatabase deps out
              else do
                 (deps, contents) <- return $ splitDeps contents
                 deps <- genImported (Set.singleton $ takeBaseName out) deps
