@@ -88,10 +88,10 @@ createDatabase
     -> FilePath -- ^ Output file
     -> IO [H.ParseError] -- ^ A list of any parse errors present in the input definition that were skipped.
 createDatabase _ dbs src out = do
-        let (err,res) = H.parseInputHaskell src
-        let xs = concat [map snd x | Database x <- dbs]
-        saveDatabase out $ Database [("",H.createDataBase xs res)]
-        return err
+    let (err,res) = H.parseInputHaskell src
+    let xs = concat [map snd x | Database x <- dbs]
+    saveDatabase out $ Database [("",H.createDataBase xs res)]
+    return err
 
 
 -- | Show debugging information on some parts of the database. If the second argument
