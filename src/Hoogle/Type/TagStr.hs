@@ -12,6 +12,9 @@ import General.Base
 import General.Web
 import Data.Generics.Uniplate
 import Hoogle.Store.All
+import qualified Data.Binary as B
+import qualified Data.ByteString.Char8 as BS
+import Control.Applicative
 
 
 data TagStr
@@ -22,6 +25,22 @@ data TagStr
     | TagLink String TagStr -- ^ A hyperlink to a URL.
     | TagColor Int TagStr -- ^ Colored text. Index into a 0-based palette. Text without any 'TagColor' should be black.
       deriving (Data,Typeable,Ord,Show,Eq)
+
+instance B.Binary TagStr where
+    put (Str x) = B.putWord8 0 >> B.put (BS.pack x)
+    put (Tags x) = B.putWord8 1 >> B.put x
+    put (TagBold x) = B.putWord8 2 >> B.put x
+    put (TagEmph x) = B.putWord8 3 >> B.put x
+    put (TagLink x y) = B.putWord8 4 >> B.put (BS.pack x) >> B.put y
+    put (TagColor x y) = B.putWord8 5 >> B.put x >> B.put y
+
+    get = B.getWord8 >>= \x -> case x of
+        0 -> Str . BS.unpack <$> B.get
+        1 -> Tags <$> B.get
+        2 -> TagBold <$> B.get
+        3 -> TagEmph <$> B.get
+        4 -> do x <- B.get; y <- B.get; return $ TagLink (BS.unpack x) y
+        5 -> TagColor <$> B.get <*> B.get
 
 instance NFData TagStr where
     rnf (Str a) = rnf a
