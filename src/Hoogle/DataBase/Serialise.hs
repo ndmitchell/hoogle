@@ -9,6 +9,7 @@ import General.Base
 import General.System
 
 import Hoogle.DataBase.Type
+import Hoogle.Type.All
 import Paths_hoogle(version)
 import Data.Version
 
@@ -33,9 +34,14 @@ instance Store Identity where
         return Identity
 
 
-
-saveDataBase :: FilePath -> DataBase -> IO ()
-saveDataBase file db = runSPut file $ put (Identity, db)
+saveDataBase :: FilePath -> DataBase -> IO [(Word32, Once Entry)]
+saveDataBase file db = runSPut file $ do
+    put (Identity, db)
+    forM (entriesItems $ items db) $ \e -> do
+        pos <- findOnce e
+        return $ case pos of
+            Nothing -> error $ "Could not find position of " ++ show e
+            Just pos -> (pos, e)
 
 
 loadDataBase :: FilePath -> IO DataBase
