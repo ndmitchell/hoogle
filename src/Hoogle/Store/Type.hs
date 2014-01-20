@@ -57,9 +57,9 @@ modifyRef f x = liftIO . (`modifyIORef` x) =<< asks f
 readPos = liftIO . W.getPos =<< asks putBuffer
 
 
-runSPut :: FilePath -> SPut () -> IO ()
+runSPut :: FilePath -> SPut a -> IO a
 runSPut file act = withBinaryFile file WriteMode $ \h -> do
-    pending <- newIORef [act]
+    pending <- newIORef []
     once <- newIORef IntMap.empty
 
     W.withBuffer h $ \buffer -> do
@@ -69,7 +69,7 @@ runSPut file act = withBinaryFile file WriteMode $ \h -> do
                 forM_ xs $ \x -> do
                     x
                     flush
-        runReaderT flush $ SPutS buffer once pending
+        runReaderT (do res <- act; flush; return res) $ SPutS buffer once pending
 
 
 putByteString :: BString -> SPut ()
