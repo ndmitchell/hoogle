@@ -2,7 +2,7 @@
 
 module Hoogle.Store.Type(
     Once, once, fromOnce, putOnce, getOnce, findOnce,
-    SPut, runSPut, putByteString, putStorable, putDefer,
+    SPut, runSPut, putByteString, putStorable, putDefer, runAfter,
     SGet, runSGet, getByteString, getStorable, getDefer, getLazyList
     ) where
 
@@ -92,6 +92,9 @@ putDefer act = do
         buf <- asks putBuffer
         liftIO $ W.patch buf pos val
         act
+
+runAfter :: SPut () -> SPut ()
+runAfter act = modifyRef putPending (++[act])
 
 
 {-# NOINLINE once #-}
