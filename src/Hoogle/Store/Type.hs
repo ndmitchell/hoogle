@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable #-}
 
 module Hoogle.Store.Type(
-    Once, once, fromOnce, putOnce, getOnce,
+    Once, once, fromOnce, putOnce, getOnce, findOnce,
     SPut, runSPut, putByteString, putStorable, putDefer,
     SGet, runSGet, getByteString, getStorable, getDefer, getLazyList
     ) where
@@ -102,6 +102,14 @@ once x = System.IO.Unsafe.unsafePerformIO $ do
 
 
 type PutOnce = Either [Word32] Word32
+
+findOnce :: Once a -> SPut (Maybe Word32)
+findOnce (Once key _) = do
+    ref <- asks putOnces
+    mp <- liftIO $ readIORef ref
+    return $ case IntMap.lookup key mp of
+        Just (Right val) -> Just val
+        _ -> Nothing
 
 putOnce :: (a -> SPut ()) -> Once a -> SPut ()
 putOnce act (Once key x) = do
