@@ -24,6 +24,7 @@ import General.System
 import System.FilePath
 import Hoogle.DataBase2.Type
 import Hoogle.DataBase2.Str
+import System.IO.Unsafe
 
 import Hoogle.Type.TagStr
 import qualified Hoogle.DataBase.All as H
@@ -142,6 +143,10 @@ toResult r@(H.Result ent view score) = (score, Result parents self docs)
 
 -- | Perform a search. The results are returned lazily.
 search :: Database -> Query -> [(Score,Result)]
+search (Database xs@((root,_):_)) (H.Query [name] Nothing scopes Nothing False) | new && all simple scopes =
+    unsafePerformIO $ map toResult <$> searchStr' resolve (map fst xs) name
+    where resolve pkg pos = runSGetAt pos (takeDirectory root </> pkg <.> "hoo") get
+          simple (H.Scope a b _) = a && b == H.Package
 search (Database xs) q = map toResult $ H.search (map snd xs) q
 
 -- | Given a query and a database optionally give a list of what the user might have meant.
