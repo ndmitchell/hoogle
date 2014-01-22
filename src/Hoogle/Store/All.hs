@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Hoogle.Store.All(
-    SPut, SGet, runSPut, runSGet, runAfter,
+    SPut, SGet, runSPut, runSGet, runSGetAt, runAfter,
     Once, fromOnce, once, findOnce, getDefer, putDefer,
     module Hoogle.Store.All
     ) where

@@ -3,7 +3,7 @@
 module Hoogle.Store.Type(
     Once, once, fromOnce, putOnce, getOnce, findOnce,
     SPut, runSPut, putByteString, putStorable, putDefer, runAfter,
-    SGet, runSGet, getByteString, getStorable, getDefer, getLazyList
+    SGet, runSGet, runSGetAt, getByteString, getStorable, getDefer, getLazyList
     ) where
 
 import General.Base
@@ -148,12 +148,15 @@ type SGet a = ReaderT SGetS IO a
 
 
 runSGet :: Typeable a => FilePath -> SGet a -> IO a
-runSGet file m = do
+runSGet = runSGetAt 0
+
+runSGetAt :: Typeable a => Word32 -> FilePath -> SGet a -> IO a
+runSGetAt pos file m = do
     h <- openBinaryFile file ReadMode
     sz <- hFileSize h
     buf <- R.newBuffer h
     one <- onceKeys $ fromIntegral sz
-    runReaderT (getDeferFrom 0 m) $ SGetS buf one
+    runReaderT (getDeferFrom pos m) $ SGetS buf one
 
 
 getStorable :: Typeable a => Storable a => SGet a
