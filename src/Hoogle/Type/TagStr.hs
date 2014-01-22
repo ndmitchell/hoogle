@@ -14,7 +14,6 @@ import Data.Generics.Uniplate
 import Hoogle.Store.All
 import qualified Data.Binary as B
 import qualified Data.ByteString.Char8 as BS
-import Control.Applicative
 
 
 data TagStr
