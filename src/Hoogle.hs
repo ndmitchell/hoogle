@@ -33,6 +33,8 @@ import qualified Hoogle.Language.Haskell as H
 import Hoogle.Query.All(Query, exactSearch)
 import Hoogle.Score.All(Score)
 
+-- Turn on the new index/search pieces
+new = False
 
 -- * Database
 
