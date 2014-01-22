@@ -78,6 +78,7 @@ library
         General.TypeMap
         General.Base
         General.System
+        General.FMIndex
         General.Util
         General.Web
         Hoogle.DataBase.Aliases
