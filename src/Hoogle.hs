@@ -21,6 +21,9 @@ module Hoogle(
 import Hoogle.Store.All
 import General.Base
 import General.System
+import System.FilePath
+import Hoogle.DataBase2.Type
+import Hoogle.DataBase2.Str
 
 import Hoogle.Type.TagStr
 import qualified Hoogle.DataBase.All as H
@@ -64,9 +67,12 @@ instance Show Database where
 
 -- | Save a database to a file.
 saveDatabase :: FilePath -> Database -> IO ()
-saveDatabase file x = do
+saveDatabase file x@(Database xs) = do
     performGC
     H.saveDataBase file $ toDataBase x
+    when new $ do
+        performGC
+        mergeStr [x <.> "str" | (x,_) <- xs] (file <.> "str")
 
 
 mergeDatabase :: [FilePath] -> FilePath -> IO ()
@@ -94,7 +100,10 @@ createDatabase _ dbs src out = do
     let xs = concat [map snd x | Database x <- dbs]
     let db = H.createDataBase xs res
     performGC
-    H.saveDataBase out db
+    items <- H.saveDataBase out db
+    -- don't build .str for .dep files
+    when (new && takeExtension out == ".hoo") $ do
+        createStr' (newPackage $ takeBaseName out) (map (Pos *** fromOnce) items) (out <.> "str")
     return err
 
 
