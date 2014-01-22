@@ -14,7 +14,7 @@ import Control.Arrow
 import System.IO
 
 
-data FMIndex a = FMIndex Char [(BS.ByteString, a)]
+data FMIndex a = FMIndex Char [(BS.ByteString, a)] deriving Show
 
 instance Functor FMIndex where
     fmap f (FMIndex a b) = FMIndex a $ map (second f) b
