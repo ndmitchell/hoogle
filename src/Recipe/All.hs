@@ -31,7 +31,7 @@ recipes opt@Data{..} = withModeGlobalRead $ do
     createDirectoryIfMissing True datadir
     withDirectory datadir $ do
         when redownload $ do
-            forM_ urls $ \(file,_) -> removeFile_ $ "downloads" </> file
+            forM_ (urls opt) $ \(file,_) -> removeFile_ $ "downloads" </> file
         when rebuild $ removeFile ".shake.database"
         (count, file) <- withWarnings $ \warn ->
             shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads, shakeProgress=progressSimple} $
@@ -44,14 +44,14 @@ newtype CabalVersion = CabalVersion String deriving (Show,Typeable,Eq,Hashable,B
 newtype HoogleVersion = HoogleVersion String deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
 
 rules :: CmdLine -> ([String] -> IO ()) -> Rules ()
-rules Data{..} warn = do
+rules opts@Data{..} warn = do
     let srcCabal name ver = "downloads/cabal" </> name </> ver </> name <.> "cabal"
     let srcHoogle name ver = "downloads/hoogle" </> name </> ver </> "doc" </> "html" </> name <.> "txt"
 
-    (\x -> "downloads/*" ?== x && isJust (lookup (takeFileName x) urls)) ?> \out -> do
-        let Just url = lookup (takeFileName out) urls
+    (\x -> "downloads/*" ?== x &&
+           isJust (lookup (takeFileName x) (urls opts))) ?> \out -> do
+        let Just url = lookup (takeFileName out) (urls opts)
         putNormal $ "Downloading " ++ out
-        -- liftIO $ copyFile ("C:/spacework/hoogle/cache" </> takeFileName out) out
         wget url out
         putNormal $ "Downloaded " ++ out
 
@@ -114,7 +114,7 @@ rules Data{..} warn = do
                     Right src ->
                         [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
                         ["--","-- Version " ++ ver, "@url package/" ++ name, "@entry package " ++ name]
-            liftIO $ writeFileUtf8 out $ unlines $ "@url http://hackage.haskell.org/" : "@package package" : concat xs
+            liftIO $ writeFileUtf8 out $ unlines $ ("@url " ++ hackage ++ "/") : "@package package" : concat xs
 
         "*.txt" *> \out -> do
             let name = takeBaseName out
@@ -168,19 +168,19 @@ rules Data{..} warn = do
                 (deps, contents) <- return $ splitDeps contents
                 deps <- genImported (Set.singleton $ takeBaseName out) deps
                 putNormal $ "Creating " ++ out ++ "... "
-                liftIO $ createDatabase Haskell [] (unlines deps) $ out -<.> "dep"
+                liftIO $ createDatabase hackage Haskell [] (unlines deps) $ out -<.> "dep"
                 deps <- liftIO $ loadDatabase $ out -<.> "dep"
-                err <- liftIO $ createDatabase Haskell [deps] (unlines contents) out
+                err <- liftIO $ createDatabase hackage Haskell [deps] (unlines contents) out
                 liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
 
 
-urls :: [(FilePath, URL)]
-urls = let (*) = (,) in
+urls :: CmdLine -> [(FilePath, URL)]
+urls Data{..} = let (*) = (,) in
     ["keyword.htm" * "http://www.haskell.org/haskellwiki/Keywords"
     ,"platform.cabal" * "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal"
     ,"base.txt" * "http://www.haskell.org/hoogle/base.txt"
-    ,"cabal.tar.gz" * "http://hackage.haskell.org/packages/index.tar.gz"
-    ,"hoogle.tar.gz" * "http://hackage.haskell.org/packages/hoogle.tar.gz"]
+    ,"cabal.tar.gz" * (hackage ++ "/packages/index.tar.gz")
+    ,"hoogle.tar.gz" * (hackage ++ "/packages/hoogle.tar.gz")]
 
 
 withWarnings :: (([String] -> IO ()) -> IO ()) -> IO (Int, FilePath)

@@ -26,7 +26,7 @@ testPrepare = do
     createDirectoryIfMissing True $ dat </> "databases"
     src <- readFileUtf8 $ dat </> "testdata.txt"
     let dbfile = dat </> "databases/testdata.hoo"
-    errs <- createDatabase Haskell [] src dbfile
+    errs <- createDatabase "http://hackage.haskell.org" Haskell [] src dbfile
     unless (null errs) $ error $ unlines $ "Couldn't convert testdata database:" : map show errs
     db <- loadDatabase dbfile
     -- this test is now mostly redundant because i can't get the file before saving

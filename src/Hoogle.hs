@@ -82,13 +82,14 @@ loadDatabase x = do db <- H.loadDataBase x; return $ Database [(x, db)]
 -- | Create a database from an input definition. Source files for Hoogle databases are usually
 --   stored in UTF8 format, and should be read using 'hSetEncoding' and 'utf8'.
 createDatabase
-    :: H.Language -- ^ Which format the input definition is in.
+    :: H.HackageURL
+    -> H.Language -- ^ Which format the input definition is in.
     -> [Database] -- ^ A list of databases which contain definitions this input definition relies upon (e.g. types, aliases, instances).
     -> String -- ^ The input definitions, usually with one definition per line, in a format specified by the 'Language'.
     -> FilePath -- ^ Output file
     -> IO [H.ParseError] -- ^ A list of any parse errors present in the input definition that were skipped.
-createDatabase _ dbs src out = do
-    let (err,res) = H.parseInputHaskell src
+createDatabase url _ dbs src out = do
+    let (err,res) = H.parseInputHaskell url src
     let xs = concat [map snd x | Database x <- dbs]
     let db = H.createDataBase xs res
     performGC

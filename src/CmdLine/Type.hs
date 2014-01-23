@@ -28,14 +28,26 @@ data CmdLine
         ,web :: Maybe String
         ,repeat_ :: Int
         ,queryChunks :: [String]
-        
         ,queryParsed :: Either ParseError Query
         ,queryText :: String
         }
-    | Data {redownload :: Bool, rebuild :: Bool, local :: [String], datadir :: FilePath, threads :: Int, actions :: [String]}
+    | Data {
+          hackage    :: String
+        , redownload :: Bool
+        , rebuild :: Bool
+        , local :: [String]
+        , datadir :: FilePath
+        , threads :: Int
+        , actions :: [String]}
     | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, dynamic :: Bool, template :: [FilePath]}
     | Combine {srcfiles :: [FilePath], outfile :: String}
-    | Convert {srcfile :: String, outfile :: String, doc :: Maybe String, merge :: [String], haddock :: Bool}
+    | Convert {
+          hackage :: String
+        , srcfile :: String
+        , outfile :: String
+        , doc :: Maybe String
+        , merge :: [String]
+        , haddock :: Bool}
     | Log {logfiles :: [FilePath]}
     | Test {testFiles :: [String], example :: Bool}
     | Dump {database :: String, section :: [String]}
@@ -92,7 +104,8 @@ combine = Combine
     } &= help "Combine multiple databases into one"
 
 convert = Convert
-    {srcfile = def &= argPos 0 &= typ "INPUT"
+    {hackage = "http://hackage.haskell.org" &= typ "URL" &= help "Hackage instance to target"
+    ,srcfile = def &= argPos 0 &= typ "INPUT"
     ,outfile = def &= argPos 1 &= typ "DATABASE" &= opt ""
     ,doc = def &= typDir &= help "Path to the root of local or Hackage documentation for the package (implies --haddock)"
     ,merge = def &= typ "DATABASE" &= help "Merge other databases"
@@ -101,6 +114,7 @@ convert = Convert
 
 data_ = Data
     {datadir = def &= typDir &= help "Database directory"
+    ,hackage    = "http://hackage.haskell.org" &= typ "URL" &= help "Hackage instance to target"
     ,redownload = def &= help "Redownload all files from the web"
     ,rebuild = def &= help "Rebuild everything"
     ,threads = 1 &= typ "INT" &= name "j" &= help "Number of threads to use"
