@@ -33,10 +33,7 @@ parseInputHaskell hackage = join . f [] "" . zip [1..] . lines
                   (as,bs) = unzip items
 
 
-parseLine :: HackageURL
-          -> Int
-          -> String
-          -> Either ParseError ([Fact],[TextItem])
+parseLine :: HackageURL -> Int -> String -> Either ParseError ([Fact],[TextItem])
 parseLine _ line x | "(##)" `isPrefixOf` x = Left $ parseErrorWith line 1 "Skipping due to HSE bug #206" "(##)"
 parseLine url line ('@':str) = case a of
         "entry" | b <- words b, b /= [] -> Right $ itemEntry b
