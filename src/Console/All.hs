@@ -13,6 +13,7 @@ import General.System
 import General.Web
 import System.FilePath
 import Hoogle
+import Hoogle.Type.All
 
 
 action :: CmdLine -> IO ()
@@ -39,11 +40,11 @@ action x@Data{} = recipes x
 
 action (Log files) = logFiles files
 
-action (Convert from to doc merge haddock) = do
+action (Convert url from to doc merge haddock) = do
     when (any isUpper $ takeBaseName to) $ putStrLn $ "Warning: Hoogle databases should be all lower case, " ++ takeBaseName to
     putStrLn $ "Converting " ++ from
     src <- readFileUtf8 from
-    convert merge (takeBaseName from) to $ unlines $ addLocalDoc doc (lines src)
+    convert url merge (takeBaseName from) to $ unlines $ addLocalDoc doc (lines src)
     where
       addLocalDoc :: Maybe FilePath -> [String] -> [String]
       addLocalDoc doc = if haddock
@@ -76,12 +77,12 @@ action q@Search{} = actionSearch q (fromRight $ queryParsed q)
 
 
 --- convert a single database
-convert :: [FilePath] -> String -> FilePath -> String -> IO ()
-convert deps x out src = do
+convert :: HackageURL -> [FilePath] -> String -> FilePath -> String -> IO ()
+convert url deps x out src = do
     deps2 <- filterM doesFileExist deps
     when (deps /= deps2) $ putStrLn $ "Warning: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps \\ deps2)
     dbs <- mapM loadDatabase deps2
     putStr $ "Converting " ++ x ++ "... "
-    err <- createDatabase Haskell dbs src out
+    err <- createDatabase url Haskell dbs src out
     putStrLn "done"
     unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x

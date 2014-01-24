@@ -11,6 +11,8 @@ import Hoogle.Type.TypeSig
 import Data.Generics.Uniplate
 
 
+type HackageURL = String
+
 type Input = ([Fact], [TextItem])
 
 data ItemKind = PackageItem

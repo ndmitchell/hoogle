@@ -1,4 +1,3 @@
-
 module Hoogle.DataBase.All
     (DataBase, showDataBase
     ,module Hoogle.DataBase.All
