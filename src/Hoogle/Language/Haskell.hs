@@ -15,7 +15,7 @@ type S = SrcSpanInfo
 
 
 parseInputHaskell :: HackageURL -> String -> ([ParseError], Input)
-parseInputHaskell url = join . f [] "" . zip [1..] . lines
+parseInputHaskell hackage = join . f [] "" . zip [1..] . lines
     where
         f com url [] = []
         f com url ((i,s):is)
@@ -23,7 +23,7 @@ parseInputHaskell url = join . f [] "" . zip [1..] . lines
             | "--" `isPrefixOf` s = f ([dropWhile isSpace $ drop 2 s | com /= []] ++ com) url is
             | "@url " `isPrefixOf` s =  f com (drop 5 s) is
             | all isSpace s = f [] "" is
-            | otherwise = (case parseLine url i s of
+            | otherwise = (case parseLine hackage i s of
                                Left y -> Left y
                                Right (as,bs) -> Right (as,[b{itemURL=if null url then itemURL b else url, itemDocs=unlines $ reverse com} | b <- bs]))
                           : f [] "" is
