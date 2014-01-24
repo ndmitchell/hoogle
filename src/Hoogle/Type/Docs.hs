@@ -1,22 +1,23 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Hoogle.Type.Docs(
-    Docs, readDocsHTML, renderDocs
+    Docs(..), readDocsHTML, renderDocs
     ) where
 
 import General.Base
 import Hoogle.Type.TagStr
 import Hoogle.Store.All
 import Data.ByteString.Char8(ByteString,pack,unpack)
+import Data.Binary
 
 
-newtype Docs = Docs ByteString
-    deriving (Eq,Ord)
+newtype Docs = Docs {fromDocs :: ByteString}
+    deriving (Eq,Ord,Binary)
 
 
 instance Store Docs where
     put (Docs x) = put1 x
     get = get1 Docs
-
 
 readDocsHTML :: String -> Docs
 readDocsHTML = Docs . pack

@@ -4,6 +4,7 @@
 --   have been in base, or could plausibly be added.
 module General.Base(module General.Base, module X) where
 
+import Control.Applicative as X ((<*>),(<$>))
 import Control.Arrow as X
 import Control.DeepSeq as X
 import Control.Monad as X

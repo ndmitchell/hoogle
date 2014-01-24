@@ -8,7 +8,7 @@ module Hoogle(
     URL,
     H.Language(..),
     -- * Database
-    Database, loadDatabase, saveDatabase, createDatabase, showDatabase,
+    Database, loadDatabase, saveDatabase, createDatabase, mergeDatabase, showDatabase,
     -- * Query
     Query, parseQuery, H.renderQuery,
     H.queryDatabases, H.queryPackages, H.querySetPackage,
@@ -21,6 +21,10 @@ module Hoogle(
 import Hoogle.Store.All
 import General.Base
 import General.System
+import System.FilePath
+import Hoogle.DataBase2.Type
+import Hoogle.DataBase2.Str
+import System.IO.Unsafe
 
 import Hoogle.Type.TagStr
 import qualified Hoogle.DataBase.All as H
@@ -33,6 +37,8 @@ import qualified Hoogle.Language.Haskell as H
 import Hoogle.Query.All(Query, exactSearch)
 import Hoogle.Score.All(Score)
 
+-- Turn on the new index/search pieces
+new = False
 
 -- * Database
 
@@ -45,10 +51,9 @@ import Hoogle.Score.All(Score)
 --   [Serialization] A database is saved to disk with 'saveDatabase' and loaded from disk with 'loadDatabase'.
 --
 --   [Searching] A database is searched using 'search'.
-newtype Database = Database [H.DataBase]
+newtype Database = Database [(FilePath, H.DataBase)]
 
-toDataBase (Database x) = H.combineDataBase x
-fromDataBase x = Database [x]
+toDataBase (Database x) = H.combineDataBase $ map snd x
 
 instance NFData Database where
     rnf (Database a) = rnf a
@@ -63,28 +68,45 @@ instance Show Database where
 
 -- | Save a database to a file.
 saveDatabase :: FilePath -> Database -> IO ()
-saveDatabase file x = do
+saveDatabase file x@(Database xs) = do
     performGC
     H.saveDataBase file $ toDataBase x
+    when new $ do
+        performGC
+        mergeStr [x <.> "str" | (x,_) <- xs] (file <.> "str")
+
+
+mergeDatabase :: [FilePath] -> FilePath -> IO ()
+mergeDatabase src out = do
+    x <- mapM loadDatabase src
+    saveDatabase out $ mconcat x
 
 
 -- | Load a database from a file. If the database was not saved with the same version of Hoogle,
 --   it will probably throw an error.
 loadDatabase :: FilePath -> IO Database
-loadDatabase = fmap fromDataBase . H.loadDataBase
+loadDatabase x = do db <- H.loadDataBase x; return $ Database [(x, db)]
 
 
 -- | Create a database from an input definition. Source files for Hoogle databases are usually
 --   stored in UTF8 format, and should be read using 'hSetEncoding' and 'utf8'.
 createDatabase
-    :: H.Language -- ^ Which format the input definition is in.
+    :: H.HackageURL
+    -> H.Language -- ^ Which format the input definition is in.
     -> [Database] -- ^ A list of databases which contain definitions this input definition relies upon (e.g. types, aliases, instances).
     -> String -- ^ The input definitions, usually with one definition per line, in a format specified by the 'Language'.
-    -> ([H.ParseError], Database) -- ^ A pair containing any parse errors present in the input definition, and the database ignoring any parse errors.
-createDatabase _ dbs src = (err, fromDataBase $ H.createDataBase xs res)
-    where
-        (err,res) = H.parseInputHaskell src
-        xs = concat [x | Database x <- dbs]
+    -> FilePath -- ^ Output file
+    -> IO [H.ParseError] -- ^ A list of any parse errors present in the input definition that were skipped.
+createDatabase url _ dbs src out = do
+    let (err,res) = H.parseInputHaskell url src
+    let xs = concat [map snd x | Database x <- dbs]
+    let db = H.createDataBase xs res
+    performGC
+    items <- H.saveDataBase out db
+    -- don't build .str for .dep files
+    when (new && takeExtension out == ".hoo") $ do
+        createStr' (newPackage $ takeBaseName out) (map (Pos *** fromOnce) items) (out <.> "str")
+    return err
 
 
 -- | Show debugging information on some parts of the database. If the second argument
@@ -122,15 +144,19 @@ toResult r@(H.Result ent view score) = (score, Result parents self docs)
 
 -- | Perform a search. The results are returned lazily.
 search :: Database -> Query -> [(Score,Result)]
-search (Database xs) q = map toResult $ H.search xs q
+search (Database xs@((root,_):_)) (H.Query [name] Nothing scopes Nothing False) | new && all simple scopes =
+    unsafePerformIO $ map toResult <$> searchStr' resolve (map fst xs) name
+    where resolve pkg pos = runSGetAt pos (takeDirectory root </> pkg <.> "hoo") get
+          simple (H.Scope a b _) = a && b == H.Package
+search (Database xs) q = map toResult $ H.search (map snd xs) q
 
 -- | Given a query and a database optionally give a list of what the user might have meant.
 suggestions :: Database -> Query -> Maybe TagStr
-suggestions (Database dbs) q = H.suggestQuery dbs q
+suggestions (Database dbs) q = H.suggestQuery (map snd dbs) q
 
 -- | Given a query string and a database return a list of the possible completions for the search.
 completions :: Database -> String -> [String]
-completions x = H.completions (toDataBase x)
+completions x = H.completions (toDataBase x) -- FIXME: Doing a merge on completions? Bad idea.
 
 -- | Given a query, set whether it is an exact query.
 queryExact :: Maybe H.ItemKind -> Query -> Query

@@ -1,9 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable #-}
 
 module Hoogle.Store.Type(
-    Once, once, fromOnce, putOnce, getOnce,
-    SPut, runSPut, putByteString, putStorable, putDefer,
-    SGet, runSGet, getByteString, getStorable, getDefer, getLazyList
+    Once, once, fromOnce, putOnce, getOnce, findOnce,
+    SPut, runSPut, putByteString, putStorable, putDefer, runAfter,
+    SGet, runSGet, runSGetAt, getByteString, getStorable, getDefer, getLazyList
     ) where
 
 import General.Base
@@ -57,9 +57,9 @@ modifyRef f x = liftIO . (`modifyIORef` x) =<< asks f
 readPos = liftIO . W.getPos =<< asks putBuffer
 
 
-runSPut :: FilePath -> SPut () -> IO ()
+runSPut :: FilePath -> SPut a -> IO a
 runSPut file act = withBinaryFile file WriteMode $ \h -> do
-    pending <- newIORef [act]
+    pending <- newIORef []
     once <- newIORef IntMap.empty
 
     W.withBuffer h $ \buffer -> do
@@ -69,7 +69,7 @@ runSPut file act = withBinaryFile file WriteMode $ \h -> do
                 forM_ xs $ \x -> do
                     x
                     flush
-        runReaderT flush $ SPutS buffer once pending
+        runReaderT (do res <- act; flush; return res) $ SPutS buffer once pending
 
 
 putByteString :: BString -> SPut ()
@@ -93,6 +93,9 @@ putDefer act = do
         liftIO $ W.patch buf pos val
         act
 
+runAfter :: SPut () -> SPut ()
+runAfter act = modifyRef putPending (++[act])
+
 
 {-# NOINLINE once #-}
 once :: a -> Once a
@@ -102,6 +105,14 @@ once x = System.IO.Unsafe.unsafePerformIO $ do
 
 
 type PutOnce = Either [Word32] Word32
+
+findOnce :: Once a -> SPut (Maybe Word32)
+findOnce (Once key _) = do
+    ref <- asks putOnces
+    mp <- liftIO $ readIORef ref
+    return $ case IntMap.lookup key mp of
+        Just (Right val) -> Just val
+        _ -> Nothing
 
 putOnce :: (a -> SPut ()) -> Once a -> SPut ()
 putOnce act (Once key x) = do
@@ -137,12 +148,15 @@ type SGet a = ReaderT SGetS IO a
 
 
 runSGet :: Typeable a => FilePath -> SGet a -> IO a
-runSGet file m = do
+runSGet = runSGetAt 0
+
+runSGetAt :: Typeable a => Word32 -> FilePath -> SGet a -> IO a
+runSGetAt pos file m = do
     h <- openBinaryFile file ReadMode
     sz <- hFileSize h
     buf <- R.newBuffer h
     one <- onceKeys $ fromIntegral sz
-    runReaderT (getDeferFrom 0 m) $ SGetS buf one
+    runReaderT (getDeferFrom pos m) $ SGetS buf one
 
 
 getStorable :: Typeable a => Storable a => SGet a

@@ -9,8 +9,11 @@ import General.Base
 import General.System
 
 import Hoogle.DataBase.Type
+import Hoogle.Type.All
+import Control.Monad.IO.Class
 import Paths_hoogle(version)
 import Data.Version
+import Data.IORef
 
 
 hooVersion = take 4 $ map fromIntegral (versionBranch version) ++ [0..]
@@ -33,9 +36,21 @@ instance Store Identity where
         return Identity
 
 
-
-saveDataBase :: FilePath -> DataBase -> IO ()
-saveDataBase file db = runSPut file $ put (Identity, db)
+saveDataBase :: FilePath -> DataBase -> IO [(Word32, Once Entry)]
+saveDataBase file db = do
+    ref <- newIORef []
+    runSPut file $ do
+        put (Identity, db)
+        runAfter $ do
+            res <- forM (entriesItems $ items db) $ \e -> do
+                pos <- findOnce e
+                case pos of
+                    Nothing -> do
+                        liftIO $ print $ "Could not find position of " ++ show e
+                        return Nothing
+                    Just pos -> return $ Just (pos, e)
+            liftIO $ writeIORef ref $ catMaybes res
+    readIORef ref
 
 
 loadDataBase :: FilePath -> IO DataBase

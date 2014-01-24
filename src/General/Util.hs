@@ -2,6 +2,16 @@
 module General.Util where
 
 import General.Base
+import qualified Data.Set as Set
+
+nubOrdOn :: Ord k => (a -> k) -> [a] -> [a]
+nubOrdOn op = f Set.empty
+    where f mp [] = []
+          f mp (x:xs) | op x `Set.member` mp = f mp xs
+                      | otherwise = x : f (Set.insert (op x) mp) xs
+
+nubOrd :: Ord a => [a] -> [a]
+nubOrd = nubOrdOn id
 
 
 -- | Only append strings if neither one is empty

@@ -78,6 +78,7 @@ library
         General.TypeMap
         General.Base
         General.System
+        General.FMIndex
         General.Util
         General.Web
         Hoogle.DataBase.Aliases
@@ -94,6 +95,8 @@ library
         Hoogle.DataBase.TypeSearch.Result
         Hoogle.DataBase.TypeSearch.TypeScore
         Hoogle.DataBase.TypeSearch.All
+        Hoogle.DataBase2.Str
+        Hoogle.DataBase2.Type
         Hoogle.Type.Docs
         Hoogle.Type.Item
         Hoogle.Type.Language
@@ -124,6 +127,7 @@ executable hoogle
         bytestring, filepath, directory, process, random,
         array, containers, time, old-locale,
         safe,
+        binary,
         aeson >= 0.6.1,
         cmdargs >= 0.7,
         deepseq >= 1.1,
