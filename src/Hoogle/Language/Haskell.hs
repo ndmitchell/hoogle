@@ -79,7 +79,7 @@ fact x y = (x,[y])
 
 itemPackage hackageUrl x = fact [] $ textItem{itemLevel=0, itemKey="", itemName=x,
     itemKind=PackageItem,
-    itemURL= hackageUrl ++ "/package/" ++ x ++ "/",
+    itemURL= hackageUrl ++ "package/" ++ x ++ "/",
     itemDisp=Tags [emph "package",space,bold x]}
 
 itemEntry (x:xs) = fact [] $ textItem{itemName=y, itemKey=y,

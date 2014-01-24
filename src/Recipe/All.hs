@@ -114,7 +114,7 @@ rules opts@Data{..} warn = do
                     Right src ->
                         [""] ++ zipWith (++) ("-- | " : repeat "--   ") (cabalDescription src) ++
                         ["--","-- Version " ++ ver, "@url package/" ++ name, "@entry package " ++ name]
-            liftIO $ writeFileUtf8 out $ unlines $ ("@url " ++ hackage ++ "/") : "@package package" : concat xs
+            liftIO $ writeFileUtf8 out $ unlines $ ("@url " ++ hackage) : "@package package" : concat xs
 
         "*.txt" *> \out -> do
             let name = takeBaseName out
@@ -179,8 +179,8 @@ urls Data{..} = let (*) = (,) in
     ["keyword.htm" * "http://www.haskell.org/haskellwiki/Keywords"
     ,"platform.cabal" * "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal"
     ,"base.txt" * "http://www.haskell.org/hoogle/base.txt"
-    ,"cabal.tar.gz" * (hackage ++ "/packages/index.tar.gz")
-    ,"hoogle.tar.gz" * (hackage ++ "/packages/hoogle.tar.gz")]
+    ,"cabal.tar.gz" * (hackage ++ "packages/index.tar.gz")
+    ,"hoogle.tar.gz" * (hackage ++ "packages/hoogle.tar.gz")]
 
 
 withWarnings :: (([String] -> IO ()) -> IO ()) -> IO (Int, FilePath)

@@ -104,7 +104,7 @@ combine = Combine
     } &= help "Combine multiple databases into one"
 
 convert = Convert
-    {hackage = "http://hackage.haskell.org" &= typ "URL" &= help "Hackage instance to target"
+    {hackage = "http://hackage.haskell.org/" &= typ "URL" &= help "Hackage instance to target"
     ,srcfile = def &= argPos 0 &= typ "INPUT"
     ,outfile = def &= argPos 1 &= typ "DATABASE" &= opt ""
     ,doc = def &= typDir &= help "Path to the root of local or Hackage documentation for the package (implies --haddock)"
@@ -114,7 +114,7 @@ convert = Convert
 
 data_ = Data
     {datadir = def &= typDir &= help "Database directory"
-    ,hackage    = "http://hackage.haskell.org" &= typ "URL" &= help "Hackage instance to target"
+    ,hackage    = "http://hackage.haskell.org/" &= typ "URL" &= help "Hackage instance to target"
     ,redownload = def &= help "Redownload all files from the web"
     ,rebuild = def &= help "Rebuild everything"
     ,threads = 1 &= typ "INT" &= name "j" &= help "Number of threads to use"
