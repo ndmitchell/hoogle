@@ -88,7 +88,7 @@ matchOutput want got = f want ([],got)
     where
         f [] _ = Nothing
         f (x:xs) a = case match (code x) a of
-            Nothing -> Just $ "Failed to match: " ++ x
+            Nothing -> Just $ unlines $ ["Failed to match","Expected: " ++ x,"Got:"] ++ fst a ++ snd a
             Just a -> f xs a
 
         code ('@':xs) = second (drop 1) $ break (== ' ') xs
