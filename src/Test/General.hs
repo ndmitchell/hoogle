@@ -1,5 +1,5 @@
 
-module Test.General(parseTest) where
+module Test.General(parseTest, (===)) where
 
 import Control.Monad
 
@@ -10,3 +10,7 @@ parseTest f input output =
         Right x -> when (x /= output) $ err "Parse not equal" (show x)
     where
         err pre post = error $ pre ++ ":\n  " ++ input ++ "\n  " ++ show output ++ "\n  " ++ post
+
+
+(===) :: (Show a, Eq a) => a -> a -> IO ()
+a === b = when (a /= b) $ error $ "Expected: " ++ show a ++ "\nGot: " ++ show b
