@@ -33,16 +33,3 @@ parseTest2 f input output =
                     err "Parse not equal" (show x)
     where
         err pre post = error $ pre ++ ":\n  " ++ input ++ "\n  " ++ show output ++ "\n  " ++ post
-
-
----------------------------------------------------------------------
--- The List Monad
-
-data List a b = List {fromList :: [a]}
-
-instance Monad (List a) where
-    List a >> List b = List (a++b)
-
-pair :: a -> b -> List (a,b) c
-pair a b = List [(a,b)]
-
