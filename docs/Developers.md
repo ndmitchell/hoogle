@@ -36,7 +36,7 @@ Hoogle is available as a standard Haskell library, whose documentation is availa
 
 # JSON API
 
-The Hoogle website provides JSON output using the parameter `?format=json`. As an example:
+The Hoogle website provides JSON output using the parameter `?mode=json`. As an example:
 
     $ wget http://www.haskell.org/hoogle/?mode=json&hoogle=map&start=1&count=2
     {"version":"4.2.11"
