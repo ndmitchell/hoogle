@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, PatternGuards #-}
 
 -- | Burrows-Wheeler Transform, based on <http://www.cs.jhu.edu/~langmea/resources/bwt_fm.pdf>.
 module General.BurrowsWheeler(compress, compressIndicies, decompress) where
