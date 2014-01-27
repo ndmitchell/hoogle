@@ -150,6 +150,7 @@ executable hoogle
         warp >= 1.1,
         Cabal >= 1.8,
         shake >= 0.11,
+        QuickCheck,
         haskell-src-exts >= 1.14 && < 1.15
 
     if !os(mingw32)
