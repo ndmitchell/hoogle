@@ -55,6 +55,7 @@ library
         case-insensitive >= 0.2,
         http-types >= 0.7,
         wai >= 1.1,
+        vector >= 0.9,
         QuickCheck,
         haskell-src-exts >= 1.14 && < 1.15
 
@@ -138,6 +139,7 @@ executable hoogle
         http-types >= 0.7,
         case-insensitive >= 0.2,
         text >= 0.11,
+        vector >= 0.9,
         transformers >= 0.2,
         uniplate >= 1.6,
         conduit >= 0.2,
