@@ -1,8 +1,9 @@
 
-module Test.General where
+module Test.General(parseTest) where
 
 import Control.Monad
 
+parseTest :: (Show a, Show e, Eq a) => (String -> Either e a) -> String -> a -> IO ()
 parseTest f input output =
     case f input of
         Left x -> err "Parse failed" (show x)
