@@ -3,6 +3,7 @@ module Test.General(parseTest, (===)) where
 
 import Control.Monad
 import qualified Data.ByteString as BS
+import Test.QuickCheck
 
 
 instance Arbitrary BS.ByteString where
