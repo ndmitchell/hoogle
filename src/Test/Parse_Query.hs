@@ -6,6 +6,7 @@ import Test.General
 import Hoogle.Query.All
 import Hoogle.Type.All
 
+parse_Query :: IO ()
 parse_Query = do
     let (===) = parseTest parseQuery
         q = mempty

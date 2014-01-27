@@ -6,6 +6,8 @@ import Data.Maybe
 import Hoogle.Type.All
 import Hoogle.Query.All
 
+
+parse_TypeSig :: IO ()
 parse_TypeSig = do
     let parseTypeSig x = either Left (Right . fromMaybe (error $ "Couldn't find type in: " ++ x) . typeSig) $ parseQuery (":: " ++ x)
     let (===) = parseTest parseTypeSig
