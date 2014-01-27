@@ -2,6 +2,12 @@
 module Test.General(parseTest, (===)) where
 
 import Control.Monad
+import qualified Data.ByteString as BS
+
+
+instance Arbitrary BS.ByteString where
+    arbitrary = fmap BS.pack arbitrary
+
 
 parseTest :: (Show a, Show e, Eq a) => (String -> Either e a) -> String -> a -> IO ()
 parseTest f input output =
