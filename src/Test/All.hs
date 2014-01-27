@@ -7,7 +7,7 @@ import Test.Docs
 
 
 test :: IO ()
-test = print $ do
+test = do
     parse_TypeSig
     parse_Query
     docs

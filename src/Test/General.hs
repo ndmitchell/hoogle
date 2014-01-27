@@ -6,16 +6,10 @@ module Test.General where
 ---------------------------------------------------------------------
 -- The Test Monad
 
-data Test a = Test
-
-instance Monad Test where
-    a >> b = a `seq` b
-
-instance Show (Test a) where
-    show x = x `seq` "All tests passed"
+type Test a = IO a
 
 pass :: Test ()
-pass = Test
+pass = return ()
 
 
 parseTest f input output =
