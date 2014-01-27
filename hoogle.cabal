@@ -79,6 +79,7 @@ library
         General.TypeMap
         General.Base
         General.System
+        General.BurrowsWheeler
         General.FMIndex
         General.Util
         General.Web
@@ -167,6 +168,7 @@ executable hoogle
         Recipe.Haddock
         Recipe.Keyword
         Test.All
+        Test.BWT_FM
         Test.Docs
         Test.General
         Test.Parse_Query
