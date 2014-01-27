@@ -16,6 +16,16 @@ import System.IO
 
 data FMIndex a = FMIndex Char [(BS.ByteString, a)] deriving Show
 
+{-
+data FMIndex a = FMIndex
+    {specialChar :: Char -- Character used to separate words, and which there are associations for
+    ,positions :: V.Vector Word32 -- if positions[c] = n, that means there are n substrings that are less than c
+    ,associated :: V.Vector a -- values associated with each specialChar
+    ,rankAll :: V.Vector Word32 -- ranks, stored every 1024 entries, where rankAll[(n*256)/1024 + c] = rank of c at character n
+    ,contents :: BS.ByteString
+    }
+-}
+
 instance Functor FMIndex where
     fmap f (FMIndex a b) = FMIndex a $ map (second f) b
 
