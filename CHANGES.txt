@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Add QuickCheck as a dependency
     Change createDatabase to also save the file
     Disable rank feature
     Remove running a hoogle query without converting the database

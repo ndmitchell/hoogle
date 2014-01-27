@@ -55,6 +55,7 @@ library
         case-insensitive >= 0.2,
         http-types >= 0.7,
         wai >= 1.1,
+        QuickCheck,
         haskell-src-exts >= 1.14 && < 1.15
 
     if !os(mingw32)
