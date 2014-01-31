@@ -2,7 +2,7 @@
 
 module Hoogle.Store.All(
     SPut, SGet, runSPut, runSGet, runSGetAt, runAfter,
-    Once, fromOnce, once, findOnce, getDefer, putDefer,
+    Once, fromOnce, once, findOnce, unsafeFmapOnce, getDefer, putDefer,
     module Hoogle.Store.All
     ) where
 
