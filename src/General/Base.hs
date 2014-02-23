@@ -109,6 +109,23 @@ readFileUtf8 x = do
 #endif
 
 
+readFileLatin1' :: FilePath -> IO String
+readFileLatin1' x = do
+    src <- readFileLatin1 x
+    length src `seq` return src
+
+
+readFileLatin1 :: FilePath -> IO String
+#if __GLASGOW_HASKELL__ < 612
+readFileLatin1 x = readFile x
+#else
+readFileLatin1 x = do
+    h <- openFile x ReadMode
+    hSetEncoding h latin1
+    hGetContents h
+#endif
+
+
 writeFileUtf8 :: FilePath -> String -> IO ()
 #if __GLASGOW_HASKELL__ < 612
 writeFileUtf8 x y = writeFile x y
