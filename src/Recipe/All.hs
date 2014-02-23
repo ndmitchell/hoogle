@@ -124,7 +124,7 @@ rules opts@Data{..} warn = do
                    then need ["downloads/base.txt.cache"] >> return (Just "downloads/base.txt.cache")
                    else fmap (fmap $ srcHoogle name) $ verHoogle (HoogleVersion name)
             hoo <- return $ fromMaybe (error $ "Couldn't find hoogle file for " ++ name) hoo
-            hoo <- liftIO $ readFileUtf8' hoo `E.catch` \(_ :: SomeException) -> readFile hoo
+            hoo <- liftIO $ readFileUtf8' hoo `E.catch` \(_ :: SomeException) -> readFileLatin1' hoo
             deps <- liftIO $ case cab of
                 Nothing -> return []
                 Just cab -> do

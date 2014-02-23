@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #55, if reading as UTF8 fails, explicitly try Latin1
     Add QuickCheck as a dependency
     Change createDatabase to also save the file
     Disable rank feature
