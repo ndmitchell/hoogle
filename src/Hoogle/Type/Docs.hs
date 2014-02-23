@@ -12,7 +12,7 @@ import Data.Binary
 
 
 newtype Docs = Docs {fromDocs :: ByteString}
-    deriving (Eq,Ord,Binary)
+    deriving (Eq,Ord,Binary,Monoid)
 
 
 instance Store Docs where

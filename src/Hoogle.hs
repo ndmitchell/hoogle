@@ -39,6 +39,7 @@ import Hoogle.Score.All(Score)
 
 -- Turn on the new index/search pieces
 new = False
+new2 = False
 
 -- * Database
 
@@ -106,6 +107,12 @@ createDatabase url _ dbs src out = do
     -- don't build .str for .dep files
     when (new && takeExtension out == ".hoo") $ do
         createStr' (newPackage $ takeBaseName out) (map (Pos *** fromOnce) items) (out <.> "str")
+    when (new2 && takeExtension out == ".hoo") $ do
+        items <- fmap (map snd) $ H.saveDataBase (dropExtension out <.> "idx.hoo") $ H.createDataBaseEntries res
+        items <- return $ flip map items $ unsafeFmapOnce $ \e -> e{H.entryLocations = map (first $ const "") $ H.entryLocations e, H.entryName="", H.entryText=mempty, H.entryDocs=mempty}
+        H.saveDataBase (dropExtension out <.> "str.hoo") $ H.createDataBaseText items
+        H.saveDataBase (dropExtension out <.> "typ.hoo") $ H.createDataBaseType xs res items
+        return ()
     return err
 
 

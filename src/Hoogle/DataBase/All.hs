@@ -25,6 +25,22 @@ createDataBase deps (facts,xs) = DataBase items
         tys = [(sig, x) | x <- ys, Just sig <- [entryType $ fromOnce x]]
 
 
+createDataBaseEntries :: Input -> DataBase
+createDataBaseEntries (facts,xs) = DataBase (createItems xs) (createSubstrSearch []) (createTypeSearch mempty mempty []) mempty mempty mempty
+
+createDataBaseText :: [Once Entry] -> DataBase
+createDataBaseText ys = DataBase mempty ns (createTypeSearch mempty mempty []) mempty mempty mempty
+    where ns = createSubstrSearch [(k, y) | y <- ys, let k = entryKey $ fromOnce y, k /= ""]
+
+createDataBaseType :: [DataBase] -> Input -> [Once Entry] -> DataBase
+createDataBaseType deps (facts,_) ys = DataBase mempty
+        (createSubstrSearch []) (createTypeSearch as is tys)
+        (createSuggest (map suggest deps) facts) as is
+    where
+        as = createAliases (map aliases deps) facts
+        is = createInstances (map instances deps) facts
+        tys = [(sig, x) | x <- ys, Just sig <- [entryType $ fromOnce x]]
+
 
 combineDataBase :: [DataBase] -> DataBase
 combineDataBase [db] = db

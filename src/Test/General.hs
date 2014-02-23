@@ -1,5 +1,5 @@
 
-module Test.General(parseTest, (===)) where
+module Test.General(parseTest, (===), randCheck) where
 
 import Control.Monad
 import qualified Data.ByteString as BS
@@ -21,3 +21,9 @@ parseTest f input output =
 
 (===) :: (Show a, Eq a) => a -> a -> IO ()
 a === b = when (a /= b) $ error $ "Expected: " ++ show a ++ "\nGot: " ++ show b
+
+randCheck :: Testable a => a -> IO ()
+randCheck p = do
+    res <- quickCheckWithResult stdArgs p
+    let bad = case res of Failure{} -> True; GaveUp{} -> True; _ -> False
+    when bad $ error "QuickCheck failed"

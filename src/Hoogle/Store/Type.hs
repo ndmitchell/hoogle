@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable #-}
 
 module Hoogle.Store.Type(
-    Once, once, fromOnce, putOnce, getOnce, findOnce,
+    Once, once, fromOnce, putOnce, getOnce, findOnce, unsafeFmapOnce,
     SPut, runSPut, putByteString, putStorable, putDefer, runAfter,
     SGet, runSGet, runSGetAt, getByteString, getStorable, getDefer, getLazyList
     ) where
@@ -28,6 +28,9 @@ stats = False
 --   If two are loaded from a file they are equal.
 data Once a = Once {_onceKey :: Int, valueOnce :: a}
               deriving Typeable
+
+unsafeFmapOnce :: (a -> b) -> Once a -> Once b
+unsafeFmapOnce f (Once k v) = Once k $ f v
 
 instance NFData a => NFData (Once a) where
     rnf (Once a b) = rnf (a,b)
