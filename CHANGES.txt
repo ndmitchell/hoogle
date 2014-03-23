@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #57, support QuickCheck-2.7
 4.2.29
     #55, if reading as UTF8 fails, explicitly try Latin1
     Add QuickCheck as a dependency
