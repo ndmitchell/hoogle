@@ -3,7 +3,7 @@
 module Test.BWT_FM(bwt_fm) where
 
 import Test.General
-import Test.QuickCheck
+import Test.QuickCheck hiding ((===))
 import General.BurrowsWheeler
 
 
