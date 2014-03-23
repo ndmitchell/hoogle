@@ -3,7 +3,7 @@ module Test.General(parseTest, (===), randCheck) where
 
 import Control.Monad
 import qualified Data.ByteString as BS
-import Test.QuickCheck
+import Test.QuickCheck hiding ((===))
 
 
 instance Arbitrary BS.ByteString where
