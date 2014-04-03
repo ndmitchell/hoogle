@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #61, support conduit-1.1
 4.2.30
     #57, support QuickCheck-2.7
 4.2.29
