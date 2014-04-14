@@ -30,8 +30,10 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 
 import Blaze.ByteString.Builder(toLazyByteString)
 import Data.Conduit.List(consume)
-import Data.Conduit(($$),Flush,Flush(Chunk))
+import Data.Conduit(($$),Flush(Chunk))
+#if !MIN_VERSION_wai(2, 0, 0)
 import Control.Monad.Trans.Resource (runResourceT)
+#endif
 
 type Args = [(String, String)]
 
