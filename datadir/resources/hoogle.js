@@ -24,8 +24,18 @@ $(function(){
     var past = cache(100); // Cache of previous searches
     var watch = watchdog(500, function(){self.showWaiting();}); // Timeout of the "Waiting..." callback
 
+    var debounceTime = 1000;
+    var lastExecTime = 0;
+
     $hoogle.keyup(function(){
         if (!instant) return;
+
+        var currExecTime = Date.now();
+        if(currExecTime - lastExecTime < debounceTime) {
+            lastExecTime = currExecTime;
+            return;
+        }
+        lastExecTime = currExecTime;
 
         var now = $hoogle.val();
         if (now == active) return;
@@ -353,7 +363,7 @@ function cache(maxElems)
         {
             contents["#" + key] = val;
         },
-        
+
         ask: function(key)
         {
             return contents["#" + key];
