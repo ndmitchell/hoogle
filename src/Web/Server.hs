@@ -32,14 +32,23 @@ server q@Server{..} = do
     resp <- respArgs q
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
-    runSettings defaultSettings{settingsOnException=exception, settingsPort=port} $ \r -> liftIO $ do
+    runSettings defaultSettings{settingsOnException=exception, settingsPort=port}
+#if MIN_VERSION_wai(3, 0, 0)
+      $ \r sendResponse -> do
+#else
+      $ \r -> liftIO $ do
+#endif
         start <- getCurrentTime
         res <- talk resp q r
         responseEvaluate res
         stop <- getCurrentTime
         let t = floor $ diffUTCTime stop start * 1000
         withMVar v $ const $ putStrLn $ bsUnpack (rawPathInfo r) ++ bsUnpack (rawQueryString r) ++ " ms:" ++ show t
+#if MIN_VERSION_wai(3, 0, 0)
+        sendResponse res
+#else
         return res
+#endif
 
 
 #if MIN_VERSION_wai(2, 0, 0)

@@ -21,6 +21,9 @@ import General.System
 import General.Base
 import System.FilePath
 import Network.Wai
+#if MIN_VERSION_wai(3, 0, 0)
+import Data.IORef
+#endif
 #if MIN_VERSION_wai(2, 0, 0)
 import Network.Wai.Internal
 #endif
@@ -46,7 +49,15 @@ responseNotFound x = responseLBS status404 [] $ fromString $ "File not found: " 
 
 responseFlatten :: Response -> IO (Status, ResponseHeaders, LBString)
 responseFlatten r = do
-#if MIN_VERSION_wai(2, 0, 0)
+#if MIN_VERSION_wai(3, 0, 0)
+    let (s,hs,withBody) = responseToStream r
+    ref <- newIORef mempty
+    let addChunk builder = modifyIORef ref (<> builder)
+    withBody $ \body -> body addChunk (return ())
+    builder <- readIORef ref
+    let res = toLazyByteString builder
+    return (s,hs,res)
+#elif MIN_VERSION_wai(2, 0, 0)
     let (s,hs,withSrc) = responseToSource r
     chunks <- withSrc $ \src -> src $$ consume
     let res = toLazyByteString $ mconcat [x | Chunk x <- chunks]
