@@ -1,7 +1,7 @@
 cabal-version:      >= 1.10
 build-type:         Simple
 name:               hoogle
-version:            4.2.32
+version:            4.2.33
 license:            BSD3
 license-file:       docs/LICENSE
 category:           Development
