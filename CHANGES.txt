@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow WAI-3.0
 4.2.32
     Allow haskell-src-exts-1.15
 4.2.31
