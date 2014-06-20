@@ -23,7 +23,7 @@ data TagStr
     | TagEmph TagStr -- ^ Underlined/italic text.
     | TagLink String TagStr -- ^ A hyperlink to a URL.
     | TagColor Int TagStr -- ^ Colored text. Index into a 0-based palette. Text without any 'TagColor' should be black.
-      deriving (Data,Typeable,Ord,Show,Eq)
+      deriving (Data,Typeable,Ord,Show,Eq,Read)
 
 instance B.Binary TagStr where
     put (Str x) = B.putWord8 0 >> B.put (BS.pack x)

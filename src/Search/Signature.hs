@@ -6,15 +6,15 @@ module Search.Signature(
 import Search.Type
 
 signatureCreate :: FilePath -> Package -> [Package] -> [(Key, Stm)] -> IO ()
-signatureCreate = undefined
+signatureCreate dir out deps xs = return ()
 
 
 signatureMerge :: FilePath -> [Package] -> IO ()
-signatureMerge = undefined
+signatureMerge = error "signatureMerge"
 
 
-signatureSearch :: FilePath -> [Package] -> Typ -> [(Key, [Int])]
-signatureSearch = undefined
+signatureSearch :: FilePath -> Package -> Typ -> IO [(Double, (Key, [Int]))]
+signatureSearch = error "signatureSearch"
 
 
 {-

@@ -11,18 +11,8 @@ import Hoogle
 
 actionSearch :: CmdLine -> Query -> IO ()
 actionSearch flags q = do
-    (missing,dbs) <- loadQueryDatabases (databases flags) q
-    unless (null missing) $ do
-        n <- availableDatabases (databases flags)
-        exitMessage $
-            ("Could not find some databases: " ++ unwords missing) :
-            "Searching in:" : map ("  "++) (databases flags) ++ [""] ++
-            (if null n then ["There are no available databases, generate them with: hoogle data"]
-             else ["Either the package does not exist or has not been generated"] ++
-                  ["Generate more databases with: hoogle data all" | length n < 100] ++
-                  ["Found " ++ show (length n) ++ " databases, including: " ++ unwords (take 5 n) | not $ null n])
-
-    let sug = suggestions dbs q
+    let dir = last $ "." : databases flags
+    let sug = suggestions dir q
     when (isJust sug) $
         putStrLn $ showTag $ fromJust sug
     verbose <- isLoud
@@ -31,7 +21,7 @@ actionSearch flags q = do
     when (color flags) $
         putStrLn $ "Searching for: " ++ showTag (renderQuery q)
 
-    let res = restrict $ concatMap expand $ search dbs q
+    res <- restrict . concatMap expand . map ((,) ()) <$> search dir q
     if null res then
         putStrLn "No results found"
      else if info flags then do

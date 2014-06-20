@@ -154,3 +154,5 @@ chop f as = b : chop f as'
 fromList :: a -> [a] -> a
 fromList x [] = x
 fromList x (y:ys) = y
+
+for = flip map

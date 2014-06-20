@@ -3,7 +3,7 @@
 module Web.Server(server) where
 
 #ifndef MIN_VERSION_wai
-#define MIN_VERSION_wai(a,b,c) 0
+#define MIN_VERSION_wai(a,b,c) ((a == 2) || (a == 3))
 #endif
 
 import General.Base
@@ -102,7 +102,7 @@ buffer files act = do
 
 -- FIXME: Avoid all the conversions to/from LBS
 talk :: IO ResponseArgs -> CmdLine -> Request -> IO Response
-talk resp Server{..} r@Request{rawPathInfo=path_, rawQueryString=query_}
+talk = undefined {- resp Server{..} r@Request{rawPathInfo=path_, rawQueryString=query_}
     | path `elem` ["/","/hoogle"] = do
         let args = parseHttpQueryArgs $ drop 1 query
         cmd <- cmdLineWeb args
@@ -115,7 +115,7 @@ talk resp Server{..} r@Request{rawPathInfo=path_, rawQueryString=query_}
         let hasDrive = "/" `isPrefixOf` path && ":" `isPrefixOf` (drop 2 path)
         in serveFile False (if hasDrive then drop 1 path else path) local_
     | otherwise = return $ responseNotFound $ show path
-    where (path,query) = (bsUnpack path_, bsUnpack query_)
+    where (path,query) = (bsUnpack path_, bsUnpack query_) -}
 
 
 serveSearch :: FilePath -> Maybe String -> IO Response
@@ -127,7 +127,7 @@ serveSearch resources domain = do
 
 
 serveFile :: Bool -> FilePath -> Bool -> IO Response
-serveFile cache file rewriteLinks = do
+serveFile cache file rewriteLinks = undefined {- do
     b <- doesFileExist file
     if not b
 	then return $ responseNotFound file
@@ -136,7 +136,7 @@ serveFile cache file rewriteLinks = do
 
     where hdr = [(hContentType, fromString $ contentExt $ takeExtension file)] ++
                 [(hCacheControl, fromString "max-age=604800" {- 1 week -}) | cache]
-
+-}
 
 rewriteFileLinks :: Response -> IO Response
 rewriteFileLinks = responseRewrite $ lbsReplace (fromString "href='file://") (fromString "href='/file/")

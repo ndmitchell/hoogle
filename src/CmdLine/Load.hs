@@ -10,15 +10,15 @@ import System.FilePath
 
 -- | Given a list of search directories, and a query, load the databases you
 --   need, and return a list of those that you couldn't find
-loadQueryDatabases :: [FilePath] -> Query -> IO ([String],Database)
-loadQueryDatabases paths q = do
+loadQueryDatabases :: [FilePath] -> Query -> IO ([String],[Package])
+loadQueryDatabases paths q = error "loadQueryDatabases" {- do
     let findFile = findM doesFileExist
     let xs = queryDatabases q
     fmap (second mconcat . partitionEithers) $ forM xs $ \x -> do
         r <- findFile [p </> x <.> "hoo" | p <- paths]
         case r of
             Nothing -> return $ Left x
-            Just x -> fmap Right $ loadDatabase x
+            Just x -> fmap Right $ loadDatabase x -}
 
 
 availableDatabases :: [FilePath] -> IO [String]

@@ -6,7 +6,7 @@ import Hoogle
 
 
 rank :: FilePath -> IO ()
-rank file = do
+rank file = undefined {- do
     src <- readFile' file
     res <- scoring $ scores $ parse $ lines src
     putStrLn res
@@ -32,3 +32,4 @@ parse src = (db, [(drop 6 x, filter isReal $ takeWhile (not . isRank) xs) | x:xs
         isReal x = not $ all isSpace x || "--" `isPrefixOf` x
         isRank = isPrefixOf "@rank "
         (db,rest) = break isRank src
+-}

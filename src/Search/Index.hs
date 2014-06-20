@@ -12,14 +12,14 @@ import qualified Data.Map as Map
 -- e.g. create [package-cmdargs,package-tagsoup] (Index author-neil)
 -- boolean is does the index exist with search lumps
 indexCreate :: FilePath -> Package -> [Package] -> Bool -> IO ()
-indexCreate = undefined
+indexCreate _ _ _ _ = return ()
 
 
 -- merge the entries, so you have one global index
 indexMerge :: FilePath -> [Package] -> Package -> IO ()
-indexMerge = undefined
+indexMerge = error "indexMerge"
 
 
 -- load an index from disk
 indexLoad :: FilePath -> Package -> Map.Map String [String]
-indexLoad = undefined
+indexLoad = error "indexLoad"

@@ -62,12 +62,12 @@ action (Convert url from to doc merge haddock) = do
 
 action (Combine from to) = do
     putStrLn $ "Combining " ++ show (length from) ++ " databases"
-    mergeDatabase from to
+    undefined -- mergeDatabase from to
 
-action (Dump file sections) = do
+action (Dump file sections) = undefined {- do
     d <- loadDatabase file
     putStrLn $ "File: " ++ file
-    putStr $ showDatabase d $ if null sections then Nothing else Just sections
+    putStr $ showDatabase d $ if null sections then Nothing else Just sections -}
 
 action q@Search{} | fromRight (queryParsed q) == mempty =
     exitMessage ["No query entered"
@@ -81,8 +81,8 @@ convert :: HackageURL -> [FilePath] -> String -> FilePath -> String -> IO ()
 convert url deps x out src = do
     deps2 <- filterM doesFileExist deps
     when (deps /= deps2) $ putStrLn $ "Warning: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps \\ deps2)
-    dbs <- mapM loadDatabase deps2
+    dbs <- undefined -- mapM loadDatabase deps2
     putStr $ "Converting " ++ x ++ "... "
-    err <- createDatabase url Haskell dbs src out
+    err <- undefined -- err <- createDatabase url Haskell dbs src out
     putStrLn "done"
     unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x

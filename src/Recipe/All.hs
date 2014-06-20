@@ -163,15 +163,16 @@ rules opts@Data{..} warn = do
                 let deps = [x <.> "hoo" | x <- contents, Just x <- [stripPrefix "@combine " x]]
                 need deps
                 putNormal $ "Creating " ++ out ++ " from " ++ show (length deps) ++ " databases... "
-                liftIO $ mergeDatabase deps out
+                undefined
+                -- liftIO $ packageMerge "." deps out
              else do
                 (deps, contents) <- return $ splitDeps contents
                 deps <- genImported (Set.singleton $ takeBaseName out) deps
                 putNormal $ "Creating " ++ out ++ "... "
-                liftIO $ createDatabase hackage Haskell [] (unlines deps) $ out -<.> "dep"
-                deps <- liftIO $ loadDatabase $ out -<.> "dep"
-                err <- liftIO $ createDatabase hackage Haskell [deps] (unlines contents) out
-                liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
+                undefined
+                -- liftIO $ packageCreate Haskell hackage [] (unlines deps) $ out -<.> "dep"
+                -- err <- liftIO $ packageCreate Haskell hackage [Package $ out "-deps"] (unlines contents) (Package out)
+                -- liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
 
 
 urls :: CmdLine -> [(FilePath, URL)]

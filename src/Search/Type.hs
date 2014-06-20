@@ -9,9 +9,18 @@ module Search.Type(
 import Data.Word
 
 
-newtype Key = Key Word32
+-- | FIXME: Should be Word32 with a global offset table, once optimised
+data Key = Key String deriving (Show,Read)
 
-newtype Package = Package String
+data Package
+    = Package String
+    | Category String
+    | Author String
+
+instance Show Package where
+    show (Package x) = "package-" ++ x
+    show (Category x) = "category-" ++ x
+    show (Author x) = "author-" ++ x
 
 
 data Stm = TypeAlias Typ Typ
@@ -21,3 +30,4 @@ data Stm = TypeAlias Typ Typ
 data Typ = TCon String
          | TVar String
          | TApp Typ [Typ]
+

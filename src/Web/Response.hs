@@ -69,14 +69,16 @@ logMessage q = do
 
 
 runSuggest :: CmdLine -> IO String
-runSuggest cq@Search{queryText=q} = do
+runSuggest cq@Search{queryText=q} = undefined {- do
     (_, db) <- loadQueryDatabases (databases cq) mempty
     let res = completions db q
     return $ "[" ++ show q ++ "," ++ show res ++ "]"
-runSuggest _ = return ""
+runSuggest _ = return "" -}
 
 
-runEmbed :: Database -> CmdLine -> String
+runEmbed :: [Package] -> CmdLine -> String
+runEmbed = undefined
+{-
 runEmbed dbs Search{queryParsed = Left err} = "<i>Parse error: " ++& errorMessage err ++ "</i>"
 runEmbed dbs cq@Search{queryParsed = Right q}
     | null now = "<i>No results found</i>"
@@ -88,9 +90,11 @@ runEmbed dbs cq@Search{queryParsed = Right q}
         f (TagEmph x) = TagBold x
         f (TagBold x) = x
         f x = x
+-}
 
-
-runJson :: Database -> CmdLine -> LBS.ByteString
+runJson :: [Package] -> CmdLine -> LBS.ByteString
+runJson = undefined
+{-
 runJson dbs Search{queryParsed = Left err} =
     J.encode $ J.object [ fromString "version"    J..= version
                         , fromString "parseError" J..= show err
@@ -112,14 +116,14 @@ runJson dbs cq@Search{queryParsed = Right q} =
                        , fromString "self" J..= showTagText self
                        , fromString "docs" J..= showTagText docs
                        ]
+-}
 
-
-runQuery :: Templates -> Bool -> Database -> CmdLine -> String
-runQuery templates ajax dbs Search{queryParsed = Left err} =
+runQuery :: Templates -> Bool -> [Package] -> CmdLine -> String
+runQuery = undefined {- templates ajax dbs Search{queryParsed = Left err} =
     parseError templates (showTagHTMLWith f $ parseInput err) (errorMessage err)
     where
         f (TagEmph x) = Just $ "<span class='error'>" ++ showTagHTMLWith f x ++ "</span>"
-        f _ = Nothing
+        f _ = Nothing 
 
 
 runQuery templates ajax dbs q | fromRight (queryParsed q) == mempty = welcome templates
@@ -164,7 +168,7 @@ runQuery templates ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = u
 
         urlMore = searchLink qt ++ "&start=" ++ show (start2+count2+1) ++ "#more"
         qstr = showTagHTML (renderQuery q)
-
+-}
 
 renderRes :: Int -> Bool -> Result -> [String]
 renderRes i more Result{..} =

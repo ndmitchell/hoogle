@@ -62,12 +62,12 @@ captureOutput act = do
     hDuplicateTo h stdout
     hDuplicateTo h stderr
     hClose h
-    act
+    e <- E.try act
     hDuplicateTo sto stdout
     hDuplicateTo ste stderr
     res <- readFile' f
     removeFile f
-    return $ Just res
+    either (\e -> E.throw (e :: E.SomeException)) (const $ return $ Just res) e
 #endif
 
 
