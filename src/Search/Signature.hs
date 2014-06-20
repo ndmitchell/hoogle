@@ -5,7 +5,7 @@ module Search.Signature(
 
 import Search.Type
 
-signatureCreate :: FilePath -> Package -> [(Key, Stm)] -> IO ()
+signatureCreate :: FilePath -> Package -> [Package] -> [(Key, Stm)] -> IO ()
 signatureCreate = undefined
 
 
