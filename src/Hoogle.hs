@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 
 -- | The Hoogle API. To perform a search you call 'search' with a 'Database' (obtained by 'loadDatabase') and a
 --   'Query' (obtained by 'parseQuery').
@@ -71,11 +72,15 @@ packageCreate
     -> IO [H.ParseError] -- ^ A list of any parse errors present in the input definition that were skipped.
 packageCreate dir _ url deps src out = do
     let (err,(fact,item)) = H.parseInputHaskell url src
-    keys <- valueCreate dir out [Result [] (Str $ H.itemName i) mempty | i <- item]
-    substringCreate dir out $ zip keys $ map H.itemKey item
-    signatureCreate dir out deps $ zip keys $ map (error "package-signature") item
+    items <- (`zip` item) <$> valueCreate dir out (map itemResult item)
+    substringCreate dir out $ map (second H.itemKey) items
+    signatureCreate dir out deps fact
+        (mapMaybe (\(a,b) -> fmap (a,) $ H.itemType b) items)
     indexCreate dir out [out] True
     return err
+
+itemResult :: H.TextItem -> Result
+itemResult i = Result [] (Str $ H.itemName i) mempty
 
 
 -- | Show debugging information on some parts of the database. If the second argument

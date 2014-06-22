@@ -13,7 +13,7 @@ import Data.Generics.UniplateOn
 
 -- FULL TYPE
 data TypeSig = TypeSig Constraint Type
-               deriving (Eq,Ord,Data,Typeable)
+               deriving (Eq,Ord,Data,Typeable,Show,Read)
 
 instance NFData TypeSig where
     rnf (TypeSig a b) = rnf (a,b)
@@ -38,7 +38,7 @@ data Type = TApp Type [Type] -- a list of types, first one being the constructor
           | TLit String -- bound variables, Maybe, ":", "(,)", "(,,)" (tuple)
           | TVar String -- unbound variables, "a"
           | TFun [Type]
-          deriving (Eq,Ord,Data,Typeable)
+          deriving (Eq,Ord,Data,Typeable,Show,Read)
 
 instance NFData Type where
     rnf (TApp a b) = rnf (a,b)
@@ -137,6 +137,7 @@ showConstraint [x] = show x ++ " => "
 showConstraint xs = "(" ++ intercalate ", " (map show xs) ++ ") => "
 
 
+{-
 -- TODO: show (TLit ":+:") should be "(:+:)"
 instance Show Type where
     showsPrec i x = showString $ f i x
@@ -166,7 +167,7 @@ instance Show Type where
 
 instance Show TypeSig where
     show (TypeSig x xs) = showConstraint x ++ show xs
-
+-}
 
 -- shows an element within a function
 -- to get brackets right after splitFun

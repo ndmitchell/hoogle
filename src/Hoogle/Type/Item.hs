@@ -48,7 +48,7 @@ data Fact
     | FactDataKind String Int
     | FactClassKind String Int
     | FactCtorType String String -- Ctor, Data
-      deriving Show
+      deriving (Show,Read)
 
 
 -- Invariant: locations will not be empty

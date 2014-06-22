@@ -4,8 +4,10 @@ module Search.Suggest(
     ) where
 
 import Search.Type
+import Hoogle.Type.Item
+import Hoogle.Type.TypeSig
 
-createSuggest :: FilePath -> Package -> [Stm] -> IO ()
+createSuggest :: FilePath -> Package -> [Fact] -> IO ()
 createSuggest = undefined
 
 
@@ -13,5 +15,5 @@ mergeSuggest :: FilePath -> [Package] -> Package -> IO ()
 mergeSuggest = undefined
 
 
-searchSuggest :: FilePath -> [Package] -> (Maybe String, Maybe Typ) -> IO (Maybe (Maybe String, Maybe Typ))
+searchSuggest :: FilePath -> [Package] -> (Maybe String, Maybe TypeSig) -> IO (Maybe (Maybe String, Maybe TypeSig))
 searchSuggest = undefined
