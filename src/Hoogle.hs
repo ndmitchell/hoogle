@@ -9,6 +9,7 @@ module Hoogle(
     H.Language(..),
     -- * Database
     Database, loadDatabase, saveDatabase, createDatabase, mergeDatabase, showDatabase,
+    defaultDatabaseLocation,
     -- * Query
     Query, parseQuery, H.renderQuery,
     H.queryDatabases, H.queryPackages, H.querySetPackage,
@@ -25,6 +26,7 @@ import System.FilePath
 import Hoogle.DataBase2.Type
 import Hoogle.DataBase2.Str
 import System.IO.Unsafe
+import Paths_hoogle
 
 import Hoogle.Type.TagStr
 import qualified Hoogle.DataBase.All as H
@@ -87,6 +89,10 @@ mergeDatabase src out = do
 --   it will probably throw an error.
 loadDatabase :: FilePath -> IO Database
 loadDatabase x = do db <- H.loadDataBase x; return $ Database [(x, db)]
+
+
+defaultDatabaseLocation :: IO FilePath
+defaultDatabaseLocation = getDataDir
 
 
 -- | Create a database from an input definition. Source files for Hoogle databases are usually
