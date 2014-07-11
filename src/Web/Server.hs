@@ -32,7 +32,7 @@ server q@Server{..} = do
     resp <- respArgs q
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
-    runSettings defaultSettings{settingsOnException=exception, settingsPort=port}
+    runSettings defaultSettings{setOnException=exception, setPort=port}
 #if MIN_VERSION_wai(3, 0, 0)
       $ \r sendResponse -> do
 #else
@@ -112,7 +112,7 @@ talk resp Server{..} r@Request{rawPathInfo=path_, rawQueryString=query_}
     | path == "/res/search.xml" = serveSearch resources (fmap bsUnpack $ join $ lookup (fromString "domain") $ queryString r)
     | takeDirectory path == "/res" = serveFile True (resources </> takeFileName path) False
     | local_, Just path <- stripPrefix "/file/" path =
-        let hasDrive = "/" `isPrefixOf` path && ":" `isPrefixOf` (drop 2 path)
+        let hasDrive = "/" `isPrefixOf` path && ":" `isPrefixOf` drop 2 path
         in serveFile False (if hasDrive then drop 1 path else path) local_
     | otherwise = return $ responseNotFound $ show path
     where (path,query) = (bsUnpack path_, bsUnpack query_)
@@ -134,7 +134,7 @@ serveFile cache file rewriteLinks = do
 	else (if rewriteLinks then rewriteHaddockFileLinks else return) $ ResponseFile ok200 hdr file Nothing
 	    
 
-    where hdr = [(hContentType, fromString $ contentExt $ takeExtension file)] ++
+    where hdr = [(hContentType, fromString $ contentExt $ takeExtension file)] :
                 [(hCacheControl, fromString "max-age=604800" {- 1 week -}) | cache]
 
 
