@@ -32,7 +32,7 @@ server q@Server{..} = do
     resp <- respArgs q
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
-    runSettings defaultSettings{setOnException=exception, setPort=port}
+    runSettings (setOnException (exception) $ setPort (port) $ defaultSettings)
 #if MIN_VERSION_wai(3, 0, 0)
       $ \r sendResponse -> do
 #else
@@ -134,7 +134,7 @@ serveFile cache file rewriteLinks = do
 	else (if rewriteLinks then rewriteHaddockFileLinks else return) $ ResponseFile ok200 hdr file Nothing
 	    
 
-    where hdr = [(hContentType, fromString $ contentExt $ takeExtension file)] :
+    where hdr = (hContentType, fromString $ contentExt $ takeExtension file) :
                 [(hCacheControl, fromString "max-age=604800" {- 1 week -}) | cache]
 
 
