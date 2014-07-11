@@ -47,6 +47,21 @@ With the set of packages you are searching, you can also restrict the set of mod
 
 # Integration
 
+## Command Line Version
+
+To invoke Hoogle type:
+
+    hoogle "[a] -> [b]"
+
+Note the quotes, otherwise you will redirect the output to the file [b].
+
+To ensure you have data files for the Hackage modules, you will first need to
+type:
+
+    hoogle data
+
+Which will download and build Hoogle databases.
+
 ## Chrome Integration
 
 **As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](http://haskell.org/hoogle/) in Chrome, right-click in the Hoogle search field and select "Add as a search engine...". Give it a keyword such as "h".
@@ -80,6 +95,15 @@ A lot of related work was done by Rittri [1] and Runciman [2] in the late 80's. 
 
 I have given several presentations on type searching all available from [my home page](http://community.haskell.org/~ndm/hoogle).
 
+## Folders
+
+The folders in the distribution, and their meaning are:
+
+data - tools to generate a hoogle data file
+docs - documentation on hoogle
+misc - presentations, icons, emacs scripts, logos
+src  - source code
+web  - additional resources for the web front end (css, jpg etc.)
 
 ## Similar Tools
 
