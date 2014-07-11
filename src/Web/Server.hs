@@ -32,7 +32,7 @@ server q@Server{..} = do
     resp <- respArgs q
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
-    runSettings (setOnException (exception) $ setPort (port) $ defaultSettings)
+    runSettings (setOnException exception $ setPort port defaultSettings)
 #if MIN_VERSION_wai(3, 0, 0)
       $ \r sendResponse -> do
 #else
