@@ -192,4 +192,4 @@ test-suite hoogle-test
     default-language: Haskell98
 
     type: exitcode-stdio-1.0
-    build-depends: base >= 3, process, directory, filepath
+    build-depends: base >= 3, process, directory, filepath, temporary >= 1.1
