@@ -38,7 +38,9 @@ data CmdLine
         , local :: [String]
         , datadir :: FilePath
         , threads :: Int
-        , actions :: [String]}
+        , actions :: [String]
+        , nodownload :: Bool
+        }
     | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, dynamic :: Bool, template :: [FilePath]}
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {
@@ -120,6 +122,7 @@ data_ = Data
     ,threads = 1 &= typ "INT" &= name "j" &= help "Number of threads to use"
     ,actions = def &= args &= typ "RULE"
     ,local = def &= opt "" &= typ "FILEPATH" &= help "Use local documentation if available"
+    ,nodownload = def &= explicit &= name "no-download" &= help "Abort if any of the needed source files are missing, instead of downloading them"
     } &= help "Generate Hoogle databases"
       &= details ["Each argument should be the name of a database you want to generate"
                  ,"optionally followed by which files to combine. Common options:"
