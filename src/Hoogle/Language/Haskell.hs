@@ -233,7 +233,7 @@ transDeclHead x y = TypeSig (transContext x) $ f y
     where f (DHead _ name) = TLit $ unbracket $ prettyPrint name
           f (DHInfix s a b) = f $ DHApp s (DHead s b) a
           f (DHParen _ x) = f x
-          f (DHApp _ a b) = tApp (f a) [transVar b]
+          f (DHApp _ a b) = ttApp (f a) [transVar b]
 
 transInstRule :: InstRule S -> TypeSig
 transInstRule (IParen _ x) = transInstRule x
@@ -244,7 +244,7 @@ transInstHead x y = TypeSig (transContext x) $ f y
     where f (IHCon _ name) = TLit $ unbracket $ prettyPrint name
           f (IHInfix s x y) = f $ IHApp s (IHCon s y) x
           f (IHParen _ x) = f x
-          f (IHApp _ t x) = tApp (f t) [transType x]
+          f (IHApp _ t x) = ttApp (f t) [transType x]
 
 transVar :: TyVarBind S -> Type
 transVar (KindedVar _ nam _) = TVar $ prettyPrint nam
