@@ -31,7 +31,9 @@ recipes opt@Data{..} = withModeGlobalRead $ do
     createDirectoryIfMissing True datadir
     withDirectory datadir $ do
         when redownload $ do
-            forM_ (urls opt) $ \(file,_) -> removeFile_ $ "downloads" </> file
+            if nodownload
+              then error "Downloads are disabled, cannot re-download"
+              else forM_ (urls opt) $ \(file,_) -> removeFile_ $ "downloads" </> file
         when rebuild $ removeFile ".shake.database"
         (count, file) <- withWarnings $ \warn ->
             shake shakeOptions{shakeVersion=showVersion V.version, shakeThreads=threads, shakeProgress=progressSimple} $
@@ -50,9 +52,11 @@ rules opts@Data{..} warn = do
 
     (\x -> "downloads/*" ?== x &&
            isJust (lookup (takeFileName x) (urls opts))) ?> \out -> do
+        when nodownload $
+             error "Downloads are disabled; you need to acquire the source files manually."
         let Just url = lookup (takeFileName out) (urls opts)
         putNormal $ "Downloading " ++ out
-        wget url out
+        wget opts url out
         putNormal $ "Downloaded " ++ out
 
     "downloads/*.cache" *> \out -> do

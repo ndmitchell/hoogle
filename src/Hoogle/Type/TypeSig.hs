@@ -50,6 +50,11 @@ tApp :: Type -> [Type] -> Type
 tApp t [] = t
 tApp t ts = TApp t ts
 
+ttApp :: Type -> [Type] -> Type
+ttApp t [] = t
+ttApp (TApp t ts) ts2 = TApp t (ts++ts2)
+ttApp t ts = TApp t ts
+
 
 fromTFun :: Type -> [Type]
 fromTFun (TFun x) = x

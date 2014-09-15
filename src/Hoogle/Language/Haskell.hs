@@ -124,7 +124,7 @@ setModuleURL _ _ x = x
 
 transDecl :: String -> Decl S -> Maybe ([Fact],[TextItem])
 transDecl x (GDataDecl s dat ctxt hd _ [] _) = transDecl x $ DataDecl s dat ctxt hd [] Nothing
-transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name ty] _) = transDecl x $ HSE.TypeSig s [name] ty
+transDecl x (GDataDecl _ _ _ _ _ [GadtDecl s name _ ty] _) = transDecl x $ HSE.TypeSig s [name] ty
 
 transDecl x (HSE.TypeSig _ [name] tyy) = Just $ fact (ctr++kinds False typ) $ textItem{itemName=nam,itemKey=nam,
     itemType=Just typ, itemKind=kind,
@@ -161,8 +161,8 @@ transDecl x (DataDecl _ dat ctxt hd _ _) = Just $ fact (kinds False $ transDeclH
     ,itemDisp=x `formatTags` [(cols $ srcInfoSpan $ ann dat, TagEmph),(cols snam,TagBold)]}
     where (snam,nam) = findName hd
 
-transDecl x (InstDecl _ ctxt hd _) = Just (FactInstance t:kinds True t, [])
-    where t = transInstHead ctxt hd
+transDecl x (InstDecl _ _ hd _) = Just (FactInstance t:kinds True t, [])
+    where t = transInstRule hd
 
 transDecl _ _ = Nothing
 
@@ -215,7 +215,6 @@ transContext = maybe [] g
     where
         g (CxSingle _ x) = f x
         g (CxTuple _ xs) = concatMap f xs
-        g (CxParen _ x) = g x
         g _ = []
 
         f (ClassA _ x ys) = [TApp (TLit $ unbracket $ prettyPrint x) $ map transType ys]
@@ -231,23 +230,25 @@ transTypeSig x = TypeSig [] $ transType x
 
 transDeclHead :: Maybe (Context S) -> DeclHead S -> TypeSig
 transDeclHead x y = TypeSig (transContext x) $ f y
-    where f (DHead _ name vars) = TApp (TLit $ unbracket $ prettyPrint name) $ map transVar vars
+    where f (DHead _ name) = TLit $ unbracket $ prettyPrint name
+          f (DHInfix s a b) = f $ DHApp s (DHead s b) a
           f (DHParen _ x) = f x
-          f (DHInfix s x y z) = f $ DHead s y [x,z]
+          f (DHApp _ a b) = ttApp (f a) [transVar b]
+
+transInstRule :: InstRule S -> TypeSig
+transInstRule (IParen _ x) = transInstRule x
+transInstRule (IRule _ _ ctxt hd) = transInstHead ctxt hd
 
 transInstHead :: Maybe (Context S) -> InstHead S -> TypeSig
 transInstHead x y = TypeSig (transContext x) $ f y
-    where f (IHead _ name vars) = TApp (TLit $ unbracket $ prettyPrint name) $ map transType vars
+    where f (IHCon _ name) = TLit $ unbracket $ prettyPrint name
+          f (IHInfix s x y) = f $ IHApp s (IHCon s y) x
           f (IHParen _ x) = f x
-          f (IHInfix s x y z) = f $ IHead s y [x,z]
-
+          f (IHApp _ t x) = ttApp (f t) [transType x]
 
 transVar :: TyVarBind S -> Type
 transVar (KindedVar _ nam _) = TVar $ prettyPrint nam
 transVar (UnkindedVar _ nam) = TVar $ prettyPrint nam
-
-
-
 
 
 ---------------------------------------------------------------------

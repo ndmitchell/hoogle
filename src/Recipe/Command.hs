@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module Recipe.Command(wget, ungzip, tarExtract, tarList) where
 
@@ -5,10 +6,13 @@ import General.Base
 import General.System
 import Development.Shake
 import Development.Shake.FilePath
+import CmdLine.All
 
 
-wget :: URL -> FilePath -> Action ()
-wget from to = do
+wget :: CmdLine -> URL -> FilePath -> Action ()
+wget opt@Data{..} from to = do
+    when nodownload $
+         error "Downloads are disabled."
     dl <- liftIO findDownloader
     command [Shell] (dl to from) []
 
