@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow haskell-src-exts-1.16
 4.2.34
     Add defaultDatabaseLocation
 4.2.33
