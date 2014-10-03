@@ -208,7 +208,11 @@ transType (TyCon _ x) = TLit $ unbracket $ prettyPrint x
 transType (TyParen _ x) = transType x
 transType (TyInfix _ y1 x y2) = TApp (TLit $ unbracket $ prettyPrint x) [transType y1, transType y2]
 transType (TyKind _ x _) = transType x
-
+transType (TyPromoted _ _) = TLit "promoted"
+transType (TyParArray _ x) = TApp (TLit "[::]") [transType x]
+transType (TyEquals _ x y) = TApp (TLit "~") [transType x, transType y]
+transType (TySplice _ _) = TLit "splice"
+transType (TyBang _ _ x) = transType x
 
 transContext :: Maybe (Context S) -> Constraint
 transContext = maybe [] g
