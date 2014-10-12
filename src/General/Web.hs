@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-} -- becomes confusing with all the CPP
 
 {- |
     General web utility functions.

@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards, ScopedTypeVariables, PatternGuards, CPP #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-} -- becomes confusing with all the CPP
 
 module Web.Server(server) where
 
