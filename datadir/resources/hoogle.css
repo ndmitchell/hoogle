@@ -211,9 +211,13 @@ p {
 *  RESULTS
 */
 
-.ans, .doc, .from {
+.result {
     margin-left: 170px;
     margin-right: 20px;
+}
+
+.result.active {
+    background-color: #f7f5c0;
 }
 
 .from, .doc {
