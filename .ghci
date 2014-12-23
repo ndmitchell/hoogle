@@ -1,0 +1,9 @@
+:set -fwarn-unused-binds -fwarn-unused-imports
+:load Main.hs
+
+:{
+:def opt const $ return $ unlines
+        [":!mkdir obj"
+        ,":!ghc -O2 --make Main.hs -outputdir obj -o obj/main"
+        ,":!obj\\main"]
+:}
