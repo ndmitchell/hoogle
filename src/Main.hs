@@ -17,10 +17,11 @@ import Control.Monad
 import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
+import Data.Either
 --import qualified Data.ByteString.Char8 as BS
 --import Control.Exception
 
-import Input
+import InputHoogle
 import Type
 import Util
 
@@ -43,7 +44,8 @@ main = do
         let out = "output" </> takeBaseName file
         putStr $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ takeBaseName file
         (t,_) <- duration $ do
-            xs <- parseInput "" file
+            (warns, xs) <- partitionEithers <$> parseInputHoogle "" file
+            unless (null warns) $ writeFile (out <.> "warn") $ unlines warns
             xs <- allocIdentifiers out xs
             xs <- flattenHeirarchy out xs
             searchNames out xs
