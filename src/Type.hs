@@ -24,7 +24,7 @@ data Tagged a
 
 data ItemEx = ItemEx
     {itemURL :: URL
-    ,itemDoc :: Documentation
+    ,itemDocs :: Documentation
     ,itemParents :: [[(String, URL)]]
     ,itemItem :: Item
     } deriving Show

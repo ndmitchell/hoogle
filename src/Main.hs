@@ -18,6 +18,8 @@ import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
 import Data.Either
+import System.Environment
+import Data.Maybe
 --import qualified Data.ByteString.Char8 as BS
 --import Control.Exception
 
@@ -37,8 +39,10 @@ main = do
     error "done"
     -}
 
-    files <- lines <$> readFile' "input/stackage.txt"
-    files <- filterM doesFileExist ["input" </> "hoogle" </> x <.> "txt" | x <- files]
+    args <- getArgs
+    files <- if args /= [] then return ["input/hoogle" </> x <.> "txt" | x <- args] else do
+        files <- lines <$> readFile' "input/stackage.txt"
+        filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- files]
     let n = length files
     forM_ (zip [1..] files) $ \(i,file) -> do
         let out = "output" </> takeBaseName file
@@ -58,18 +62,26 @@ main = do
 
 -- stage 1
 
-allocIdentifiers :: FilePath -> [Tagged ItemEx] -> IO [Tagged (Id, Item)]
-allocIdentifiers file xs = withBinaryFile (file <.> "ids") WriteMode $ \h -> do
+allocIdentifiers :: FilePath -> [Tagged ItemEx] -> IO [Tagged (Maybe Id, Item)]
+allocIdentifiers file xs = withBinaryFile (file <.> "docs") WriteMode $ \h -> do
     forM xs $ \x -> case x of
         Tagged a b -> return $ Tagged a b
-        Item ItemEx{..} -> do
+        Item ItemEx{..} | Just s <- showItem itemItem -> do
             i <- Id . fromIntegral <$> hTell h
-            hPutStrLn h $ show i ++ " " ++ show itemItem
+            hPutStrLn h $ show i ++ " " ++ s
             hPutStrLn h itemURL
-            hPutStrLn h itemDoc
-            return $ Item (i, itemItem)
+            hPutStrLn h $ unlines $ replace [""] ["."] $ lines itemDocs
+            return $ Item (Just i, itemItem)
+        Item i -> return $ Item (Nothing, itemItem i)
     -- write all the URLs, docs and enough info to pretty print it to a result
     -- and replace each with an identifier (index in the space) - big reduction in memory
+    where
+        showItem :: Item -> Maybe String
+        showItem (IDecl InstDecl{}) = Nothing
+        showItem (IDecl x) = Just $ trimStart $ unwords $ words $ prettyPrint $ fmap (const noLoc) x
+        showItem (IKeyword x) = Just $ "<b>keyword</b> " ++ x
+        showItem (IPackage x) = Just $ "<b>package</b> " ++ x
+        showItem (IModule x) = Just $ "<b>module</b> " ++ x
 
 
 mergeIndentifiers :: [FilePath] -> FilePath -> IO [Id -> Id] -- how to shift each Id
@@ -82,15 +94,15 @@ lookupIdentifier = undefined
 
 -- stage 2
 
-flattenHeirarchy :: FilePath -> [Tagged (Id, Item)] -> IO [(Id, Item)]
+flattenHeirarchy :: FilePath -> [Tagged (Maybe Id, Item)] -> IO [(Maybe Id, Item)]
 flattenHeirarchy file xs = do
-    writeFileBinary (file <.> "grp") $ unlines $ f [] (Id 0) xs
+    writeFileBinary (file <.> "groups") $ unlines $ f [] (Id 0) xs
     return [x | Item x <- xs]
     where
         f a i (Tagged k v:xs) =
             [unwords [k, v, show j, show i] | Just j <- [lookup k a]] ++
             f ((k,i):a) i xs
-        f a _ (Item (i,_):xs) = f a i xs
+        f a j (Item (i,_):xs) = f a (fromMaybe j i) xs
         f a _ [] = []
     -- for each identifier write out a grouped file
     -- writes out file like: author Neil (100, 300)
@@ -103,9 +115,9 @@ lookupModule = undefined
 
 
 
-searchNames :: FilePath -> [(Id, Item)] -> IO ()
-searchNames file xs = writeFileBinary (file <.> "wrd") $ unlines
-    [show i ++ " " ++ prettyPrint name | (i, IDecl (TypeSig _ [name] _)) <- xs]
+searchNames :: FilePath -> [(Maybe Id, Item)] -> IO ()
+searchNames file xs = writeFileBinary (file <.> "words") $ unlines
+    [show i ++ " " ++ prettyPrint name | (Just i, IDecl (TypeSig _ [name] _)) <- xs]
 
 
 {-
