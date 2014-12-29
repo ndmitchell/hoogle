@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 -- grp = 1.28Mb
 -- wrd = 10.7Mb
@@ -8,7 +9,6 @@
 
 
 import Language.Haskell.Exts.Annotated
-import Data.Char
 import Control.Applicative
 import System.IO.Extra
 import Data.List.Extra
@@ -17,28 +17,16 @@ import Control.Monad
 import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
-import Numeric
-import qualified Data.ByteString.Char8 as BS
-import Control.Exception
+--import qualified Data.ByteString.Char8 as BS
+--import Control.Exception
 
-
-data Block = StmtEx StmtEx
-           | Attrib String String
-           | BlockModule String
-             deriving Show
-
-data StmtEx = Stmt (Decl ())
-            | Keyword String
-            | StmtPackage String
-            | StmtModule String
-              deriving Show
-
-type URL = String
-type Documentation = String
-type Id = Int
+import Input
+import Type
+import Util
 
 main :: IO ()
 main = do
+    {-
     src <- BS.readFile "output/bullet.ids"
     forM_ ["Bullet","Disable","Stmt","???"] $ \s -> do
         (t,_) <- duration $ evaluate $ length $ take 50 $ BS.findSubstrings (BS.pack s) src
@@ -46,15 +34,16 @@ main = do
         (t,_) <- duration $ evaluate $ length $ BS.findSubstrings (BS.pack s) src
         print (s, t)
     error "done"
+    -}
 
-
-    files <- listFiles "hoogle"
+    files <- lines <$> readFile' "input/stackage.txt"
+    files <- filterM doesFileExist ["input" </> "hoogle" </> x <.> "txt" | x <- files]
     let n = length files
     forM_ (zip [1..] files) $ \(i,file) -> do
         let out = "output" </> takeBaseName file
         putStr $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ takeBaseName file
         (t,_) <- duration $ do
-            xs <- parseDocsFile file
+            xs <- parseInput "" file
             xs <- allocIdentifiers out xs
             xs <- flattenHeirarchy out xs
             searchNames out xs
@@ -64,33 +53,18 @@ main = do
     print $ map (second sum) $ groupSort files
     print "done"
 
--- stage 0
-
-parseDocsFile :: FilePath -> IO [(Block, Maybe (URL, Documentation))]
-parseDocsFile file = f [] . lines <$> readFile' file
-    where
-        f :: [String] -> [String] -> [(Block, Maybe (URL, Documentation))]
-        f com ((stripPrefix "-- " -> Just x):xs) = f (com ++ [x]) xs
-        f com (x:xs) | all isSpace x = f [] xs
-        f com (('@': (word1 -> (key,val))):xs) = (Attrib key val, Nothing) : f [] xs
-        f com ((stripPrefix "module " -> Just x):xs) = (BlockModule x, Nothing) : f [] xs
-        f com (x:xs) | ParseOk res <- parseDecl x = (StmtEx $ Stmt $ fmap (const ()) res, Just ("http:",unlines com)) : f [] xs
-        f com (x:xs) = f [] xs -- error $ "Could not parse line: " ++ show x
-        f com [] = []
-
-
 -- stage 1
 
-allocIdentifiers :: FilePath -> [(Block, Maybe (URL, Documentation))] -> IO [(Block, Maybe Id)]
+allocIdentifiers :: FilePath -> [Section (URL, Documentation, Item)] -> IO [Section (Id, Item)]
 allocIdentifiers file xs = withBinaryFile (file <.> "ids") WriteMode $ \h -> do
-    forM xs $ \(a,b) -> case b of
-        Nothing -> return (a,Nothing)
-        Just (url,docs) -> do
-            i <- fromIntegral <$> hTell h
-            hPutStrLn h $ idHex i ++ " " ++ show a
+    forM xs $ \x -> case x of
+        Section a b -> return $ Section a b
+        Item (url,docs,item) -> do
+            i <- Id . fromIntegral <$> hTell h
+            hPutStrLn h $ show i ++ " " ++ show item
             hPutStrLn h url
             hPutStrLn h docs
-            return (a,Just i)
+            return $ Item (i, item)
     -- write all the URLs, docs and enough info to pretty print it to a result
     -- and replace each with an identifier (index in the space) - big reduction in memory
 
@@ -105,16 +79,15 @@ lookupIdentifier = undefined
 
 -- stage 2
 
-flattenHeirarchy :: FilePath -> [(Block, Maybe Id)] -> IO [(StmtEx, Id)]
+flattenHeirarchy :: FilePath -> [Section (Id, Item)] -> IO [(Id, Item)]
 flattenHeirarchy file xs = do
-    writeFileBinary (file <.> "grp") $ unlines $ f [] 0 xs
-    return [(a,b) | (StmtEx a,Just b) <- xs]
+    writeFileBinary (file <.> "grp") $ unlines $ f [] (Id 0) xs
+    return [x | Item x <- xs]
     where
-        f a i ((BlockModule v, b):xs) = f a i $ (Attrib "module" v, b):xs
-        f a i ((Attrib k v,_):xs) =
-            [unwords [k, v, idHex j, idHex i] | Just j <- [lookup k a]] ++
+        f a i (Section k v:xs) =
+            [unwords [k, v, show j, show i] | Just j <- [lookup k a]] ++
             f ((k,i):a) i xs
-        f a _ ((s, Just i):xs) = f a i xs
+        f a _ (Item (i,_):xs) = f a i xs
         f a _ [] = []
     -- for each identifier write out a grouped file
     -- writes out file like: author Neil (100, 300)
@@ -127,9 +100,9 @@ lookupModule = undefined
 
 
 
-searchNames :: FilePath -> [(StmtEx, Id)] -> IO ()
+searchNames :: FilePath -> [(Id, Item)] -> IO ()
 searchNames file xs = writeFileBinary (file <.> "wrd") $ unlines
-    [idHex i ++ " " ++ prettyPrint name | (Stmt (TypeSig _ [name] _), i) <- xs]
+    [show i ++ " " ++ prettyPrint name | (i, IDecl (TypeSig _ [name] _)) <- xs]
 
 
 {-
@@ -151,9 +124,3 @@ then text search is only by statement
 
 
 -}
-
-fileSize :: FilePath -> IO Int
-fileSize file = withFile file ReadMode $ fmap fromIntegral . hFileSize
-
-idHex :: Id -> String
-idHex i = showHex i ""
