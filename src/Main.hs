@@ -44,7 +44,8 @@ main = do
         let out = "output" </> takeBaseName file
         putStr $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ takeBaseName file
         (t,_) <- duration $ do
-            (warns, xs) <- partitionEithers <$> parseInputHoogle "" file
+            src <- readFile' file
+            (warns, xs) <- return $ partitionEithers $ parseInputHoogle "" src
             unless (null warns) $ writeFile (out <.> "warn") $ unlines warns
             xs <- allocIdentifiers out xs
             xs <- flattenHeirarchy out xs

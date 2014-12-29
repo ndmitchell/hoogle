@@ -4,16 +4,12 @@ module InputHoogle(parseInputHoogle) where
 
 import Language.Haskell.Exts.Annotated
 import Data.Char
-import Control.Applicative
-import System.IO.Extra
 import Data.List.Extra
 import Type
 
 
-type HackageURL = String
-
-parseInputHoogle :: HackageURL -> FilePath -> IO [Either String (Section (URL, Documentation, Item))]
-parseInputHoogle hackage file = f [] . lines <$> readFile' file
+parseInputHoogle :: URL -> String -> [Either String (Section (URL, Documentation, Item))]
+parseInputHoogle hackage = f [] . lines
     where
         f :: [String] -> [String] -> [Either String (Section (URL, Documentation, Item))]
         f com ((stripPrefix "-- " -> Just x):xs) = f (com ++ [x]) xs
