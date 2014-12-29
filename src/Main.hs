@@ -21,7 +21,7 @@ import Data.Either
 --import qualified Data.ByteString.Char8 as BS
 --import Control.Exception
 
-import InputHoogle
+import ParseHoogle
 import Type
 import Util
 
@@ -45,7 +45,7 @@ main = do
         putStr $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ takeBaseName file
         (t,_) <- duration $ do
             src <- readFile' file
-            (warns, xs) <- return $ partitionEithers $ parseInputHoogle "" src
+            (warns, xs) <- return $ partitionEithers $ parseHoogle src
             unless (null warns) $ writeFile (out <.> "warn") $ unlines warns
             xs <- allocIdentifiers out xs
             xs <- flattenHeirarchy out xs

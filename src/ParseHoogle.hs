@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
 
-module InputHoogle(parseInputHoogle) where
+module ParseHoogle(parseHoogle) where
 
 import Language.Haskell.Exts.Annotated
 import Data.Char
@@ -8,8 +8,8 @@ import Data.List.Extra
 import Type
 
 
-parseInputHoogle :: URL -> String -> [Either String (Section (URL, Documentation, Item))]
-parseInputHoogle hackage = f [] . lines
+parseHoogle :: String -> [Either String (Section (URL, Documentation, Item))]
+parseHoogle = f [] . lines
     where
         f :: [String] -> [String] -> [Either String (Section (URL, Documentation, Item))]
         f com ((stripPrefix "-- " -> Just x):xs) = f (com ++ [x]) xs
