@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 -- grp = 1.28Mb
@@ -58,16 +58,16 @@ main = do
 
 -- stage 1
 
-allocIdentifiers :: FilePath -> [Section (URL, Documentation, Item)] -> IO [Section (Id, Item)]
+allocIdentifiers :: FilePath -> [Tagged ItemEx] -> IO [Tagged (Id, Item)]
 allocIdentifiers file xs = withBinaryFile (file <.> "ids") WriteMode $ \h -> do
     forM xs $ \x -> case x of
-        Section a b -> return $ Section a b
-        Item (url,docs,item) -> do
+        Tagged a b -> return $ Tagged a b
+        Item ItemEx{..} -> do
             i <- Id . fromIntegral <$> hTell h
-            hPutStrLn h $ show i ++ " " ++ show item
-            hPutStrLn h url
-            hPutStrLn h docs
-            return $ Item (i, item)
+            hPutStrLn h $ show i ++ " " ++ show itemItem
+            hPutStrLn h itemURL
+            hPutStrLn h itemDoc
+            return $ Item (i, itemItem)
     -- write all the URLs, docs and enough info to pretty print it to a result
     -- and replace each with an identifier (index in the space) - big reduction in memory
 
@@ -82,12 +82,12 @@ lookupIdentifier = undefined
 
 -- stage 2
 
-flattenHeirarchy :: FilePath -> [Section (Id, Item)] -> IO [(Id, Item)]
+flattenHeirarchy :: FilePath -> [Tagged (Id, Item)] -> IO [(Id, Item)]
 flattenHeirarchy file xs = do
     writeFileBinary (file <.> "grp") $ unlines $ f [] (Id 0) xs
     return [x | Item x <- xs]
     where
-        f a i (Section k v:xs) =
+        f a i (Tagged k v:xs) =
             [unwords [k, v, show j, show i] | Just j <- [lookup k a]] ++
             f ((k,i):a) i xs
         f a _ (Item (i,_):xs) = f a i xs

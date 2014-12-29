@@ -1,6 +1,6 @@
 
 module Type(
-    Section(..), Item(..),
+    Tagged(..), ItemEx(..), Item(..),
     URL, Documentation,
     Id(..)
     ) where
@@ -16,12 +16,22 @@ newtype Id = Id Int
 instance Show Id where
     show (Id x) = showHex x ""
 
-data Section a = Section String String -- name, grouping thingy
-               | Item a
-                 deriving Show
+data Tagged a
+    = Tagged String String -- tag name, grouping critera
+    | Item a
+      deriving Show
 
-data Item = IDecl (Decl ())
-          | IKeyword String
-          | IPackage String
-          | IModule String
-            deriving Show
+
+data ItemEx = ItemEx
+    {itemURL :: URL
+    ,itemDoc :: Documentation
+    ,itemParents :: [[(String, URL)]]
+    ,itemItem :: Item
+    } deriving Show
+
+data Item
+    = IDecl (Decl ())
+    | IKeyword String
+    | IPackage String
+    | IModule String
+      deriving Show

@@ -7,21 +7,22 @@ import Data.Char
 import Data.List.Extra
 import Type
 
+hackage = "https://hackage.haskell.org/"
 
-parseHoogle :: String -> [Either String (Section (URL, Documentation, Item))]
+
+parseHoogle :: String -> [Either String (Tagged ItemEx)]
 parseHoogle = f [] . lines
     where
-        f :: [String] -> [String] -> [Either String (Section (URL, Documentation, Item))]
         f com ((stripPrefix "-- " -> Just x):xs) = f (com ++ [x]) xs
         f com (x:xs) | all isSpace x = f [] xs
-        f com (('@': (word1 -> (key,val))):xs) = Right (Section key val) : f [] xs
-        f com ((stripPrefix "module " -> Just x):xs) = Right (Section "module" x) : f [] xs
-        f com (x:xs) | ParseOk res <- parseDecl x = Right (Item ("http:", unlines com, IDecl $ fmap (const ()) res)) : f [] xs
+        f com (('@': (word1 -> (key,val))):xs) = Right (Tagged key val) : f [] xs
+        f com ((stripPrefix "module " -> Just x):xs) = Right (Tagged "module" x) : f [] xs
+        f com (x:xs) | ParseOk res <- parseDecl x = Right (Item $ ItemEx "http:" (unlines com) [] $ IDecl $ fmap (const ()) res) : f [] xs
         f com (x:xs) = Left ("Could not parse line: " ++ x) : f [] xs
         f com [] = []
 
-{-
 
+{-
 parseInputHaskell :: HackageURL -> String -> ([ParseError], Input)
 parseInputHaskell hackage = join . f [] "" . zip [1..] . lines
     where
@@ -201,79 +202,4 @@ findName x = case universeBi x of
 unbracket ('(':xs) | ")" `isSuffixOf` xs && nub ys `notElem` ["",","] = ys
     where ys = init xs
 unbracket x = x
-
-
-transType :: HSE.Type S -> Type
-transType (TyForall _ _ _ x) = transType x
-transType (TyFun _ x y) = TFun $ transType x : fromTFun (transType y)
-transType (TyTuple _ x xs) = tApp (TLit $ "(" ++ h ++ replicate (length xs - 1) ',' ++ h ++ ")") $ map transType xs
-    where h = ['#' | x == Unboxed]
-transType (TyList _ x) = TApp (TLit "[]") [transType x]
-transType (TyApp _ x y) = tApp a (b ++ [transType y])
-    where (a,b) = fromTApp $ transType x
-transType (TyVar _ x) = TVar $ prettyPrint x
-transType (TyCon _ x) = TLit $ unbracket $ prettyPrint x
-transType (TyParen _ x) = transType x
-transType (TyInfix _ y1 x y2) = TApp (TLit $ unbracket $ prettyPrint x) [transType y1, transType y2]
-transType (TyKind _ x _) = transType x
-
-
-transContext :: Maybe (Context S) -> Constraint
-transContext = maybe [] g
-    where
-        g (CxSingle _ x) = f x
-        g (CxTuple _ xs) = concatMap f xs
-        g _ = []
-
-        f (ClassA _ x ys) = [TApp (TLit $ unbracket $ prettyPrint x) $ map transType ys]
-        f (InfixA s y1 x y2) = f $ ClassA s x [y1,y2]
-        f _ = []
-
-
-transTypeSig :: HSE.Type S -> TypeSig
-transTypeSig (TyParen _ x) = transTypeSig x
-transTypeSig (TyForall _ _ con ty) = TypeSig (transContext con) $ transType ty
-transTypeSig x = TypeSig [] $ transType x
-
-
-transDeclHead :: Maybe (Context S) -> DeclHead S -> TypeSig
-transDeclHead x y = TypeSig (transContext x) $ f y
-    where f (DHead _ name) = TLit $ unbracket $ prettyPrint name
-          f (DHInfix s a b) = f $ DHApp s (DHead s b) a
-          f (DHParen _ x) = f x
-          f (DHApp _ a b) = ttApp (f a) [transVar b]
-
-transInstRule :: InstRule S -> TypeSig
-transInstRule (IParen _ x) = transInstRule x
-transInstRule (IRule _ _ ctxt hd) = transInstHead ctxt hd
-
-transInstHead :: Maybe (Context S) -> InstHead S -> TypeSig
-transInstHead x y = TypeSig (transContext x) $ f y
-    where f (IHCon _ name) = TLit $ unbracket $ prettyPrint name
-          f (IHInfix s x y) = f $ IHApp s (IHCon s y) x
-          f (IHParen _ x) = f x
-          f (IHApp _ t x) = ttApp (f t) [transType x]
-
-transVar :: TyVarBind S -> Type
-transVar (KindedVar _ nam _) = TVar $ prettyPrint nam
-transVar (UnkindedVar _ nam) = TVar $ prettyPrint nam
-
-
----------------------------------------------------------------------
-
-emph = TagEmph . Str
-bold = TagBold . Str
-space = Str " "
-
-
--- collect the kind facts, True for the outer fact is about a class
-kinds :: Bool -> TypeSig -> [Fact]
-kinds cls (TypeSig x y) = concatMap (f True) x ++ f cls y
-    where
-        f cls (TApp (TLit c) ys) = add cls c (length ys) ++
-                                   if cls then [] else concatMap (f False) ys
-        f cls (TLit c) = add cls c 0
-        f cls x = if cls then [] else concatMap (f False) $ children x
-
-        add cls c i = [(if cls then FactClassKind else FactDataKind) c i | not $ isTLitTuple c]
 -}
