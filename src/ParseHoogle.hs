@@ -40,9 +40,17 @@ parseHoogle = unpartitionEithers . second (assignURLs hackage) . partitionEither
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i s of
                                Left y -> [Left y | not $ "@version " `isPrefixOf` s]
-                               Right x -> [Right $ Item $ ItemEx url (unlines $ reverse com) [] x]
+                               Right x -> map Right (tagged x) ++ [Right $ Item $ ItemEx url (reformat $ reverse com) [] x]
                           )
                           ++ f [] "" is
+
+tagged (IPackage x) = [Tagged "package" x]
+tagged (IModule x) = [Tagged "module" x]
+tagged _ = []
+
+reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy (== "")
+    where f xs@(x:_) | x `elem` ["<pre>","<ul>"] = xs
+          f xs = ["<p>",unwords xs,"</p>"]
 
 unpartitionEithers (as,bs) = map Left as ++ map Right bs
 
@@ -50,10 +58,18 @@ unpartitionEithers (as,bs) = map Left as ++ map Right bs
 assignURLs :: URL -> [Tagged ItemEx] -> [Tagged ItemEx]
 assignURLs hackage = f "" ""
     where
-        f pkg mod (Item i:xs) = Item i{itemURL=hackage ++ "???"} : f pkg mod xs
+        f pkg mod (Item i:xs) = Item i{itemURL = g pkg mod $ itemItem i} : f pkg mod xs
+        f pkg mod (Tagged "package" i:xs) = Tagged "package" i : f i "" xs
+        f pkg mod (Tagged "module" i:xs) = Tagged "module" i : f pkg i xs
         f pkg mod (x:xs) = x : f pkg mod xs
         f pkg mod [] = []
+
+        g pkg mod (IPackage x) = hackage ++ "package/" ++ pkg
+        g pkg mod (IModule x) = hackage ++ "package/" ++ pkg ++ "/" ++ replace "." "-" x ++ ".html"
+        g pkg mod _ = hackage ++ "package/" ++ pkg ++ "/" ++ replace "." "-" mod ++ ".html#???"
+
 {-
+
     esc = concatMap f
         where
             f x | isAlphaNum x = [x]
