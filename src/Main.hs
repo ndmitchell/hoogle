@@ -1,5 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 -- grp = 1.28Mb
 -- wrd = 10.7Mb
@@ -27,37 +27,42 @@ import Data.Generics.Uniplate.Data
 import Data.Char
 
 import ParseHoogle
+import ParseQuery
 import Type
 import Util
 
+
+-- -- generate all
+-- @tagsoup -- generate tagsoup
+-- @tagsoup filter -- search the tagsoup package
+-- filter -- search all
+
 main :: IO ()
 main = do
-    {-
-    files <- listFiles "output"
-    types <- fmap concat $ forM (filter ((==) ".types" . takeExtension) files) $ \file -> do
-        xs <- readFile' file
-        return [x | ParseOk x <- map (parseType . snd . word1) $ lines xs]
-    print ("Count", length types)
-    print ("Unique", Set.size $ Set.fromList types)
-    let disp = trimStart . unwords . words . prettyPrint
-    writeFileBinary "types.txt" $ unlines $ map disp $ Set.toList $ Set.fromList types
-    writeFileBinary "ctors.txt" $ unlines $ map show $ reverse $ sortOn snd $ Map.toList $ Map.fromListWith (+) $ concat [nub [(x:xs,1) | Ident (_ :: SrcSpanInfo) (x:xs) <- universeBi t, isUpper x] | t <- Set.toList $ Set.fromList types]
-    writeFileBinary "contexts.txt" $ unlines [disp t | t <- Set.toList $ Set.fromList types, any ((>1) . length . snd) $ groupSort [(prettyPrint v,cls) | ClassA (_ :: SrcSpanInfo) cls [v] <- universeBi t]]
-    error "done"
-    -}
-
-    {-
-    src <- BS.readFile "output/bullet.ids"
-    forM_ ["Bullet","Disable","Stmt","???"] $ \s -> do
-        (t,_) <- duration $ evaluate $ length $ take 50 $ BS.findSubstrings (BS.pack s) src
-        print (s, t)
-        (t,_) <- duration $ evaluate $ length $ BS.findSubstrings (BS.pack s) src
-        print (s, t)
-    error "done"
-    -}
-
     args <- getArgs
-    files <- if args /= [] then return ["input/hoogle" </> x <.> "txt" | x <- args] else do
+    let (pkg,rest) = first (map tail) $ span ("@" `isPrefixOf`) args
+    if null rest then
+        generate pkg
+     else do
+        let q = parseQuery $ unwords rest
+        if null pkg then search "all" q else mapM_ (`search` q) pkg
+
+
+search :: String -> Query -> IO ()
+search pkgs (Query [] [] Nothing) = putStrLn "No search entered, nothing to do"
+search pkgs q@(Query tags strs typ) = error $ show q
+
+
+searchName :: String -> String -> IO [Id]
+searchName = error "searchname"
+
+searchType :: String -> Type () -> IO [Id]
+searchType = error "searchType"
+
+
+generate :: [String] -> IO ()
+generate xs = do
+    files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else do
         files <- lines <$> readFile' "input/stackage.txt"
         filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- files]
     let n = length files
@@ -77,6 +82,30 @@ main = do
     files <- forM files $ \file -> (takeExtension file,) <$> fileSize file
     print $ map (second sum) $ groupSort files
     print "done"
+
+
+experiment :: IO ()
+experiment = do
+    files <- listFiles "output"
+    types <- fmap concat $ forM (filter ((==) ".types" . takeExtension) files) $ \file -> do
+        xs <- readFile' file
+        return [x | ParseOk x <- map (parseType . snd . word1) $ lines xs]
+    print ("Count", length types)
+    print ("Unique", Set.size $ Set.fromList types)
+    let disp = trimStart . unwords . words . prettyPrint
+    writeFileBinary "types.txt" $ unlines $ map disp $ Set.toList $ Set.fromList types
+    writeFileBinary "ctors.txt" $ unlines $ map show $ reverse $ sortOn snd $ Map.toList $ Map.fromListWith (+) $ concat [nub [(x:xs,1) | Ident (_ :: SrcSpanInfo) (x:xs) <- universeBi t, isUpper x] | t <- Set.toList $ Set.fromList types]
+    writeFileBinary "contexts.txt" $ unlines [disp t | t <- Set.toList $ Set.fromList types, any ((>1) . length . snd) $ groupSort [(prettyPrint v,cls) | ClassA (_ :: SrcSpanInfo) cls [v] <- universeBi t]]
+    error "done"
+
+    src <- BS.readFile "output/bullet.ids"
+    forM_ ["Bullet","Disable","Stmt","???"] $ \s -> do
+        (t,_) <- duration $ evaluate $ length $ take 50 $ BS.findSubstrings (BS.pack s) src
+        print (s, t)
+        (t,_) <- duration $ evaluate $ length $ BS.findSubstrings (BS.pack s) src
+        print (s, t)
+    error "done"
+
 
 -- stage 1
 
