@@ -1,5 +1,6 @@
 
 module Type(
+    Database(..),
     Item(..), Items(..),
     isIPackage, isIModule,
     URL, Documentation,
@@ -11,6 +12,8 @@ import Numeric
 import Control.Monad
 import Data.Monoid
 import Language.Haskell.Exts.Annotated
+
+newtype Database = Database FilePath
 
 ---------------------------------------------------------------------
 -- DATABASE
