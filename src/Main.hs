@@ -55,7 +55,8 @@ main = do
 search :: Database -> Query -> IO ()
 search pkg (Query qtags strs typ) = do
     is <- case (strs, typ) of
-        ([], Nothing) -> putStrLn "No search entered, nothing to do" >> return []
+        ([], Nothing) | null qtags -> putStrLn "No search entered, nothing to do" >> return []
+                      | otherwise -> searchNames pkg []
         ([], Just t ) -> searchTypes pkg t
         (xs, Nothing) -> searchNames pkg xs
         (xs, Just t ) -> do

@@ -5,6 +5,8 @@ module DataTags(Tags, writeTags, readTags, filterTags, pruneTags) where
 import System.IO.Extra
 import Data.List.Extra
 import System.FilePath
+import Data.Tuple.Extra
+import Data.Maybe
 
 import Type
 
@@ -32,15 +34,20 @@ writeTags (Database file) xs = do
         g _ = Nothing
 
 
-data Tags = Tags
+newtype Tags = Tags [((String, String), (Id, Id))]
 
 
 readTags :: Database -> IO Tags
-readTags _ = return Tags
+readTags (Database file) = do
+    x <- readFile' $ file <.> "tags"
+    return $ Tags [((cat, unwords bod), (read i1, read i2))
+        | x <- lines x, let cat:xs = words x, let ([i1,i2],bod) = both reverse $ splitAt 2 $ reverse xs]
 
 
 filterTags :: Tags -> [QTag] -> (Id -> Bool)
-filterTags _ _ _ = True
+filterTags (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
+    where (pos, neg) = both (map snd) $ partition fst $ mapMaybe f qs
+          f (QTag sense cat val) = fmap (sense,) $ lookup (cat,val) ts
 
 -- return Left ("module","Data.List") to say "See more results from Data.List" and start cutting them off
 pruneTags :: Tags -> [Id] -> [Either (String,String) Id]
