@@ -2,7 +2,7 @@
 
 module DataItems(writeItems, lookupItem) where
 
-import Language.Haskell.Exts.Annotated
+import Language.Haskell.Exts
 import Control.Applicative
 import System.IO.Extra
 import Data.List.Extra
@@ -29,11 +29,18 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
         showItem :: Items -> Maybe String
         showItem ITag{} = Nothing
         showItem (IDecl InstDecl{}) = Nothing
-        showItem (IDecl x) = Just $ trimStart $ unwords $ words $ prettyPrint $ fmap (const noLoc) x
+        showItem (IDecl x) = Just $ trimStart $ unwords $ words $ prettyPrint x
         showItem (IKeyword x) = Just $ "<b>keyword</b> " ++ x
         showItem (IPackage x) = Just $ "<b>package</b> " ++ x
         showItem (IModule x) = Just $ "<b>module</b> " ++ x
 
 
-lookupItem :: FilePath -> Id -> IO Item
-lookupItem = undefined
+lookupItem :: Database -> Id -> IO [String]
+lookupItem (Database file) (Id i) = withBinaryFile (file <.> "items") ReadMode $ \h -> do
+    hSeek h AbsoluteSeek $ fromIntegral i
+    xs <- replicateM 3 $ hGetLine h
+    (xs ++) <$> f h
+    where
+        f h = do
+            s <- hGetLine h
+            if s == "" then return [] else (s:) <$> f h

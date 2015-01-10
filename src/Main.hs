@@ -62,7 +62,10 @@ search pkg (Query qtags strs typ) = do
             nam <- Set.fromList <$> searchNames pkg xs
             filter (`Set.member` nam) <$> searchTypes pkg t
     tags <- readTags pkg
-    putStrLn $ unlines $ map show $ take 25 $ pruneTags tags $ filter (filterTags tags qtags) is
+    let res = take 25 $ pruneTags tags $ filter (filterTags tags qtags) is
+    forM_ res $ \x -> case x of
+        Left (a,b) -> putStrLn $ "... plus more things from " ++ a ++ " " ++ b ++ "..."
+        Right i -> putStrLn . snd . word1 . head =<< lookupItem pkg i
 
 
 generate :: [String] -> IO ()

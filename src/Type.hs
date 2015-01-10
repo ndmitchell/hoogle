@@ -11,7 +11,8 @@ module Type(
 import Numeric
 import Control.Monad
 import Data.Monoid
-import Language.Haskell.Exts.Annotated
+import Data.Tuple.Extra
+import Language.Haskell.Exts
 
 newtype Database = Database FilePath
 
@@ -25,6 +26,9 @@ newtype Id = Id Int deriving (Eq,Ord)
 instance Show Id where
     show (Id x) = showHex x ""
 
+instance Read Id where
+    readsPrec _ = map (first Id) . readHex
+
 data Item = Item
     {itemURL :: URL
     ,itemDocs :: Documentation
@@ -33,7 +37,7 @@ data Item = Item
     } deriving Show
 
 data Items
-    = IDecl (Decl ())
+    = IDecl Decl
     | IKeyword String
     | IPackage String
     | IModule String
@@ -47,7 +51,7 @@ isIPackage IPackage{} = True; isIPackage _ = False
 ---------------------------------------------------------------------
 -- QUERY
 
-data Query = Query [QTag] [String] (Maybe (Type ())) deriving Show
+data Query = Query [QTag] [String] (Maybe Type) deriving Show
 
 instance Monoid Query where
     mempty = Query [] [] Nothing

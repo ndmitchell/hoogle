@@ -2,7 +2,7 @@
 
 module ParseHoogle(parseHoogle) where
 
-import Language.Haskell.Exts.Annotated as HSE
+import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
 import Data.Either
@@ -99,11 +99,7 @@ parseLine line x
 -- constructors
 parseLine line x
     | ParseOk y <- parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x
-    = Right $ transDecl $ fmap (subtractCols 16) y
-    where
-        subtractCols :: Int -> SrcSpanInfo -> SrcSpanInfo
-        subtractCols n (SrcSpanInfo x xs) = SrcSpanInfo (f x) (map f xs)
-            where f x = x{srcSpanStartColumn=srcSpanStartColumn x - n, srcSpanEndColumn=srcSpanEndColumn x - n}
+    = Right $ transDecl y
 
 -- tuple definitions
 parseLine line o@('(':xs)
@@ -112,7 +108,7 @@ parseLine line o@('(':xs)
     = Right $ transDecl $ f y
     where
         (com,rest) = span (== ',') xs
-        f (HSE.TypeSig sl [Ident sl2 _] ty) = HSE.TypeSig sl [Ident sl2 $ '(':com++")"] ty
+        f (HSE.TypeSig s [Ident _] ty) = HSE.TypeSig s [Ident $ '(':com++")"] ty
 
 parseLine line x = Left $ show line ++ ":failed to parse: " ++ x
 
@@ -124,9 +120,7 @@ exts = map EnableExtension
 ---------------------------------------------------------------------
 -- TRANSLATE THINGS
 
-type S = SrcSpanInfo
-
-transDecl :: Decl S -> Items
-transDecl (GDataDecl s dat ctxt hd _ [] _) = transDecl $ DataDecl s dat ctxt hd [] Nothing
-transDecl (GDataDecl _ _ _ _ _ [GadtDecl s name _ ty] _) = transDecl $ HSE.TypeSig s [name] ty
-transDecl x = IDecl $ fmap (const ()) x
+transDecl :: Decl -> Items
+transDecl (GDataDecl s dat ctxt name bind _ [] _) = transDecl $ DataDecl s dat ctxt name bind [] []
+transDecl (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) = transDecl $ HSE.TypeSig s [name] ty
+transDecl x = IDecl x
