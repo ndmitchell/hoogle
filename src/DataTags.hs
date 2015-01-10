@@ -1,13 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module DataTags(writeGroups, lookupAttribute, lookupModule) where
-
--- grp = 1.28Mb
--- wrd = 10.7Mb
-
--- [(".grp",1_343_808),(".ids",247_336_269),(".wrd",11_230_952)]
--- [(".grp",1_314_256),(".ids",244_154_208),(".wrd",7_369_220)]
-
+module DataTags(Tags, writeTags, readTags, filterTags, pruneTags) where
 
 import System.IO.Extra
 import Data.List.Extra
@@ -16,9 +9,9 @@ import System.FilePath
 import Type
 
 
-writeGroups :: FilePath -> [(Maybe Id, Items)] -> IO ()
-writeGroups file xs = do
-    writeFileBinary (file <.> "groups") $ unlines $ f [] [] (Id 0) xs
+writeTags :: Database -> [(Maybe Id, Items)] -> IO ()
+writeTags (Database file) xs = do
+    writeFileBinary (file <.> "tags") $ unlines $ f [] [] (Id 0) xs
     where
         -- active groups currently scope over the thing
         -- next groups scope from the next identifier
@@ -39,8 +32,16 @@ writeGroups file xs = do
         g _ = Nothing
 
 
-lookupAttribute :: FilePath -> String -> String -> IO [(Int, Int)]
-lookupAttribute = undefined
+data Tags = Tags
 
-lookupModule :: FilePath -> String -> IO [(Int,Int)]
-lookupModule = undefined
+
+readTags :: Database -> IO Tags
+readTags _ = return Tags
+
+
+filterTags :: Tags -> [QTag] -> (Id -> Bool)
+filterTags _ _ _ = True
+
+-- return Left ("module","Data.List") to say "See more results from Data.List" and start cutting them off
+pruneTags :: Tags -> [Id] -> [Either (String,String) Id]
+pruneTags _ = map Right

@@ -75,7 +75,7 @@ generate xs = do
             (warns, xs) <- return $ partitionEithers $ parseHoogle src
             unless (null warns) $ writeFile (out <.> "warn") $ unlines warns
             xs <- allocIdentifiers out xs
-            writeGroups out xs
+            writeTags (Database out) xs
             searchNames out xs
             searchTypes out xs
         putStrLn $ " in " ++ show (round t) ++ "s"
