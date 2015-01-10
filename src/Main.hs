@@ -28,6 +28,7 @@ import Data.Char
 
 import DataItems
 import DataTags
+import DataNames
 import ParseHoogle
 import ParseQuery
 import Type
@@ -55,9 +56,6 @@ search pkgs (Query [] [] Nothing) = putStrLn "No search entered, nothing to do"
 search pkgs q@(Query tags strs typ) = error $ show q
 
 
-searchName :: String -> String -> IO [Id]
-searchName = error "searchname"
-
 searchType :: String -> Type () -> IO [Id]
 searchType = error "searchType"
 
@@ -77,7 +75,7 @@ generate xs = do
             unless (null warns) $ writeFile (out <.> "warn") $ unlines warns
             xs <- writeItems out xs
             writeTags (Database out) xs
-            searchNames out xs
+            writeNames (Database out) xs
             searchTypes out xs
         putStrLn $ " in " ++ show (round t) ++ "s"
     files <- listFiles "output"
@@ -109,10 +107,6 @@ experiment = do
     error "done"
 
 
-
-searchNames :: FilePath -> [(Maybe Id, Items)] -> IO ()
-searchNames file xs = writeFileBinary (file <.> "words") $ unlines
-    [show i ++ " " ++ prettyPrint name | (Just i, IDecl (TypeSig _ [name] _)) <- xs]
 
 searchTypes :: FilePath -> [(Maybe Id, Items)] -> IO ()
 searchTypes file xs = writeFileBinary (file <.> "types") $ unlines
