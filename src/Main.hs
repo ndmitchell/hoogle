@@ -46,17 +46,25 @@ main = do
     let (pkg,rest) = first (map tail) $ span ("@" `isPrefixOf`) args
     if null rest then
         generate pkg
-     else do
-        let q = parseQuery $ unwords rest
-        if null pkg then search "all" q else mapM_ (`search` q) pkg
+     else
+        forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
+            search (Database $ "output" </> pkg) $ parseQuery $ unwords rest
 
 
-search :: String -> Query -> IO ()
-search pkgs (Query [] [] Nothing) = putStrLn "No search entered, nothing to do"
-search pkgs q@(Query tags strs typ) = error $ show q
+search :: Database -> Query -> IO ()
+search pkg (Query qtags strs typ) = do
+    is <- case (strs, typ) of
+        ([], Nothing) -> putStrLn "No search entered, nothing to do" >> return []
+        ([], Just t ) -> searchType pkg t
+        (xs, Nothing) -> searchNames pkg xs
+        (xs, Just t ) -> do
+            nam <- Set.fromList <$> searchNames pkg xs
+            filter (`Set.member` nam) <$> searchType pkg t
+    tags <- readTags pkg
+    putStrLn $ unlines $ map show $ take 25 $ pruneTags tags $ filter (filterTags tags qtags) is
 
 
-searchType :: String -> Type () -> IO [Id]
+searchType :: Database -> Type () -> IO [Id]
 searchType = error "searchType"
 
 
