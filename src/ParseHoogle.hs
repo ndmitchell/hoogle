@@ -13,7 +13,7 @@ import Type
 hackage = "https://hackage.haskell.org/"
 
 
-parseHoogle :: String -> [Either String (Tagged ItemEx)]
+parseHoogle :: String -> [Either String Item]
 {-
 parseHoogle = f [] . lines
     where
@@ -29,9 +29,9 @@ parseHoogle = f [] . lines
 parseInputHaskell :: HackageURL -> String -> ([ParseError], Input)
 parseInputHaskell hackage =
 -}
-parseHoogle = unpartitionEithers . second (assignURLs hackage) . partitionEithers . f [] "" . zip [1..] . lines
+parseHoogle = unpartitionEithers . second (heirarchy hackage) . partitionEithers . f [] "" . zip [1..] . lines
     where
-        f :: [String] -> URL -> [(Int,String)] -> [Either String (Tagged ItemEx)]
+        f :: [String] -> URL -> [(Int,String)] -> [Either String Item]
         f com url [] = []
         f com url ((i,s):is)
             | "-- | " `isPrefixOf` s = f [drop 5 s] url is
@@ -40,13 +40,9 @@ parseHoogle = unpartitionEithers . second (assignURLs hackage) . partitionEither
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i s of
                                Left y -> [Left y | not $ "@version " `isPrefixOf` s]
-                               Right x -> map Right (tagged x) ++ [Right $ Item $ ItemEx url (reformat $ reverse com) [] x]
+                               Right x -> [Right $ Item url (reformat $ reverse com) [] x]
                           )
                           ++ f [] "" is
-
-tagged (IPackage x) = [Tagged "package" x]
-tagged (IModule x) = [Tagged "module" x]
-tagged _ = []
 
 reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy (== "")
     where f xs@(x:_) | x `elem` ["<pre>","<ul>"] = xs
@@ -54,30 +50,37 @@ reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy 
 
 unpartitionEithers (as,bs) = map Left as ++ map Right bs
 
--- Given a URL for hackage, and a list of items, give each thing a URL
-assignURLs :: URL -> [Tagged ItemEx] -> [Tagged ItemEx]
-assignURLs hackage = f "" ""
+
+heirarchy :: URL -> [Item] -> [Item]
+heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with (isIPackage . itemItem) . map packages
     where
-        f pkg mod (Item i:xs) = Item i{itemURL = g pkg mod $ itemItem i} : f pkg mod xs
-        f pkg mod (Tagged "package" i:xs) = Tagged "package" i : f i "" xs
-        f pkg mod (Tagged "module" i:xs) = Tagged "module" i : f pkg i xs
-        f pkg mod (x:xs) = x : f pkg mod xs
-        f pkg mod [] = []
+        with :: (a -> Bool) -> [a] -> [(Maybe a, a)]
+        with p = snd . mapAccumL f Nothing
+            where f s x = let s2 = if p x then Just x else s in (s2,(s2,x))
 
-        g pkg mod (IPackage x) = hackage ++ "package/" ++ pkg
-        g pkg mod (IModule x) = hackage ++ "package/" ++ pkg ++ "/" ++ replace "." "-" x ++ ".html"
-        g pkg mod _ = hackage ++ "package/" ++ pkg ++ "/" ++ replace "." "-" mod ++ ".html#???"
+        packages i@Item{itemItem=IPackage x, itemURL=""} = i{itemURL = hackage ++ "package/" ++ x}
+        packages i = i
 
-{-
+        modules (Just Item{itemItem=IPackage pname, itemURL=purl}, i@Item{itemItem=IModule x}) = i
+            {itemURL = if null $ itemURL i then purl ++ "/" ++ replace "." "-" x ++ ".html" else itemURL i
+            ,itemParents = [[(pname, purl)]]}
+        modules (_, i) = i
 
-    esc = concatMap f
-        where
-            f x | isAlphaNum x = [x]
-                | otherwise = "-" ++ show (ord x) ++ "-"
--}
+        other (Just Item{itemItem=IModule mname, itemURL=murl, itemParents=mpar}, i@Item{itemItem=IDecl x}) = i
+            {itemURL = if null $ itemURL i then murl ++ "#" ++ url x else itemURL i
+            ,itemParents = map (++ [(mname, murl)]) mpar}
+        other (_, i) = i
+
+        url (TypeSig _ [name] _) = "v:" ++ esc (prettyPrint name)
+        url _ = ""
+
+        esc = concatMap f
+            where
+                f x | isAlphaNum x = [x]
+                    | otherwise = "-" ++ show (ord x) ++ "-"
 
 
-parseLine :: Int -> String -> Either String Item
+parseLine :: Int -> String -> Either String Items
 parseLine line x | "(##)" `isPrefixOf` x = Left $ show line ++ ": skipping due to HSE bug #206 on (##)"
 parseLine line ('@':str) = case a of
         "keyword" | b <- words b, b /= [] -> Right $ IKeyword $ unwords b
@@ -122,7 +125,7 @@ exts = map EnableExtension
 
 type S = SrcSpanInfo
 
-transDecl :: Decl S -> Item
+transDecl :: Decl S -> Items
 transDecl (GDataDecl s dat ctxt hd _ [] _) = transDecl $ DataDecl s dat ctxt hd [] Nothing
 transDecl (GDataDecl _ _ _ _ _ [GadtDecl s name _ ty] _) = transDecl $ HSE.TypeSig s [name] ty
 transDecl x = IDecl $ fmap (const ()) x
