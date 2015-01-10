@@ -5,6 +5,8 @@
 :{
 :def opt const $ return $ unlines
         [":!mkdir obj"
-        ,":!ghc -O2 -isrc --make Main.hs -outputdir obj -o obj/main"
-        ,":!obj\\main"]
+        ,":!mkdir obj\\o2"
+        ,":!ghc -O2 -isrc --make Main -outputdir obj/o2 -o obj/o2/main"
+        ,":!obj\\o2\\main"]
+:}
 :}
