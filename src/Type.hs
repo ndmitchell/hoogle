@@ -20,7 +20,7 @@ newtype Database = Database FilePath
 
 type URL = String
 type Documentation = String
-newtype Id = Id Int
+newtype Id = Id Int deriving (Eq,Ord)
 
 instance Show Id where
     show (Id x) = showHex x ""
