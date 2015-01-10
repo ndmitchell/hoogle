@@ -1,0 +1,231 @@
+Type searching
+
+Given an oracle for alias information and instance information
+
+Given two signatures a and b, there are N steps to get between them (computable)
+
+Steps have a non-linear cost, so given N steps there is a cost to that transition (computable)
+
+
+-- not symetric
+difference :: Oracle -> TypeSig -> TypeSig -> Bag Step
+
+cost :: Bag Step -> Double
+
+want to find the type signatures, sorted by cost from the current spot
+
+oracle :: Oracle
+
+database :: [TypeSig]
+
+find :: TypeSig -> [TypeSig]
+find x = take 25 $ sortOn (cost . difference oracle x) database
+
+What properties do I have?
+
+-- differences are a set, adding members can only increase the cost
+cost (x:xs) >= cost xs
+cost xs == cost (permute xs)
+
+-- costs are transitive
+cost (difference o t1 t2) + cost (difference o t2 t3) <= cost (difference o t1 t3)
+
+GOAL
+Precompute some information so that don't need to search the entire database to find the smallest
+
+Triangulation?
+- given two points, can you predict where a differences will lie?
+
+Isomeres?
+- are some set of types sufficiently small in difference that you can group them?
+
+Boundaries?
+- can you say a minimum of how much this must cost?
+
+
+
+rewrite rules:
+
+Maybe a ~> a, has a small cost
+FilePath ~> String, has a very small cost
+
+Functor f => (a -> b) -> f a -> f b
+
+
+(a -> b) -> Functor f a -> Functor f b
+
+[] ~> Functor f
+Functor f ~> f
+
+readShow :: (Read a, Show a) => RS a
+readShow :: Read (Show a)
+
+Read a ~> a
+Show a ~> a
+
+YAY, no contexts.
+
+So you have a number of localised rewrites you can apply, and a database of things to apply it to - 43000 types
+
+ShakeOptions has 21 types, all will have the rule
+
+a ~> a -> b
+
+a ~> ShakeOptions
+
+ShakeOptions ~> Monoid m
+
+
+
+Contexts are gone, everything is a rewrite:
+
+
+
+Given 
+
+
+
+how does searching for ShakeOptions find everything quickly?
+
+
+_ -> IO Int
+
+Monad m => _ -> m Int
+
+()
+
+
+
+
+ANSWER
+======
+
+TYPE SEARCH
+
+difference :: Oracle -> TypeSig -> TypeSig -> Bag Step
+
+cost :: Bag Step -> Double
+
+want to find the type signatures, sorted by cost from the current spot
+
+oracle :: Oracle
+
+database :: [TypeSig]
+
+find :: TypeSig -> [TypeSig]
+find x = take 25 $ sortOn (cost . difference oracle x) database
+
+What properties do I have?
+
+-- differences are a set, adding members can only increase the cost
+cost (x:xs) >= cost xs
+cost xs == cost (permute xs)
+
+-- costs are transitive
+cost (difference o t1 t2) + cost (difference o t2 t3) <= cost (difference o t1 t3)
+
+
+Functor a ~> a
+Functor [] ~> []
+
+
+(a -> b) -> Functor f a -> Functor f b
+
+[] ~> Functor f (cheap)
+ShakeOptions ~> Monoid a (cheap)
+
+argument reordering and omission is expensive...
+
+
+directed rewrites should be cheap.
+
+
+Functor,Eq~f a
+
+TYPE SEARCH
+
+difference :: Oracle -> TypeSig -> TypeSig -> Bag Step
+
+cost :: Bag Step -> Double
+
+want to find the type signatures, sorted by cost from the current spot
+
+oracle :: Oracle
+
+database :: [TypeSig]
+
+find :: TypeSig -> [TypeSig]
+find x = take 25 $ sortOn (cost . difference oracle x) database
+
+What properties do I have?
+
+-- differences are a set, adding members can only increase the cost
+cost (x:xs) >= cost xs
+cost xs == cost (permute xs)
+
+-- costs are transitive
+cost (difference o t1 t2) + cost (difference o t2 t3) <= cost (difference o t1 t3)
+
+
+Functor a ~> a
+Functor [] ~> []
+
+
+(a -> b) -> Functor f a -> Functor f b
+
+[] ~> Functor f (cheap)
+ShakeOptions ~> Monoid a (cheap)
+
+argument reordering and omission is expensive...
+
+
+directed rewrites should be cheap.
+
+
+Functor,Eq~f a
+
+
+ANSWER
+------
+
+matchSig :: TypeSig -> TypeSig -> Double
+matchTag :: TypeSig -> Tag -> Bool
+hasTag :: TypeSig -> Tag -> Bool
+:: [Tag]
+:: [TypeSig]
+
+Have a file of which tags you have, and what sigs they related to
+Search all tags to get a subset, search the intersection of all sigs they suggest
+
+
+
+
+ANSWER
+------
+
+matchSig :: TypeSig -> TypeSig -> Double
+matchTag :: TypeSig -> Tag -> Bool
+hasTag :: TypeSig -> Tag -> Bool
+:: [Tag]
+:: [TypeSig]
+
+Have a file of which tags you have, and what sigs they related to
+Search all tags to get a subset, search the intersection of all sigs they suggest
+
+Have:
+
+.ctors = mapping from Maybe to a# 1, a 2 char identifier plus the arity
+
+.types = list of types from beginning to end, encoded using the ctors encoding
+
+.arity = 1 a, 2 c, 3 d - a..b are all arity 1 - sort the types by arity
+
+.tag
+:: ShakeOptions = a b c d e f g h i j - which have shakeoptions in them
+
+:: IO -> _ = which have IO in a positive position
+
+
+
+
+

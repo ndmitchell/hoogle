@@ -1,0 +1,79 @@
+have a distinguished grouping "set"
+
+set:Installed
+set:Hackage
+set:Stackage
+set:Platform
+set:With GHC
+
+Populates a drop-down in the web browser
+
+
+Very happy with name search, Foo.bar works, package:lens a works, -package:lens works,
+can search for a subset of identifiers quite easily, can limit to N, can search fast enough
+
+Results can be in priority order, can dynamically skip once i reach N per module/package
+
+Work on the basis I can do a reasonable (few seconds) worth of preprocessing when I start
+Not quite as true for command line searches, so be gently mindful of that
+
+WHAT TO DO ABOUT TYPE SEARCH?
+
+Need suggestion data:
+Just is a constructor of type Maybe
+Maybe has kind 2
+-- that should be easy
+
+Type search needs:
+* information about alias
+* information about instances
+* list of all types that are available
+
+BE SIMPLE, BUT EFFECTIVE
+
+* drop the idea of dependencies
+* only search the set that you combine (can fake that with special dependencies, but not necessary)
+
+two options:
+
+1) linear scan of everything?
+
+bloomy filter?
+
+have a set of "common" types.
+
+If you specify something with a common type:
+
+[a] -> [a] -> Bool
+
+If you ask about Stmt, you very certainly want something that touches Stmt
+dull types:
+
+map :: forall a b . (a -> b) -> [a] -> [b]
+
+fmap :: forall Functor 
+
+map :: (a -> b) [c] -> [d] {a=c, b=d}
+fmap :: 
+
+
+fmap :: (a -> b) -> Functor f a -> Functor f b
+
+for "rare" types a linear scan is probably fine
+
+
+[] :< Functor
+
+perhaps there aren't that many "common" types?
+
+(a -> b) -> Foo a -> Foo b
+
+can reify that to a common type, and search based on that
+
+can also search based on the uncommon type Foo
+
+FilePath ==> String
+[] ==> Functor f
+
+
+Don't have a way to merge database, just make it streaming (in some sense)
