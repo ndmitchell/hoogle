@@ -26,6 +26,7 @@ import qualified Data.Map as Map
 import Data.Generics.Uniplate.Data
 import Data.Char
 
+import DataDocs
 import DataTags
 import ParseHoogle
 import ParseQuery
@@ -106,40 +107,6 @@ experiment = do
         (t,_) <- duration $ evaluate $ length $ BS.findSubstrings (BS.pack s) src
         print (s, t)
     error "done"
-
-
--- stage 1
-
-allocIdentifiers :: FilePath -> [Item] -> IO [(Maybe Id, Items)]
-allocIdentifiers file xs = withBinaryFile (file <.> "docs") WriteMode $ \h -> do
-    forM xs $ \x -> case x of
-        Item{..} | Just s <- showItem itemItem -> do
-            i <- Id . fromIntegral <$> hTell h
-            hPutStrLn h $ show i ++ " " ++ s
-            hPutStrLn h itemURL
-            hPutStrLn h $ intercalate ", " $ for itemParents $ \xs -> unwords ["<a href=\"" ++ b ++ ">" ++ a ++ "</a>" | (a,b) <- xs]
-            hPutStrLn h $ unlines $ replace [""] ["."] $ lines itemDocs
-            return $ (Just i, itemItem)
-        Item{..} -> return (Nothing, itemItem)
-    -- write all the URLs, docs and enough info to pretty print it to a result
-    -- and replace each with an identifier (index in the space) - big reduction in memory
-    where
-        showItem :: Items -> Maybe String
-        showItem ITag{} = Nothing
-        showItem (IDecl InstDecl{}) = Nothing
-        showItem (IDecl x) = Just $ trimStart $ unwords $ words $ prettyPrint $ fmap (const noLoc) x
-        showItem (IKeyword x) = Just $ "<b>keyword</b> " ++ x
-        showItem (IPackage x) = Just $ "<b>package</b> " ++ x
-        showItem (IModule x) = Just $ "<b>module</b> " ++ x
-
-
-mergeIndentifiers :: [FilePath] -> FilePath -> IO [Id -> Id] -- how to shift each Id
-mergeIndentifiers = undefined
-    -- find the file size of each file, shift the index by that much
-    -- then copy each file into the place
-
-lookupIdentifier :: FilePath -> Int -> IO (URL, Documentation)
-lookupIdentifier = undefined
 
 
 
