@@ -29,6 +29,7 @@ import Data.Char
 import DataItems
 import DataTags
 import DataNames
+import DataTypes
 import ParseHoogle
 import ParseQuery
 import Type
@@ -55,17 +56,13 @@ search :: Database -> Query -> IO ()
 search pkg (Query qtags strs typ) = do
     is <- case (strs, typ) of
         ([], Nothing) -> putStrLn "No search entered, nothing to do" >> return []
-        ([], Just t ) -> searchType pkg t
+        ([], Just t ) -> searchTypes pkg t
         (xs, Nothing) -> searchNames pkg xs
         (xs, Just t ) -> do
             nam <- Set.fromList <$> searchNames pkg xs
-            filter (`Set.member` nam) <$> searchType pkg t
+            filter (`Set.member` nam) <$> searchTypes pkg t
     tags <- readTags pkg
     putStrLn $ unlines $ map show $ take 25 $ pruneTags tags $ filter (filterTags tags qtags) is
-
-
-searchType :: Database -> Type () -> IO [Id]
-searchType = error "searchType"
 
 
 generate :: [String] -> IO ()
@@ -84,7 +81,7 @@ generate xs = do
             xs <- writeItems out xs
             writeTags (Database out) xs
             writeNames (Database out) xs
-            searchTypes out xs
+            writeTypes (Database out) xs
         putStrLn $ " in " ++ show (round t) ++ "s"
     files <- listFiles "output"
     files <- forM files $ \file -> (takeExtension file,) <$> fileSize file
@@ -113,12 +110,6 @@ experiment = do
         (t,_) <- duration $ evaluate $ length $ BS.findSubstrings (BS.pack s) src
         print (s, t)
     error "done"
-
-
-
-searchTypes :: FilePath -> [(Maybe Id, Items)] -> IO ()
-searchTypes file xs = writeFileBinary (file <.> "types") $ unlines
-    [show i ++ " " ++ trimStart (unwords $ words $ prettyPrint $ fmap (const noLoc) t) | (Just i, IDecl (TypeSig _ _ t)) <- xs]
 
 
 {-
