@@ -13,11 +13,11 @@ import Control.Applicative
 import System.IO.Extra
 import Data.List.Extra
 import System.FilePath
-import Control.Monad
+import Control.Monad.Extra
+import System.IO.Unsafe
 import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
-import Data.Either
 import System.Environment
 import qualified Data.ByteString.Char8 as BS
 import Control.Exception.Extra
@@ -35,6 +35,8 @@ import ParseHoogle
 import ParseQuery
 import Type
 import Util
+import System.Mem
+import GHC.Stats
 
 
 -- -- generate all
@@ -46,8 +48,9 @@ main :: IO ()
 main = do
     args <- getArgs
     let (pkg,rest) = first (map tail) $ span ("@" `isPrefixOf`) args
-    if null rest then
-        generate pkg
+    if null rest then do
+        (n,_) <- duration $ generate pkg
+        putStrLn $ "Took " ++ showDuration n
      else
         forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
             search (Database $ "output" </> pkg) $ parseQuery $ unwords rest
@@ -78,27 +81,43 @@ generate xs = do
     files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
         filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
     let n = length files
-    forM_ (zip [1..] files) $ \(i,file) -> do
+    inp <- forM (zip [1..] files) $ \(i,file) -> unsafeInterleaveIO $ do
         let pkg = takeBaseName file
-        let out = "output" </> pkg
-        putStr $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ pkg
-        (t,_) <- duration $ do
-            cbl <- readFile' $ "input/cabal" </> pkg <.> "cabal"
-            src <- readFile' file
-            (warns, xs) <- return $ partitionEithers $ parseHoogle $
-                ("@set " ++ intercalate ", " (["ghc" | pkg `elem` setGHC] ++ ["platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
-                unlines (parseCabal cbl) ++ src
-            if null warns then ignore $ removeFile $ out <.> "warn" else writeFile (out <.> "warn") $ unlines warns
-            xs <- writeItems out xs
-            writeTags (Database out) xs
-            writeNames (Database out) xs
-            writeTypes (Database out) xs
-        putStrLn $ " in " ++ show (round t) ++ "s"
+        putStrLn $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ pkg
+        cbl <- readFile' $ "input/cabal" </> pkg <.> "cabal"
+        src <- readFile' file
+        return $ ("@set " ++ intercalate ", " (["ghc" | pkg `elem` setGHC] ++ ["platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
+                 unlines (parseCabal cbl) ++ src
+    xs <- return $ parseHoogle $ unlines inp
+    let out = "output" </> (if length files == 1 then takeBaseName $ head files else "all")
+    xs <- writeFileLefts (out <.> "warn") xs
+    xs <- writeItems out xs
+    writeTags (Database out) xs
+    writeNames (Database out) xs
+    writeTypes (Database out) xs
+
+    performGC
+    print =<< getGCStats
+    evaluate xs
+
+{-
     files <- listFiles "output"
     files <- forM files $ \file -> (takeExtension file,) <$> fileSize file
     let f (name, tot) = name ++ " " ++ reverse (intercalate "," $ chunksOf 3 $ reverse $ show tot)
     putStr $ unlines $ map f $ reverse $ sortOn snd $ map (second sum) $ groupSort files
+-}
     print "done"
+
+
+writeFileLefts :: FilePath -> [Either String a] -> IO [a]
+writeFileLefts file xs = do
+    ignore $ removeFile file
+    f Nothing xs
+    where
+        f Nothing xs@(Left _:_) = do h <- openFile file WriteMode; f (Just h) xs
+        f (Just h) (Left x:xs) = do res <- unsafeInterleaveIO $ hPutStrLn h x; res `seq` f (Just h) xs
+        f h (Right x:xs) = fmap (x:) $ f h xs
+        f h [] = do whenJust h hClose; return []
 
 
 experiment :: IO ()

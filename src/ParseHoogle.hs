@@ -5,8 +5,6 @@ module ParseHoogle(parseHoogle) where
 import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
-import Data.Either
-import Data.Tuple.Extra
 import Type
 
 
@@ -30,7 +28,7 @@ parseHoogle = f [] . lines
 parseInputHaskell :: HackageURL -> String -> ([ParseError], Input)
 parseInputHaskell hackage =
 -}
-parseHoogle = unpartitionEithers . second (heirarchy hackage) . partitionEithers . f [] "" . zip [1..] . lines
+parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
     where
         f :: [String] -> URL -> [(Int,String)] -> [Either String Item]
         f com url [] = []
@@ -49,28 +47,30 @@ reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy 
     where f xs@(x:_) | x `elem` ["<pre>","<ul>"] = xs
           f xs = ["<p>",unwords xs,"</p>"]
 
-unpartitionEithers (as,bs) = map Left as ++ map Right bs
 
-
-heirarchy :: URL -> [Item] -> [Item]
+heirarchy :: URL -> [Either a Item] -> [Either a Item]
 heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with (isIPackage . itemItem) . map packages
     where
-        with :: (a -> Bool) -> [a] -> [(Maybe a, a)]
+        with :: (b -> Bool) -> [Either a b] -> [Either a (Maybe b, b)]
         with p = snd . mapAccumL f Nothing
-            where f s x = let s2 = if p x then Just x else s in (s2,(s2,x))
+            where
+                f s (Left e) = (s,Left e)
+                f s (Right x) = let s2 = if p x then Just x else s in (s2,Right (s2,x))
 
-        packages i@Item{itemItem=IPackage x, itemURL=""} = i{itemURL = hackage ++ "package/" ++ x}
+        packages (Right i@Item{itemItem=IPackage x, itemURL=""}) = Right i{itemURL = hackage ++ "package/" ++ x}
         packages i = i
 
-        modules (Just Item{itemItem=IPackage pname, itemURL=purl}, i@Item{itemItem=IModule x}) = i
+        modules (Right (Just Item{itemItem=IPackage pname, itemURL=purl}, i@Item{itemItem=IModule x})) = Right i
             {itemURL = if null $ itemURL i then purl ++ "/" ++ replace "." "-" x ++ ".html" else itemURL i
             ,itemParents = [[(pname, purl)]]}
-        modules (_, i) = i
+        modules (Right (_, i)) = Right i
+        modules (Left x) = Left x
 
-        other (Just Item{itemItem=IModule mname, itemURL=murl, itemParents=mpar}, i@Item{itemItem=IDecl x}) = i
+        other (Right (Just Item{itemItem=IModule mname, itemURL=murl, itemParents=mpar}, i@Item{itemItem=IDecl x})) = Right i
             {itemURL = if null $ itemURL i then murl ++ "#" ++ url x else itemURL i
             ,itemParents = map (++ [(mname, murl)]) mpar}
-        other (_, i) = i
+        other (Right (_, i)) = Right i
+        other (Left x) = Left x
 
         url (TypeSig _ [name] _) = "v:" ++ esc (prettyPrint name)
         url _ = ""
