@@ -25,8 +25,8 @@ writeTags (Database file) xs = do
                 let (stop,cont) = partition (\x -> fst (fst x) `elem` map fst next2) active
                 in f stop [] lst [] ++ f (cont ++ map (,i) next2) [] i xs
             where
-                next2 = case g x of Nothing -> next; Just (a,b) -> map (a,) b ++ filter ((/=) a . fst) next
-        f active next lst [] = [a ++ " " ++ b ++ " " ++ show c ++ " " ++ show lst | ((a,b),c) <- active]
+                next2 = case g x of Nothing -> next; Just (a,b) -> map (a,) (reverse b) ++ filter ((/=) a . fst) next
+        f active next lst [] = [a ++ " " ++ b ++ " " ++ show c ++ " " ++ show lst | ((a,b),c) <- reverse active]
 
         g (IPackage x) = Just ("package",[x])
         g (IModule x) = Just ("module",[x])

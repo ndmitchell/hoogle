@@ -72,17 +72,22 @@ search pkg (Query qtags strs typ) = do
 
 generate :: [String] -> IO ()
 generate xs = do
-    files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else do
-        files <- lines <$> readFile' "input/stackage.txt"
-        filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- files]
+    setStackage <- lines <$> readFile' "input/set-stackage.txt"
+    setPlatform <- lines <$> readFile' "input/set-platform.txt"
+    setGHC <- lines <$> readFile' "input/set-ghc.txt"
+    files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
+        filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
     let n = length files
     forM_ (zip [1..] files) $ \(i,file) -> do
-        let out = "output" </> takeBaseName file
-        putStr $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ takeBaseName file
+        let pkg = takeBaseName file
+        let out = "output" </> pkg
+        putStr $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ pkg
         (t,_) <- duration $ do
-            cbl <- readFile' $ "input/cabal" </> takeBaseName file <.> "cabal"
+            cbl <- readFile' $ "input/cabal" </> pkg <.> "cabal"
             src <- readFile' file
-            (warns, xs) <- return $ partitionEithers $ parseHoogle $ unlines (parseCabal cbl) ++ src
+            (warns, xs) <- return $ partitionEithers $ parseHoogle $
+                ("@set " ++ intercalate ", " (["ghc" | pkg `elem` setGHC] ++ ["platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
+                unlines (parseCabal cbl) ++ src
             if null warns then ignore $ removeFile $ out <.> "warn" else writeFile (out <.> "warn") $ unlines warns
             xs <- writeItems out xs
             writeTags (Database out) xs
@@ -91,7 +96,8 @@ generate xs = do
         putStrLn $ " in " ++ show (round t) ++ "s"
     files <- listFiles "output"
     files <- forM files $ \file -> (takeExtension file,) <$> fileSize file
-    print $ map (second sum) $ groupSort files
+    let f (name, tot) = name ++ " " ++ reverse (intercalate "," $ chunksOf 3 $ reverse $ show tot)
+    putStr $ unlines $ map f $ reverse $ sortOn snd $ map (second sum) $ groupSort files
     print "done"
 
 
@@ -103,10 +109,9 @@ experiment = do
         return [x | ParseOk x <- map (parseType . snd . word1) $ lines xs]
     print ("Count", length types)
     print ("Unique", Set.size $ Set.fromList types)
-    let disp = trimStart . unwords . words . prettyPrint
-    writeFileBinary "types.txt" $ unlines $ map disp $ Set.toList $ Set.fromList types
+    writeFileBinary "types.txt" $ unlines $ map pretty $ Set.toList $ Set.fromList types
     writeFileBinary "ctors.txt" $ unlines $ map show $ reverse $ sortOn snd $ Map.toList $ Map.fromListWith (+) $ concat [nub [(x:xs,1) | Ident (_ :: SrcSpanInfo) (x:xs) <- universeBi t, isUpper x] | t <- Set.toList $ Set.fromList types]
-    writeFileBinary "contexts.txt" $ unlines [disp t | t <- Set.toList $ Set.fromList types, any ((>1) . length . snd) $ groupSort [(prettyPrint v,cls) | ClassA (_ :: SrcSpanInfo) cls [v] <- universeBi t]]
+    writeFileBinary "contexts.txt" $ unlines [pretty t | t <- Set.toList $ Set.fromList types, any ((>1) . length . snd) $ groupSort [(prettyPrint v,cls) | ClassA (_ :: SrcSpanInfo) cls [v] <- universeBi t]]
     error "done"
 
     src <- BS.readFile "output/bullet.ids"

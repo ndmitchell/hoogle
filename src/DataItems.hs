@@ -10,6 +10,7 @@ import System.FilePath
 import Control.Monad
 
 import Type
+import Util
 
 
 writeItems :: FilePath -> [Item] -> IO [(Maybe Id, Items)]
@@ -29,7 +30,7 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
         showItem :: Items -> Maybe String
         showItem ITag{} = Nothing
         showItem (IDecl InstDecl{}) = Nothing
-        showItem (IDecl x) = Just $ trimStart $ unwords $ words $ prettyPrint x
+        showItem (IDecl x) = Just $ pretty x
         showItem (IKeyword x) = Just $ "<b>keyword</b> " ++ x
         showItem (IPackage x) = Just $ "<b>package</b> " ++ x
         showItem (IModule x) = Just $ "<b>module</b> " ++ x
