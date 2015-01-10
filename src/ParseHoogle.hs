@@ -13,6 +13,7 @@ import Type
 hackage = "https://hackage.haskell.org/"
 
 
+-- | Given a Hoogle database, grab the items (Right), or things I failed to parse (Left)
 parseHoogle :: String -> [Either String Item]
 {-
 parseHoogle = f [] . lines
