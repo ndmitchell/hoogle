@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module DataDocs(allocIdentifiers, lookupIdentifier) where
+module DataItems(writeItems, lookupItem) where
 
 import Language.Haskell.Exts.Annotated
 import Control.Applicative
@@ -12,8 +12,8 @@ import Control.Monad
 import Type
 
 
-allocIdentifiers :: FilePath -> [Item] -> IO [(Maybe Id, Items)]
-allocIdentifiers file xs = withBinaryFile (file <.> "docs") WriteMode $ \h -> do
+writeItems :: FilePath -> [Item] -> IO [(Maybe Id, Items)]
+writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
     forM xs $ \x -> case x of
         Item{..} | Just s <- showItem itemItem -> do
             i <- Id . fromIntegral <$> hTell h
@@ -35,5 +35,5 @@ allocIdentifiers file xs = withBinaryFile (file <.> "docs") WriteMode $ \h -> do
         showItem (IModule x) = Just $ "<b>module</b> " ++ x
 
 
-lookupIdentifier :: FilePath -> Int -> IO (URL, Documentation)
-lookupIdentifier = undefined
+lookupItem :: FilePath -> Id -> IO Item
+lookupItem = undefined

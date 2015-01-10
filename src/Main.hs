@@ -26,7 +26,7 @@ import qualified Data.Map as Map
 import Data.Generics.Uniplate.Data
 import Data.Char
 
-import DataDocs
+import DataItems
 import DataTags
 import ParseHoogle
 import ParseQuery
@@ -75,7 +75,7 @@ generate xs = do
             src <- readFile' file
             (warns, xs) <- return $ partitionEithers $ parseHoogle src
             unless (null warns) $ writeFile (out <.> "warn") $ unlines warns
-            xs <- allocIdentifiers out xs
+            xs <- writeItems out xs
             writeTags (Database out) xs
             searchNames out xs
             searchTypes out xs
