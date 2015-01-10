@@ -20,7 +20,7 @@ import Data.Tuple.Extra
 import Data.Either
 import System.Environment
 import qualified Data.ByteString.Char8 as BS
-import Control.Exception
+import Control.Exception.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Data.Generics.Uniplate.Data
@@ -30,6 +30,7 @@ import DataItems
 import DataTags
 import DataNames
 import DataTypes
+import ParseCabal
 import ParseHoogle
 import ParseQuery
 import Type
@@ -79,9 +80,10 @@ generate xs = do
         let out = "output" </> takeBaseName file
         putStr $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ takeBaseName file
         (t,_) <- duration $ do
+            cbl <- readFile' $ "input/cabal" </> takeBaseName file <.> "cabal"
             src <- readFile' file
-            (warns, xs) <- return $ partitionEithers $ parseHoogle src
-            unless (null warns) $ writeFile (out <.> "warn") $ unlines warns
+            (warns, xs) <- return $ partitionEithers $ parseHoogle $ unlines (parseCabal cbl) ++ src
+            if null warns then ignore $ removeFile $ out <.> "warn" else writeFile (out <.> "warn") $ unlines warns
             xs <- writeItems out xs
             writeTags (Database out) xs
             writeNames (Database out) xs

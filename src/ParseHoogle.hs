@@ -86,8 +86,9 @@ parseLine line x | "(##)" `isPrefixOf` x = Left $ show line ++ ": skipping due t
 parseLine line ('@':str) = case a of
         "keyword" | b <- words b, b /= [] -> Right $ IKeyword $ unwords b
         "package" | [b] <- words b, b /= "" -> Right $ IPackage b
+        x | x `elem` ["license","category","author"] -> Right $ ITag x b
         _ -> Left $ show line ++ ": unknown attribute, " ++ a
-    where (a,b) = break isSpace str
+    where (a,b) = word1 str
 parseLine line x | ["module",a] <- words x = Right $ IModule a
 
 -- normal decls
