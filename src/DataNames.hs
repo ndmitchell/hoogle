@@ -10,6 +10,8 @@ import Data.List.Extra
 import qualified Data.ByteString.Char8 as BS
 
 import Type
+import Util
+
 
 writeNames :: Database -> [(Maybe Id, Items)] -> IO ()
 writeNames (Database file) xs = writeFileBinary (file <.> "names") $ unlines
@@ -19,7 +21,7 @@ toName :: Items -> [String]
 toName (IKeyword x) = [x]
 toName (IPackage x) = [x]
 toName (IModule x) = [last $ splitOn "." x]
-toName (IDecl x) = map f $ case x of
+toName (IDecl x) = map fromName $ case x of
     TypeDecl _ name _ _ -> [name]
     DataDecl _ _ _ name _ _ _ -> [name]
     GDataDecl _ _ _ name _ _ _ _ -> [name]
@@ -28,8 +30,6 @@ toName (IDecl x) = map f $ case x of
     ClassDecl _ _ name _ _ _ -> [name]
     TypeSig _ names _ -> names
     _ -> []
-    where f (Ident x) = x
-          f (Symbol x) = x
 toName _ = []
 
 

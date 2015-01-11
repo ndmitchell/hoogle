@@ -1,7 +1,8 @@
 
 module Util(
     fileSize,
-    pretty
+    pretty,
+    fromName, fromTyVarBind
     ) where
 
 import System.IO
@@ -14,3 +15,11 @@ fileSize file = withFile file ReadMode $ fmap fromIntegral . hFileSize
 
 pretty :: Pretty a => a -> String
 pretty = trim . unwords . words . prettyPrint
+
+fromName :: Name -> String
+fromName (Ident x) = x
+fromName (Symbol x) = x
+
+fromTyVarBind :: TyVarBind -> Name
+fromTyVarBind (KindedVar x _) = x
+fromTyVarBind (UnkindedVar x) = x
