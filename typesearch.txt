@@ -226,6 +226,56 @@ Have:
 :: IO -> _ = which have IO in a positive position
 
 
+Trying to compute:
+
+(?) :: TypeQ -> TypeA -> Maybe Cost
+
+(?~) :: TypeQ~ -> TypeA~ -> Bool
+
+such that:
+
+(q~ ?~ a~) == False ==> isNothing (q ? a)
+
+a~ :: ([#Context],[Ctor]) -- exactly what is in the type, no alias or instance following
+-- sort the list
+
+q~
+    for each thing in the Q it must be able to be satisfied on the RHS
+    C ~? q ==> if C is actually in ~a
+    Int ?~ q ==> Monoid ?~ q -- can satisfy with an instance
+    FilePath ?~ q ==> String ?~ q -- can follow an instance
+    String ?~ q ==> Char ?~ q && [] ?~ q
+    Turn q~ into a state machine based on recognisation
+
+?~ -- can come up with a very fast state machine for q~, just apply that to a~
 
 
+q# ?# a# == False ==> q ? a < Just 0.01
+    If q~ requires no "rare" things (< 5% of the DB), then don't suggest "rare" things
+    If the rarest ctor you require is N%, reject all things with ctors you don't want rarer than (2*N)%
+    conretely: if Action a -> IO a, and Action is 2%, allow
 
+    Problem: Searching for a -> IO a, you don't want Action a -> IO a, since Action a is pretty darn rare
+    if you only have common stuff (IO is 40%), reject things which are rare (Action is 0.5%)
+    so reject all with < 20% common
+
+a# is how rare is the most rare thing
+    ShakeOptions -> Action a -> IO a, ShakeOptions is the rarest thing at 0.5%
+
+q#
+    Searching for Action a -> IO a, Action is the rarest at 1%
+    a -> IO a, since IO is very common (40%) don't both including anything with Action (too rare)
+
+q# ?# a# = q# * 5 > a#
+    if the rare stuff is present, then we're fine
+
+so if q has rare things, ?~ restricts cheaply to a few
+
+so if q has only common things, ?# restricts cheaply those which have rare bits in
+
+sort by a~ to recognise and skip large chunks
+
+if you can satisfy all the pieces, then try and satisfy the whole thing in detail
+
+
+?* = arity based test, restrict to the arity
