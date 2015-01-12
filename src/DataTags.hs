@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module DataTags(Tags, writeTags, readTags, filterTags, pruneTags) where
+module DataTags(Tags, writeTags, readTags, listTags, filterTags, pruneTags) where
 
 import System.IO.Extra
 import Data.List.Extra
@@ -43,6 +43,15 @@ readTags (Database file) = do
     return $ Tags [((cat, unwords bod), (read i1, read i2))
         | x <- lines x, let cat:xs = words x, let ([i1,i2],bod) = both reverse $ splitAt 2 $ reverse xs]
 
+
+listTags :: Tags -> [String]
+listTags (Tags xs) = nub $ map (\(a,b) -> a ++ " " ++ b) $ sortOn (f &&& second lower) $ filter ((/=) "module" . fst) $ map fst xs
+    where
+        f ("set",x) = fromMaybe 0.9 $ lookup x [("stackage",0.0),("platform",0.1),("ghc",0.2)]
+        f ("package",x) = 1
+        f ("category",x) = 2
+        f ("license",x) = 3
+        f _ = 4
 
 filterTags :: Tags -> [QTag] -> (Id -> Bool)
 filterTags (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
