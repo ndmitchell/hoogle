@@ -25,6 +25,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Data.Generics.Uniplate.Data
 import Data.Char
+import qualified Language.Javascript.JQuery as JQuery
 
 import DataItems
 import DataTags
@@ -35,6 +36,7 @@ import ParseHoogle
 import ParseQuery
 import Type
 import Util
+import Server
 import System.Mem
 import GHC.Stats
 
@@ -48,15 +50,30 @@ main :: IO ()
 main = do
     args <- getArgs
     let (pkg,rest) = first (map tail) $ span ("@" `isPrefixOf`) args
-    if null rest then do
+    if rest == ["-"] then
+        spawn $ Database $ "output" </> head (pkg ++ ["all"])
+     else if null rest then do
         (n,_) <- duration $ generate pkg
         putStrLn $ "Took " ++ showDuration n
      else
-        forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
-            search (Database $ "output" </> pkg) $ parseQuery $ unwords rest
+        forM_ (if null pkg then ["all"] else pkg) $ \pkg -> do
+            res <- search (Database $ "output" </> pkg) $ parseQuery $ unwords rest
+            forM_ res $ putStrLn . snd . word1 . head
 
 
-search :: Database -> Query -> IO ()
+spawn :: Database -> IO ()
+spawn pkg = server 80 $ \Input{..} -> case inputURL of
+    ["api","query"] -> do
+        res <- search pkg $ parseQuery $ unwords [x | ("q",x) <- inputArgs]
+        return $ OutputString $ show res
+    ["api","tags.js"] ->
+        OutputString . (++) "var tags = " . show . listTags <$> readTags pkg
+    ["jquery.js"] -> OutputFile <$> JQuery.file
+    [] -> OutputHTML <$> readFile "html/index.html"
+    xs -> return $ OutputFile $ joinPath $ "html" : xs
+
+
+search :: Database -> Query -> IO [[String]]
 search pkg (Query qtags strs typ) = do
     is <- case (strs, typ) of
         ([], Nothing) | null qtags -> putStrLn "No search entered, nothing to do" >> return []
@@ -67,10 +84,7 @@ search pkg (Query qtags strs typ) = do
             nam <- Set.fromList <$> searchNames pkg xs
             filter (`Set.member` nam) <$> searchTypes pkg t
     tags <- readTags pkg
-    let res = take 25 $ pruneTags tags $ filter (filterTags tags qtags) is
-    forM_ res $ \x -> case x of
-        Left (a,b) -> putStrLn $ "... plus more things from " ++ a ++ " " ++ b ++ "..."
-        Right i -> putStrLn . snd . word1 . head =<< lookupItem pkg i
+    mapM (lookupItem pkg) $ take 25 $ filter (filterTags tags qtags) is
 
 
 generate :: [String] -> IO ()
