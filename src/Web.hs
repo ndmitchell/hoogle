@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP #-}
 
-module Server(
-    Input(..), Output(..), server
+module Web(
+    Input(..), Output(..), server, download
     ) where
 
 -- #define PROFILE
@@ -15,6 +15,7 @@ import Network.Wai.Handler.Warp hiding (Port)
 import Network.Wai
 import Control.DeepSeq
 import Control.Exception
+import Network.HTTP hiding (Request)
 import Network.HTTP.Types.Status
 import qualified Data.Text as Text
 import qualified Data.ByteString.Char8 as BS
@@ -42,6 +43,20 @@ instance NFData Output where
     rnf (OutputFile x) = rnf x
     rnf (OutputError x) = rnf x
     rnf OutputMissing = ()
+
+
+download :: (String,Int) -> Input -> IO LBS.ByteString
+download (host,port) Input{..} = do
+    let url = "http://" ++ host ++ ":" ++ show port ++ concatMap ('/':) inputURL ++
+              concat (zipWith (++) ("?":repeat "&") [a ++ "=" ++ b | (a,b) <- inputArgs])
+    res <- simpleHTTP (getRequest url)
+        {rqBody=LBS.pack inputBody
+        ,rqHeaders=[Header HdrContentType "application/x-www-form-urlencoded", Header HdrContentLength $ show $ length inputBody]}
+    case res of
+        Left err -> error $ show err
+        Right r | rspCode r /= (2,0,0) -> error $
+                    "Incorrect code: " ++ show (rspCode r,rspReason r,url) ++ "\n" ++ LBS.unpack (rspBody r)
+                | otherwise -> return $ rspBody r
 
 
 server :: Int -> (Input -> IO Output) -> IO ()

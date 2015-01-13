@@ -38,7 +38,7 @@ import Input.Hoogle
 import Query
 import Type
 import Util
-import Server
+import Web
 import System.Mem
 import GHC.Stats
 
