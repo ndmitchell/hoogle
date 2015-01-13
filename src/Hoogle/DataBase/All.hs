@@ -4,6 +4,7 @@ module Hoogle.DataBase.All
     ,module Hoogle.DataBase.Serialise
     ) where
 
+import Prelude()
 import General.Base
 import Hoogle.Store.All
 import Hoogle.DataBase.Type
