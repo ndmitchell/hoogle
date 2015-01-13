@@ -26,6 +26,11 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 
 import System.IO
 
+#if __GLASGOW_HASKELL__ < 710
+sortOn f = sortBy (comparing f)
+#endif
+
+
 
 type LBString = LBS.ByteString
 type BString = BS.ByteString

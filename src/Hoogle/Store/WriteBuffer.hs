@@ -13,7 +13,6 @@ import Data.IORef
 import Foreign
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Internal as BS
-import General.Util
 
 
 bufferSize = 10000 :: Word32
