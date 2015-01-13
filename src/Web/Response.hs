@@ -64,7 +64,7 @@ logMessage q = do
     ip <- fmap (fromMaybe "0") $ getEnvVar "REMOTE_ADDR"
     let shw x = if all isAlphaNum x then x else show x
     appendFile logFile $ (++ "\n") $ unwords $
-        [formatTime defaultTimeLocale "%FT%T" time
+        [formatTime System.Locale.defaultTimeLocale "%FT%T" time
         ,ip] ++
         [shw a ++ "=" ++ shw b | (a,b) <- args]
 
