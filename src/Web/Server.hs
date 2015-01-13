@@ -131,9 +131,8 @@ serveFile :: Bool -> FilePath -> Bool -> IO Response
 serveFile cache file rewriteLinks = do
     b <- doesFileExist file
     if not b
-	then return $ responseNotFound file
-	else (if rewriteLinks then rewriteHaddockFileLinks else return) $ ResponseFile ok200 hdr file Nothing
-	    
+        then return $ responseNotFound file
+        else (if rewriteLinks then rewriteHaddockFileLinks else return) $ ResponseFile ok200 hdr file Nothing
 
     where hdr = (hContentType, fromString $ contentExt $ takeExtension file) :
                 [(hCacheControl, fromString "max-age=604800" {- 1 week -}) | cache]
