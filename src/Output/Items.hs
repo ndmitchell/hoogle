@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module DataItems(writeItems, lookupItem) where
+module Output.Items(writeItems, lookupItem) where
 
 import Language.Haskell.Exts
 import Control.Applicative

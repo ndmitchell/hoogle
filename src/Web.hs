@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP #-}
 
-module Server(
-    Input(..), Output(..), server
+module Web(
+    Input(..), Output(..), server, downloadFile
     ) where
 
 -- #define PROFILE
@@ -20,6 +20,10 @@ import qualified Data.Text as Text
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import System.Console.CmdArgs.Verbosity
+import Data.Conduit.Binary (sinkFile)
+import qualified Network.HTTP.Conduit as C
+import qualified Data.Conduit as C
+import Network
 
 
 data Input = Input
@@ -42,6 +46,14 @@ instance NFData Output where
     rnf (OutputFile x) = rnf x
     rnf (OutputError x) = rnf x
     rnf OutputMissing = ()
+
+
+downloadFile :: FilePath -> String -> IO ()
+downloadFile file url = withSocketsDo $ do
+    request <- C.parseUrl url
+    C.withManager $ \manager -> do
+        response <- C.http request manager
+        C.responseBody response C.$$+- sinkFile file
 
 
 server :: Int -> (Input -> IO Output) -> IO ()

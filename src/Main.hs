@@ -1,6 +1,8 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
+module Main(main) where
+
 -- grp = 1.28Mb
 -- wrd = 10.7Mb
 
@@ -27,16 +29,18 @@ import Data.Generics.Uniplate.Data
 import Data.Char
 import qualified Language.Javascript.JQuery as JQuery
 
-import DataItems
-import DataTags
-import DataNames
-import DataTypes
-import ParseCabal
-import ParseHoogle
-import ParseQuery
+import Output.Items
+import Output.Tags
+import Output.Names
+import Output.Types
+import Input.Cabal
+import Input.Hoogle
+import Input.Download
+import Input.Set
+import Query
 import Type
 import Util
-import Server
+import Web
 import System.Mem
 import GHC.Stats
 
@@ -53,6 +57,7 @@ main = do
     if rest == ["-"] then
         spawn $ Database $ "output" </> head (pkg ++ ["all"])
      else if null rest then do
+        downloadInputs
         (n,_) <- duration $ generate pkg
         putStrLn $ "Took " ++ showDuration n
      else
@@ -89,9 +94,15 @@ search pkg (Query qtags strs typ) = do
 
 generate :: [String] -> IO ()
 generate xs = do
-    setStackage <- lines <$> readFile' "input/set-stackage.txt"
-    setPlatform <- lines <$> readFile' "input/set-platform.txt"
-    setGHC <- lines <$> readFile' "input/set-ghc.txt"
+    setStackage <- setStackage
+    setPlatform <- setPlatform
+    setGHC <- setGHC
+    createDirectoryIfMissing True "output"
+    xs <- return $ if null xs then setStackage else xs
+
+    cbl <- parseCabal xs
+    error $ show cbl
+
     files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
         filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
     let n = length files
@@ -101,7 +112,7 @@ generate xs = do
         cbl <- readFile' $ "input/cabal" </> pkg <.> "cabal"
         src <- readFile' file
         return $ ("@set " ++ intercalate ", " (["ghc" | pkg `elem` setGHC] ++ ["platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
-                 unlines (parseCabal cbl) ++ src
+                 unlines (undefined cbl) ++ src
     xs <- return $ parseHoogle $ unlines inp
     let out = "output" </> (if length files == 1 then takeBaseName $ head files else "all")
     xs <- writeFileLefts (out <.> "warn") xs

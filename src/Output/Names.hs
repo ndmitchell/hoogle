@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module DataNames(writeNames, searchNames) where
+module Output.Names(writeNames, searchNames) where
 
 import Language.Haskell.Exts
 import Control.Applicative
