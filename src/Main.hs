@@ -36,6 +36,7 @@ import Output.Types
 import Input.Cabal
 import Input.Hoogle
 import Input.Download
+import Input.Set
 import Query
 import Type
 import Util
@@ -93,9 +94,9 @@ search pkg (Query qtags strs typ) = do
 
 generate :: [String] -> IO ()
 generate xs = do
-    setStackage <- lines <$> readFile' "input/set-stackage.txt"
-    setPlatform <- lines <$> readFile' "input/set-platform.txt"
-    setGHC <- lines <$> readFile' "input/set-ghc.txt"
+    setStackage <- setStackage
+    setPlatform <- setPlatform
+    setGHC <- setGHC
     createDirectoryIfMissing True "output"
     files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
         filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
