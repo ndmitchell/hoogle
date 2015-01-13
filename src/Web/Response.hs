@@ -10,6 +10,7 @@ import General.System
 import General.Web
 import Web.Page
 import Data.Generics.Uniplate
+import System.Locale
 
 import qualified Data.Aeson as J
 import qualified Data.ByteString.Lazy.Char8 as LBS

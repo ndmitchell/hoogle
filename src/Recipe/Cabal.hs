@@ -12,7 +12,6 @@ import Distribution.System
 import Distribution.Text
 import Distribution.Verbosity
 import Distribution.Version
-import Language.Haskell.Extension (Language(..))
 import Recipe.Haddock
 
 
