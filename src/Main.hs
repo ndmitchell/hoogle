@@ -96,6 +96,7 @@ generate xs = do
     setStackage <- lines <$> readFile' "input/set-stackage.txt"
     setPlatform <- lines <$> readFile' "input/set-platform.txt"
     setGHC <- lines <$> readFile' "input/set-ghc.txt"
+    createDirectoryIfMissing True "output"
     files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
         filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
     let n = length files
