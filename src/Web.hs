@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP #-}
 
 module Web(
-    Input(..), Output(..), server, download
+    Input(..), Output(..), server, downloadFile
     ) where
 
 -- #define PROFILE
@@ -15,12 +15,15 @@ import Network.Wai.Handler.Warp hiding (Port)
 import Network.Wai
 import Control.DeepSeq
 import Control.Exception
-import Network.HTTP hiding (Request)
 import Network.HTTP.Types.Status
 import qualified Data.Text as Text
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import System.Console.CmdArgs.Verbosity
+import Data.Conduit.Binary (sinkFile)
+import qualified Network.HTTP.Conduit as C
+import qualified Data.Conduit as C
+import Network
 
 
 data Input = Input
@@ -45,18 +48,12 @@ instance NFData Output where
     rnf OutputMissing = ()
 
 
-download :: (String,Int) -> Input -> IO LBS.ByteString
-download (host,port) Input{..} = do
-    let url = "http://" ++ host ++ ":" ++ show port ++ concatMap ('/':) inputURL ++
-              concat (zipWith (++) ("?":repeat "&") [a ++ "=" ++ b | (a,b) <- inputArgs])
-    res <- simpleHTTP (getRequest url)
-        {rqBody=LBS.pack inputBody
-        ,rqHeaders=[Header HdrContentType "application/x-www-form-urlencoded", Header HdrContentLength $ show $ length inputBody]}
-    case res of
-        Left err -> error $ show err
-        Right r | rspCode r /= (2,0,0) -> error $
-                    "Incorrect code: " ++ show (rspCode r,rspReason r,url) ++ "\n" ++ LBS.unpack (rspBody r)
-                | otherwise -> return $ rspBody r
+downloadFile :: FilePath -> String -> IO ()
+downloadFile file url = withSocketsDo $ do
+    request <- C.parseUrl url
+    C.withManager $ \manager -> do
+        response <- C.http request manager
+        C.responseBody response C.$$+- sinkFile file
 
 
 server :: Int -> (Input -> IO Output) -> IO ()
