@@ -1,4 +1,4 @@
-
+{-# LANGUAGE CPP #-}
 module General.Util where
 
 import General.Base
@@ -18,7 +18,9 @@ nubOrd = nubOrdOn id
 (++?) :: String -> String -> String
 a ++? b = if null a || null b then [] else a ++ b
 
+#if __GLASGOW_HASKELL__ < 710
 sortOn f = sortBy (comparing f)
+#endif
 groupOn f = groupBy ((==) `on` f)
 nubOn f = nubBy ((==) `on` f)
 
