@@ -1,6 +1,8 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
+module Main(main) where
+
 -- grp = 1.28Mb
 -- wrd = 10.7Mb
 
@@ -27,13 +29,13 @@ import Data.Generics.Uniplate.Data
 import Data.Char
 import qualified Language.Javascript.JQuery as JQuery
 
-import DataItems
-import DataTags
-import DataNames
-import DataTypes
-import ParseCabal
-import ParseHoogle
-import ParseQuery
+import Output.Items
+import Output.Tags
+import Output.Names
+import Output.Types
+import Input.Cabal
+import Input.Hoogle
+import Query
 import Type
 import Util
 import Server

@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module DataTypes(writeTypes, searchTypes) where
+module Output.Types(writeTypes, searchTypes) where
 
 
 import Language.Haskell.Exts

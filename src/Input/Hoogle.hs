@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
 
-module ParseHoogle(parseHoogle) where
+module Input.Hoogle(parseHoogle) where
 
 import Language.Haskell.Exts as HSE
 import Data.Char

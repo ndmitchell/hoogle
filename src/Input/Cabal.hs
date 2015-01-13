@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
 
-module ParseCabal(parseCabal) where
+module Input.Cabal(parseCabal) where
 
 import Data.List.Extra
 

@@ -1,5 +1,5 @@
 
-module ParseQuery(parseQuery) where
+module Query(parseQuery) where
 
 import Data.List
 import Data.Tuple.Extra

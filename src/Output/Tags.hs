@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module DataTags(Tags, writeTags, readTags, listTags, filterTags, pruneTags) where
+module Output.Tags(Tags, writeTags, readTags, listTags, filterTags, pruneTags) where
 
 import System.IO.Extra
 import Data.List.Extra
