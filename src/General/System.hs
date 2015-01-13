@@ -3,7 +3,7 @@
 -- | Module for system like things in base/directory/etc, or could plausibly be added.
 module General.System(module General.System, module X) where
 
-import System.Cmd as X
+import System.Process as X
 import System.Directory as X
 import System.Environment as X
 import System.Exit as X
