@@ -7,6 +7,8 @@ module General.Base(module General.Base, module X) where
 import Prelude as X
 #if __GLASGOW_HASKELL__ < 710
 import Control.Applicative as X ((<*>),(<$>))
+#else
+import Control.Applicative as X ((<$>))
 #endif
 import Control.Arrow as X
 import Control.DeepSeq as X
