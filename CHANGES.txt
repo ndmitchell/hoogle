@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.37
     #94, GHC 7.10 support
 4.2.36
     #85, add support for missing type constructors
