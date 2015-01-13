@@ -64,7 +64,7 @@ main = do
 spawn :: Database -> IO ()
 spawn pkg = server 80 $ \Input{..} -> case inputURL of
     ["api","query"] -> do
-        res <- search pkg $ parseQuery $ unwords [x | ("q",x) <- inputArgs]
+        res <- search pkg $ parseQuery $ unwords [x | ("hoogle",x) <- inputArgs]
         return $ OutputString $ show res
     ["api","tags.js"] ->
         OutputString . (++) "var tags = " . show . listTags <$> readTags pkg

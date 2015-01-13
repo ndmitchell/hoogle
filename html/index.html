@@ -1,22 +1,69 @@
-<!HTML>
+<!DOCTYPE HTML>
 <html>
-<head>
-    <title>Hoogle</title>
-    <script type="text/javascript" src="jquery.js"></script>
-    <script type="text/javascript" src="chosen/chosen.jquery.min.js"></script>
-    <script type="text/javascript" src="chosen/jquery.cookie.js"></script>
-    <script type="text/javascript" src="api/tags.js"></script>
-    <script type="text/javascript" src="index.js"></script>
-    <link type="image/png" rel="icon" href="favicon.png" />
-    <link rel="stylesheet" type="text/css" href="chosen/chosen.min.css" />
-    <link rel="stylesheet" type="text/css" href="index.css" />
-</head>
-<body>
-    <div>
-        <input id="hoogle" type="text" />
-        <select id="tag" data-placeholder="Search stackage"><option></option></select>
-        <button id="search">Search</button>
-    </div>
-    <div id="output"></div>
-</body>
+    <head profile="http://a9.com/-/spec/opensearch/1.1/">
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+        <title>Hoogle</title>
+        <link type="text/css" rel="stylesheet" href="hoogle.css" />
+        <link rel="stylesheet" type="text/css" href="plugin/chosen.min.css" />
+        <link type="image/png" rel="icon" href="favicon.png" />
+		<link type="image/png" rel="apple-touch-icon" href="favicon57.png" />
+        <link type="application/opensearchdescription+xml" rel="search" href="search.xml" title="Hoogle" />
+        <script type="text/javascript" src="api/tags.js"> </script>
+        <script type="text/javascript" src="jquery.js"> </script>
+        <script type="text/javascript" src="plugin/jquery.cookie.js"> </script>
+        <script type="text/javascript" src="plugin/chosen.jquery.min.js"> </script>
+        <script type="text/javascript" src="hoogle.js"> </script>
+    </head>
+    <body>
+<div id="links">
+    <ul id="top-menu">
+        <li id="plugin" style="display:none;"><a href="javascript:searchPlugin()">Search plugin</a></li>
+        <li><a href="https://github.com/ndmitchell/hoogle/blob/master/README.md">Manual</a></li>
+        <li><a href="http://www.haskell.org/">haskell.org</a></li>
+    </ul>
+</div>
+<form action="." method="get" id="search">
+    <a id="logo" href="http://haskell.org/hoogle/">
+        <img src="hoogle.png" width="160" height="58" alt="Hoogle"
+    /></a>
+    <input name="hoogle" id="hoogle" class="HOOGLE_REAL" type="text" autocomplete="off" accesskey="1" />
+    <select id="tag" data-placeholder="Search stackage"><option></option></select>
+    <input id="submit" type="submit" value="Search" />
+</form>
+<div id="body">
+<h1>Welcome to Hoogle</h1>
+<ul id="left">
+<li><b>Links</b></li>
+<li><a href="http://haskell.org/">Haskell.org</a></li>
+<li><a href="http://hackage.haskell.org/">Hackage</a></li>
+<li><a href="http://www.haskell.org/ghc/docs/latest/html/users_guide/">GHC Manual</a></li>
+<li><a href="http://www.haskell.org/ghc/docs/latest/html/libraries/">Libraries</a></li>
+</ul>
+<p>
+    Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries
+    by either function name, or by approximate type signature.
+</p>
+<p id="example">
+    Example searches:<br/>
+    <a href="?hoogle=map">map</a><br/>
+    $query=(a -> b) -> [a] -> [b]$ $#search$<br/>
+    $query=Ord a => [a] -> [a]$ $#search$<br/>
+    $query=Data.Map.insert$ $#search$<br/>
+    <br/>Enter your own search at the top of the page.
+</p>
+<p>
+    The <a href="http://www.haskell.org/haskellwiki/Hoogle">Hoogle manual</a> contains more details,
+    including further details on search queries, how to install Hoogle as a command line application
+    and how to integrate Hoogle with Firefox/Emacs/Vim etc.
+</p>
+<p>
+    I am very interested in any feedback you may have. Please
+    <a href="http://community.haskell.org/~ndm/contact/">email me</a>, or add an entry to my
+    <a href="http://code.google.com/p/ndmitchell/issues/list">bug tracker</a>.
+</p>
+
+            <div class="push"></div>
+        </div>
+        <div id="footer">&copy; <a href="http://community.haskell.org/~ndm/">Neil Mitchell</a> 2004-2014, version lite</div>
+    </body>
 </html>

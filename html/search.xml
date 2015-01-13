@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+    <ShortName>Hoogle</ShortName>
+    <LongName>Hoogle - Haskell API Search</LongName>
+    <Description>
+        Hoogle is a Haskell API search engine, which allows you to
+        search many standard Haskell libraries by either function name,
+        or by approximate type signature.
+    </Description>
+    <Tags>haskell</Tags>
+    <Url type="text/html" template="http://haskell.org/hoogle/?hoogle={searchTerms}"/>
+    <Url type="application/x-suggestions+json" template="http://haskell.org/hoogle/?hoogle={searchTerms}&amp;mode=suggest"/>
+
+    <Image height="16" width="16" type="image/png">http://haskell.org/hoogle/res/favicon.png</Image>
+    <Image height="64" width="64" type="image/png">http://haskell.org/hoogle/res/favicon64.png</Image>
+    <Developer>Neil Mitchell</Developer>
+    <AdultContent>false</AdultContent>
+    <Language>en-us</Language>
+    <OutputEncoding>UTF-8</OutputEncoding>
+    <InputEncoding>UTF-8</InputEncoding>
+</OpenSearchDescription>
