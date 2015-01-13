@@ -13,7 +13,7 @@ import Distribution.Text
 import Distribution.Verbosity
 import Distribution.Version
 import Recipe.Haddock
-#if __GLASGOW_HASKELL__ >= 710
+#if MIN_VERSION_Cabal(1,22,0)
 import Language.Haskell.Extension (Language(..))
 #endif
 
@@ -33,9 +33,7 @@ readCabal file = do
     pkg <- readPackageDescription silent file
     let plat = Platform I386 Linux
         compid = CompilerId GHC (Version ghcVersion [])
-#if __GLASGOW_HASKELL__ < 710
-        comp = compid
-#else
+#if MIN_VERSION_Cabal(1,22,0)
         comp = CompilerInfo
                  { compilerInfoId = compid
                  , compilerInfoAbiTag = NoAbiTag
@@ -46,6 +44,8 @@ readCabal file = do
                    -- 'Distribution.Simple.GHC.Internal'.
                  , compilerInfoExtensions = Nothing
                  }
+#else
+        comp = compid
 #endif
     pkg <- return $ case finalizePackageDescription [] (const True) plat comp [] pkg of
         Left _ -> flattenPackageDescription pkg
