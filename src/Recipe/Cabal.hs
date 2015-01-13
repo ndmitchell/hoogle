@@ -13,6 +13,9 @@ import Distribution.Text
 import Distribution.Verbosity
 import Distribution.Version
 import Recipe.Haddock
+#if __GLASGOW_HASKELL__ >= 710
+import Language.Haskell.Extension (Language(..))
+#endif
 
 
 ghcVersion = [7,8,3]
