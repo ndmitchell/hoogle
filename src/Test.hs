@@ -1,7 +1,7 @@
 module Main(main) where
 
 import Control.Monad
-import System.Cmd
+import System.Process
 import System.Directory
 import System.Exit
 import System.FilePath
