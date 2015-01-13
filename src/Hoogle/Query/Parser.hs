@@ -1,7 +1,10 @@
+{-# LANGUAGE CPP #-}
 
 module Hoogle.Query.Parser(parseQuery) where
 
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative ((*>))
+#endif
 import General.Base
 import Hoogle.Query.Type
 import Hoogle.Type.All as Hoogle
