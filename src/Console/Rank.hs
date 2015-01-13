@@ -1,4 +1,4 @@
-
+{-# LANGUAGE ScopedTypeVariables #-}
 module Console.Rank(rank) where
 
 import General.Base
@@ -16,7 +16,8 @@ scores :: ([String], [(String,[String])]) -> [(Score,Score)]
 scores (pre,xs) = concatMap trans
     [
         [ fst $ head $ search db q ++ [error $ "Did not find in " ++ query ++ ", " ++ y]
-        | y <- ys , let (err,db) = (error "this feature has been disabled" createDatabase) Haskell [] $ unlines $ pre ++ ["a::" ++ y]
+        | y <- ys
+        , let (err::String,db) = (error "this feature has been disabled" createDatabase) Haskell [] $ unlines $ pre ++ ["a::" ++ y]
         , null err || error "Errors while converting rank database"
         ]
     | (query,ys) <- xs, let q = right ("Could not parse query: " ++ query) $ parseQuery Haskell query]

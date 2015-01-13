@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE CPP #-}
 
 module Web.Response(response, ResponseArgs(..), responseArgs) where
 
@@ -14,7 +15,6 @@ import qualified Data.Aeson as J
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Time.Clock
 import Data.Time.Format
-import System.Locale
 import Network.Wai
 import Network.HTTP.Types(hContentType)
 import System.IO.Unsafe(unsafeInterleaveIO)

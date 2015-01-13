@@ -1,6 +1,10 @@
-{-# LANGUAGE RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, GeneralizedNewtypeDeriving, CPP #-}
 
 module Recipe.All(recipes) where
+
+#if __GLASGOW_HASKELL__ >= 710
+import Prelude hiding ((*>))
+#endif
 
 import General.Base hiding (readFile')
 import General.System as Sys
