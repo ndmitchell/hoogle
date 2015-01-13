@@ -4,7 +4,7 @@
 module Web.Server(server) where
 
 #ifndef MIN_VERSION_wai
-#define MIN_VERSION_wai(a,b,c) 0
+#define MIN_VERSION_wai(a,b,c) 1
 #endif
 
 import General.Base
