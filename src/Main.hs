@@ -35,6 +35,7 @@ import Output.Names
 import Output.Types
 import Input.Cabal
 import Input.Hoogle
+import Input.Download
 import Query
 import Type
 import Util
@@ -55,6 +56,7 @@ main = do
     if rest == ["-"] then
         spawn $ Database $ "output" </> head (pkg ++ ["all"])
      else if null rest then do
+        downloadInputs
         (n,_) <- duration $ generate pkg
         putStrLn $ "Took " ++ showDuration n
      else
