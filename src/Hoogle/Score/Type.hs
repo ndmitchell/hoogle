@@ -5,8 +5,7 @@ module Hoogle.Score.Type(
     scoreCosts, cost
     ) where
 
-import Data.List
-import Data.Monoid
+import General.Base
 
 
 data TypeCost
