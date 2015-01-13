@@ -98,6 +98,11 @@ generate xs = do
     setPlatform <- setPlatform
     setGHC <- setGHC
     createDirectoryIfMissing True "output"
+    xs <- return $ if null xs then setStackage else xs
+
+    cbl <- parseCabal xs
+    error $ show cbl
+
     files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
         filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
     let n = length files
@@ -107,7 +112,7 @@ generate xs = do
         cbl <- readFile' $ "input/cabal" </> pkg <.> "cabal"
         src <- readFile' file
         return $ ("@set " ++ intercalate ", " (["ghc" | pkg `elem` setGHC] ++ ["platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
-                 unlines (parseCabal cbl) ++ src
+                 unlines (undefined cbl) ++ src
     xs <- return $ parseHoogle $ unlines inp
     let out = "output" </> (if length files == 1 then takeBaseName $ head files else "all")
     xs <- writeFileLefts (out <.> "warn") xs
