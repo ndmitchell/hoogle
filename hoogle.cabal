@@ -151,7 +151,7 @@ executable hoogle
         wai >= 1.1,
         warp >= 1.1,
         Cabal >= 1.8,
-        shake >= 0.11,
+        shake >= 0.14,
         QuickCheck,
         haskell-src-exts >= 1.16 && < 1.17
 
