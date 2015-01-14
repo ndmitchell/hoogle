@@ -27,6 +27,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Data.Generics.Uniplate.Data
 import Data.Char
+import Data.Monoid
 import qualified Language.Javascript.JQuery as JQuery
 
 import Output.Items
@@ -69,15 +70,16 @@ main = do
 spawn :: Database -> IO ()
 spawn pkg = server 80 $ \Input{..} -> case inputURL of
     [] -> do
-        let query = unwords [x | (a,x) <- inputArgs, a `elem` ["hoogle","restrict"]]
-        results <- unsafeInterleaveIO $ search pkg $ parseQuery query
+        let grab name = [x | (a,x) <- inputArgs, a == name]
+        results <- unsafeInterleaveIO $ search pkg $
+            parseQuery (unwords $ grab "hoogle") <> Query (map parseRestrict $ grab "restrict") [] Nothing
         let body = show results
         index <- unsafeInterleaveIO $ readFile "html/index.html"
         welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
-        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option>" ++ x ++ "</option>") . listTags <$> readTags pkg
+        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "restrict" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
         return $ case lookup "mode" $ reverse inputArgs of
-            Nothing | null query -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags)] index
-            Nothing -> OutputString $ template [("body",body),("title",query ++ " - Hoogle"),("search",query),("tags",tags)] index
+            Nothing | xs@(_:_) <- unwords $ grab "hoogle" -> OutputString $ template [("body",body),("title",xs ++ " - Hoogle"),("search",xs),("tags",tags)] index
+                    | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags)] index
             Just "body" -> OutputString body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     xs -> return $ OutputFile $ joinPath $ "html" : xs
