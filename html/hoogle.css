@@ -277,7 +277,7 @@ a.dull, a.dull:hover {
 
 /** PARENTS **/
 
-.p1, .p2 {
+.from a, .p1, .p2 {
     white-space: nowrap;
     text-decoration: none;
     color: #0E774A;
