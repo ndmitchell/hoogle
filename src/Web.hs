@@ -14,7 +14,6 @@ import Network.Wai.Handler.Warp hiding (Port)
 
 import Network.Wai
 import Control.DeepSeq
-import Control.Exception
 import Network.HTTP.Types.Status
 import qualified Data.Text as Text
 import qualified Data.ByteString.Char8 as BS
@@ -25,6 +24,7 @@ import qualified Network.HTTP.Conduit as C
 import qualified Data.Conduit as C
 import Network
 import System.FilePath
+import Control.Exception.Extra
 
 
 data Input = Input
@@ -68,14 +68,14 @@ server port act = runSettings (setOnException exception $ setPort port defaultSe
             (map Text.unpack $ pathInfo req)
             [(BS.unpack a, maybe "" BS.unpack b) | (a,b) <- queryString req]
             (LBS.unpack bod)
-    res <- act pay
-    reply $ case res of
-        OutputFile file -> responseFile status200
-            [("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] file Nothing
-        OutputString msg -> responseLBS status200 [] $ LBS.pack msg
-        OutputHTML msg -> responseLBS status200 [("content-type","text/html")] $ LBS.pack msg
-        OutputError msg -> responseLBS status500 [] $ LBS.pack msg
-        OutputMissing -> responseLBS status404 [] $ LBS.pack "Resource not found"
+    res <- try_ $ do s <- act pay; evaluate $ rnf s; return s
+    case res of
+        Left e -> do s <- showException e; reply $ responseLBS status500 [] $ LBS.pack s
+        Right v -> reply $ case v of
+            OutputFile file -> responseFile status200
+                [("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] file Nothing
+            OutputString msg -> responseLBS status200 [] $ LBS.pack msg
+            OutputHTML msg -> responseLBS status200 [("content-type","text/html")] $ LBS.pack msg
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
 
