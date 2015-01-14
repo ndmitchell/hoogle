@@ -5,3 +5,7 @@ Apache-2.0 = Apache
 GPL-3 = GPL
 LGPL-2.1 = LGPL
 LGPL-3 = LGPL
+graphics = Graphics
+math = Math
+Unclassified =
+data = Data
