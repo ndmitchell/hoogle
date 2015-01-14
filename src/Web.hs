@@ -37,16 +37,12 @@ data Output
     = OutputString String
     | OutputHTML String
     | OutputFile FilePath
-    | OutputError String
-    | OutputMissing
       deriving Show
 
 instance NFData Output where
     rnf (OutputString x) = rnf x
     rnf (OutputHTML x) = rnf x
     rnf (OutputFile x) = rnf x
-    rnf (OutputError x) = rnf x
-    rnf OutputMissing = ()
 
 
 downloadFile :: FilePath -> String -> IO ()
