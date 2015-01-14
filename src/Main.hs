@@ -70,7 +70,7 @@ main = do
 spawn :: Database -> IO ()
 spawn pkg = server 80 $ \Input{..} -> case inputURL of
     [] -> do
-        let grab name = [x | (a,x) <- inputArgs, a == name]
+        let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         results <- unsafeInterleaveIO $ search pkg $
             parseQuery (unwords $ grab "hoogle") <> Query (map parseRestrict $ grab "restrict") [] Nothing
         let body = showResults (unwords $ grab "hoogle" ++ grab "restrict") results
