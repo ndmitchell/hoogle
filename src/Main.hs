@@ -73,7 +73,7 @@ spawn pkg = server 80 $ \Input{..} -> case inputURL of
         let grab name = [x | (a,x) <- inputArgs, a == name]
         results <- unsafeInterleaveIO $ search pkg $
             parseQuery (unwords $ grab "hoogle") <> Query (map parseRestrict $ grab "restrict") [] Nothing
-        let body = show results
+        let body = showResults (unwords $ grab "hoogle" ++ grab "restrict") results
         index <- unsafeInterleaveIO $ readFile "html/index.html"
         welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
         tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "restrict" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
@@ -83,6 +83,13 @@ spawn pkg = server 80 $ \Input{..} -> case inputURL of
             Just "body" -> OutputString body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     xs -> return $ OutputFile $ joinPath $ "html" : xs
+
+
+showResults :: String -> [[String]] -> String
+showResults query results = unlines $
+    ["<h1>" ++ query ++ "</h1>"] ++
+    ["<p>No results found</p>" | null results] ++
+    ["<div class=ans><a href=\"" ++ b ++ "\">" ++ snd (word1 a) ++ "</a></div><div class=from>" ++ c ++ "</div><div class=\"doc newline shut\">" ++ replace "<p>" "" (replace "</p>" "<br/>" $ unlines ds) ++ "</div>" | a:b:c:ds <- results]
 
 
 search :: Database -> Query -> IO [[String]]
