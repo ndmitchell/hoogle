@@ -53,10 +53,10 @@ listTags (Tags xs) = nub $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (f &&& second 
         f ("license",x) = 3
         f _ = 4
 
-filterTags :: Tags -> [QTag] -> (Id -> Bool)
+filterTags :: Tags -> [Restrict] -> (Id -> Bool)
 filterTags (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
     where (pos, neg) = both (map snd) $ partition fst $ mapMaybe f qs
-          f (QTag sense cat val) = fmap (sense,) $ lookup (cat,val) ts
+          f (Restrict sense cat val) = fmap (sense,) $ lookup (cat,val) ts
 
 -- return Left ("module","Data.List") to say "See more results from Data.List" and start cutting them off
 pruneTags :: Tags -> [Id] -> [Either (String,String) Id]
