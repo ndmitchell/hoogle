@@ -28,7 +28,7 @@ $(function(){
         if (!instant) return;
 
         var now = $hoogle.val();
-        var restrict = $form.find("input[name=restrict]").attr("value");
+        var restrict = $form.find("[name=restrict]").val();
         if (now == active) return;
         active = now;
 
