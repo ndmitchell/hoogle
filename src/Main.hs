@@ -98,21 +98,16 @@ generate xs = do
     setPlatform <- setPlatform
     setGHC <- setGHC
     createDirectoryIfMissing True "output"
-    xs <- return $ if null xs then setStackage else xs
-
-    cbl <- parseCabal xs
-    error $ show cbl
-
+    cbl <- parseCabal $ if null xs then setStackage else xs
     files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
         filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
     let n = length files
     inp <- forM (zip [1..] files) $ \(i,file) -> unsafeInterleaveIO $ do
         let pkg = takeBaseName file
         putStrLn $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ pkg
-        cbl <- readFile' $ "input/cabal" </> pkg <.> "cabal"
         src <- readFile' file
         return $ ("@set " ++ intercalate ", " (["ghc" | pkg `elem` setGHC] ++ ["platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
-                 unlines (undefined cbl) ++ src
+                 unlines (Map.findWithDefault [] pkg cbl) ++ src
     xs <- return $ parseHoogle $ unlines inp
     let out = "output" </> (if length files == 1 then takeBaseName $ head files else "all")
     xs <- writeFileLefts (out <.> "warn") xs
