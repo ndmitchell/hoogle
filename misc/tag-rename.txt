@@ -1,0 +1,7 @@
+Silk B.V. = Silk
+Silk. B.V. = Silk
+Michael snoyman = Michael Snoyman
+Apache-2.0 = Apache
+GPL-3 = GPL
+LGPL-2.1 = LGPL
+LGPL-3 = LGPL
