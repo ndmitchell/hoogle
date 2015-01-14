@@ -122,7 +122,7 @@ generate xs = do
         let pkg = takeBaseName file
         putStrLn $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ pkg
         src <- readFile' file
-        return $ ("@set " ++ intercalate ", " (["ghc" | pkg `elem` setGHC] ++ ["platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
+        return $ ("@set " ++ intercalate ", " (["included-with-ghc" | pkg `elem` setGHC] ++ ["haskell-platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
                  unlines (Map.findWithDefault [] pkg cbl) ++ src
     xs <- return $ parseHoogle $ unlines inp
     let out = "output" </> (if length files == 1 then takeBaseName $ head files else "all")
