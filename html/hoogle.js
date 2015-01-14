@@ -58,13 +58,14 @@ $(function(){
         function complete(e)
         {
             watch.stop();
+            var current = $hoogle.val() + " " + ($restrict ? $restrict.val() : "") == now;
             if (e.status == 200)
             {
                 past.add(now,e.responseText);
-                if ($hoogle.val() + " " + ($restrict ? $restrict.val() : "") == now)
+                if (current)
                     self.showResult(e.responseText);
             }
-            else
+            else if (current)
                 self.showError(e.status, e.responseText);
         }
 
