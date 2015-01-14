@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module Output.Tags(Tags, writeTags, readTags, listTags, filterTags, pruneTags) where
+module Output.Tags(Tags, writeTags, readTags, listTags, filterTags, pruneTags, searchTags) where
 
 import System.IO.Extra
 import Data.List.Extra
@@ -61,3 +61,7 @@ filterTags (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g
 -- return Left ("module","Data.List") to say "See more results from Data.List" and start cutting them off
 pruneTags :: Tags -> [Id] -> [Either (String,String) Id]
 pruneTags _ = map Right
+
+
+searchTags :: Tags -> [Restrict] -> [Id]
+searchTags (Tags ts) qs = map (fst . snd) $ filter (flip elem [(cat,val) | Restrict True cat val <- qs] . fst) ts

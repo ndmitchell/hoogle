@@ -94,15 +94,16 @@ showResults query results = unlines $
 
 search :: Database -> Query -> IO [[String]]
 search pkg (Query qtags strs typ) = do
+    tags <- readTags pkg
     is <- case (strs, typ) of
         ([], Nothing) | null qtags -> putStrLn "No search entered, nothing to do" >> return []
+                      | xs@(_:_) <- searchTags tags qtags -> return xs
                       | otherwise -> searchNames pkg []
         ([], Just t ) -> searchTypes pkg t
         (xs, Nothing) -> searchNames pkg xs
         (xs, Just t ) -> do
             nam <- Set.fromList <$> searchNames pkg xs
             filter (`Set.member` nam) <$> searchTypes pkg t
-    tags <- readTags pkg
     mapM (lookupItem pkg) $ take 25 $ filter (filterTags tags qtags) is
 
 
