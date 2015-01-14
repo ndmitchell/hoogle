@@ -88,6 +88,12 @@ form {
     margin-bottom: 16px;
     vertical-align: bottom;
 }
+#restrict_chosen, #restrict {
+    max-width: 200px;
+}
+#restrict_chosen .chosen-drop {
+    width: 400px;
+}
 
 #hoogle {
     width: 300px;
