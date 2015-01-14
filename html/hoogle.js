@@ -1,4 +1,8 @@
 
+// PERHAPS I SHOULD BE USING Bootstrap with:
+// http://silviomoreto.github.io/bootstrap-select/
+
+
 var embed = false; // are we running as an embedded search box
 var instant = true; // should we search on key presses
 var query = parseQuery(); // what is the current query string
