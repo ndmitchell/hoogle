@@ -55,8 +55,8 @@ listTags (Tags xs) = nub $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (f &&& second 
 
 filterTags :: Tags -> [Restrict] -> (Id -> Bool)
 filterTags (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
-    where (pos, neg) = both (map snd) $ partition fst $ mapMaybe f qs
-          f (Restrict sense cat val) = fmap (sense,) $ lookup (cat,val) ts
+    where (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
+          f (Restrict sense cat val) = map ((,) sense . snd) $ filter ((==) (cat,val) . fst) ts
 
 -- return Left ("module","Data.List") to say "See more results from Data.List" and start cutting them off
 pruneTags :: Tags -> [Id] -> [Either (String,String) Id]
