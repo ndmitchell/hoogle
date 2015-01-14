@@ -98,7 +98,9 @@ generate xs = do
     setPlatform <- setPlatform
     setGHC <- setGHC
     createDirectoryIfMissing True "output"
-    cbl <- parseCabal $ if null xs then setStackage else xs
+    let want = Set.fromList $ if null xs then setStackage else xs
+
+    cbl <- parseCabal (`Set.member` want)
     files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
         filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
     let n = length files

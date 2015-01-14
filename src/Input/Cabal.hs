@@ -6,7 +6,6 @@ import Data.List.Extra
 import System.FilePath
 import Control.Applicative
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Util
 
@@ -14,14 +13,12 @@ import Util
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal
-parseCabal :: [String] -> IO (Map.Map String [String])
+parseCabal :: (String -> Bool) -> IO (Map.Map String [String])
 parseCabal want = foldl f Map.empty <$> tarballReadFiles "input/cabal.tar.gz"
     where
-        wanted = Set.fromList want
-
         -- rely on the fact the highest version is last, and lazy evaluation
         -- skips us from actually parsing the previous values
-        f mp (name, body) | pkg `Set.member` wanted = Map.insert pkg (extractCabal $ LBS.unpack body) mp
+        f mp (name, body) | want pkg = Map.insert pkg (extractCabal $ LBS.unpack body) mp
                           | otherwise = mp
             where pkg = takeBaseName name
 
