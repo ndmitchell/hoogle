@@ -22,6 +22,7 @@ import System.Time.Extra
 import Data.Tuple.Extra
 import System.Environment
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import Control.Exception.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -29,6 +30,7 @@ import Data.Generics.Uniplate.Data
 import Data.Char
 import Data.Monoid
 import qualified Language.Javascript.JQuery as JQuery
+import Debug.Trace
 
 import Output.Items
 import Output.Tags
@@ -116,9 +118,12 @@ generate xs = do
     let want = Set.fromList $ if null xs then setStackage else xs
 
     cbl <- parseCabal (`Set.member` want)
-    files <- if xs /= [] then return ["input/hoogle" </> x <.> "txt" | x <- xs] else
-        filterM doesFileExist ["input/hoogle" </> x <.> "txt" | x <- setStackage]
-    let n = length files
+    let f seen (takeBaseName -> pkg, body)
+            | pkg `Set.member` want
+            = (Set.insert pkg seen, trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $ unlines $ Map.findWithDefault [] pkg cbl ++ [LBS.unpack body])
+        f seen _ = (seen, "")
+    (seen, xs) <- second (parseHoogle . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
+    {-
     inp <- forM (zip [1..] files) $ \(i,file) -> unsafeInterleaveIO $ do
         let pkg = takeBaseName file
         putStrLn $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ pkg
@@ -126,9 +131,11 @@ generate xs = do
         return $ ("@set " ++ intercalate ", " (["included-with-ghc" | pkg `elem` setGHC] ++ ["haskell-platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
                  unlines (Map.findWithDefault [] pkg cbl) ++ src
     xs <- return $ parseHoogle $ unlines inp
-    let out = "output" </> (if length files == 1 then takeBaseName $ head files else "all")
+    -}
+    let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
     xs <- writeFileLefts (out <.> "warn") xs
     xs <- writeItems out xs
+    putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
     writeTags (Database out) xs
     writeNames (Database out) xs
     writeTypes (Database out) xs
@@ -151,7 +158,7 @@ writeFileLefts file xs = do
     ignore $ removeFile file
     f Nothing xs
     where
-        f Nothing xs@(Left _:_) = do h <- openFile file WriteMode; f (Just h) xs
+        f Nothing xs@(Left _:_) = do h <- openBinaryFile file WriteMode; f (Just h) xs
         f (Just h) (Left x:xs) = do res <- unsafeInterleaveIO $ hPutStrLn h x; res `seq` f (Just h) xs
         f h (Right x:xs) = fmap (x:) $ f h xs
         f h [] = do whenJust h hClose; return []
