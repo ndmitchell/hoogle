@@ -3,12 +3,14 @@ module Util(
     fileSize,
     pretty,
     fromName, fromTyVarBind,
-    tarballReadFiles
+    tarballReadFiles,
+    template
     ) where
 
 import System.IO
 import Language.Haskell.Exts
 import Data.List.Extra
+import Control.Monad
 import qualified Data.ByteString.Lazy as LBS
 import Control.Applicative
 import Codec.Compression.GZip as GZip
@@ -37,3 +39,11 @@ tarballReadFiles file = f . Tar.read . GZip.decompress <$> LBS.readFile file
         f (Next _ rest) = f rest
         f Done = []
         f (Fail e) = error $ "tarballReadFiles on " ++ file ++ ", " ++ show e
+
+
+template :: [(String, String)] -> String -> String
+template vars = f
+    where
+        f ('#':'{':xs) | (name,'}':rest) <- break (== '}') xs, Just val <- lookup name vars = val ++ f rest
+        f (x:xs) = x : f xs
+        f [] = []

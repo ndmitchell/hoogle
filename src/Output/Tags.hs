@@ -45,7 +45,7 @@ readTags (Database file) = do
 
 
 listTags :: Tags -> [String]
-listTags (Tags xs) = nub $ map (\(a,b) -> a ++ " " ++ b) $ sortOn (f &&& second lower) $ filter ((/=) "module" . fst) $ map fst xs
+listTags (Tags xs) = nub $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (f &&& second lower) $ filter ((/=) "module" . fst) $ map fst xs
     where
         f ("set",x) = fromMaybe 0.9 $ lookup x [("stackage",0.0),("platform",0.1),("ghc",0.2)]
         f ("package",x) = 1

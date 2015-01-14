@@ -10,19 +10,15 @@ var $hoogle; // $("#hoogle") after load
 // SEARCHING
 
 $(function(){
-    for (var i = 0; i < tags.length; i++)
-        $("#tag").append("<option>" + tags[i] + "</option>");
-    $("#tag").chosen();
+    $("#restrict").chosen({"search_contains":true});
 
     $hoogle = $("#hoogle");
     embed = !$hoogle.hasClass("HOOGLE_REAL");
     var self = embed ? newEmbed() : newReal();
     var $form = $hoogle.parents("form:first");
 
-    var ajaxUrl = !embed ? "api/query?" : $form.attr("action") + "?";
-    var ajaxMode = embed ? 'embed' : 'ajax';
-    var ajaxPrefix = $form.find("input[name=prefix]").attr("value");
-    var ajaxSuffix = $form.find("input[name=suffix]").attr("value");
+    var ajaxUrl = !embed ? "?" : $form.attr("action") + "?";
+    var ajaxMode = embed ? 'embed' : 'body';
 
     var active = $hoogle.val(); // What is currently being searched for (may not yet be displayed)
     var past = cache(100); // Cache of previous searches
@@ -32,6 +28,7 @@ $(function(){
         if (!instant) return;
 
         var now = $hoogle.val();
+        var restrict = $form.find("input[name=restrict]").attr("value");
         if (now == active) return;
         active = now;
 
@@ -50,7 +47,7 @@ $(function(){
         if (embed && now == ""){self.hide(); return;}
         watch.start();
 
-        var data = {hoogle:now, mode:ajaxMode, prefix:ajaxPrefix, suffix:ajaxSuffix};
+        var data = {hoogle:now, mode:ajaxMode, restrict:restrict};
         function complete(e)
         {
             watch.stop();

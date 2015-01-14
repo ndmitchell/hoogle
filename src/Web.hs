@@ -24,6 +24,7 @@ import Data.Conduit.Binary (sinkFile)
 import qualified Network.HTTP.Conduit as C
 import qualified Data.Conduit as C
 import Network
+import System.FilePath
 
 
 data Input = Input
@@ -69,11 +70,14 @@ server port act = runSettings (setOnException exception $ setPort port defaultSe
             (LBS.unpack bod)
     res <- act pay
     reply $ case res of
-        OutputFile file -> responseFile status200 [] file Nothing
+        OutputFile file -> responseFile status200
+            [("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] file Nothing
         OutputString msg -> responseLBS status200 [] $ LBS.pack msg
         OutputHTML msg -> responseLBS status200 [("content-type","text/html")] $ LBS.pack msg
         OutputError msg -> responseLBS status500 [] $ LBS.pack msg
         OutputMissing -> responseLBS status404 [] $ LBS.pack "Resource not found"
+
+contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
 
 exception :: Maybe Request -> SomeException -> IO ()
 exception r e

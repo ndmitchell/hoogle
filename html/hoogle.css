@@ -83,7 +83,7 @@ form {
     vertical-align: bottom;
 }
 
-#hoogle, #tag_chosen, #submit {
+#hoogle, #restrict, #restrict_chosen, #submit {
     font-size: 16px;
     margin-bottom: 16px;
     vertical-align: bottom;
@@ -168,7 +168,7 @@ form {
 h1 {
     padding: 5px;
     margin-top: 0px;
-    font-weight: normal;
+    font-weight: bold;
     padding-left: 170px;
     font-size: 16px;
 }

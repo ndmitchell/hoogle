@@ -68,13 +68,18 @@ main = do
 
 spawn :: Database -> IO ()
 spawn pkg = server 80 $ \Input{..} -> case inputURL of
-    ["api","query"] -> do
-        res <- search pkg $ parseQuery $ unwords [x | ("hoogle",x) <- inputArgs]
-        return $ OutputString $ show res
-    ["api","tags.js"] ->
-        OutputString . (++) "var tags = " . show . listTags <$> readTags pkg
-    ["jquery.js"] -> OutputFile <$> JQuery.file
-    [] -> OutputHTML <$> readFile "html/index.html"
+    [] -> do
+        let query = unwords [x | (a,x) <- inputArgs, a `elem` ["hoogle","restrict"]]
+        results <- unsafeInterleaveIO $ search pkg $ parseQuery query
+        let body = show results
+        index <- unsafeInterleaveIO $ readFile "html/index.html"
+        welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
+        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option>" ++ x ++ "</option>") . listTags <$> readTags pkg
+        return $ case lookup "mode" $ reverse inputArgs of
+            Nothing | null query -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags)] index
+            Nothing -> OutputString $ template [("body",body),("title",query ++ " - Hoogle"),("search",query),("tags",tags)] index
+            Just "body" -> OutputString body
+    ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     xs -> return $ OutputFile $ joinPath $ "html" : xs
 
 
