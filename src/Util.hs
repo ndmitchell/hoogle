@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module Util(
     fileSize,

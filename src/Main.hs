@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 module Main(main) where

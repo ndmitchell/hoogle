@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module Query(parseQuery, parseRestrict) where
 

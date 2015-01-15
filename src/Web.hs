@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP #-}
+{-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP, PatternGuards #-}
 
 module Web(
     Input(..), Output(..), server, downloadFile
