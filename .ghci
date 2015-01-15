@@ -3,16 +3,26 @@
 :load Main
 
 :{
-:def opt const $ return $ unlines
+:def opt \xs -> return $ unlines
         [":!mkdir obj"
         ,":!mkdir obj\\o2"
         ,":!ghc -O2 -isrc --make Main -outputdir obj/o2 -o obj/o2/main -rtsopts"
-        ,":!obj\\o2\\main +RTS -T"]
+        ,":!obj\\o2\\main +RTS -T -RTS " ++ xs]
 :}
 :{
-:def prof const $ return $ unlines
+:def time \xs -> return $ unlines
         [":!mkdir obj"
         ,":!mkdir obj\\prof"
-        ,":!ghc -prof -auto-all -caf-all -isrc --make Main -outputdir obj/prof -o obj/prof/main"  
-        ,":!obj\\prof\\main +RTS -p"]
+        ,":!ghc -prof -rtsopts -auto-all -caf-all -isrc -DPROFILE --make Main -outputdir obj/prof -o obj/prof/main"
+        ,":!obj\\prof\\main +RTS -p -T -RTS " ++ xs
+        ,":!start main.prof"]
+:}
+:{
+:def space \xs -> return $ unlines
+        [":!mkdir obj"
+        ,":!mkdir obj\\prof"
+        ,":!ghc -prof -rtsopts -auto-all -caf-all -isrc -DPROFILE --make Main -outputdir obj/prof -o obj/prof/main"
+        ,":!obj\\prof\\main +RTS -xt -hy -T -RTS " ++ xs
+        ,":!hp2ps -c main.hp"
+        ,":!start main.ps"]
 :}
