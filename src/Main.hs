@@ -110,7 +110,7 @@ generate xs = do
     setPlatform <- setPlatform
     setGHC <- setGHC
     createDirectoryIfMissing True "output"
-    let want = Set.fromList $ if null xs then take 100 setStackage else xs
+    let want = Set.fromList $ if null xs then setStackage else xs
 
     cbl <- parseCabal (`Set.member` want)
     let f seen (takeBaseName -> pkg, body)
