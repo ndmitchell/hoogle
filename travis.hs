@@ -7,7 +7,7 @@ main :: IO ()
 main = do
     let timed x = do
         putStrLn $ "\n\nSearching for " ++ x
-        (time,_) <- duration $ system $ "hogle " ++ (if x == "" then "" else show x)
+        (time,_) <- duration $ system $ "hogle +RTS -T -RTS " ++ (if x == "" then "" else show x)
         putStrLn $ "Search " ++ show x ++ " took " ++ showDuration time
         putStrLn "\n\n"
     timed ""
