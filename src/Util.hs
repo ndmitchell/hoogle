@@ -10,7 +10,6 @@ module Util(
 import System.IO
 import Language.Haskell.Exts
 import Data.List.Extra
-import Control.Monad
 import qualified Data.ByteString.Lazy as LBS
 import Control.Applicative
 import Codec.Compression.GZip as GZip

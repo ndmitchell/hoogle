@@ -10,7 +10,6 @@ module Main(main) where
 -- [(".grp",1_314_256),(".ids",244_154_208),(".wrd",7_369_220)]
 
 
-import Language.Haskell.Exts.Annotated
 import Control.Applicative
 import System.IO.Extra
 import Data.List.Extra
@@ -21,13 +20,10 @@ import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
 import System.Environment
-import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Control.Exception.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-import Data.Generics.Uniplate.Data
-import Data.Char
 import Data.Monoid
 import qualified Language.Javascript.JQuery as JQuery
 import Debug.Trace
@@ -120,7 +116,9 @@ generate xs = do
     cbl <- parseCabal (`Set.member` want)
     let f seen (takeBaseName -> pkg, body)
             | pkg `Set.member` want
-            = (Set.insert pkg seen, trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $ unlines $ Map.findWithDefault [] pkg cbl ++ [LBS.unpack body])
+            = (Set.insert pkg seen, trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $ unlines $
+                    ("@set " ++ intercalate ", " (["included-with-ghc" | pkg `elem` setGHC] ++ ["haskell-platform" | pkg `elem` setPlatform] ++ ["stackage"])) :
+                    Map.findWithDefault [] pkg cbl ++ [LBS.unpack body])
         f seen _ = (seen, "")
     (seen, xs) <- second (parseHoogle . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
     {-
@@ -163,7 +161,7 @@ writeFileLefts file xs = do
         f h (Right x:xs) = fmap (x:) $ f h xs
         f h [] = do whenJust h hClose; return []
 
-
+{-
 experiment :: IO ()
 experiment = do
     files <- listFiles "output"
@@ -184,7 +182,7 @@ experiment = do
         (t,_) <- duration $ evaluate $ length $ BS.findSubstrings (BS.pack s) src
         print (s, t)
     error "done"
-
+-}
 
 {-
 

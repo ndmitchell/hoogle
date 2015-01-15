@@ -11,7 +11,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.ByteString.Char8 as BS
 import Control.Applicative
-import Data.Char
 import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
@@ -159,7 +158,7 @@ readAlias (Database file) = do
     src <- readFile $ file <.> "alias"
     return $ Aliases $ Map.fromListWith (++) [second return $ fromJust $ unpackAlias $ fromParseResult $ parseDecl x | x <- lines src]
 
-
+{-
 aliasWords :: Aliases -> Type -> [String]
 aliasWords (Aliases mp) t = g Set.empty $ f t
     where
@@ -168,7 +167,7 @@ aliasWords (Aliases mp) t = g Set.empty $ f t
         g seen (t:odo) | t `Set.member` seen = g seen odo
         g seen (t:odo) = let ys = Map.findWithDefault [] t mp in g (Set.insert t seen) (concatMap f ys ++ odo)
         g seen [] = Set.toList seen
-
+-}
 
 ---------------------------------------------------------------------
 -- INSTANCE INFORMATION
