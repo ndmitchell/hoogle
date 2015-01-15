@@ -18,7 +18,6 @@ import Network.HTTP.Types.Status
 import qualified Data.Text as Text
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import System.Console.CmdArgs.Verbosity
 import Data.Conduit.Binary (sinkFile)
 import qualified Network.HTTP.Conduit as C
 import qualified Data.Conduit as C
@@ -59,7 +58,6 @@ server port act = return ()
 #else
 server port act = runSettings (setOnException exception $ setPort port defaultSettings) $ \req reply -> do
     bod <- strictRequestBody req
-    whenLoud $ print ("receiving",bod,requestHeaders req,port)
     let pay = Input
             (map Text.unpack $ pathInfo req)
             [(BS.unpack a, maybe "" BS.unpack b) | (a,b) <- queryString req]
