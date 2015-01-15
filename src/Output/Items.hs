@@ -8,6 +8,7 @@ import System.IO.Extra
 import Data.List.Extra
 import System.FilePath
 import Control.Monad
+import Control.DeepSeq
 
 import Type
 import Util
@@ -29,8 +30,8 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
     where
         showItem :: Items -> Maybe String
         showItem ITag{} = Nothing
-        showItem (IDecl InstDecl{}) = Nothing
-        showItem (IDecl x) = Just $ pretty x
+        showItem (IDecl i@InstDecl{}) = rnf (show i) `seq` Nothing
+        showItem (IDecl x) = rnf (show x) `seq` Just (pretty x)
         showItem (IKeyword x) = Just $ "<b>keyword</b> " ++ x
         showItem (IPackage x) = Just $ "<b>package</b> " ++ x
         showItem (IModule x) = Just $ "<b>module</b> " ++ x
