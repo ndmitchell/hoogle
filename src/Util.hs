@@ -5,7 +5,8 @@ module Util(
     pretty,
     fromName, fromTyVarBind,
     tarballReadFiles,
-    template
+    template,
+    escapeHTML
     ) where
 
 import System.IO
@@ -47,3 +48,14 @@ template vars = f
         f ('#':'{':xs) | (name,'}':rest) <- break (== '}') xs, Just val <- lookup name vars = val ++ f rest
         f (x:xs) = x : f xs
         f [] = []
+
+
+-- | Take a piece of text and escape all the HTML special bits
+escapeHTML :: String -> String
+escapeHTML = concatMap f
+    where
+        f '<' = "&lt;"
+        f '>' = "&gt;"
+        f '&' = "&amp;"
+        f '\"' = "&quot;"
+        f  x  = [x]
