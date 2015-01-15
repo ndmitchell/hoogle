@@ -1,0 +1,54 @@
+cabal-version:      >= 1.10
+build-type:         Simple
+name:               hogle
+version:            0.0
+license:            BSD3
+license-file:       LICENSE
+category:           Development
+author:             Neil Mitchell <ndmitchell@gmail.com>
+maintainer:         Neil Mitchell <ndmitchell@gmail.com>
+copyright:          Neil Mitchell 2004-2014
+synopsis:           Haskell API Search
+description:
+    Hoogle is a Haskell API search engine, which allows you to
+    search many standard Haskell libraries by either function name,
+    or by approximate type signature.
+homepage:           http://www.haskell.org/hoogle/
+bug-reports:        https://github.com/ndmitchell/hogle/issues
+tested-with:        GHC==7.10.1, GHC==7.8.3, GHC==7.6.3, GHC==7.4.2
+extra-source-files:
+    README.md
+    CHANGES.txt
+    misc/tag-rename.txt
+
+source-repository head
+    type:     git
+    location: https://github.com/ndmitchell/hogle.git
+
+executable hogle
+    main-is:            Main.hs
+    hs-source-dirs:     src
+    default-language: Haskell98
+
+    build-depends:
+        base > 4 && < 5,
+        bytestring, filepath, directory, containers, text,
+        deepseq,
+        extra, js-jquery, uniplate,
+        tar, zlib,
+        network, conduit, conduit-extra, http-conduit, wai, http-types, warp,
+        haskell-src-exts >= 1.16 && < 1.17
+
+    other-modules:
+        Input.Cabal
+        Input.Download
+        Input.Hoogle
+        Input.Set
+        Output.Items
+        Output.Names
+        Output.Tags
+        Output.Types
+        Query
+        Type
+        Util
+        Web
