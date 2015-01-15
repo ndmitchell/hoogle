@@ -13,5 +13,5 @@ main = do
     timed ""
     timed "map"
     timed "map package:base"
-    timed "a -> b"
-    timed "ShakeOptions -> a"
+    timed ":: a -> b"
+    timed ":: ShakeOptions -> a"
