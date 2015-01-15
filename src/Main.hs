@@ -75,7 +75,7 @@ spawn pkg = server 80 $ \Input{..} -> case inputURL of
         welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
         tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "restrict" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
         return $ case lookup "mode" $ reverse inputArgs of
-            Nothing | xs@(_:_) <- unwords $ grab "hoogle" -> OutputString $ template [("body",body),("title",xs ++ " - Hoogle"),("search",xs),("tags",tags)] index
+            Nothing | xs@(_:_) <- escapeHTML $ unwords $ grab "hoogle" -> OutputString $ template [("body",body),("title",xs ++ " - Hoogle"),("search",xs),("tags",tags)] index
                     | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags)] index
             Just "body" -> OutputString body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
@@ -84,9 +84,9 @@ spawn pkg = server 80 $ \Input{..} -> case inputURL of
 
 showResults :: String -> [[String]] -> String
 showResults query results = unlines $
-    ["<h1>" ++ query ++ "</h1>"] ++
+    ["<h1>" ++ escapeHTML query ++ "</h1>"] ++
     ["<p>No results found</p>" | null results] ++
-    ["<div class=ans><a href=\"" ++ b ++ "\">" ++ snd (word1 a) ++ "</a></div><div class=from>" ++ c ++ "</div><div class=\"doc newline shut\">" ++ replace "<p>" "" (replace "</p>" "<br/>" $ unlines ds) ++ "</div>" | a:b:c:ds <- results]
+    ["<div class=ans><a href=\"" ++ b ++ "\">" ++ escapeHTML (snd $ word1 a) ++ "</a></div><div class=from>" ++ c ++ "</div><div class=\"doc newline shut\">" ++ replace "<p>" "" (replace "</p>" "<br/>" $ unlines ds) ++ "</div>" | a:b:c:ds <- results]
 
 
 search :: Database -> Query -> IO [[String]]
