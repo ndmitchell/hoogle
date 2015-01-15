@@ -11,7 +11,6 @@ module Main(main) where
 
 
 import Control.Applicative
-import System.IO.Extra
 import Data.List.Extra
 import System.FilePath
 import Control.Monad.Extra
@@ -131,8 +130,8 @@ generate xs = do
     xs <- return $ parseHoogle $ unlines inp
     -}
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
-    xs <- writeFileLefts (out <.> "warn") xs
-    xs <- writeItems out xs
+--    xs <- writeFileLefts (out <.> "warn") xs
+    xs <- writeItems out [x | Right x <- xs]
     putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
     writeTags (Database out) xs
     writeNames (Database out) xs
@@ -150,7 +149,7 @@ generate xs = do
 -}
     print "done"
 
-
+{-
 writeFileLefts :: FilePath -> [Either String a] -> IO [a]
 writeFileLefts file xs = do
     ignore $ removeFile file
@@ -160,6 +159,7 @@ writeFileLefts file xs = do
         f (Just h) (Left x:xs) = do res <- unsafeInterleaveIO $ hPutStrLn h x; res `seq` f (Just h) xs
         f h (Right x:xs) = fmap (x:) $ f h xs
         f h [] = do whenJust h hClose; return []
+-}
 
 {-
 experiment :: IO ()
