@@ -40,6 +40,9 @@ executable hogle
         haskell-src-exts >= 1.16 && < 1.17
 
     other-modules:
+        Action.Generate
+        Action.Search
+        Action.Server
         Input.Cabal
         Input.Download
         Input.Hoogle
