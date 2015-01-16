@@ -9,6 +9,7 @@ import Data.Tuple.Extra
 import Data.Maybe
 
 import Type
+import Query
 
 
 writeTags :: Database -> [(Maybe Id, Items)] -> IO ()
