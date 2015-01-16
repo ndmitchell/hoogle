@@ -9,13 +9,13 @@ import Control.Monad
 import Data.Monoid
 
 
-data Query = Query [Restrict] [String] (Maybe Type) deriving Show
+data Query = Query [Restrict] [String] (Maybe Type) deriving (Show,Eq)
 
 instance Monoid Query where
     mempty = Query [] [] Nothing
     mappend (Query x1 x2 x3) (Query y1 y2 y3) = Query (x1 ++ y1) (x2 ++ y2) (x3 `mplus` y3)
 
-data Restrict = Restrict Bool String String deriving Show
+data Restrict = Restrict Bool String String deriving (Show,Eq)
 
 parseQuery :: String -> Query
 parseQuery x | "::":xs <- names = Query cat [] (Just $ fromParseResult $ parseType $ unwords xs)
