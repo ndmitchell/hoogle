@@ -6,6 +6,7 @@ import Data.Monoid
 import Query
 import Action.CmdLine
 import Language.Haskell.Exts
+import General.Util
 
 
 testMain :: CmdLine -> IO ()
@@ -17,8 +18,10 @@ testMain Test{} = do
 testQuery :: IO ()
 testQuery = do
     let a === b | parseQuery a == b = putChar '.'
-                | otherwise = error $ show ("testQuery",a,b)
-    let typ = fromParseResult . parseType
+                | otherwise = error $ show ("testQuery",a,parseQuery a,b)
+    let a ==$ f | f $ parseQuery a = putChar '.'
+                | otherwise = error $ show ("testQuery",a,parseQuery a)
+    let typ = fromParseResult . parseTypeWithMode parseMode
     let q = mempty
     "" === mempty
     "map" === q{names = ["map"]}
@@ -43,3 +46,10 @@ testQuery = do
     "(++)" === q{names = ["++"]}
     ":+:" === q{names = [":+:"]}
     "bytestring-cvs +hackage" === q{scope=[Scope True "package" "hackage"], names=["bytestring-cvs"]}
+    "m => c" === q{sig = Just (typ "m => c")}
+    "[b ()" === q{sig = Just (typ "[b ()]")}
+    "[b (" === q{sig = Just (typ "[b ()]")}
+    "_ -> a" ==$ \s -> fmap pretty (sig s) == Just "_ -> a"
+    "(a -> b) ->" ==$ \s -> fmap pretty (sig s) ==  Just "(a -> b) -> _"
+    "(a -> b) -" ==$ \s -> fmap pretty (sig s) ==  Just "(a -> b) -> _"
+    "Monad m => " ==$ \s -> fmap pretty (sig s) == Just "Monad m => _"
