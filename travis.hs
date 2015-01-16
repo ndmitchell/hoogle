@@ -10,7 +10,7 @@ main = do
         (time,_) <- duration $ system $ "hogle +RTS -T -RTS " ++ (if x == "" then "" else show x)
         putStrLn $ "Search " ++ show x ++ " took " ++ showDuration time
         putStrLn "\n\n"
-    timed ""
+    timed "generate"
     timed "map"
     timed "map package:base"
     timed ":: a -> b"
