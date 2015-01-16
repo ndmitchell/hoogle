@@ -24,6 +24,7 @@ import qualified Data.Conduit as C
 import Network
 import System.FilePath
 import Control.Exception.Extra
+import System.Time.Extra
 
 
 data Input = Input
@@ -62,7 +63,8 @@ server port act = runSettings (setOnException exception $ setPort port defaultSe
             (map Text.unpack $ pathInfo req)
             [(BS.unpack a, maybe "" BS.unpack b) | (a,b) <- queryString req]
             (LBS.unpack bod)
-    res <- try_ $ do s <- act pay; evaluate $ rnf s; return s
+    (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ rnf s; return s
+    putStrLn $ "Served " ++ show pay ++ " in " ++ showDuration time
     case res of
         Left e -> do s <- showException e; reply $ responseLBS status500 [] $ LBS.pack s
         Right v -> reply $ case v of
