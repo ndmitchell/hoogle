@@ -11,7 +11,7 @@ import Data.Monoid
 ---------------------------------------------------------------------
 -- DATA TYPE
 
-data Query = Query [Scope] [String] (Maybe Type) deriving (Show,Eq)
+data Query = Query {scope :: [Scope], names :: [String], sig :: Maybe Type} deriving (Show,Eq)
 
 instance Monoid Query where
     mempty = Query [] [] Nothing
