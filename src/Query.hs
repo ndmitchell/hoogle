@@ -1,6 +1,6 @@
-{-# LANGUAGE PatternGuards, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
-module Query(Query(..), Scope(..), parseQuery, parseScope) where
+module Query(Query(..), Scope(..), parseQuery, renderQuery, parseScope) where
 
 import Data.List
 import Language.Haskell.Exts
@@ -18,6 +18,12 @@ instance Monoid Query where
     mappend (Query x1 x2 x3) (Query y1 y2 y3) = Query (x1 ++ y1) (x2 ++ y2) (x3 `mplus` y3)
 
 data Scope = Scope Bool String String deriving (Show,Eq)
+
+
+renderQuery :: Query -> String
+renderQuery Query{..} = if null xs then "<i>No query</i>" else unwords xs
+    where
+        xs = names ++ concat [["::",pretty t] | Just t <- [sig]] ++ [['-' | not a] ++ b ++ ":" ++ c | Scope a b c <- scope]
 
 
 ---------------------------------------------------------------------
