@@ -58,7 +58,7 @@ lexer x | Just s <- fmap (bs !!) $ findIndex (`isPrefixOf` x) bs = s : lexer (dr
     where bs = zipWith (++) openBrackets shutBrackets ++ openBrackets ++ shutBrackets
 lexer (x:xs)
     | isSpace x = " " : lexer (dropWhile isSpace xs)
-    | isAlpha x = let (a,b) = span (\x -> isAlphaNum x || x `elem` "_'#-") xs in (x:a) : lexer b
+    | isAlpha x || x == '_' = let (a,b) = span (\x -> isAlphaNum x || x `elem` "_'#-") xs in (x:a) : lexer b
     | isSym x = let (a,b) = span isSym xs in (x:a) : lexer b
     | x == ',' = "," : lexer xs
     | otherwise = lexer xs -- drop invalid bits
