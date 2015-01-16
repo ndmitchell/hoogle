@@ -43,6 +43,7 @@ executable hogle
         Action.Generate
         Action.Search
         Action.Server
+        Action.Test
         Input.Cabal
         Input.Download
         Input.Hoogle

@@ -28,12 +28,13 @@ data CmdLine
         ,database :: FilePath
         ,datadir :: FilePath
         }
+    | Test
       deriving (Data,Typeable,Show)
 
 getCmdLine :: IO CmdLine
 getCmdLine = cmdArgsRun cmdLineMode
 
-cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server]
+cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,test]
     &= verbosity &= program "hoogle"
     &= summary ("Hoogle " ++ showVersion version ++ ", http://haskell.org/hoogle")
 
@@ -56,3 +57,6 @@ server = Server
     {port = 80 &= typ "INT" &= help "Port number"
     ,datadir = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
     } &= help "Start a Hoogle server"
+
+test = Test{} &= help "Run the test suite"
+

@@ -7,6 +7,7 @@ import Action.CmdLine
 import Action.Generate
 import Action.Search
 import Action.Server
+import Action.Test
 
 
 -- -- generate all
@@ -21,3 +22,5 @@ main = do
         Search{} -> searchMain args
         Generate{} -> generateMain args
         Server{} -> spawnMain args
+        Test{} -> testMain args
+
