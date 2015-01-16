@@ -26,6 +26,7 @@ import Input.Type
 import General.Util
 import System.Mem
 import GHC.Stats
+import Action.CmdLine
 
 
 -- -- generate all
@@ -33,10 +34,10 @@ import GHC.Stats
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
-generateMain :: [String] -> IO ()
-generateMain pkg = do
+generateMain :: CmdLine -> IO ()
+generateMain Generate{..} = do
     downloadInputs
-    (n,_) <- duration $ generate pkg
+    (n,_) <- duration $ generate include
     putStrLn $ "Took " ++ showDuration n
 
 

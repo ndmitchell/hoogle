@@ -3,10 +3,7 @@
 
 module Main(main) where
 
-import Data.List
-import Data.Tuple.Extra
-import System.Environment
-
+import Action.CmdLine
 import Action.Generate
 import Action.Search
 import Action.Server
@@ -19,11 +16,8 @@ import Action.Server
 
 main :: IO ()
 main = do
-    args <- getArgs
-    let (pkg,rest) = first (map tail) $ span ("@" `isPrefixOf`) args
-    if rest == ["-"] then
-        spawnMain pkg
-     else if null rest then do
-        generateMain pkg
-     else
-        searchMain pkg rest
+    args <- getCmdLine
+    case args of
+        Search{} -> searchMain args
+        Generate{} -> generateMain args
+        Server{} -> spawnMain args

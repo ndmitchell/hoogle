@@ -34,7 +34,7 @@ executable hogle
         base > 4 && < 5,
         bytestring, filepath, directory, containers, text,
         deepseq,
-        extra, js-jquery, uniplate,
+        extra, js-jquery, uniplate, cmdargs,
         tar, zlib,
         network, conduit, conduit-extra, http-conduit, wai, http-types, warp,
         haskell-src-exts >= 1.16 && < 1.17

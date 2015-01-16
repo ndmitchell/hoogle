@@ -16,10 +16,13 @@ import Input.Type
 import General.Util
 import General.Web
 import Action.Search
+import Action.CmdLine
 
 
-spawnMain :: [String] -> IO ()
-spawnMain pkg = spawn $ Database $ "output" </> head (pkg ++ ["all"])
+spawnMain :: CmdLine -> IO ()
+spawnMain Server{..} = do
+    let pkg = [database | database /= ""]
+    spawn $ Database $ "output" </> head (pkg ++ ["all"])
 
 
 spawn :: Database -> IO ()

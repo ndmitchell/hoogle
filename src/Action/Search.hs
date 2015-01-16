@@ -14,15 +14,17 @@ import Output.Names
 import Output.Types
 import Query
 import Input.Type
-
+import Action.CmdLine
 
 -- -- generate all
 -- @tagsoup -- generate tagsoup
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
-searchMain :: [String] -> [String] -> IO ()
-searchMain pkg rest =
+searchMain :: CmdLine -> IO ()
+searchMain Search{..} = do
+    let pkg = [database | database /= ""]
+    let rest = query
     forM_ (if null pkg then ["all"] else pkg) $ \pkg -> do
         res <- search (Database $ "output" </> pkg) $ parseQuery $ unwords rest
         forM_ res $ putStrLn . snd . word1 . head
