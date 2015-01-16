@@ -40,6 +40,7 @@ executable hogle
         haskell-src-exts >= 1.16 && < 1.17
 
     other-modules:
+        Action.CmdLine
         Action.Generate
         Action.Search
         Action.Server
