@@ -46,15 +46,28 @@ main = do
     args <- getArgs
     let (pkg,rest) = first (map tail) $ span ("@" `isPrefixOf`) args
     if rest == ["-"] then
-        spawn $ Database $ "output" </> head (pkg ++ ["all"])
+        spawnMain pkg
      else if null rest then do
-        downloadInputs
-        (n,_) <- duration $ generate pkg
-        putStrLn $ "Took " ++ showDuration n
+        generateMain pkg
      else
-        forM_ (if null pkg then ["all"] else pkg) $ \pkg -> do
-            res <- search (Database $ "output" </> pkg) $ parseQuery $ unwords rest
-            forM_ res $ putStrLn . snd . word1 . head
+        searchMain pkg rest
+
+searchMain :: [String] -> [String] -> IO ()
+searchMain pkg rest =
+    forM_ (if null pkg then ["all"] else pkg) $ \pkg -> do
+        res <- search (Database $ "output" </> pkg) $ parseQuery $ unwords rest
+        forM_ res $ putStrLn . snd . word1 . head
+
+spawnMain :: [String] -> IO ()
+spawnMain pkg = spawn $ Database $ "output" </> head (pkg ++ ["all"])
+
+
+generateMain :: [String] -> IO ()
+generateMain pkg = do
+    downloadInputs
+    (n,_) <- duration $ generate pkg
+    putStrLn $ "Took " ++ showDuration n
+
 
 
 spawn :: Database -> IO ()
