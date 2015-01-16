@@ -16,16 +16,16 @@ var $hoogle; // $("#hoogle") after load
 $(function(){
     $hoogle = $("#hoogle");
     var $form = $hoogle.parents("form:first");
-    var $restrict = $form.find("[name=restrict]");
+    var $scope = $form.find("[name=scope]");
     embed = !$hoogle.hasClass("HOOGLE_REAL");
-    if (!embed) $restrict.chosen({"search_contains":true});
+    if (!embed) $scope.chosen({"search_contains":true});
 
     var self = embed ? newEmbed() : newReal();
 
     var ajaxUrl = !embed ? "?" : $form.attr("action") + "?";
     var ajaxMode = embed ? 'embed' : 'body';
 
-    var active = $hoogle.val() + " " + $restrict.val(); // What is currently being searched for (may not yet be displayed)
+    var active = $hoogle.val() + " " + $scope.val(); // What is currently being searched for (may not yet be displayed)
     var past = cache(100); // Cache of previous searches
     var watch = watchdog(500, function(){self.showWaiting();}); // Timeout of the "Waiting..." callback
 
@@ -33,14 +33,14 @@ $(function(){
         if (!instant) return;
 
         var nowHoogle = $hoogle.val();
-        var nowRestrict = $restrict ? $restrict.val() : "";
-        var now = nowHoogle + " " + nowRestrict;
+        var nowScope = $scope ? $scope.val() : "";
+        var now = nowHoogle + " " + nowScope;
         if (now == active) return;
         active = now;
 
         var title = now + (now == " " ? "" : " - ") + "Hoogle";
         query["hoogle"] = nowHoogle;
-        query["restrict"] = nowRestrict;
+        query["scope"] = nowScope;
         if (!embed){
             if (window.history)
                 window.history.replaceState(null, title, renderQuery(query));
@@ -54,11 +54,11 @@ $(function(){
         if (embed && now == ""){self.hide(); return;}
         watch.start();
 
-        var data = {hoogle:nowHoogle, restrict:nowRestrict, mode:ajaxMode};
+        var data = {hoogle:nowHoogle, scope:nowScope, mode:ajaxMode};
         function complete(e)
         {
             watch.stop();
-            var current = $hoogle.val() + " " + ($restrict ? $restrict.val() : "") == now;
+            var current = $hoogle.val() + " " + ($scope ? $scope.val() : "") == now;
             if (e.status == 200)
             {
                 past.add(now,e.responseText);
@@ -83,7 +83,7 @@ $(function(){
         }
     };
     $hoogle.keyup(hit);
-    $restrict.change(hit);
+    $scope.change(hit);
 })
 
 function newReal()

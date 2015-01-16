@@ -30,11 +30,11 @@ spawn pkg = server 80 $ \Input{..} -> case inputURL of
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         results <- unsafeInterleaveIO $ search pkg $
-            parseQuery (unwords $ grab "hoogle") <> Query (map parseRestrict $ grab "restrict") [] Nothing
-        let body = showResults (unwords $ grab "hoogle" ++ grab "restrict") results
+            parseQuery (unwords $ grab "hoogle") <> Query (map parseScope $ grab "scope") [] Nothing
+        let body = showResults (unwords $ grab "hoogle" ++ grab "scope") results
         index <- unsafeInterleaveIO $ readFile "html/index.html"
         welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
-        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "restrict" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
+        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
         return $ case lookup "mode" $ reverse inputArgs of
             Nothing | xs@(_:_) <- escapeHTML $ unwords $ grab "hoogle" -> OutputString $ template [("body",body),("title",xs ++ " - Hoogle"),("search",xs),("tags",tags)] index
                     | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags)] index

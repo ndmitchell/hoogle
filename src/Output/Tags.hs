@@ -54,15 +54,15 @@ listTags (Tags xs) = nub $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (f &&& second 
         f ("license",x) = 3
         f _ = 4
 
-filterTags :: Tags -> [Restrict] -> (Id -> Bool)
+filterTags :: Tags -> [Scope] -> (Id -> Bool)
 filterTags (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
     where (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
-          f (Restrict sense cat val) = map ((,) sense . snd) $ filter ((==) (cat,val) . fst) ts
+          f (Scope sense cat val) = map ((,) sense . snd) $ filter ((==) (cat,val) . fst) ts
 
 -- return Left ("module","Data.List") to say "See more results from Data.List" and start cutting them off
 pruneTags :: Tags -> [Id] -> [Either (String,String) Id]
 pruneTags _ = map Right
 
 
-searchTags :: Tags -> [Restrict] -> [Id]
-searchTags (Tags ts) qs = map (fst . snd) $ filter (flip elem [(cat,val) | Restrict True cat val <- qs] . fst) ts
+searchTags :: Tags -> [Scope] -> [Id]
+searchTags (Tags ts) qs = map (fst . snd) $ filter (flip elem [(cat,val) | Scope True cat val <- qs] . fst) ts
