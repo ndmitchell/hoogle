@@ -7,6 +7,9 @@ import Language.Haskell.Exts
 import Control.Monad
 import Data.Monoid
 import Data.Char
+import Data.List.Extra
+import Data.Generics.Uniplate.Data
+import General.Util
 
 ---------------------------------------------------------------------
 -- DATA TYPE
@@ -129,6 +132,22 @@ names_ (x:xs) = [x | x /= " "] ++ names_ xs
 names_ [] = []
 
 typeSig_ :: [String] -> Maybe Type
-typeSig_ xs = case parseType $ unwords xs of
-    ParseOk x -> Just x
+typeSig_ xs = case parseTypeWithMode parseMode $ unwords $ fixup $ filter (not . all isSpace) xs of
+    ParseOk x -> Just $ transformBi (\v -> if v == Ident "__" then Ident "_" else v) x
     _ -> Nothing
+    where
+        fixup = underscore . closeBracket . completeFunc . completeArrow
+
+        completeArrow (unsnoc -> Just (a,b)) | b `elem` ["-","="] = snoc a (b ++ ">")
+        completeArrow x = x
+
+        completeFunc (unsnoc -> Just (a,b)) | b `elem` ["->","=>"] = a ++ [b,"_"]
+        completeFunc x = x
+
+        closeBracket xs = xs ++ foldl f [] xs
+            where f stack x | Just c <- lookup x (zip openBrackets shutBrackets) = c:stack
+                  f (s:tack) x | x == s = tack
+                  f stack x = stack
+
+        underscore = replace ["_"] ["__"]
+
