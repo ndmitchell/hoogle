@@ -2,7 +2,7 @@
 
 module General.Util(
     fileSize,
-    pretty,
+    pretty, parseMode,
     fromName, fromTyVarBind,
     tarballReadFiles,
     template,
@@ -23,6 +23,9 @@ fileSize file = withFile file ReadMode $ fmap fromIntegral . hFileSize
 
 pretty :: Pretty a => a -> String
 pretty = trim . unwords . words . prettyPrint
+
+parseMode :: ParseMode
+parseMode = defaultParseMode{extensions=[EnableExtension ConstraintKinds]}
 
 fromName :: Name -> String
 fromName (Ident x) = x
