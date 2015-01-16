@@ -3,13 +3,6 @@
 
 module Main(main) where
 
--- grp = 1.28Mb
--- wrd = 10.7Mb
-
--- [(".grp",1_343_808),(".ids",247_336_269),(".wrd",11_230_952)]
--- [(".grp",1_314_256),(".ids",244_154_208),(".wrd",7_369_220)]
-
-
 import Control.Applicative
 import Data.List.Extra
 import System.FilePath
@@ -120,15 +113,6 @@ generate xs = do
                     Map.findWithDefault [] pkg cbl ++ [LBS.unpack body])
         f seen _ = (seen, "")
     (seen, xs) <- second (parseHoogle . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
-    {-
-    inp <- forM (zip [1..] files) $ \(i,file) -> unsafeInterleaveIO $ do
-        let pkg = takeBaseName file
-        putStrLn $ "[" ++ show i ++ "/" ++ show n ++ "] " ++ pkg
-        src <- readFile' file
-        return $ ("@set " ++ intercalate ", " (["included-with-ghc" | pkg `elem` setGHC] ++ ["haskell-platform" | pkg `elem` setPlatform] ++ ["stackage"])) ++ "\n" ++
-                 unlines (Map.findWithDefault [] pkg cbl) ++ src
-    xs <- return $ parseHoogle $ unlines inp
-    -}
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
 --    xs <- writeFileLefts (out <.> "warn") xs
     xs <- writeItems out [x | Right x <- xs]
@@ -140,13 +124,6 @@ generate xs = do
     performGC
     print =<< getGCStats
     evaluate xs
-
-{-
-    files <- listFiles "output"
-    files <- forM files $ \file -> (takeExtension file,) <$> fileSize file
-    let f (name, tot) = name ++ " " ++ reverse (intercalate "," $ chunksOf 3 $ reverse $ show tot)
-    putStr $ unlines $ map f $ reverse $ sortOn snd $ map (second sum) $ groupSort files
--}
     print "done"
 
 {-
@@ -159,47 +136,4 @@ writeFileLefts file xs = do
         f (Just h) (Left x:xs) = do res <- unsafeInterleaveIO $ hPutStrLn h x; res `seq` f (Just h) xs
         f h (Right x:xs) = fmap (x:) $ f h xs
         f h [] = do whenJust h hClose; return []
--}
-
-{-
-experiment :: IO ()
-experiment = do
-    files <- listFiles "output"
-    types <- fmap concat $ forM (filter ((==) ".types" . takeExtension) files) $ \file -> do
-        xs <- readFile' file
-        return [x | ParseOk x <- map (parseType . snd . word1) $ lines xs]
-    print ("Count", length types)
-    print ("Unique", Set.size $ Set.fromList types)
-    writeFileBinary "types.txt" $ unlines $ map pretty $ Set.toList $ Set.fromList types
-    writeFileBinary "ctors.txt" $ unlines $ map show $ reverse $ sortOn snd $ Map.toList $ Map.fromListWith (+) $ concat [nub [(x:xs,1) | Ident (_ :: SrcSpanInfo) (x:xs) <- universeBi t, isUpper x] | t <- Set.toList $ Set.fromList types]
-    writeFileBinary "contexts.txt" $ unlines [pretty t | t <- Set.toList $ Set.fromList types, any ((>1) . length . snd) $ groupSort [(prettyPrint v,cls) | ClassA (_ :: SrcSpanInfo) cls [v] <- universeBi t]]
-    error "done"
-
-    src <- BS.readFile "output/bullet.ids"
-    forM_ ["Bullet","Disable","Stmt","???"] $ \s -> do
-        (t,_) <- duration $ evaluate $ length $ take 50 $ BS.findSubstrings (BS.pack s) src
-        print (s, t)
-        (t,_) <- duration $ evaluate $ length $ BS.findSubstrings (BS.pack s) src
-        print (s, t)
-    error "done"
--}
-
-{-
-
-
-parse
-
-Package docs ["package:cmdargs","author:Neil Mitchell","license:GPL"] [Module docs "System.Console.CmdArgs" ("docs","cmdargs")]
-
-apply the identifier thing comes along
-
-replace all docs with an identifier, which points at the docs
-
-after the heirarchy comes along lift out the innards
-
-heirarchy :: Package Id -> [Stmt]
-
-then text search is only by statement
-
-
 -}
