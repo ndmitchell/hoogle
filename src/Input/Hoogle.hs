@@ -5,7 +5,7 @@ module Input.Hoogle(parseHoogle) where
 import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
-import Type
+import Input.Type
 
 
 hackage = "https://hackage.haskell.org/"

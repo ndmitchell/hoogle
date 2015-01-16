@@ -36,7 +36,7 @@ import Input.Hoogle
 import Input.Download
 import Input.Set
 import Query
-import Type
+import Input.Type
 import Util
 import Web
 import System.Mem

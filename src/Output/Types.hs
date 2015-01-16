@@ -16,7 +16,7 @@ import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
 
-import Type
+import Input.Type
 import Util
 
 

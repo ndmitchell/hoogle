@@ -10,7 +10,7 @@ import System.FilePath
 import Control.Monad
 import Control.DeepSeq
 
-import Type
+import Input.Type
 import Util
 
 

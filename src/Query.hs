@@ -7,7 +7,7 @@ import Data.Tuple.Extra
 import Language.Haskell.Exts
 import Control.Monad
 import Data.Monoid
-import Type
+
 
 data Query = Query [Restrict] [String] (Maybe Type) deriving Show
 

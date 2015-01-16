@@ -44,11 +44,11 @@ executable hogle
         Input.Download
         Input.Hoogle
         Input.Set
+        Input.Type
         Output.Items
         Output.Names
         Output.Tags
         Output.Types
         Query
-        Type
         Util
         Web

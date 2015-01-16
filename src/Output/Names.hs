@@ -9,7 +9,7 @@ import System.FilePath
 import Data.List.Extra
 import qualified Data.ByteString.Char8 as BS
 
-import Type
+import Input.Type
 import Util
 
 

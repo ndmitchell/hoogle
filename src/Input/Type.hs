@@ -1,5 +1,5 @@
 
-module Type(
+module Input.Type(
     Database(..),
     Item(..), Items(..),
     isIPackage, isIModule,

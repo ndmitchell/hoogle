@@ -8,7 +8,7 @@ import System.FilePath
 import Data.Tuple.Extra
 import Data.Maybe
 
-import Type
+import Input.Type
 import Query
 
 
