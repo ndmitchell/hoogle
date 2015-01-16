@@ -83,12 +83,12 @@ form {
     vertical-align: bottom;
 }
 
-#hoogle, #restrict, #restrict_chosen, #submit {
+#hoogle, #scope, #scope_chosen, #submit {
     font-size: 16px;
     margin-bottom: 16px;
     vertical-align: bottom;
 }
-#restrict_chosen, #restrict {
+#scope_chosen, #scope {
     max-width: 200px;
 }
 #restrict_chosen .chosen-drop {
