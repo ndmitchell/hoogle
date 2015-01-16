@@ -30,8 +30,8 @@ import Input.Download
 import Input.Set
 import Query
 import Input.Type
-import Util
-import Web
+import General.Util
+import General.Web
 import System.Mem
 import GHC.Stats
 

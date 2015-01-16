@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 
-module Util(
+module General.Util(
     fileSize,
     pretty,
     fromName, fromTyVarBind,

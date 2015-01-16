@@ -11,7 +11,7 @@ import Control.Monad
 import Control.DeepSeq
 
 import Input.Type
-import Util
+import General.Util
 
 
 writeItems :: FilePath -> [Item] -> IO [(Maybe Id, Items)]

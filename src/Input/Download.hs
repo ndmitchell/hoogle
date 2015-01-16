@@ -2,7 +2,7 @@
 
 module Input.Download(downloadInputs) where
 
-import Web
+import General.Web
 import System.FilePath
 import Control.Monad.Extra
 import System.Directory

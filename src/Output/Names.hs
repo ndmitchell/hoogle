@@ -10,7 +10,7 @@ import Data.List.Extra
 import qualified Data.ByteString.Char8 as BS
 
 import Input.Type
-import Util
+import General.Util
 
 
 writeNames :: Database -> [(Maybe Id, Items)] -> IO ()

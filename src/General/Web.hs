@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP, PatternGuards #-}
 
-module Web(
+module General.Web(
     Input(..), Output(..), server, downloadFile
     ) where
 
