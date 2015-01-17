@@ -6,15 +6,16 @@ import Input.Type
 import Data.List.Extra
 import Data.Char
 import Data.Maybe
+import Data.Tuple.Extra
 import qualified Data.Map as Map
 
 
 reorderItems :: [(a, Items)] -> IO [(a, Items)]
 reorderItems xs = do
     packageOrder <- packageOrder
-    let rebase ("base",xs) = ("base", concatMap snd $ sortOn (baseModuleOrder . fst) $ splitModules xs)
-        rebase x = x
-    return $ concatMap snd $ sortOn (packageOrder . fst) $ map rebase $ splitPackages xs
+    let rebase ("base",xs) = ("base", concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ splitModules xs)
+        rebase (x, xs) = (x, concatMap snd $ sortOn fst $ splitModules xs)
+    return $ concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitPackages xs
 
 
 splitPackages = splitUsing $ \x -> case snd x of IPackage x -> Just x; _ -> Nothing
