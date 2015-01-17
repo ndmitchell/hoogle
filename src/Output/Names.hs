@@ -43,13 +43,19 @@ searchNames (Database file) xs = do
     return $ mapMaybe (match xs) src
 
 match :: [String] -> BS.ByteString -> Maybe (Score, Id)
-match xs = \str -> case second (BS.drop 1) $ BS.break (== ' ') str of
-    (read . BS.unpack -> ident, str)
-        | not $ all (`BS.isInfixOf` str) xsMatch -> Nothing
-        | any (`BS.isPrefixOf` str) xsPerfect -> Just (0, ident)
-        | any (`BS.isPrefixOf` str) xsGood -> Just (1, ident)
-        | otherwise -> Just (2, ident)
+match xs = \line ->
+    let (ident, str) = second (BS.drop 1) $ BS.break (== ' ') line
+        ident2 = read $ BS.unpack ident
+    in case () of
+        _ | BS.length str < mn -> Nothing
+          | not $ all (`BS.isInfixOf` str) xsMatch -> Nothing
+          | any (== str) xsPerfect -> Just (0, ident2)
+          | any (== str) xsGood -> Just (1, ident2)
+          | any (`BS.isPrefixOf` str) xsPerfect -> Just (2, ident2)
+          | any (`BS.isPrefixOf` str) xsGood -> Just (3, ident2)
+          | otherwise -> Just (2, ident2)
     where
+        mn = sum $ map BS.length xsMatch
         xsMatch = map (BS.pack . lower) xs
         xsPerfect = [BS.pack $ [' ' | isUName x] ++ lower x | x <- xs]
         xsGood = [BS.pack $ [' ' | not $ isUName x] ++ lower x | x <- xs]
