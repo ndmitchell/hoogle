@@ -34,10 +34,10 @@ data Item = Item
     } deriving Show
 
 data Items
-    = IDecl Decl
-    | IKeyword String
-    | IPackage String
-    | IModule String
+    = IDecl {fromIDecl :: Decl}
+    | IKeyword {fromIKeyword :: String}
+    | IPackage {fromIPackage :: String}
+    | IModule {fromIModule :: String}
       deriving Show
 
 isIModule IModule{} = True; isIModule _ = False
