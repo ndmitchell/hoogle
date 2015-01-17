@@ -11,7 +11,7 @@ import System.Directory
 urls =
     [("keywords.htm","https://www.haskell.org/haskellwiki/Keywords")
     ,("stackage.txt","http://www.stackage.org/lts/cabal.config")
-    ,("platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2014.hs")
+    ,("platform.txt","https://cdn.rawgit.com/haskell/haskell-platform/496cd9d8d0cfe3b013e6531be19eb836d7599cfe/hptool/src/Releases2014.hs")
     ,("cabal.tar.gz","http://hackage.haskell.org/packages/index.tar.gz")
     ,("hoogle.tar.gz","http://hackage.haskell.org/packages/hoogle.tar.gz")
     ,("reverse.htm","http://packdeps.haskellers.com/reverse")
