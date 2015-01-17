@@ -91,7 +91,7 @@ form {
 #scope_chosen, #scope {
     max-width: 200px;
 }
-#restrict_chosen .chosen-drop {
+#scope_chosen .chosen-drop {
     width: 400px;
 }
 
