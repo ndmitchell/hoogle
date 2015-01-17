@@ -38,7 +38,6 @@ data Items
     | IKeyword String
     | IPackage String
     | IModule String
-    | ITag String String -- things like author/category/hackage
       deriving Show
 
 isIModule IModule{} = True; isIModule _ = False

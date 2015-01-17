@@ -50,18 +50,23 @@ generate xs = do
     let want = Set.fromList $ if null xs then setStackage else xs
 
     cbl <- parseCabal (`Set.member` want)
+    let extra pkg = [("set","included-with-ghc") | pkg `elem` setGHC] ++
+                    [("set","haskell-platform") | pkg `elem` setPlatform] ++
+                    [("set","stackage")] ++
+                    Map.findWithDefault [] pkg cbl
+
     let f seen (takeBaseName -> pkg, body)
             | pkg `Set.member` want
-            = (Set.insert pkg seen, trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $ unlines $
-                    ("@set " ++ intercalate ", " (["included-with-ghc" | pkg `elem` setGHC] ++ ["haskell-platform" | pkg `elem` setPlatform] ++ ["stackage"])) :
-                    Map.findWithDefault [] pkg cbl ++ [LBS.unpack body])
+            = (Set.insert pkg seen,
+                trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
+                    LBS.unpack body)
         f seen _ = (seen, "")
     (seen, xs) <- second (parseHoogle . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
 --    xs <- writeFileLefts (out <.> "warn") xs
     xs <- writeItems out [x | Right x <- xs]
     putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
-    writeTags (Database out) xs
+    writeTags (Database out) extra xs
     writeNames (Database out) xs
     writeTypes (Database out) xs
 

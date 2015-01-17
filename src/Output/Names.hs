@@ -30,7 +30,6 @@ toName (IDecl x) = map fromName $ case x of
     ClassDecl _ _ name _ _ _ -> [name]
     TypeSig _ names _ -> names
     _ -> []
-toName _ = []
 
 
 searchNames :: Database -> [String] -> IO [Id]

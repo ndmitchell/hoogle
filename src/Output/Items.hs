@@ -29,7 +29,6 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
     -- and replace each with an identifier (index in the space) - big reduction in memory
     where
         showItem :: Items -> Maybe String
-        showItem ITag{} = Nothing
         showItem (IDecl i@InstDecl{}) = rnf (show i) `seq` Nothing
         showItem (IDecl x) = rnf (show x) `seq` Just (pretty x)
         showItem (IKeyword x) = Just $ "<b>keyword</b> " ++ x
