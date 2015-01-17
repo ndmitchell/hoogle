@@ -6,7 +6,8 @@ module General.Util(
     fromName, fromTyVarBind,
     tarballReadFiles,
     template,
-    escapeHTML
+    escapeHTML,
+    Score
     ) where
 
 import System.IO
@@ -62,3 +63,6 @@ escapeHTML = concatMap f
         f '&' = "&amp;"
         f '\"' = "&quot;"
         f  x  = [x]
+
+-- 0 is a perfect match, anything lower is less good
+type Score = Double
