@@ -52,7 +52,7 @@ writeTypes db@(Database file) xs = do
         [pretty t | (_, IDecl t@TypeDecl{}) <- xs]
 -}
 
-searchTypes :: Database -> Type -> IO [Id]
+searchTypes :: Database -> Type -> IO [(Score,Id)]
 searchTypes db@(Database file) q = do
     dbRare <- readRarity db
     dbAlias <- readAlias db
@@ -70,7 +70,7 @@ searchTypes db@(Database file) q = do
             = (c, map read $ words $ BS.unpack ids) : f xs
             | otherwise = f xs
         f _ = []
-    concatMap snd . sortOn fst . f . BS.lines <$> BS.readFile (file <.> "types")
+    map (0,) . concatMap snd . sortOn fst . f . BS.lines <$> BS.readFile (file <.> "types")
 
 
 {-

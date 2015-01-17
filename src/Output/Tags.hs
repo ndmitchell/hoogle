@@ -10,6 +10,7 @@ import Data.Maybe
 
 import Input.Type
 import Query
+import General.Util
 
 writeTags :: Database -> (String -> [(String,String)]) -> [(Maybe Id, Items)] -> IO ()
 writeTags (Database file) extra xs = do
@@ -62,5 +63,5 @@ pruneTags :: Tags -> [Id] -> [Either (String,String) Id]
 pruneTags _ = map Right
 
 
-searchTags :: Tags -> [Scope] -> [Id]
-searchTags (Tags ts) qs = map (fst . snd) $ filter (flip elem [(cat,val) | Scope True cat val <- qs] . fst) ts
+searchTags :: Tags -> [Scope] -> [(Score,Id)]
+searchTags (Tags ts) qs = map ((0,) . fst . snd) $ filter (flip elem [(cat,val) | Scope True cat val <- qs] . fst) ts

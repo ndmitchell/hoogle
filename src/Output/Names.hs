@@ -37,10 +37,10 @@ toName (IDecl x) = map fromName $ case x of
 isUName (x:xs) = isUpper x
 isUName _ = False
 
-searchNames :: Database -> [String] -> IO [Id]
+searchNames :: Database -> [String] -> IO [(Score, Id)]
 searchNames (Database file) xs = do
     src <- BS.lines <$> BS.readFile (file <.> "names")
-    return $ map snd $ mapMaybe (match xs) src
+    return $ mapMaybe (match xs) src
 
 match :: [String] -> BS.ByteString -> Maybe (Score, Id)
 match xs = \str -> case second (BS.drop 1) $ BS.break (== ' ') str of

@@ -41,4 +41,4 @@ search pkg (Query qtags strs typ) = do
         (xs, Just t ) -> do
             nam <- Set.fromList <$> searchNames pkg xs
             filter (`Set.member` nam) <$> searchTypes pkg t
-    mapM (lookupItem pkg) $ take 25 $ filter (filterTags tags qtags) is
+    mapM (lookupItem pkg) $ take 25 $ filter (filterTags tags qtags) $ map snd is
