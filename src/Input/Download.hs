@@ -14,6 +14,7 @@ urls =
     ,("platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2014.hs")
     ,("cabal.tar.gz","http://hackage.haskell.org/packages/index.tar.gz")
     ,("hoogle.tar.gz","http://hackage.haskell.org/packages/hoogle.tar.gz")
+    ,("reverse.htm","http://packdeps.haskellers.com/reverse")
     ]
 
 downloadInputs :: IO ()

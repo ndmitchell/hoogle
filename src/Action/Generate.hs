@@ -21,6 +21,7 @@ import Output.Types
 import Input.Cabal
 import Input.Hoogle
 import Input.Download
+import Input.Reorder
 import Input.Set
 import Input.Type
 import General.Util
@@ -64,7 +65,7 @@ generate xs = do
     (seen, xs) <- second (parseHoogle . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
 --    xs <- writeFileLefts (out <.> "warn") xs
-    xs <- writeItems out [x | Right x <- xs]
+    xs <- reorderItems =<< writeItems out [x | Right x <- xs]
     putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
     writeTags (Database out) extra xs
     writeNames (Database out) xs

@@ -48,6 +48,7 @@ executable hogle
         Input.Cabal
         Input.Download
         Input.Hoogle
+        Input.Reorder
         Input.Set
         Input.Type
         Output.Items
