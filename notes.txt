@@ -1,3 +1,13 @@
+Need to rewrite the tags thing, needs more inbuilt assumptions about map and to answer pruning questions
+Need to dedupe each package in turn
+Parse Hoogle can be strict per package, call each one separately
+Drop the @package annotation, have that information presupplied
+Some items will be in multiple modules, how do tags cope with that?
+Do I need a separate packages and modules structure?
+Support is:exact for searching "map$" vs "map.*"
+
+
+
 have a distinguished grouping "set"
 
 set:Installed
