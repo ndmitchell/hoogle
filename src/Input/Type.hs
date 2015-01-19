@@ -67,11 +67,9 @@ readItem (stripPrefix "@keyword " -> Just x) = Just $ IKeyword x
 readItem (stripPrefix "@package " -> Just x) = Just $ IPackage x
 readItem (stripPrefix "module " -> Just x) = Just $ IModule x
 readItem x | ParseOk y <- parseDeclWithMode parseMode x = Just $ IDecl $ unGADT y
-    where unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
-          unGADT x = x
 readItem x -- newtype
     | Just x <- stripPrefix "newtype " x
-    , ParseOk (DataDecl a _ c d e f g) <- parseDeclWithMode parseMode $ "data " ++ x
+    , ParseOk (DataDecl a _ c d e f g) <- fmap unGADT $ parseDeclWithMode parseMode $ "data " ++ x
     = Just $ IDecl $ DataDecl a NewType c d e f g
 readItem x -- constructors
     | ParseOk (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) <- parseDeclWithMode parseMode $ "data Data where " ++ x
@@ -84,3 +82,6 @@ readItem o@('(':xs) -- tuple definitions
         (com,rest) = span (== ',') xs
         f (TypeSig s [Ident _] ty) = TypeSig s [Ident $ '(':com++")"] ty
 readItem _ = Nothing
+
+unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
+unGADT x = x
