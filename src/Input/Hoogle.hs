@@ -39,7 +39,7 @@ parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i s of
                                Left y -> [Left y | not $ "@version " `isPrefixOf` s]
-                               Right x -> [Right $ ItemEx url (reformat $ reverse com) [] x]
+                               Right xs -> [Right $ ItemEx url (reformat $ reverse com) [] x | x <- xs]
                           )
                           ++ f [] "" is
 
@@ -81,12 +81,14 @@ heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with
                     | otherwise = "-" ++ show (ord x) ++ "-"
 
 
-parseLine :: Int -> String -> Either String Item
+parseLine :: Int -> String -> Either String [Item]
 parseLine line ('@':str) = case a of
-        "keyword" | b <- words b, b /= [] -> Right $ IKeyword $ unwords b
-        "package" | [b] <- words b, b /= "" -> Right $ IPackage b
+        "keyword" | b <- words b, b /= [] -> Right [IKeyword $ unwords b]
+        "package" | [b] <- words b, b /= "" -> Right [IPackage b]
         _ -> Left $ show line ++ ": unknown attribute, " ++ a
     where (a,b) = word1 str
-parseLine line x | Just x <- readItem x = Right x
+parseLine line x | Just x <- readItem x = case x of
+    IDecl (TypeSig a bs c) -> Right [IDecl (TypeSig a [b] c) | b <- bs]
+    x -> Right [x]
 parseLine line x = Left $ show line ++ ":failed to parse: " ++ x
 
