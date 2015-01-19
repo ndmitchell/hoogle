@@ -58,3 +58,4 @@ testQuery = do
     "(a -> b) ->" === typpp "(a -> b) -> _"
     "(a -> b) -" === typpp "(a -> b) -> _"
     "Monad m => " === typpp "Monad m => _"
+    "map is:exact" === name "map" . scope True "is" "exact"

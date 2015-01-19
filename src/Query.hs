@@ -101,7 +101,7 @@ scope_ xs = case xs of
 
         readPM x = case x of "+" -> Just True; "-" -> Just False; _ -> Nothing
 
-        readCat x | isAlphas x = Just $ if map toLower x `isPrefixOf` "module" then "module" else "package"
+        readCat x | isAlphas x = Just x
                   | otherwise = Nothing
 
         readMod (x:xs) | isAlphas x = Just $ case xs of
