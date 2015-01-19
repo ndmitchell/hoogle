@@ -130,6 +130,7 @@ divide xs | all isAlphas ns = (ns, Nothing)
 -- | Ignore brackets around symbols, and try to deal with tuple names.
 names_ :: [String] -> [String]
 names_ ("(":x:")":xs) = x : names_ xs
+names_ ["(",x] = [x]
 names_ (x:xs) = [x | x /= " "] ++ names_ xs
 names_ [] = []
 
