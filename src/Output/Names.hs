@@ -2,7 +2,6 @@
 
 module Output.Names(writeNames, searchNames) where
 
-import Language.Haskell.Exts
 import Control.Applicative
 import System.IO.Extra
 import System.FilePath
@@ -23,15 +22,6 @@ toName :: Item -> [String]
 toName (IKeyword x) = [x]
 toName (IPackage x) = [x]
 toName (IModule x) = [last $ splitOn "." x]
-toName (IDecl x) = map fromName $ case x of
-    TypeDecl _ name _ _ -> [name]
-    DataDecl _ _ _ name _ _ _ -> [name]
-    GDataDecl _ _ _ name _ _ _ _ -> [name]
-    TypeFamDecl _ name _ _ -> [name]
-    DataFamDecl _ _ name _ _ -> [name]
-    ClassDecl _ _ name _ _ _ -> [name]
-    TypeSig _ names _ -> names
-    _ -> []
 toName (IDecl x) = declNames x
 
 searchNames :: Database -> Bool -> [String] -> IO [(Score, Id)]

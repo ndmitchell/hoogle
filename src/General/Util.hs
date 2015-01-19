@@ -5,6 +5,7 @@ module General.Util(
     fileSize,
     pretty, parseMode,
     fromName, fromTyVarBind,
+    declNames,
     tarballReadFiles,
     template,
     escapeHTML,
@@ -44,6 +45,17 @@ fromName (Symbol x) = x
 fromTyVarBind :: TyVarBind -> Name
 fromTyVarBind (KindedVar x _) = x
 fromTyVarBind (UnkindedVar x) = x
+
+declNames :: Decl -> [String]
+declNames x = map fromName $ case x of
+    TypeDecl _ name _ _ -> [name]
+    DataDecl _ _ _ name _ _ _ -> [name]
+    GDataDecl _ _ _ name _ _ _ _ -> [name]
+    TypeFamDecl _ name _ _ -> [name]
+    DataFamDecl _ _ name _ _ -> [name]
+    ClassDecl _ _ name _ _ _ -> [name]
+    TypeSig _ names _ -> names
+    _ -> []
 
 
 tarballReadFiles :: FilePath -> IO [(FilePath, LBS.ByteString)]
