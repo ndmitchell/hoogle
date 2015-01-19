@@ -54,7 +54,7 @@ isIPackage IPackage{} = True; isIPackage _ = False
 showItem :: Item -> String
 showItem (IKeyword x) = "@keyword " ++ x
 showItem (IPackage x) = "@package " ++ x
-showItem (IModule x) = "module "
+showItem (IModule x) = "module " ++ x
 showItem (IDecl x) = pretty x
 
 prettyItem :: Item -> String
