@@ -4,6 +4,7 @@ module Action.Test(testMain) where
 
 import Query
 import Action.CmdLine
+import Action.Search
 import Language.Haskell.Exts
 import General.Util
 import Data.List
@@ -14,6 +15,7 @@ testMain :: CmdLine -> IO ()
 testMain Test{} = do
     testItem
     testQuery
+    testURL
     putStrLn ""
 
 testing :: String -> IO () -> IO ()
@@ -95,3 +97,23 @@ testQuery = testing "testQuery" $ do
 --    "Control.Monad.(>>=" === name ">>" . scope True "module" "Control.Monad"
     "(Control.Monad.>>=" === name ">>=" . scope True "module" "Control.Monad"
     "foo.bar" === name "bar" . scope True "package" "foo"
+
+
+testURL :: IO ()
+testURL = testing "testURL" $ do
+    let a === b = do
+            res <- search (Database "output/all") (parseQuery a)
+            case res of
+                (_:url:_):_ | url == b -> putChar '.'
+                _ -> error $ show (a, b, take 1 res)
+    let hackage x = "https://hackage.haskell.org/package/" ++ x
+    "base" === hackage "base"
+    "Prelude" === hackage "base/docs/Prelude.html"
+    "map" === hackage "base/docs/Prelude.html#v:map"
+--    "map package:base" === hackage "base/docs/Prelude.html#v:map"
+    "True" === hackage "base/docs/Prelude.html#v:True"
+    "Bool" === hackage "base/docs/Prelude.html#t:Bool"
+    "String" === hackage "base/docs/Prelude.html#t:String"
+    "Ord" === hackage "base/docs/Prelude.html#t:Ord"
+    ">>=" === hackage "base/docs/Prelude.html#v:-62--62--61-"
+    "foldl'" === hackage "base/docs/Data-List.html#v:foldl-39-"
