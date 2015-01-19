@@ -35,6 +35,8 @@ testItem = testing "testItem" $ do
     test "reverse :: [a] -> [a]"
     test "reverse :: [:a:] -> [:a:]"
     test "module Foo.Bar"
+    test "data Char"
+    "data Char :: *" === "data Char"
 
 
 testQuery :: IO ()
