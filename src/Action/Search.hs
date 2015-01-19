@@ -50,7 +50,7 @@ takeScore = f 0 Map.empty
     where
         -- Map is Map Score [a], and nmp is the count of items in all list
         f nmp mp i xs | i <= 0 = []
-        f nmp mp i [] = take i [(s,y) | (s,ys) <- Map.toAscList mp, y <- ys]
+        f nmp mp i [] = take i [(s,y) | (s,ys) <- Map.toAscList mp, y <- reverse ys]
         f nmp mp i xs | nmp > i, Just ((s,ys),mp) <- Map.maxViewWithKey mp =
             let (die,keep) = splitAt (nmp - i) ys
             in f (nmp-length die) (if null keep then mp else Map.insert s keep mp) i xs

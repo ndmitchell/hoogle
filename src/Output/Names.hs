@@ -53,7 +53,7 @@ match xs = \line ->
           | any (== str) xsGood -> Just (1, ident2)
           | any (`BS.isPrefixOf` str) xsPerfect -> Just (2, ident2)
           | any (`BS.isPrefixOf` str) xsGood -> Just (3, ident2)
-          | otherwise -> Just (4, ident2)
+          | otherwise -> Just (2, ident2)
     where
         mn = sum $ map BS.length xsMatch
         xsMatch = map (BS.pack . lower) xs
