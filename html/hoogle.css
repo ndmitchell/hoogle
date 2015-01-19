@@ -94,6 +94,10 @@ form {
 #scope_chosen .chosen-drop {
     width: 400px;
 }
+.chosen-container .chosen-results li em {
+  font-weight: bold;
+  text-decoration: normal !important;
+}
 
 #hoogle {
     width: 300px;
