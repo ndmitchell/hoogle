@@ -11,6 +11,7 @@ import Data.Monoid
 import qualified Language.Javascript.JQuery as JQuery
 import Data.Version
 import Paths_hogle
+import Data.Maybe
 
 import Output.Tags
 import Query
@@ -46,4 +47,20 @@ showResults :: Query -> [[String]] -> String
 showResults query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"] ++
     ["<p>No results found</p>" | null results] ++
-    ["<div class=ans><a href=\"" ++ b ++ "\">" ++ escapeHTML (snd $ word1 a) ++ "</a></div><div class=from>" ++ c ++ "</div><div class=\"doc newline shut\">" ++ replace "<p>" "" (replace "</p>" "<br/>" $ unlines ds) ++ "</div>" | a:b:c:ds <- results]
+    ["<div class=ans>" ++
+        "<a href=\"" ++ b ++ "\">" ++ display (queryName query) (isJust $ queryType query) (snd $ word1 a) ++ "</a></div>" ++
+        "<div class=from>" ++ c ++ "</div>" ++
+        "<div class=\"doc newline shut\">" ++ replace "<p>" "" (replace "</p>" "<br/>" $ unlines ds) ++ "</div>"
+    | a:b:c:ds <- results]
+
+display :: [String] -> Bool -> String -> String
+display names typ item = concatMap f $ groupOn fst $ highlight names $ maybe item prettyItem (readItem item)
+    where f xs@((True,_):_) = "<b>" ++ escapeHTML (map snd xs) ++ "</b>"
+          f xs = escapeHTML (map snd xs)
+
+
+highlight :: [String] -> String -> [(Bool, Char)]
+highlight names [] = []
+highlight names o@(x:xs) | ms == 0 = (False,x) : highlight names xs
+                         | (a,b) <- splitAt ms o = map (True,) a ++ highlight names b
+    where ms = maximum $ 0 : map length (filter (`isPrefixOf` lower o) $ map lower names)
