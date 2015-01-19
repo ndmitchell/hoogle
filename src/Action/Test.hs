@@ -59,3 +59,5 @@ testQuery = do
     "(a -> b) -" === typpp "(a -> b) -> _"
     "Monad m => " === typpp "Monad m => _"
     "map is:exact" === name "map" . scope True "is" "exact"
+    "sort set:hackage" === name "sort" . scope True "set" "hackage"
+    "package:bytestring-csv" === scope True "package" "bytestring-csv"
