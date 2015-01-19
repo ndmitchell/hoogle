@@ -8,7 +8,6 @@ module General.Util(
     tarballReadFiles,
     template,
     escapeHTML,
-    Score
     ) where
 
 import System.IO
