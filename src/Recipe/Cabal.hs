@@ -1,4 +1,4 @@
-
+{-# LANGUAGE CPP #-}
 module Recipe.Cabal(
     Cabal(..), readCabal
     ) where
@@ -13,9 +13,12 @@ import Distribution.Text
 import Distribution.Verbosity
 import Distribution.Version
 import Recipe.Haddock
+#if MIN_VERSION_Cabal(1,22,0)
+import Language.Haskell.Extension (Language(..))
+#endif
 
 
-ghcVersion = [7,6,3]
+ghcVersion = [7,8,3]
 
 data Cabal = Cabal
     {cabalName :: String
@@ -29,7 +32,21 @@ readCabal :: FilePath -> IO Cabal
 readCabal file = do
     pkg <- readPackageDescription silent file
     let plat = Platform I386 Linux
-        comp = CompilerId GHC (Version ghcVersion [])
+        compid = CompilerId GHC (Version ghcVersion [])
+#if MIN_VERSION_Cabal(1,22,0)
+        comp = CompilerInfo
+                 { compilerInfoId = compid
+                 , compilerInfoAbiTag = NoAbiTag
+                 , compilerInfoCompat = Nothing
+                 , compilerInfoLanguages = Just [Haskell98, Haskell2010]
+                   -- It's too much of a pain to get all the extensions,
+                   -- things work anyway.  See 'getExtensions' in
+                   -- 'Distribution.Simple.GHC.Internal'.
+                 , compilerInfoExtensions = Nothing
+                 }
+#else
+        comp = compid
+#endif
     pkg <- return $ case finalizePackageDescription [] (const True) plat comp [] pkg of
         Left _ -> flattenPackageDescription pkg
         Right (pkg,_) -> pkg

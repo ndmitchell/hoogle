@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE CPP #-}
 
 module Web.Response(response, ResponseArgs(..), responseArgs) where
 
@@ -9,12 +10,14 @@ import General.System
 import General.Web
 import Web.Page
 import Data.Generics.Uniplate
+#if __GLASGOW_HASKELL__ < 710
+import System.Locale
+#endif
 
 import qualified Data.Aeson as J
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Time.Clock
 import Data.Time.Format
-import System.Locale
 import Network.Wai
 import Network.HTTP.Types(hContentType)
 import System.IO.Unsafe(unsafeInterleaveIO)
@@ -134,7 +137,7 @@ runQuery templates ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = u
             ["<p>No results found</p>"]
         else
             concat (pre ++ now)
-    else
+     else
         concat now) ++
     ["<p><a href=\"" ++& urlMore ++ "\" class='more'>Show more results</a></p>" | not $ null post]
     where
@@ -169,10 +172,12 @@ runQuery templates ajax dbs cq@Search{queryParsed = Right q, queryText = qt} = u
 renderRes :: Int -> Bool -> Result -> [String]
 renderRes i more Result{..} =
         ["<a name='more'></a>" | more] ++
+        ["<div class='result'>"] ++
         ["<div class='ans'>" ++ href selfUrl (showTagHTMLWith url self) ++ "</div>"] ++
         ["<div class='from'>" ++ intercalate ", " [unwords $ zipWith (f u) [1..] ps | (u,ps) <- locations] ++ "</div>" | not $ null locations] ++
         ["<div class='doc " ++ (if '\n' `elem` s then " newline" else "") ++ "'><span>" ++ showTag docs ++ "</span></div>"
-            | let s = showTagText docs, s /= ""]
+            | let s = showTagText docs, s /= ""] ++
+        ["</div>"]
     where
         selfUrl = head $ map fst locations ++ [""]
         f u cls (url,text) = "<a class='p" ++ show cls ++ "' href='" ++  url2 ++ "'>" ++ text ++ "</a>"

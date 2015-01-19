@@ -1,6 +1,7 @@
 
 module Test.Parse_Query(parse_Query) where
 
+import Prelude()
 import General.Base
 import Test.General
 import Hoogle.Query.All

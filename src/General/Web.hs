@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE PatternGuards #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-} -- becomes confusing with all the CPP
 
 {- |
     General web utility functions.
@@ -131,7 +132,7 @@ escapeURL = concatMap f
     where
         f x | isAlphaNum x || x `elem` "-" = [x]
             | x == ' ' = "+"
-            | otherwise = '%' : ['0'|length s == 1] ++ s
+            | otherwise = '%' : ['0' | length s == 1] ++ s
             where s = showHex (ord x) ""
 
 

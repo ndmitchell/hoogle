@@ -1,7 +1,7 @@
 cabal-version:      >= 1.10
 build-type:         Simple
 name:               hoogle
-version:            4.2.34
+version:            4.2.37
 license:            BSD3
 license-file:       docs/LICENSE
 category:           Development
@@ -15,7 +15,7 @@ description:
     or by approximate type signature.
 homepage:           http://www.haskell.org/hoogle/
 bug-reports:        https://github.com/ndmitchell/hoogle/issues
-tested-with:        GHC==7.8.2, GHC==7.6.3, GHC==7.4.2
+tested-with:        GHC==7.10.1, GHC==7.8.3, GHC==7.6.3, GHC==7.4.2
 extra-source-files:
     README.md
     CHANGES.txt
@@ -151,7 +151,7 @@ executable hoogle
         wai >= 1.1,
         warp >= 1.1,
         Cabal >= 1.8,
-        shake >= 0.11,
+        shake >= 0.14,
         QuickCheck,
         haskell-src-exts >= 1.16 && < 1.17
 

@@ -4,8 +4,9 @@ module Hoogle.DataBase.All
     ,module Hoogle.DataBase.Serialise
     ) where
 
+import Prelude()
+import General.Base
 import Hoogle.Store.All
-import Data.Monoid
 import Hoogle.DataBase.Type
 import Hoogle.Type.All
 import Hoogle.Score.All

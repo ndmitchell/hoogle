@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, GeneralizedNewtypeDeriving, CPP #-}
 
 module Recipe.All(recipes) where
 
@@ -59,7 +59,7 @@ rules opts@Data{..} warn = do
         wget opts url out
         putNormal $ "Downloaded " ++ out
 
-    "downloads/*.cache" *> \out -> do
+    "downloads/*.cache" %> \out -> do
         let src = dropExtension out
         need [src]
         src <- liftIO $ readFileUtf8' src
@@ -68,12 +68,12 @@ rules opts@Data{..} warn = do
             old <- readFileUtf8' out
             when (src /= old) $ writeFileUtf8 out src
 
-    "//*.tar" *> \out -> do
+    "//*.tar" %> \out -> do
         let src = out <.> "gz"
         need [src]
         ungzip src out
 
-    "//*.index" *> \out -> do
+    "//*.index" %> \out -> do
         let src = out -<.> "tar"
         need [src]
         putNormal $ "Extracting tar file " ++ out
@@ -96,20 +96,20 @@ rules opts@Data{..} warn = do
         need $ map (<.> "hoo") $ ["all" | "all" `elem` bad] ++ good
 
     alternatives $ do -- Match *.txt
-        "keyword.txt" *> \out -> do
+        "keyword.txt" %> \out -> do
             let src = "downloads/keyword.htm.cache"
             need [src]
             contents <- liftIO $ readFileUtf8' src
             liftIO $ writeFileUtf8 out $ translateKeywords contents
 
-        "default.txt" *> \out -> do
+        "default.txt" %> \out -> do
             writeFileLines out ["@combine keyword","@combine package","@combine platform"]
 
-        "platform.txt" *> \out -> do
+        "platform.txt" %> \out -> do
             contents <- readFile' "downloads/platform.cabal.cache"
             writeFileLines out ["@combine " ++ x | x <- platformPackages contents]
 
-        "package.txt" *> \out -> do
+        "package.txt" %> \out -> do
             cabs <- index "downloads/cabal.index"
             xs <- liftIO $ forM (Map.toList cabs) $ \(name,ver) -> do
                 src <- try $ readCabal $ srcCabal name ver
@@ -120,7 +120,7 @@ rules opts@Data{..} warn = do
                         ["--","-- Version " ++ ver, "@url package/" ++ name, "@entry package " ++ name]
             liftIO $ writeFileUtf8 out $ unlines $ ("@url " ++ hackage) : "@package package" : concat xs
 
-        "*.txt" *> \out -> do
+        "*.txt" %> \out -> do
             let name = takeBaseName out
                 base = name == "base"
             cab <- fmap (fmap $ srcCabal name) $ verCabal (CabalVersion name)
@@ -159,7 +159,7 @@ rules opts@Data{..} warn = do
                     i <- imported $ t <.> "txt"
                     fmap (i++) $ genImported (Set.insert t seen) (fst (splitDeps i) ++ odo)
 
-        "*.hoo" *> \out -> do
+        "*.hoo" %> \out -> do
             let src = out -<.> "txt"
             need [src]
             contents <- liftIO $ fmap lines $ readFileUtf8' src

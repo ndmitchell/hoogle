@@ -3,7 +3,6 @@
 module Hoogle.DataBase.Items(Items, createItems, entriesItems) where
 
 import General.Base
-import General.Util
 import General.Web
 import Hoogle.Type.All
 import qualified Data.Map as Map

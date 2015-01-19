@@ -4,7 +4,12 @@
 --   have been in base, or could plausibly be added.
 module General.Base(module General.Base, module X) where
 
+import Prelude as X
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative as X ((<*>),(<$>))
+#else
+import Control.Applicative as X ((<$>))
+#endif
 import Control.Arrow as X
 import Control.DeepSeq as X
 import Control.Monad as X
@@ -25,6 +30,11 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 
 import System.IO
+
+#if __GLASGOW_HASKELL__ < 710
+sortOn f = sortBy (comparing f)
+#endif
+
 
 
 type LBString = LBS.ByteString
