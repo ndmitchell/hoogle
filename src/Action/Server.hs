@@ -38,7 +38,7 @@ spawnMain Server{..} = do
             return $ case lookup "mode" $ reverse inputArgs of
                 Nothing | xs@(_:_) <- escapeHTML $ unwords $ grab "hoogle" -> OutputString $ template [("body",body),("title",xs ++ " - Hoogle"),("search",xs),("tags",tags),("version",showVersion version)] index
                         | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)] index
-                Just "body" -> OutputString body
+                Just "body" -> OutputString $ if null $ unwords $ grab "hoogle" then welcome else body
         ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
         xs -> return $ OutputFile $ joinPath $ "html" : xs
 
