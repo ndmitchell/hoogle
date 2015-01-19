@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
 
 module General.Util(
+    Score,
     fileSize,
     pretty, parseMode,
     fromName, fromTyVarBind,
@@ -18,6 +19,9 @@ import Control.Applicative
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
 
+
+-- 0 is a perfect match, anything lower is less good
+type Score = Double
 
 fileSize :: FilePath -> IO Int
 fileSize file = withFile file ReadMode $ fmap fromIntegral . hFileSize
@@ -68,5 +72,3 @@ escapeHTML = concatMap f
         f '\"' = "&quot;"
         f  x  = [x]
 
--- 0 is a perfect match, anything lower is less good
-type Score = Double
