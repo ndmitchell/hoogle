@@ -8,11 +8,13 @@ module General.Util(
     tarballReadFiles,
     template,
     escapeHTML,
+    isUName
     ) where
 
 import System.IO
 import Language.Haskell.Exts
 import Data.List.Extra
+import Data.Char
 import qualified Data.ByteString.Lazy as LBS
 import Control.Applicative
 import Codec.Compression.GZip as GZip
@@ -70,4 +72,7 @@ escapeHTML = concatMap f
         f '&' = "&amp;"
         f '\"' = "&quot;"
         f  x  = [x]
+
+isUName (x:xs) = isUpper x
+isUName _ = False
 

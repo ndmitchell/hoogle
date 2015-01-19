@@ -7,7 +7,6 @@ import Control.Applicative
 import System.IO.Extra
 import System.FilePath
 import Data.List.Extra
-import Data.Char
 import Data.Maybe
 import Data.Tuple.Extra
 import qualified Data.ByteString.Char8 as BS
@@ -33,9 +32,7 @@ toName (IDecl x) = map fromName $ case x of
     ClassDecl _ _ name _ _ _ -> [name]
     TypeSig _ names _ -> names
     _ -> []
-
-isUName (x:xs) = isUpper x
-isUName _ = False
+toName (IDecl x) = declNames x
 
 searchNames :: Database -> Bool -> [String] -> IO [(Score, Id)]
 searchNames (Database file) exact xs = do
