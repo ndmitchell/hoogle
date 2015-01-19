@@ -7,16 +7,33 @@ import Action.CmdLine
 import Language.Haskell.Exts
 import General.Util
 import Data.List
+import Input.Type
 
 
 testMain :: CmdLine -> IO ()
 testMain Test{} = do
+    testItem
     testQuery
     putStrLn ""
 
 testing :: String -> IO () -> IO ()
 testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
 
+
+testItem :: IO ()
+testItem = testing "testItem" $ do
+    let a === b | fmap prettyItem (readItem a) == Just b = putChar '.'
+                | otherwise = error $ show ("testItem",a,b,readItem a, fmap prettyItem $ readItem a)
+    let test a = a === a
+    test "type FilePath = [Char]"
+    test "data Maybe a"
+    test "Nothing :: Maybe a"
+    test "Just :: a -> Maybe a"
+    test "newtype Identity a"
+    test "foo :: Int# -> b"
+    test "(,,) :: a -> b -> c -> (a, b, c)"
+    test "reverse :: [a] -> [a]"
+    test "reverse :: [:a:] -> [:a:]"
 
 
 testQuery :: IO ()
