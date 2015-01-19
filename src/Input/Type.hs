@@ -1,7 +1,7 @@
 
 module Input.Type(
     Database(..),
-    Item(..), Items(..),
+    Item(..), Items(..), showItems, readItems,
     isIPackage, isIModule,
     URL, Documentation,
     Id(..)
@@ -10,6 +10,7 @@ module Input.Type(
 import Numeric
 import Data.Tuple.Extra
 import Language.Haskell.Exts
+import General.Util
 
 newtype Database = Database FilePath
 
@@ -42,3 +43,14 @@ data Items
 
 isIModule IModule{} = True; isIModule _ = False
 isIPackage IPackage{} = True; isIPackage _ = False
+
+
+showItems :: Items -> String
+showItems (IKeyword x) = "keyword " ++ x
+showItems (IPackage x) = "package " ++ x
+showItems (IModule x) = "module "
+showItems (IDecl x) = pretty x
+
+
+readItems :: String -> Maybe Items
+readItems = undefined
