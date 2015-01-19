@@ -35,13 +35,14 @@ searchMain Search{..} = do
 search :: Database -> Query -> IO [[String]]
 search pkg (Query strs typ qtags) = do
     tags <- readTags pkg
+    let exact = Scope True "is" "exact" `elem` qtags
     is <- case (strs, typ) of
         ([], Nothing) | not $ null qtags, xs@(_:_) <- searchTags tags qtags -> return xs
-                      | otherwise -> searchNames pkg []
+                      | otherwise -> searchNames pkg exact []
         ([], Just t ) -> searchTypes pkg t
-        (xs, Nothing) -> searchNames pkg xs
+        (xs, Nothing) -> searchNames pkg exact xs
         (xs, Just t ) -> do
-            nam <- Set.fromList <$> searchNames pkg xs
+            nam <- Set.fromList <$> searchNames pkg exact xs
             filter (`Set.member` nam) <$> searchTypes pkg t
     mapM (lookupItem pkg . snd) $ takeScore 25 $ filter (filterTags tags qtags . snd) is
 

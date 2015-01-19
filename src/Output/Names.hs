@@ -37,23 +37,24 @@ toName (IDecl x) = map fromName $ case x of
 isUName (x:xs) = isUpper x
 isUName _ = False
 
-searchNames :: Database -> [String] -> IO [(Score, Id)]
-searchNames (Database file) xs = do
+searchNames :: Database -> Bool -> [String] -> IO [(Score, Id)]
+searchNames (Database file) exact xs = do
     src <- BS.lines <$> BS.readFile (file <.> "names")
-    return $ mapMaybe (match xs) src
+    return $ mapMaybe (match exact xs) src
 
-match :: [String] -> BS.ByteString -> Maybe (Score, Id)
-match xs = \line ->
+match :: Bool -> [String] -> BS.ByteString -> Maybe (Score, Id)
+match exact xs = \line ->
     let (ident, str) = second (BS.drop 1) $ BS.break (== ' ') line
         ident2 = read $ BS.unpack ident
-    in case () of
+    in fmap (,ident2) $ case () of
         _ | BS.length str < mn -> Nothing
           | not $ all (`BS.isInfixOf` str) xsMatch -> Nothing
-          | any (== str) xsPerfect -> Just (0, ident2)
-          | any (== str) xsGood -> Just (1, ident2)
-          | any (`BS.isPrefixOf` str) xsPerfect -> Just (2, ident2)
-          | any (`BS.isPrefixOf` str) xsGood -> Just (3, ident2)
-          | otherwise -> Just (2, ident2)
+          | any (== str) xsPerfect -> Just 0
+          | exact -> Nothing
+          | any (== str) xsGood -> Just 1
+          | any (`BS.isPrefixOf` str) xsPerfect -> Just 2
+          | any (`BS.isPrefixOf` str) xsGood -> Just 3
+          | otherwise -> Just 4
     where
         mn = sum $ map BS.length xsMatch
         xsMatch = map (BS.pack . lower) xs
