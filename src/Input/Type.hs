@@ -66,22 +66,24 @@ readItem :: String -> Maybe Item
 readItem (stripPrefix "@keyword " -> Just x) = Just $ IKeyword x
 readItem (stripPrefix "@package " -> Just x) = Just $ IPackage x
 readItem (stripPrefix "module " -> Just x) = Just $ IModule x
-readItem x | ParseOk y <- parseDeclWithMode parseMode x = Just $ IDecl $ unGADT y
+readItem x | ParseOk y <- myParseDecl x = Just $ IDecl $ unGADT y
 readItem x -- newtype
     | Just x <- stripPrefix "newtype " x
-    , ParseOk (DataDecl a _ c d e f g) <- fmap unGADT $ parseDeclWithMode parseMode $ "data " ++ x
+    , ParseOk (DataDecl a _ c d e f g) <- fmap unGADT $ myParseDecl $ "data " ++ x
     = Just $ IDecl $ DataDecl a NewType c d e f g
 readItem x -- constructors
-    | ParseOk (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) <- parseDeclWithMode parseMode $ "data Data where " ++ x
+    | ParseOk (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) <- myParseDecl $ "data Data where " ++ x
     = Just $ IDecl $ TypeSig s [name] ty
 readItem o@('(':xs) -- tuple definitions
     | ")" `isPrefixOf` rest
-    , ParseOk y <- parseDeclWithMode parseMode $ replicate (length com + 2) 'a' ++ drop 1 rest
+    , ParseOk y <- myParseDecl $ replicate (length com + 2) 'a' ++ drop 1 rest
     = Just $ IDecl $ f y
     where
         (com,rest) = span (== ',') xs
         f (TypeSig s [Ident _] ty) = TypeSig s [Ident $ '(':com++")"] ty
 readItem _ = Nothing
+
+myParseDecl = parseDeclWithMode parseMode -- partial application, to share the initialisation cost
 
 unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
 unGADT x = x
