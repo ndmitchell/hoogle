@@ -33,7 +33,7 @@ searchMain Search{..} = do
         forM_ res $ putStrLn . snd . word1 . head
 
 search :: Database -> Query -> IO [[String]]
-search pkg (Query qtags strs typ) = do
+search pkg (Query strs typ qtags) = do
     tags <- readTags pkg
     is <- case (strs, typ) of
         ([], Nothing) | null qtags -> putStrLn "No search entered, nothing to do" >> return []

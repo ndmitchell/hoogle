@@ -31,7 +31,7 @@ spawn :: Database -> IO ()
 spawn pkg = server 80 $ \Input{..} -> case inputURL of
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
-        let q = parseQuery (unwords $ grab "hoogle") <> Query (map parseScope $ grab "scope") [] Nothing
+        let q = parseQuery (unwords $ grab "hoogle") <> Query [] Nothing (map parseScope $ grab "scope")
         results <- unsafeInterleaveIO $ search pkg q
         let body = showResults q results
         index <- unsafeInterleaveIO $ readFile "html/index.html"

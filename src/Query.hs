@@ -14,11 +14,11 @@ import General.Util
 ---------------------------------------------------------------------
 -- DATA TYPE
 
-data Query = Query {scope :: [Scope], names :: [String], sig :: Maybe Type} deriving (Show,Eq)
+data Query = Query {names :: [String], sig :: Maybe Type, scope :: [Scope]} deriving (Show,Eq)
 
 instance Monoid Query where
-    mempty = Query [] [] Nothing
-    mappend (Query x1 x2 x3) (Query y1 y2 y3) = Query (x1 ++ y1) (x2 ++ y2) (x3 `mplus` y3)
+    mempty = Query [] Nothing []
+    mappend (Query x1 x2 x3) (Query y1 y2 y3) = Query (x1 ++ y1) (x2 `mplus` y2) (x3 ++ y3)
 
 data Scope = Scope Bool String String deriving (Show,Eq)
 
@@ -37,7 +37,7 @@ parseScope xs = let (a,_:b) = break (== ':') xs in Scope True a b
 
 
 parseQuery :: String -> Query
-parseQuery x = Query scp nam typ
+parseQuery x = Query nam typ scp
     where
         (scp,rest) = scope_ $ lexer x
         (nam,typ) = divide rest
