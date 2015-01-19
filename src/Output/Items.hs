@@ -11,13 +11,12 @@ import Control.Monad
 import Control.DeepSeq
 
 import Input.Type
-import General.Util
 
 
 writeItems :: FilePath -> [ItemEx] -> IO [(Maybe Id, Item)]
 writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
     forM xs $ \x -> case x of
-        ItemEx{..} | Just s <- showItem itemItem -> do
+        ItemEx{..} | Just s <- f itemItem -> do
             i <- Id . fromIntegral <$> hTell h
             hPutStrLn h $ show i ++ " " ++ s
             hPutStrLn h itemURL
@@ -28,12 +27,9 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
     -- write all the URLs, docs and enough info to pretty print it to a result
     -- and replace each with an identifier (index in the space) - big reduction in memory
     where
-        showItem :: Item -> Maybe String
-        showItem (IDecl i@InstDecl{}) = rnf (show i) `seq` Nothing
-        showItem (IDecl x) = rnf (show x) `seq` Just (pretty x)
-        showItem (IKeyword x) = Just $ "<b>keyword</b> " ++ x
-        showItem (IPackage x) = Just $ "<b>package</b> " ++ x
-        showItem (IModule x) = Just $ "<b>module</b> " ++ x
+        f :: Item -> Maybe String
+        f (IDecl i@InstDecl{}) = rnf (show i) `seq` Nothing
+        f x = rnf (show x) `seq` Just (showItem x)
 
 
 lookupItem :: Database -> Id -> IO [String]
