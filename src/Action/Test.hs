@@ -14,9 +14,13 @@ testMain Test{} = do
     testQuery
     putStrLn ""
 
+testing :: String -> IO () -> IO ()
+testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
+
+
 
 testQuery :: IO ()
-testQuery = do
+testQuery = testing "testQuery" $ do
     let names x (bad,q) = (["bad name, expected " ++ show x | queryName q /= x] ++ bad, q{queryName=[]})
         name x = names [x]
         typ x (bad,q) = (["bad type, expected " ++ show x | queryType q /= Just (fromParseResult $ parseTypeWithMode parseMode x)] ++ bad, q{queryType=Nothing})
