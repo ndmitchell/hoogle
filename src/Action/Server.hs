@@ -47,10 +47,11 @@ showResults :: Query -> [[String]] -> String
 showResults query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"] ++
     ["<p>No results found</p>" | null results] ++
-    ["<div class=ans>" ++
-        "<a href=\"" ++ b ++ "\">" ++ display (queryName query) (isJust $ queryType query) (snd $ word1 a) ++ "</a></div>" ++
-        "<div class=from>" ++ c ++ "</div>" ++
-        "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords ds) ++ "</div>"
+    ["<div class=result>" ++
+     "<div class=ans><a href=\"" ++ b ++ "\">" ++ display (queryName query) (isJust $ queryType query) (snd $ word1 a) ++ "</a></div>" ++
+     "<div class=from>" ++ c ++ "</div>" ++
+     "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords ds) ++ "</div>" ++
+     "</div>"
     | a:b:c:ds <- results]
 
 display :: [String] -> Bool -> String -> String
