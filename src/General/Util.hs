@@ -26,7 +26,11 @@ pretty :: Pretty a => a -> String
 pretty = trim . unwords . words . prettyPrint
 
 parseMode :: ParseMode
-parseMode = defaultParseMode{extensions=[EnableExtension ConstraintKinds]}
+parseMode = defaultParseMode{extensions=map EnableExtension es}
+    where es = [ConstraintKinds,EmptyDataDecls,TypeOperators,ExplicitForAll,GADTs,KindSignatures,MultiParamTypeClasses
+               ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples
+               ,ParallelArrays]
+
 
 fromName :: Name -> String
 fromName (Ident x) = x
