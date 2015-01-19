@@ -38,7 +38,7 @@ parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
             | "--" `isPrefixOf` s = f ([dropWhile isSpace $ drop 2 s | com /= []] ++ com) url is
             | "@url " `isPrefixOf` s =  f com (drop 5 s) is
             | all isSpace s = f [] "" is
-            | otherwise = (case parseLine i s of
+            | otherwise = (case parseLine i $ fixLine s of
                                Left y -> [Left y | not $ "@version " `isPrefixOf` s]
                                Right xs -> [Right $ ItemEx url (reformat $ reverse com) [] x | x <- xs]
                           )
@@ -94,3 +94,11 @@ parseLine line x | Just x <- readItem x = case x of
     x -> Right [x]
 parseLine line x = Left $ show line ++ ":failed to parse: " ++ x
 
+
+fixLine :: String -> String
+fixLine (stripPrefix "instance [incoherent] " -> Just x) = "instance " ++ x
+fixLine (stripPrefix "instance [overlap ok] " -> Just x) = "instance " ++ x
+fixLine (stripPrefix "instance [safe] " -> Just x) = "instance " ++ x
+fixLine (stripPrefix "(#) " -> Just x) = "( # ) " ++ x
+fixLine x | "class " `isPrefixOf` x = fst $ breakOn " where " x
+fixLine x = x
