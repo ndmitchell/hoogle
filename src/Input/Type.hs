@@ -66,7 +66,9 @@ readItem :: String -> Maybe Item
 readItem (stripPrefix "@keyword " -> Just x) = Just $ IKeyword x
 readItem (stripPrefix "@package " -> Just x) = Just $ IPackage x
 readItem (stripPrefix "module " -> Just x) = Just $ IModule x
-readItem x | ParseOk y <- parseDeclWithMode parseMode x = Just $ IDecl y
+readItem x | ParseOk y <- parseDeclWithMode parseMode x = Just $ IDecl $ unGADT y
+    where unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
+          unGADT x = x
 readItem x -- newtype
     | Just x <- stripPrefix "newtype " x
     , ParseOk (DataDecl a _ c d e f g) <- parseDeclWithMode parseMode $ "data " ++ x
