@@ -13,6 +13,47 @@ var $hoogle; // $("#hoogle") after load
 /////////////////////////////////////////////////////////////////////
 // SEARCHING
 
+function on_arrow_press(ev) {
+    var offset = 0;
+    if (ev.keyCode == Key.Up) {
+        offset = -1;
+    } else if (ev.keyCode == Key.Down) {
+        offset = +1;
+    } else if (ev.keyCode != Key.Return) {
+        return;
+    }
+
+    // Figure out where we are
+    var results = $("div#body .result");
+    var activeResults = $("div#body .result.active");
+    var activeRow = -1;
+    if (activeResults.length == 1) {
+        activeRow = results.index(activeResults[0]);
+    }
+
+    if (ev.keyCode == Key.Return) {
+        if (activeRow >= 0)
+            document.location.href = $("a", activeResults).attr("href");
+    } else {
+        var newRow = activeRow + offset;
+        var $activeRow = $(results[activeRow]);
+        if (newRow < 0) {
+            $activeRow.removeClass("active");
+            $hoogle.focus();
+        } else if (newRow < results.length) {
+            var $newRow = $(results[newRow]);
+            if (activeRow >= 0)
+                $activeRow.removeClass("active");
+            $newRow.addClass("active");
+            $hoogle.blur();
+        }
+    }
+}
+
+$(function() {
+    $(document).keyup(on_arrow_press);
+});
+
 $(function(){
     $hoogle = $("#hoogle");
     var $form = $hoogle.parents("form:first");
