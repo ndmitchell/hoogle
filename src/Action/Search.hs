@@ -36,8 +36,7 @@ search :: Database -> Query -> IO [[String]]
 search pkg (Query strs typ qtags) = do
     tags <- readTags pkg
     is <- case (strs, typ) of
-        ([], Nothing) | null qtags -> putStrLn "No search entered, nothing to do" >> return []
-                      | xs@(_:_) <- searchTags tags qtags -> return xs
+        ([], Nothing) | not $ null qtags, xs@(_:_) <- searchTags tags qtags -> return xs
                       | otherwise -> searchNames pkg []
         ([], Just t ) -> searchTypes pkg t
         (xs, Nothing) -> searchNames pkg xs
