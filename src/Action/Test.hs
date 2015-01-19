@@ -23,7 +23,7 @@ testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
 testItem :: IO ()
 testItem = testing "testItem" $ do
     let a === b | fmap prettyItem (readItem a) == Just b = putChar '.'
-                | otherwise = error $ show ("testItem",a,b,readItem a, fmap prettyItem $ readItem a)
+                | otherwise = error $ show (a,b,readItem a, fmap prettyItem $ readItem a)
     let test a = a === a
     test "type FilePath = [Char]"
     test "data Maybe a"
@@ -48,7 +48,7 @@ testQuery = testing "testQuery" $ do
         scopes xs (bad,q) = (["bad scope, expected " ++ show xs | not $ xs `isPrefixOf` queryScope q] ++ bad, q{queryScope=drop (length xs) $ queryScope q})
         scope b c v = scopes [Scope b c v]
     let infixl 0 ===
-        a === f | bad@(_:_) <- fst $ f ([], q) = error $ show ("testQuery",a,q,bad :: [String])
+        a === f | bad@(_:_) <- fst $ f ([], q) = error $ show (a,q,bad :: [String])
                 | otherwise = putChar '.'
             where q = parseQuery a
 
