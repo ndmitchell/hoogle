@@ -23,26 +23,23 @@ import Action.CmdLine
 
 spawnMain :: CmdLine -> IO ()
 spawnMain Server{..} = do
-    let pkg = [database | database /= ""]
-    spawn $ Database $ "output" </> head (pkg ++ ["all"])
-
-
-spawn :: Database -> IO ()
-spawn pkg = server 80 $ \Input{..} -> case inputURL of
-    [] -> do
-        let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
-        let q = parseQuery (unwords $ grab "hoogle") <> Query [] Nothing (map parseScope $ grab "scope")
-        results <- unsafeInterleaveIO $ search pkg q
-        let body = showResults q results
-        index <- unsafeInterleaveIO $ readFile "html/index.html"
-        welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
-        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
-        return $ case lookup "mode" $ reverse inputArgs of
-            Nothing | xs@(_:_) <- escapeHTML $ unwords $ grab "hoogle" -> OutputString $ template [("body",body),("title",xs ++ " - Hoogle"),("search",xs),("tags",tags),("version",showVersion version)] index
-                    | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)] index
-            Just "body" -> OutputString body
-    ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
-    xs -> return $ OutputFile $ joinPath $ "html" : xs
+    let pkg = Database $ "output" </> head ([database | database /= ""] ++ ["all"])
+    putStrLn $ "Server started on port " ++ show port
+    server port $ \Input{..} -> case inputURL of
+        [] -> do
+            let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
+            let q = parseQuery (unwords $ grab "hoogle") <> Query [] Nothing (map parseScope $ grab "scope")
+            results <- unsafeInterleaveIO $ search pkg q
+            let body = showResults q results
+            index <- unsafeInterleaveIO $ readFile "html/index.html"
+            welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
+            tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
+            return $ case lookup "mode" $ reverse inputArgs of
+                Nothing | xs@(_:_) <- escapeHTML $ unwords $ grab "hoogle" -> OutputString $ template [("body",body),("title",xs ++ " - Hoogle"),("search",xs),("tags",tags),("version",showVersion version)] index
+                        | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)] index
+                Just "body" -> OutputString body
+        ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
+        xs -> return $ OutputFile $ joinPath $ "html" : xs
 
 
 showResults :: Query -> [[String]] -> String
