@@ -20,7 +20,7 @@ instance Monoid Query where
     mempty = Query [] Nothing []
     mappend (Query x1 x2 x3) (Query y1 y2 y3) = Query (x1 ++ y1) (x2 `mplus` y2) (x3 ++ y3)
 
-data Scope = Scope Bool String String deriving (Show,Eq)
+data Scope = Scope {scopeInclude :: Bool, scopeCategory :: String, scopeValue :: String} deriving (Show,Eq)
 
 
 renderQuery :: Query -> String
