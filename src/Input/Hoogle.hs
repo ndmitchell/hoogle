@@ -6,6 +6,7 @@ import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
 import Input.Type
+import General.Util
 
 
 hackage = "https://hackage.haskell.org/"
@@ -72,8 +73,9 @@ heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with
         other (Right (_, i)) = Right i
         other (Left x) = Left x
 
-        url (TypeSig _ [name] _) = "v:" ++ esc (prettyPrint name)
-        url _ = ""
+        url (TypeSig _ [name] _) = "v:" ++ esc (fromName name)
+        url x | [x] <- declNames x = "t:" ++ esc x
+        url x = ""
 
         esc = concatMap f
             where
