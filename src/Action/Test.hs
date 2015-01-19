@@ -39,6 +39,7 @@ testItem = testing "testItem" $ do
     test "module Foo.Bar"
     test "data Char"
     "data Char :: *" === "data Char"
+    "newtype ModuleName :: *" === "newtype ModuleName"
 
 
 testQuery :: IO ()
