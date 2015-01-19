@@ -50,7 +50,7 @@ showResults query results = unlines $
     ["<div class=ans>" ++
         "<a href=\"" ++ b ++ "\">" ++ display (queryName query) (isJust $ queryType query) (snd $ word1 a) ++ "</a></div>" ++
         "<div class=from>" ++ c ++ "</div>" ++
-        "<div class=\"doc newline shut\">" ++ replace "<p>" "" (replace "</p>" "<br/>" $ unlines ds) ++ "</div>"
+        "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords ds) ++ "</div>"
     | a:b:c:ds <- results]
 
 display :: [String] -> Bool -> String -> String
