@@ -16,11 +16,11 @@ import Input.Type
 import General.Util
 
 
-writeNames :: Database -> [(Maybe Id, Items)] -> IO ()
+writeNames :: Database -> [(Maybe Id, Item)] -> IO ()
 writeNames (Database file) xs = writeFileBinary (file <.> "names") $ unlines
     [show i ++ " " ++ [' ' | isUName name] ++ lower name | (Just i, x) <- xs, name <- toName x]
 
-toName :: Items -> [String]
+toName :: Item -> [String]
 toName (IKeyword x) = [x]
 toName (IPackage x) = [x]
 toName (IModule x) = [last $ splitOn "." x]

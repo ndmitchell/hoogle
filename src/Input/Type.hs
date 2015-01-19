@@ -1,7 +1,7 @@
 
 module Input.Type(
     Database(..),
-    Item(..), Items(..), showItems, readItems,
+    ItemEx(..), Item(..), showItems, readItems,
     isIPackage, isIModule,
     URL, Documentation,
     Id(..)
@@ -27,14 +27,14 @@ instance Show Id where
 instance Read Id where
     readsPrec _ = map (first Id) . readHex
 
-data Item = Item
+data ItemEx = ItemEx
     {itemURL :: URL
     ,itemDocs :: Documentation
     ,itemParents :: [[(String, URL)]]
-    ,itemItem :: Items
+    ,itemItem :: Item
     } deriving Show
 
-data Items
+data Item
     = IDecl {fromIDecl :: Decl}
     | IKeyword {fromIKeyword :: String}
     | IPackage {fromIPackage :: String}
@@ -45,12 +45,12 @@ isIModule IModule{} = True; isIModule _ = False
 isIPackage IPackage{} = True; isIPackage _ = False
 
 
-showItems :: Items -> String
+showItems :: Item -> String
 showItems (IKeyword x) = "keyword " ++ x
 showItems (IPackage x) = "package " ++ x
 showItems (IModule x) = "module "
 showItems (IDecl x) = pretty x
 
 
-readItems :: String -> Maybe Items
+readItems :: String -> Maybe Item
 readItems = undefined

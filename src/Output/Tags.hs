@@ -12,14 +12,14 @@ import Input.Type
 import Query
 import General.Util
 
-writeTags :: Database -> (String -> [(String,String)]) -> [(Maybe Id, Items)] -> IO ()
+writeTags :: Database -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
 writeTags (Database file) extra xs = do
     writeFileBinary (file <.> "tags") $ unlines $ f [] [] (Id 0) xs
     where
         -- active groups currently scope over the thing
         -- next groups scope from the next identifier
         -- lst is the last identifier that closing groups scope up to
-        f :: [((String, (String,String)),Id)] -> [(String, (String,String))] -> Id -> [(Maybe Id, Items)] -> [String]
+        f :: [((String, (String,String)),Id)] -> [(String, (String,String))] -> Id -> [(Maybe Id, Item)] -> [String]
         f active next lst ((i,x):xs) = case i of
             Nothing -> f active next2 lst xs
             Just i ->
