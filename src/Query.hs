@@ -14,7 +14,7 @@ import General.Util
 ---------------------------------------------------------------------
 -- DATA TYPE
 
-data Query = Query {names :: [String], sig :: Maybe Type, scope :: [Scope]} deriving (Show,Eq)
+data Query = Query {queryName :: [String], queryType :: Maybe Type, queryScope :: [Scope]} deriving (Show,Eq)
 
 instance Monoid Query where
     mempty = Query [] Nothing []
@@ -26,7 +26,9 @@ data Scope = Scope {scopeInclude :: Bool, scopeCategory :: String, scopeValue ::
 renderQuery :: Query -> String
 renderQuery Query{..} = if null xs then "<i>No query</i>" else unwords xs
     where
-        xs = names ++ concat [["::",pretty t] | Just t <- [sig]] ++ [['-' | not a] ++ b ++ ":" ++ c | Scope a b c <- scope]
+        xs = queryName ++
+             concat [["::",pretty t] | Just t <- [queryType]] ++
+             [['-' | not scopeInclude] ++ scopeCategory ++ ":" ++ scopeValue | Scope{..} <- queryScope]
 
 
 ---------------------------------------------------------------------
