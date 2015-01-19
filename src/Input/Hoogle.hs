@@ -82,45 +82,11 @@ heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with
 
 
 parseLine :: Int -> String -> Either String Item
-parseLine line x | "(##)" `isPrefixOf` x = Left $ show line ++ ": skipping due to HSE bug #206 on (##)"
 parseLine line ('@':str) = case a of
         "keyword" | b <- words b, b /= [] -> Right $ IKeyword $ unwords b
         "package" | [b] <- words b, b /= "" -> Right $ IPackage b
         _ -> Left $ show line ++ ": unknown attribute, " ++ a
     where (a,b) = word1 str
-parseLine line x | ["module",a] <- words x = Right $ IModule a
-
--- normal decls
-parseLine line x
-    | ParseOk y <- parseDeclWithMode defaultParseMode{extensions=exts} $ x ++ ex
-    = Right $ transDecl y
-    where ex = if "newtype " `isPrefixOf` x then " = N T" else " " -- space to work around HSE bug #205
-
--- constructors
-parseLine line x
-    | ParseOk y <- parseDeclWithMode defaultParseMode{extensions=exts} $ "data Data where " ++ x
-    = Right $ transDecl y
-
--- tuple definitions
-parseLine line o@('(':xs)
-    | ")" `isPrefixOf` rest
-    , ParseOk y <- parseDeclWithMode defaultParseMode{extensions=exts} $ replicate (length com + 2) 'a' ++ drop 1 rest
-    = Right $ transDecl $ f y
-    where
-        (com,rest) = span (== ',') xs
-        f (HSE.TypeSig s [Ident _] ty) = HSE.TypeSig s [Ident $ '(':com++")"] ty
-
+parseLine line x | Just x <- readItem x = Right x
 parseLine line x = Left $ show line ++ ":failed to parse: " ++ x
 
-exts = map EnableExtension
-    [EmptyDataDecls,TypeOperators,ExplicitForAll,GADTs,KindSignatures,MultiParamTypeClasses
-    ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples]
-
-
----------------------------------------------------------------------
--- TRANSLATE THINGS
-
-transDecl :: Decl -> Item
-transDecl (GDataDecl s dat ctxt name bind _ [] _) = transDecl $ DataDecl s dat ctxt name bind [] []
-transDecl (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) = transDecl $ HSE.TypeSig s [name] ty
-transDecl x = IDecl x
