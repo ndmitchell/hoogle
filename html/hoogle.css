@@ -96,7 +96,7 @@ form {
 }
 .chosen-container .chosen-results li em {
   font-weight: bold;
-  text-decoration: normal !important;
+  text-decoration: none !important;
 }
 
 #hoogle {
