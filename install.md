@@ -34,12 +34,12 @@ Then follow the updating steps.
 
 	pkill hogle
     cd hogle
-	export PATH=/home/www/.cabal.bin:/opt/ghc/7.8.4/bin:/opt/cabal/1.18/bin:/opt/happy/1.19.4/bin:/opt/alex/3.1.3/bin:$PATH
+	export PATH=/home/www/.cabal/bin:/opt/ghc/7.8.4/bin:/opt/cabal/1.18/bin:/opt/happy/1.19.4/bin:/opt/alex/3.1.3/bin:$PATH
 	git pull
 	cabal update
 	cabal install
 	hogle gen
-	hogle server --port=8080 &
+	nohup hogle server --port=8080 > log.txt &
 
 These commands are also stored as `/home/www/update.sh`.
 
