@@ -8,7 +8,6 @@ import System.FilePath
 import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
-import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import Control.Exception.Extra
 import qualified Data.Set as Set
