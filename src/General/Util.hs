@@ -35,7 +35,7 @@ parseMode :: ParseMode
 parseMode = defaultParseMode{extensions=map EnableExtension es}
     where es = [ConstraintKinds,EmptyDataDecls,TypeOperators,ExplicitForAll,GADTs,KindSignatures,MultiParamTypeClasses
                ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples
-               ,ParallelArrays,UnicodeSyntax]
+               ,ParallelArrays,UnicodeSyntax,DataKinds,PolyKinds]
 
 
 fromName :: Name -> String
