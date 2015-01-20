@@ -24,7 +24,7 @@ data Scope = Scope {scopeInclude :: Bool, scopeCategory :: String, scopeValue ::
 
 
 renderQuery :: Query -> String
-renderQuery Query{..} = if null xs then "<i>No query</i>" else unwords xs
+renderQuery Query{..} = if null xs then "<i>No query</i>" else escapeHTML $ unwords xs
     where
         xs = queryName ++
              concat [["::",pretty t] | Just t <- [queryType]] ++
