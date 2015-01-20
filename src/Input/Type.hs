@@ -1,7 +1,9 @@
+{-# LANGUAGE ViewPatterns, PatternGuards #-}
 
 module Input.Type(
     Database(..),
-    Item(..), Items(..),
+    ItemEx(..), Item(..),
+    showItem, prettyItem, readItem,
     isIPackage, isIModule,
     URL, Documentation,
     Id(..)
@@ -10,6 +12,8 @@ module Input.Type(
 import Numeric
 import Data.Tuple.Extra
 import Language.Haskell.Exts
+import Data.List
+import General.Util
 
 newtype Database = Database FilePath
 
@@ -26,14 +30,14 @@ instance Show Id where
 instance Read Id where
     readsPrec _ = map (first Id) . readHex
 
-data Item = Item
+data ItemEx = ItemEx
     {itemURL :: URL
     ,itemDocs :: Documentation
     ,itemParents :: [[(String, URL)]]
-    ,itemItem :: Items
+    ,itemItem :: Item
     } deriving Show
 
-data Items
+data Item
     = IDecl {fromIDecl :: Decl}
     | IKeyword {fromIKeyword :: String}
     | IPackage {fromIPackage :: String}
@@ -42,3 +46,44 @@ data Items
 
 isIModule IModule{} = True; isIModule _ = False
 isIPackage IPackage{} = True; isIPackage _ = False
+
+
+---------------------------------------------------------------------
+-- ITEM AS STRING
+
+showItem :: Item -> String
+showItem (IKeyword x) = "@keyword " ++ x
+showItem (IPackage x) = "@package " ++ x
+showItem (IModule x) = "module " ++ x
+showItem (IDecl x) = pretty x
+
+prettyItem :: Item -> String
+prettyItem (IKeyword x) = "keyword " ++ x
+prettyItem (IPackage x) = "package " ++ x
+prettyItem x = showItem x
+
+readItem :: String -> Maybe Item
+readItem (stripPrefix "@keyword " -> Just x) = Just $ IKeyword x
+readItem (stripPrefix "@package " -> Just x) = Just $ IPackage x
+readItem (stripPrefix "module " -> Just x) = Just $ IModule x
+readItem x | ParseOk y <- myParseDecl x = Just $ IDecl $ unGADT y
+readItem x -- newtype
+    | Just x <- stripPrefix "newtype " x
+    , ParseOk (DataDecl a _ c d e f g) <- fmap unGADT $ myParseDecl $ "data " ++ x
+    = Just $ IDecl $ DataDecl a NewType c d e f g
+readItem x -- constructors
+    | ParseOk (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) <- myParseDecl $ "data Data where " ++ x
+    = Just $ IDecl $ TypeSig s [name] ty
+readItem o@('(':xs) -- tuple definitions
+    | ")" `isPrefixOf` rest
+    , ParseOk y <- myParseDecl $ replicate (length com + 2) 'a' ++ drop 1 rest
+    = Just $ IDecl $ f y
+    where
+        (com,rest) = span (== ',') xs
+        f (TypeSig s [Ident _] ty) = TypeSig s [Ident $ '(':com++")"] ty
+readItem _ = Nothing
+
+myParseDecl = parseDeclWithMode parseMode -- partial application, to share the initialisation cost
+
+unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
+unGADT x = x

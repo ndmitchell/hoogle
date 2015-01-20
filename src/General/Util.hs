@@ -1,23 +1,29 @@
 {-# LANGUAGE PatternGuards #-}
 
 module General.Util(
+    Score,
     fileSize,
     pretty, parseMode,
     fromName, fromTyVarBind,
+    declNames,
     tarballReadFiles,
     template,
     escapeHTML,
-    Score
+    isUName
     ) where
 
 import System.IO
 import Language.Haskell.Exts
 import Data.List.Extra
+import Data.Char
 import qualified Data.ByteString.Lazy as LBS
 import Control.Applicative
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
 
+
+-- 0 is a perfect match, anything lower is less good
+type Score = Double
 
 fileSize :: FilePath -> IO Int
 fileSize file = withFile file ReadMode $ fmap fromIntegral . hFileSize
@@ -26,7 +32,11 @@ pretty :: Pretty a => a -> String
 pretty = trim . unwords . words . prettyPrint
 
 parseMode :: ParseMode
-parseMode = defaultParseMode{extensions=[EnableExtension ConstraintKinds]}
+parseMode = defaultParseMode{extensions=map EnableExtension es}
+    where es = [ConstraintKinds,EmptyDataDecls,TypeOperators,ExplicitForAll,GADTs,KindSignatures,MultiParamTypeClasses
+               ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples
+               ,ParallelArrays,UnicodeSyntax]
+
 
 fromName :: Name -> String
 fromName (Ident x) = x
@@ -35,6 +45,17 @@ fromName (Symbol x) = x
 fromTyVarBind :: TyVarBind -> Name
 fromTyVarBind (KindedVar x _) = x
 fromTyVarBind (UnkindedVar x) = x
+
+declNames :: Decl -> [String]
+declNames x = map fromName $ case x of
+    TypeDecl _ name _ _ -> [name]
+    DataDecl _ _ _ name _ _ _ -> [name]
+    GDataDecl _ _ _ name _ _ _ _ -> [name]
+    TypeFamDecl _ name _ _ -> [name]
+    DataFamDecl _ _ name _ _ -> [name]
+    ClassDecl _ _ name _ _ _ -> [name]
+    TypeSig _ names _ -> names
+    _ -> []
 
 
 tarballReadFiles :: FilePath -> IO [(FilePath, LBS.ByteString)]
@@ -64,5 +85,6 @@ escapeHTML = concatMap f
         f '\"' = "&quot;"
         f  x  = [x]
 
--- 0 is a perfect match, anything lower is less good
-type Score = Double
+isUName (x:xs) = isUpper x
+isUName _ = False
+

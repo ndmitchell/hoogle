@@ -14,19 +14,21 @@ import General.Util
 ---------------------------------------------------------------------
 -- DATA TYPE
 
-data Query = Query {scope :: [Scope], names :: [String], sig :: Maybe Type} deriving (Show,Eq)
+data Query = Query {queryName :: [String], queryType :: Maybe Type, queryScope :: [Scope]} deriving (Show,Eq)
 
 instance Monoid Query where
-    mempty = Query [] [] Nothing
-    mappend (Query x1 x2 x3) (Query y1 y2 y3) = Query (x1 ++ y1) (x2 ++ y2) (x3 `mplus` y3)
+    mempty = Query [] Nothing []
+    mappend (Query x1 x2 x3) (Query y1 y2 y3) = Query (x1 ++ y1) (x2 `mplus` y2) (x3 ++ y3)
 
-data Scope = Scope Bool String String deriving (Show,Eq)
+data Scope = Scope {scopeInclude :: Bool, scopeCategory :: String, scopeValue :: String} deriving (Show,Eq)
 
 
 renderQuery :: Query -> String
 renderQuery Query{..} = if null xs then "<i>No query</i>" else unwords xs
     where
-        xs = names ++ concat [["::",pretty t] | Just t <- [sig]] ++ [['-' | not a] ++ b ++ ":" ++ c | Scope a b c <- scope]
+        xs = queryName ++
+             concat [["::",pretty t] | Just t <- [queryType]] ++
+             [['-' | not scopeInclude] ++ scopeCategory ++ ":" ++ scopeValue | Scope{..} <- queryScope]
 
 
 ---------------------------------------------------------------------
@@ -37,7 +39,7 @@ parseScope xs = let (a,_:b) = break (== ':') xs in Scope True a b
 
 
 parseQuery :: String -> Query
-parseQuery x = Query scp nam typ
+parseQuery x = Query nam typ scp
     where
         (scp,rest) = scope_ $ lexer x
         (nam,typ) = divide rest
@@ -99,7 +101,7 @@ scope_ xs = case xs of
 
         readPM x = case x of "+" -> Just True; "-" -> Just False; _ -> Nothing
 
-        readCat x | isAlphas x = Just $ if map toLower x `isPrefixOf` "module" then "module" else "package"
+        readCat x | isAlphas x = Just x
                   | otherwise = Nothing
 
         readMod (x:xs) | isAlphas x = Just $ case xs of
@@ -128,6 +130,7 @@ divide xs | all isAlphas ns = (ns, Nothing)
 -- | Ignore brackets around symbols, and try to deal with tuple names.
 names_ :: [String] -> [String]
 names_ ("(":x:")":xs) = x : names_ xs
+names_ ["(",x] = [x]
 names_ (x:xs) = [x | x /= " "] ++ names_ xs
 names_ [] = []
 

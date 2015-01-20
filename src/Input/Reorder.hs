@@ -10,7 +10,7 @@ import Data.Tuple.Extra
 import qualified Data.Map as Map
 
 
-reorderItems :: [(a, Items)] -> IO [(a, Items)]
+reorderItems :: [(a, Item)] -> IO [(a, Item)]
 reorderItems xs = do
     packageOrder <- packageOrder
     let rebase ("base",xs) = ("base", concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ splitModules xs)

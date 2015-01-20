@@ -9,6 +9,7 @@ import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import Control.Exception.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -60,9 +61,9 @@ generate xs = do
             | pkg `Set.member` want
             = (Set.insert pkg seen,
                 trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                    LBS.unpack body)
+                    UTF8.toString body)
         f seen _ = (seen, "")
-    (seen, xs) <- second (parseHoogle . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
+    (seen, xs) <- second (parseHoogle . filter (/= '\r') . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
 --    xs <- writeFileLefts (out <.> "warn") xs
     xs <- reorderItems =<< writeItems out [x | Right x <- xs]

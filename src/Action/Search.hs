@@ -33,16 +33,16 @@ searchMain Search{..} = do
         forM_ res $ putStrLn . snd . word1 . head
 
 search :: Database -> Query -> IO [[String]]
-search pkg (Query qtags strs typ) = do
+search pkg (Query strs typ qtags) = do
     tags <- readTags pkg
+    let exact = Scope True "is" "exact" `elem` qtags
     is <- case (strs, typ) of
-        ([], Nothing) | null qtags -> putStrLn "No search entered, nothing to do" >> return []
-                      | xs@(_:_) <- searchTags tags qtags -> return xs
-                      | otherwise -> searchNames pkg []
+        ([], Nothing) | not $ null qtags, xs@(_:_) <- searchTags tags qtags -> return xs
+                      | otherwise -> searchNames pkg exact []
         ([], Just t ) -> searchTypes pkg t
-        (xs, Nothing) -> searchNames pkg xs
+        (xs, Nothing) -> searchNames pkg exact xs
         (xs, Just t ) -> do
-            nam <- Set.fromList <$> searchNames pkg xs
+            nam <- Set.fromList <$> searchNames pkg exact xs
             filter (`Set.member` nam) <$> searchTypes pkg t
     mapM (lookupItem pkg . snd) $ takeScore 25 $ filter (filterTags tags qtags . snd) is
 
@@ -51,7 +51,7 @@ takeScore = f 0 Map.empty
     where
         -- Map is Map Score [a], and nmp is the count of items in all list
         f nmp mp i xs | i <= 0 = []
-        f nmp mp i [] = take i [(s,y) | (s,ys) <- Map.toAscList mp, y <- ys]
+        f nmp mp i [] = take i [(s,y) | (s,ys) <- Map.toAscList mp, y <- reverse ys]
         f nmp mp i xs | nmp > i, Just ((s,ys),mp) <- Map.maxViewWithKey mp =
             let (die,keep) = splitAt (nmp - i) ys
             in f (nmp-length die) (if null keep then mp else Map.insert s keep mp) i xs

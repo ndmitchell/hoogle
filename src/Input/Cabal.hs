@@ -40,4 +40,4 @@ extractCabal rename src = f ["license"] ++ f ["category"] ++ f ["author","mainta
         f name = nub [ (head name, fromMaybe x $ lookup x rename)
                      | x <- lines src, let (a,b) = break (== ':') x, lower a `elem` name
                      , x <- filter (/= "") $ map g $ concatMap (splitOn "and") $ split (`elem` ",&") $ drop 1 b]
-        g = unwords . filter ('@' `notElem`) . words . takeWhile (`notElem` "<(")
+        g = intercalate "-" . filter ('@' `notElem`) . words . takeWhile (`notElem` "<(")

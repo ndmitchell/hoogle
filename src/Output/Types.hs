@@ -30,7 +30,7 @@ main: fromList [(0,6260),(1,21265),(2,12188),(3,4557),(4,1681),(5,732),(6,363),(
 ),(52,1),(53,1),(54,1),(55,1),(56,1),(57,1),(58,1),(59,1),(60,1),(61,1),(62,1),(
 75,1)] -}
 
-writeTypes :: Database -> [(Maybe Id, Items)] -> IO ()
+writeTypes :: Database -> [(Maybe Id, Item)] -> IO ()
 writeTypes db@(Database file) xs = do
     rare <- writeRarity db $ map snd xs
     writeAlias db $ map snd xs
@@ -113,7 +113,7 @@ typeNames = typ
 
 data Rarity = Rarity Int (Map.Map String Int)
 
-writeRarity :: Database -> [Items] -> IO Rarity
+writeRarity :: Database -> [Item] -> IO Rarity
 writeRarity  (Database file) xs = do
     let n = length xs
     let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
@@ -146,7 +146,7 @@ unpackAlias _ = Nothing
 packAlias :: String -> ([String], Type) -> Decl
 packAlias name (bind, rhs) = TypeDecl noLoc (Ident name) (map (UnkindedVar . Ident) bind) rhs
 
-writeAlias :: Database -> [Items] -> IO Aliases
+writeAlias :: Database -> [Item] -> IO Aliases
 writeAlias (Database file) xs = do
     let a = Map.fromListWith (++) [(a, [b]) | IDecl t <- xs, Just (a,b) <- [unpackAlias t]]
     writeFileBinary (file <.> "alias") $ unlines
@@ -174,7 +174,7 @@ aliasWords (Aliases mp) t = g Set.empty $ f t
 
 newtype Instances = Instances [Decl]
 
-writeInstance :: Database -> [Items] -> IO ()
+writeInstance :: Database -> [Item] -> IO ()
 writeInstance (Database file) xs =
     writeFileBinary (file <.> "instance") $ unlines
         [pretty t | IDecl t@InstDecl{} <- xs]

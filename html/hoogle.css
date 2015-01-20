@@ -94,6 +94,10 @@ form {
 #scope_chosen .chosen-drop {
     width: 400px;
 }
+.chosen-container .chosen-results li em {
+  font-weight: bold;
+  text-decoration: none !important;
+}
 
 #hoogle {
     width: 300px;
@@ -174,6 +178,8 @@ form {
 h1 {
     padding: 5px;
     margin-top: 0px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
     font-weight: bold;
     padding-left: 170px;
     font-size: 16px;
@@ -217,9 +223,14 @@ p {
 *  RESULTS
 */
 
-.ans, .doc, .from {
+.result {
     margin-left: 170px;
     margin-right: 20px;
+    margin-top: 1.5em;
+}
+
+.result.active {
+    background-color: #f7f5c0;
 }
 
 .from, .doc {
@@ -242,14 +253,6 @@ a.dull, a.dull:hover {
     border-top: 1px solid #CCCCCC;
     font-size: 16px;
     padding: 0.2em 0.5em;
-}
-
-.from + .ans {
-    margin-top: 1.5em;
-}
-
-.doc + .ans {
-    margin-top: 1.5em;
 }
 
 .ans .a {
