@@ -87,8 +87,6 @@ displayItem Query{..} = keyword . focus
               f [] = []
 
 
-
-
 test :: IO ()
 test = testing "Action.Server.displayItem" $ do
     let expand = replace "{|" "<span class=name>" . replace "|}" "</span>" . replace "{*" "<b>" . replace "*}" "</b>"
