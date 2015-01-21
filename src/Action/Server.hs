@@ -65,21 +65,25 @@ displayItem Query{..} = keyword . replace "</b><b>" "" . focus
                   | otherwise = x
             where kws = words "class data type newtype"
 
+        name x = "<span class=name>" ++ x ++ "</span>"
+
         focus (IModule (breakEnd (== '.') -> (pre,post))) =
-            "<b>module</b> " ++ escapeHTML pre ++ "<span class=name>" ++ highlight post ++ "</span>"
-        focus (IPackage x) = "<b>package</b> <span class=name>" ++ highlight x ++ "</span>"
-        focus (IKeyword x) = "<b>keyword</b> <span class=name>" ++ highlight x ++ "</span>"
+            "<b>module</b> " ++ escapeHTML pre ++ name (highlight post)
+        focus (IPackage x) = "<b>package</b> " ++ name (highlight x)
+        focus (IKeyword x) = "<b>keyword</b> " ++ name (highlight x)
         focus (IDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
             if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
-                init (escapeHTML pre) ++ "<span class=name>(" ++ highlight now ++ ")</span>" ++ escapeHTML (tail post)
+                init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tail post)
             else
-                escapeHTML pre ++ "<span class=name>" ++ highlight now ++ "</span>" ++ escapeHTML post
+                escapeHTML pre ++ name (highlight now) ++ escapeHTML post
 
         highlight :: String -> String
         highlight xs | m > 0, (a,b) <- splitAt m xs = "<b>" ++ escapeHTML a ++ "</b>" ++ highlight b
             where m = maximum $ 0 : [length x | x <- queryName, lower x `isPrefixOf` lower xs]
         highlight (x:xs) = escapeHTML [x] ++ highlight xs
         highlight [] = []
+
+
 
 
 test :: IO ()
