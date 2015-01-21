@@ -63,13 +63,13 @@ heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with
 
         modules (Right (Just ItemEx{itemItem=IPackage pname, itemURL=purl}, i@ItemEx{itemItem=IModule x})) = Right i
             {itemURL = if null $ itemURL i then purl ++ "/docs/" ++ replace "." "-" x ++ ".html" else itemURL i
-            ,itemParents = [[(pname, purl)]]}
+            ,itemParents = [(pname, purl)]}
         modules (Right (_, i)) = Right i
         modules (Left x) = Left x
 
         other (Right (Just ItemEx{itemItem=IModule mname, itemURL=murl, itemParents=mpar}, i@ItemEx{itemItem=IDecl x})) = Right i
             {itemURL = if null $ itemURL i then murl ++ "#" ++ url x else itemURL i
-            ,itemParents = map (++ [(mname, murl)]) mpar}
+            ,itemParents = mpar ++ [(mname, murl)]}
         other (Right (_, i)) = Right i
         other (Left x) = Left x
 

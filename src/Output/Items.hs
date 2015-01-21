@@ -20,7 +20,7 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
             i <- Id . fromIntegral <$> hTell h
             hPutStrLn h $ show i ++ " " ++ s
             hPutStrLn h itemURL
-            hPutStrLn h $ intercalate ", " $ for itemParents $ \xs -> unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- xs]
+            hPutStrLn h $ unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- itemParents]
             hPutStrLn h $ unlines $ replace [""] ["."] $ lines itemDocs
             return $ (Just i, itemItem)
         ItemEx{..} -> return (Nothing, itemItem)

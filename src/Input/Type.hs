@@ -33,7 +33,7 @@ instance Read Id where
 data ItemEx = ItemEx
     {itemURL :: URL
     ,itemDocs :: Documentation
-    ,itemParents :: [[(String, URL)]]
+    ,itemParents :: [(String, URL)]
     ,itemItem :: Item
     } deriving Show
 
