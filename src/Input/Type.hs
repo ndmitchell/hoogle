@@ -6,7 +6,8 @@ module Input.Type(
     showItem, prettyItem, readItem,
     isIPackage, isIModule,
     URL, Documentation,
-    Id(..)
+    Id(..),
+    test
     ) where
 
 import Numeric
@@ -87,3 +88,25 @@ myParseDecl = parseDeclWithMode parseMode -- partial application, to share the i
 
 unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
 unGADT x = x
+
+
+test :: IO ()
+test = testing "Input.Type" $ do
+    let a === b | fmap prettyItem (readItem a) == Just b = putChar '.'
+                | otherwise = error $ show (a,b,readItem a, fmap prettyItem $ readItem a)
+    let test a = a === a
+    test "type FilePath = [Char]"
+    test "data Maybe a"
+    test "Nothing :: Maybe a"
+    test "Just :: a -> Maybe a"
+    test "newtype Identity a"
+    test "foo :: Int# -> b"
+    test "(,,) :: a -> b -> c -> (a, b, c)"
+    test "reverse :: [a] -> [a]"
+    test "reverse :: [:a:] -> [:a:]"
+    test "module Foo.Bar"
+    test "data Char"
+    "data Char :: *" === "data Char"
+    "newtype ModuleName :: *" === "newtype ModuleName"
+
+

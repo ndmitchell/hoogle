@@ -11,30 +11,10 @@ import Input.Type
 
 testMain :: CmdLine -> IO ()
 testMain Test{} = do
-    testItem
+    Input.Type.test
     Query.test
     testURL
     putStrLn ""
-
-
-testItem :: IO ()
-testItem = testing "testItem" $ do
-    let a === b | fmap prettyItem (readItem a) == Just b = putChar '.'
-                | otherwise = error $ show (a,b,readItem a, fmap prettyItem $ readItem a)
-    let test a = a === a
-    test "type FilePath = [Char]"
-    test "data Maybe a"
-    test "Nothing :: Maybe a"
-    test "Just :: a -> Maybe a"
-    test "newtype Identity a"
-    test "foo :: Int# -> b"
-    test "(,,) :: a -> b -> c -> (a, b, c)"
-    test "reverse :: [a] -> [a]"
-    test "reverse :: [:a:] -> [:a:]"
-    test "module Foo.Bar"
-    test "data Char"
-    "data Char :: *" === "data Char"
-    "newtype ModuleName :: *" === "newtype ModuleName"
 
 
 testURL :: IO ()
