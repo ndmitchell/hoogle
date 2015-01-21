@@ -18,9 +18,6 @@ testMain Test{} = do
     testURL
     putStrLn ""
 
-testing :: String -> IO () -> IO ()
-testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
-
 
 testItem :: IO ()
 testItem = testing "testItem" $ do

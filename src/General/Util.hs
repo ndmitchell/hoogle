@@ -10,7 +10,8 @@ module General.Util(
     template,
     escapeHTML,
     keywords,
-    isUName
+    isUName,
+    testing
     ) where
 
 import System.IO
@@ -92,3 +93,6 @@ escapeHTML = concatMap f
 isUName (x:xs) = isUpper x
 isUName _ = False
 
+
+testing :: String -> IO () -> IO ()
+testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
