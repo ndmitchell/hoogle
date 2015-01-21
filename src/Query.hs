@@ -156,7 +156,7 @@ typeSig_ xs = case parseTypeWithMode parseMode $ unwords $ fixup $ filter (not .
 
 
 test :: IO ()
-test = testing "Query" $ do
+test = testing "Query.parseQuery" $ do
     let names x (bad,q) = (["bad name, expected " ++ show x | queryName q /= x] ++ bad, q{queryName=[]})
         name x = names [x]
         typ x (bad,q) = (["bad type, expected " ++ show x | queryType q /= Just (fromParseResult $ parseTypeWithMode parseMode x)] ++ bad, q{queryType=Nothing})

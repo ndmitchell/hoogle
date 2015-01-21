@@ -91,7 +91,7 @@ unGADT x = x
 
 
 test :: IO ()
-test = testing "Input.Type" $ do
+test = testing "Input.Type.readItem" $ do
     let a === b | fmap prettyItem (readItem a) == Just b = putChar '.'
                 | otherwise = error $ show (a,b,readItem a, fmap prettyItem $ readItem a)
     let test a = a === a
