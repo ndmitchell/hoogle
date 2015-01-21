@@ -65,8 +65,7 @@ generate xs = do
         f seen _ = (seen, "")
     (seen, xs) <- second (parseHoogle . filter (/= '\r') . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
---    xs <- writeFileLefts (out <.> "warn") xs
-    xs <- reorderItems =<< writeItems out [x | Right x <- xs]
+    xs <- reorderItems =<< writeItems out xs
     putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
     writeTags (Database out) extra xs
     writeNames (Database out) xs
@@ -76,15 +75,3 @@ generate xs = do
         performGC
         print =<< getGCStats
         void $ evaluate xs
-
-{-
-writeFileLefts :: FilePath -> [Either String a] -> IO [a]
-writeFileLefts file xs = do
-    ignore $ removeFile file
-    f Nothing xs
-    where
-        f Nothing xs@(Left _:_) = do h <- openBinaryFile file WriteMode; f (Just h) xs
-        f (Just h) (Left x:xs) = do res <- unsafeInterleaveIO $ hPutStrLn h x; res `seq` f (Just h) xs
-        f h (Right x:xs) = fmap (x:) $ f h xs
-        f h [] = do whenJust h hClose; return []
--}
