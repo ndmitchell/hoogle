@@ -30,7 +30,7 @@ testURL = testing "testURL" $ do
     "base" === hackage "base"
     "Prelude" === hackage "base/docs/Prelude.html"
     "map" === hackage "base/docs/Prelude.html#v:map"
---    "map package:base" === hackage "base/docs/Prelude.html#v:map"
+    skip $ "map package:base" === hackage "base/docs/Prelude.html#v:map"
     "True" === hackage "base/docs/Prelude.html#v:True"
     "Bool" === hackage "base/docs/Prelude.html#t:Bool"
     "String" === hackage "base/docs/Prelude.html#t:String"
