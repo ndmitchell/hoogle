@@ -72,9 +72,10 @@ $(function(){
 
     function hit(){
         if (!instant) return;
+        function getScope(){return $scope && $scope.val() !== "set:stackage" ? $scope.val() : "";}
 
         var nowHoogle = $hoogle.val();
-        var nowScope = $scope ? $scope.val() : "";
+        var nowScope = getScope();
         var now = nowHoogle + " " + nowScope;
         if (now == active) return;
         active = now;
@@ -99,7 +100,7 @@ $(function(){
         function complete(e)
         {
             watch.stop();
-            var current = $hoogle.val() + " " + ($scope ? $scope.val() : "") == now;
+            var current = $hoogle.val() + " " + getScope() == now;
             if (e.status == 200)
             {
                 past.add(now,e.responseText);
