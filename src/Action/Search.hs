@@ -44,7 +44,8 @@ search pkg (Query strs typ qtags) = do
         (xs, Just t ) -> do
             nam <- Set.fromList <$> searchNames pkg exact xs
             filter (`Set.member` nam) <$> searchTypes pkg t
-    mapM (lookupItem pkg . snd) $ takeScore 25 $ filter (filterTags tags qtags . snd) is
+    look <- lookupItem pkg
+    mapM (look . snd) $ takeScore 25 $ filter (filterTags tags qtags . snd) is
 
 takeScore :: Int -> [(Score, a)] -> [(Score,a)]
 takeScore = f 0 Map.empty

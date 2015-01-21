@@ -32,12 +32,14 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
         f x = rnf (show x) `seq` Just (showItem x)
 
 
-lookupItem :: Database -> Id -> IO [String]
-lookupItem (Database file) (Id i) = withBinaryFile (file <.> "items") ReadMode $ \h -> do
-    hSeek h AbsoluteSeek $ fromIntegral i
-    xs <- replicateM 3 $ hGetLine h
-    (xs ++) <$> f h
-    where
-        f h = do
-            s <- hGetLine h
-            if s == "" then return [] else (s:) <$> f h
+lookupItem :: Database -> IO (Id -> IO [String])
+lookupItem (Database file) = do
+    h <- openBinaryFile (file <.> "items") ReadMode
+    return $ \(Id i) -> do
+        hSeek h AbsoluteSeek $ fromIntegral i
+        xs <- replicateM 3 $ hGetLine h
+        (xs ++) <$> f h
+        where
+            f h = do
+                s <- hGetLine h
+                if s == "" then return [] else (s:) <$> f h
