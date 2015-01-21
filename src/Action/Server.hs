@@ -43,19 +43,19 @@ spawnMain Server{..} = do
         xs -> return $ OutputFile $ joinPath $ "html" : xs
 
 
-showResults :: Query -> [[String]] -> String
+showResults :: Query -> [ItemEx] -> String
 showResults query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
-     "<div class=ans><a href=\"" ++ b ++ "\">" ++ display (queryName query) (isJust $ queryType query) (snd $ word1 a) ++ "</a></div>" ++
-     "<div class=from>" ++ c ++ "</div>" ++
-     "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords ds) ++ "</div>" ++
+     "<div class=ans><a href=\"" ++ itemURL ++ "\">" ++ display (queryName query) (isJust $ queryType query) itemItem ++ "</a></div>" ++
+     "<div class=from>" ++ unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- itemParents] ++ "</div>" ++
+     "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords $ lines itemDocs) ++ "</div>" ++
      "</div>"
-    | a:b:c:ds <- results]
+    | ItemEx{..} <- results]
 
-display :: [String] -> Bool -> String -> String
-display names typ item = concatMap f $ groupOn fst $ highlight names $ maybe item prettyItem (readItem item)
+display :: [String] -> Bool -> Item -> String
+display names typ item = concatMap f $ groupOn fst $ highlight names $ prettyItem item
     where f xs@((True,_):_) = "<b>" ++ escapeHTML (map snd xs) ++ "</b>"
           f xs = escapeHTML (map snd xs)
 

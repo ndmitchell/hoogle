@@ -3,7 +3,6 @@
 module Action.Search(searchMain, search) where
 
 import Control.Applicative
-import Data.List.Extra
 import System.FilePath
 import Control.Monad.Extra
 import qualified Data.Set as Set
@@ -30,9 +29,9 @@ searchMain Search{..} = do
     let rest = query
     forM_ (if null pkg then ["all"] else pkg) $ \pkg -> do
         res <- search (Database $ "output" </> pkg) $ parseQuery $ unwords rest
-        forM_ res $ putStrLn . snd . word1 . head
+        forM_ res $ putStrLn . prettyItem . itemItem
 
-search :: Database -> Query -> IO [[String]]
+search :: Database -> Query -> IO [ItemEx]
 search pkg (Query strs typ qtags) = do
     tags <- readTags pkg
     let exact = Scope True "is" "exact" `elem` qtags

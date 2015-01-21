@@ -9,6 +9,7 @@ import Data.List.Extra
 import System.FilePath
 import Control.Monad
 import Control.DeepSeq
+import Data.Maybe
 
 import Input.Type
 
@@ -20,7 +21,7 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
             i <- Id . fromIntegral <$> hTell h
             hPutStrLn h $ show i ++ " " ++ s
             hPutStrLn h itemURL
-            hPutStrLn h $ unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- itemParents]
+            hPutStrLn h $ show itemParents
             hPutStrLn h $ unlines $ replace [""] ["."] $ lines itemDocs
             return $ (Just i, itemItem)
         ItemEx{..} -> return (Nothing, itemItem)
@@ -32,13 +33,14 @@ writeItems file xs = withBinaryFile (file <.> "items") WriteMode $ \h -> do
         f x = rnf (show x) `seq` Just (showItem x)
 
 
-lookupItem :: Database -> IO (Id -> IO [String])
+lookupItem :: Database -> IO (Id -> IO ItemEx)
 lookupItem (Database file) = do
     h <- openBinaryFile (file <.> "items") ReadMode
     return $ \(Id i) -> do
         hSeek h AbsoluteSeek $ fromIntegral i
-        xs <- replicateM 3 $ hGetLine h
-        (xs ++) <$> f h
+        [name,url,parents] <- replicateM 3 $ hGetLine h
+        docs <- f h
+        return $ ItemEx url (unlines docs) (read parents) (fromJust $ readItem $ snd $ word1 name)
         where
             f h = do
                 s <- hGetLine h

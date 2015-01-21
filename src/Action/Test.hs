@@ -105,7 +105,7 @@ testURL = testing "testURL" $ do
     let a === b = do
             res <- search (Database "output/all") (parseQuery a)
             case res of
-                (_:url:_):_ | url == b -> putChar '.'
+                ItemEx{..}:_ | itemURL == b -> putChar '.'
                 _ -> error $ show (a, b, take 1 res)
     let hackage x = "https://hackage.haskell.org/package/" ++ x
     "base" === hackage "base"
