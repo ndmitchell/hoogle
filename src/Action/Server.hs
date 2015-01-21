@@ -59,7 +59,7 @@ showResults query results = unlines $
 -- DISPLAY AN ITEM (bold keywords etc)
 
 displayItem :: Query -> Item -> String
-displayItem Query{..} = keyword . replace "</b><b>" "" . focus
+displayItem Query{..} = keyword . focus
     where
         keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ dropWhile (== '@') a ++ "</b> " ++ b
                   | otherwise = x
@@ -78,10 +78,13 @@ displayItem Query{..} = keyword . replace "</b><b>" "" . focus
                 escapeHTML pre ++ name (highlight now) ++ escapeHTML post
 
         highlight :: String -> String
-        highlight xs | m > 0, (a,b) <- splitAt m xs = "<b>" ++ escapeHTML a ++ "</b>" ++ highlight b
-            where m = maximum $ 0 : [length x | x <- queryName, lower x `isPrefixOf` lower xs]
-        highlight (x:xs) = escapeHTML [x] ++ highlight xs
-        highlight [] = []
+        highlight = concatMap (\xs@((b,_):_) -> let s = escapeHTML $ map snd xs in if b then "<b>" ++ s ++ "</b>" else s) .
+                    groupOn fst . (\x -> zip (f x) x)
+            where
+              f (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (f xs)
+                  where m = maximum $ 0 : [length y | y <- queryName, lower y `isPrefixOf` lower (x:xs)]
+              f (x:xs) = False : f xs
+              f [] = []
 
 
 
@@ -93,8 +96,7 @@ test = testing "Action.Server.displayItem" $ do
     let q === s | Just i <- readItem $ collapse s, displayItem (parseQuery q) i == expand (escapeHTML s) = putChar '.'
                 | otherwise = error $ show (q,s,displayItem (parseQuery q) (fromJust $ readItem $ collapse s))
     "test" === "{|my{*Test*}|} :: Int -> test"
-    "new west" === "{|{*new*}est_{*new*}|} :: Int"
-    skip $ "new west" === "{|{*newest*}_{*new*}|} :: Int"
+    "new west" === "{|{*newest*}_{*new*}|} :: Int"
     "+*" === "{|({*+**}&)|} :: Int"
     "foo" === "{*data*} {|{*Foo*}d|}"
     "foo" === "{*module*} Foo.Bar.{|F{*Foo*}|}"
