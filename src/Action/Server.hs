@@ -89,7 +89,8 @@ test = testing "Action.Server.displayItem" $ do
     let q === s | Just i <- readItem $ collapse s, displayItem (parseQuery q) i == expand (escapeHTML s) = putChar '.'
                 | otherwise = error $ show (q,s,displayItem (parseQuery q) (fromJust $ readItem $ collapse s))
     "test" === "{|my{*Test*}|} :: Int -> test"
-    "new west" === "{|{*new*}est_{*new*}|} :: Int" -- FIXME: should ideally highly "est" as well
+    "new west" === "{|{*new*}est_{*new*}|} :: Int"
+    skip $ "new west" === "{|{*newest*}_{*new*}|} :: Int"
     "+*" === "{|({*+**}&)|} :: Int"
     "foo" === "{*data*} {|{*Foo*}d|}"
     "foo" === "{*module*} Foo.Bar.{|F{*Foo*}|}"
