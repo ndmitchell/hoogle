@@ -9,7 +9,6 @@ module General.Util(
     tarballReadFiles,
     template,
     escapeHTML,
-    keywords,
     isUName,
     testing
     ) where
@@ -59,9 +58,6 @@ declNames x = map fromName $ case x of
     TypeSig _ names _ -> names
     _ -> []
 
-
-keywords :: [String]
-keywords = words "class data where type newtype"
 
 tarballReadFiles :: FilePath -> IO [(FilePath, LBS.ByteString)]
 tarballReadFiles file = f . Tar.read . GZip.decompress <$> LBS.readFile file
