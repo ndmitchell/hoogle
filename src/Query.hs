@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
-module Query(Query(..), Scope(..), parseQuery, renderQuery, parseScope) where
+module Query(Query(..), Scope(..), parseQuery, renderQuery, parseScope, test) where
 
 import Data.List
 import Language.Haskell.Exts
@@ -154,3 +154,60 @@ typeSig_ xs = case parseTypeWithMode parseMode $ unwords $ fixup $ filter (not .
 
         underscore = replace ["_"] ["__"]
 
+
+test :: IO ()
+test = testing "Query" $ do
+    let names x (bad,q) = (["bad name, expected " ++ show x | queryName q /= x] ++ bad, q{queryName=[]})
+        name x = names [x]
+        typ x (bad,q) = (["bad type, expected " ++ show x | queryType q /= Just (fromParseResult $ parseTypeWithMode parseMode x)] ++ bad, q{queryType=Nothing})
+        typpp x (bad,q) = (["bad type, expected " ++ show x | fmap pretty (queryType q) /= Just x], q)
+        scopes xs (bad,q) = (["bad scope, expected " ++ show xs | not $ xs `isPrefixOf` queryScope q] ++ bad, q{queryScope=drop (length xs) $ queryScope q})
+        scope b c v = scopes [Scope b c v]
+    let infixl 0 ===
+        a === f | bad@(_:_) <- fst $ f ([], q) = error $ show (a,q,bad :: [String])
+                | otherwise = putChar '.'
+            where q = parseQuery a
+
+    "" === id
+    "map" === name "map"
+    "#" === name "#"
+    "c#" === name "c#"
+    "-" === name "-"
+    "/" === name "/"
+    "->" === name "->"
+    "foldl'" === name "foldl'"
+    "fold'l" === name "fold'l"
+    "Int#" === name "Int#"
+    "concat map" === names ["concat","map"]
+    "a -> b" === typ "a -> b"
+    "(a b)" === typ "(a b)"
+    "map :: a -> b" === typ "a -> b"
+    "+Data.Map map" === scope True "module" "Data.Map" . name "map"
+    "a -> b package:foo" === scope True "package" "foo" . typ "a -> b"
+    "a -> b package:foo-bar" === scope True "package" "foo-bar" . typ "a -> b"
+    "Data.Map.map" === scope True "module" "Data.Map" . name "map"
+    "[a]" === typ "[a]"
+    "++" === name "++"
+    "(++)" === name "++"
+    ":+:" === name ":+:"
+    "bytestring-cvs +hackage" === scope True "package" "hackage" . name "bytestring-cvs"
+    "m => c" === typ "m => c"
+    "[b ()" === typ "[b ()]"
+    "[b (" === typ "[b ()]"
+    "_ -> a" === typpp "_ -> a"
+    "(a -> b) ->" === typpp "(a -> b) -> _"
+    "(a -> b) -" === typpp "(a -> b) -> _"
+    "Monad m => " === typpp "Monad m => _"
+    "map is:exact" === name "map" . scope True "is" "exact"
+    "sort set:hackage" === name "sort" . scope True "set" "hackage"
+    "package:bytestring-csv" === scope True "package" "bytestring-csv"
+    "(>>=)" === name ">>="
+    "(>>=" === name ">>="
+    ">>=" === name ">>="
+    "Control.Monad.mplus" === name "mplus" . scope True "module" "Control.Monad"
+    "Control.Monad.>>=" === name ">>=" . scope True "module" "Control.Monad"
+    "Control.Monad.(>>=)" === name ">>=" . scope True "module" "Control.Monad"
+    "(Control.Monad.>>=)" === name ">>=" . scope True "module" "Control.Monad"
+    "Control.Monad.(>>=" === name ">>=" . scope True "module" "Control.Monad"
+    "(Control.Monad.>>=" === name ">>=" . scope True "module" "Control.Monad"
+    "foo.bar" === name "bar" . scope True "package" "foo"
