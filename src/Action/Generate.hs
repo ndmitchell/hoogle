@@ -13,6 +13,7 @@ import Control.Exception.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Debug.Trace
+import Control.Monad.Extra
 
 import Output.Items
 import Output.Tags
@@ -71,10 +72,10 @@ generate xs = do
     writeNames (Database out) xs
     writeTypes (Database out) xs
 
-    performGC
-    print =<< getGCStats
-    evaluate xs
-    print "done"
+    whenM getGCStatsEnabled $ do
+        performGC
+        print =<< getGCStats
+        void $ evaluate xs
 
 {-
 writeFileLefts :: FilePath -> [Either String a] -> IO [a]
