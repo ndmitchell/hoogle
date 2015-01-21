@@ -48,20 +48,37 @@ showResults query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
-     "<div class=ans><a href=\"" ++ itemURL ++ "\">" ++ display (queryName query) (isJust $ queryType query) itemItem ++ "</a></div>" ++
+     "<div class=ans><a href=\"" ++ itemURL ++ "\">" ++ displayItem query itemItem ++ "</a></div>" ++
      "<div class=from>" ++ unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- itemParents] ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords $ lines itemDocs) ++ "</div>" ++
      "</div>"
     | ItemEx{..} <- results]
 
-display :: [String] -> Bool -> Item -> String
-display names typ item = concatMap f $ groupOn fst $ highlight names $ prettyItem item
-    where f xs@((True,_):_) = "<b>" ++ escapeHTML (map snd xs) ++ "</b>"
-          f xs = escapeHTML (map snd xs)
+
+-------------------------------------------------------------
+-- DISPLAY AN ITEM (bold keywords etc)
+
+displayItem :: Query -> Item -> String
+displayItem Query{..} = keyword . replace "</b><b>" "" . focus
+    where
+        keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ dropWhile (== '@') a ++ "</b> " ++ b
+                  | otherwise = x
+            where kws = words "class data type newtype"
+
+        focus (IModule (breakEnd (== '.') -> (pre,post))) =
+            "<b>module</b> " ++ escapeHTML pre ++ "<span class=name>" ++ highlight post ++ "</span>"
+        focus (IPackage x) = "<b>package</b> <span class=name>" ++ highlight x ++ "</span>"
+        focus (IKeyword x) = "<b>keyword</b> <span class=name>" ++ highlight x ++ "</span>"
+        focus (IDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
+            if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
+                init (escapeHTML pre) ++ "<span class=name>(" ++ highlight now ++ ")</span>" ++ escapeHTML (tail post)
+            else
+                escapeHTML pre ++ "<span class=name>" ++ highlight now ++ "</span>" ++ escapeHTML post
+
+        highlight :: String -> String
+        highlight xs | m > 0, (a,b) <- splitAt m xs = "<b>" ++ escapeHTML a ++ "</b>" ++ highlight b
+            where m = maximum $ 0 : [length x | x <- queryName, lower x `isPrefixOf` lower xs]
+        highlight (x:xs) = escapeHTML [x] ++ highlight xs
+        highlight [] = []
 
 
-highlight :: [String] -> String -> [(Bool, Char)]
-highlight names [] = []
-highlight names o@(x:xs) | ms == 0 = (False,x) : highlight names xs
-                         | (a,b) <- splitAt ms o = map (True,) a ++ highlight names b
-    where ms = maximum $ 0 : map length (filter (`isPrefixOf` lower o) $ map lower names)

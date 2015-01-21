@@ -255,12 +255,11 @@ a.dull, a.dull:hover {
     padding: 0.2em 0.5em;
 }
 
-.ans .a {
-    color: #C4451D;
-}
-
-.ans a.dull {
+.ans a {
     color: black;
+}
+.ans .name {
+    color: #C4451D;
 }
 
 .c0{background-color: #fcc;}
