@@ -5,6 +5,7 @@ module Action.Test(testMain) where
 import Query
 import Action.CmdLine
 import Action.Search
+import Action.Server
 import General.Util
 import Input.Type
 
@@ -13,6 +14,7 @@ testMain :: CmdLine -> IO ()
 testMain Test{} = do
     Input.Type.test
     Query.test
+    Action.Server.test
     testURL
     putStrLn ""
 

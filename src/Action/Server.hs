@@ -1,7 +1,7 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
-module Action.Server(spawnMain) where
+module Action.Server(spawnMain, test) where
 
 import Control.Applicative
 import Data.List.Extra
@@ -14,8 +14,8 @@ import Paths_hogle
 import Data.Maybe
 
 import Output.Tags
-import Query
-import Input.Type
+import Query hiding (test)
+import Input.Type hiding (test)
 import General.Util
 import General.Web
 import Action.Search
@@ -82,3 +82,15 @@ displayItem Query{..} = keyword . replace "</b><b>" "" . focus
         highlight [] = []
 
 
+test :: IO ()
+test = testing "Action.Server.displayItem" $ do
+    let expand = replace "{|" "<span class=name>" . replace "|}" "</span>" . replace "{*" "<b>" . replace "*}" "</b>"
+        collapse = replace "{|" "" . replace "|}" "" . replace "{*" "" . replace "*}" ""
+    let q === s | Just i <- readItem $ collapse s, displayItem (parseQuery q) i == expand (escapeHTML s) = putChar '.'
+                | otherwise = error $ show (q,s,displayItem (parseQuery q) (fromJust $ readItem $ collapse s))
+    "test" === "{|my{*Test*}|} :: Int -> test"
+    "new west" === "{|{*new*}est_{*new*}|} :: Int" -- FIXME: should ideally highly "est" as well
+    "+*" === "{|({*+**}&)|} :: Int"
+    "foo" === "{*data*} {|{*Foo*}d|}"
+    "foo" === "{*module*} Foo.Bar.{|F{*Foo*}|}"
+    "foo" === "{*module*} {|{*Foo*}o|}"
