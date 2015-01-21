@@ -40,7 +40,7 @@ parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i $ fixLine s of
                                Left y -> [Left y | not $ "@version " `isPrefixOf` s]
-                               Right xs -> [Right $ ItemEx url (reformat $ reverse com) [] x | x <- xs]
+                               Right xs -> [Right $ ItemEx x url [] (reformat $ reverse com) | x <- xs]
                           )
                           ++ f [] "" is
 

@@ -49,7 +49,7 @@ lookupItem (Database file) = do
         hSeek h AbsoluteSeek $ fromIntegral i
         [name,url,parents] <- replicateM 3 $ hGetLine h
         docs <- f h
-        return $ ItemEx url (unlines docs) (read parents) (fromJust $ readItem $ snd $ word1 name)
+        return $ ItemEx (fromJust $ readItem $ snd $ word1 name) url (read parents) (unlines docs)
         where
             f h = do
                 s <- hGetLine h

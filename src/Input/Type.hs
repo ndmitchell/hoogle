@@ -32,10 +32,10 @@ instance Read Id where
     readsPrec _ = map (first Id) . readHex
 
 data ItemEx = ItemEx
-    {itemURL :: URL
-    ,itemDocs :: Documentation
+    {itemItem :: Item
+    ,itemURL :: URL
     ,itemParents :: [(String, URL)]
-    ,itemItem :: Item
+    ,itemDocs :: Documentation
     } deriving Show
 
 data Item
