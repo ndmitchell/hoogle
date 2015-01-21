@@ -353,7 +353,7 @@ docs may be in one of three states:
     font-size: small;
 }
 
-.phone .ans, .phone .doc, .phone .from {
+.phone .result {
     margin-left: 5px;
     margin-right: 5px;
 }
