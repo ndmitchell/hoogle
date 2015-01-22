@@ -51,7 +51,7 @@ These commands are also stored as `/home/www/update.sh`.
 
 ## Enhancements
 
-To run on port 80, as root do:
+To run on port 80, as root do (as per [here](http://stackoverflow.com/questions/413807/is-there-a-way-for-non-root-processes-to-bind-to-privileged-ports-1024-on-l#414258)):
 
     setcap 'cap_net_bind_service=+ep' /home/www/.cabal/bin/hogle
 
