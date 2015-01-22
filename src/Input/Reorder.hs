@@ -13,18 +13,9 @@ import qualified Data.Map as Map
 reorderItems :: [(a, Item)] -> IO [(a, Item)]
 reorderItems xs = do
     packageOrder <- packageOrder
-    let rebase ("base",xs) = ("base", concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ splitModules xs)
-        rebase (x, xs) = (x, concatMap snd $ sortOn fst $ splitModules xs)
-    return $ concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitPackages xs
-
-
-splitPackages = splitUsing $ \x -> case snd x of IPackage x -> Just x; _ -> Nothing
-splitModules = splitUsing $ \x -> case snd x of IModule x -> Just x; _ -> Nothing
-
-splitUsing :: (a -> Maybe String) -> [a] -> [(String, [a])]
-splitUsing f = repeatedly $ \(x:xs) ->
-    let (a,b) = break (isJust . f) xs
-    in ((fromMaybe "" $ f x, x:a), b)
+    let rebase ("base",xs) = ("base", concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ splitIModule xs)
+        rebase (x, xs) = (x, concatMap snd $ sortOn fst $ splitIModule xs)
+    return $ concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitIPackage xs
 
 
 baseModuleOrder :: String -> Int

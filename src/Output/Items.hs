@@ -27,7 +27,8 @@ writeItems file xs = do
                     i <- Id . fromIntegral <$> hTell hout
                     hPutStrLn hout $ show i ++ " " ++ s
                     hPutStrLn hout itemURL
-                    hPutStrLn hout $ show itemParents
+                    forM_ [itemPackage,itemModule] $ \p ->
+                        hPutStrLn hout $ maybe "" (\(x,y) -> x ++ " " ++ y) p
                     hPutStrLn hout $ unlines $ replace [""] ["."] $ lines itemDocs
                     return $ Just (Just i, itemItem)
                 Right ItemEx{..} -> return $ Just (Nothing, itemItem)
@@ -47,10 +48,12 @@ lookupItem (Database file) = do
     h <- openBinaryFile (file <.> "items") ReadMode
     return $ \(Id i) -> do
         hSeek h AbsoluteSeek $ fromIntegral i
-        [name,url,parents] <- replicateM 3 $ hGetLine h
+        [name,url,pkg,modu] <- replicateM 4 $ hGetLine h
         docs <- f h
-        return $ ItemEx url (unlines docs) (read parents) (fromJust $ readItem $ snd $ word1 name)
+        return $ ItemEx (fromJust $ readItem $ snd $ word1 name) url (g pkg) (g modu) (unlines docs)
         where
+            g "" = Nothing
+            g x = Just (word1 x)
             f h = do
                 s <- hGetLine h
                 if s == "" then return [] else (s:) <$> f h

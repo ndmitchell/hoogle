@@ -52,7 +52,7 @@ showResults query results = unlines $
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
      "<div class=ans><a href=\"" ++ itemURL ++ "\">" ++ displayItem query itemItem ++ "</a></div>" ++
-     "<div class=from>" ++ unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- itemParents] ++ "</div>" ++
+     "<div class=from>" ++ unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes [itemPackage, itemModule]] ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords $ lines itemDocs) ++ "</div>" ++
      "</div>"
     | ItemEx{..} <- results]
@@ -88,8 +88,6 @@ displayItem Query{..} = keyword . focus
                   where m = maximum $ 0 : [length y | y <- queryName, lower y `isPrefixOf` lower (x:xs)]
               f (x:xs) = False : f xs
               f [] = []
-
-
 
 
 test :: IO ()

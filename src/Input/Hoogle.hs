@@ -40,7 +40,7 @@ parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i $ fixLine s of
                                Left y -> [Left y | not $ "@version " `isPrefixOf` s]
-                               Right xs -> [Right $ ItemEx url (reformat $ reverse com) [] x | x <- xs]
+                               Right xs -> [Right $ ItemEx x url Nothing Nothing (reformat $ reverse com) | x <- xs]
                           )
                           ++ f [] "" is
 
@@ -63,13 +63,14 @@ heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with
 
         modules (Right (Just ItemEx{itemItem=IPackage pname, itemURL=purl}, i@ItemEx{itemItem=IModule x})) = Right i
             {itemURL = if null $ itemURL i then purl ++ "/docs/" ++ replace "." "-" x ++ ".html" else itemURL i
-            ,itemParents = [(pname, purl)]}
+            ,itemPackage = Just (pname, purl)}
         modules (Right (_, i)) = Right i
         modules (Left x) = Left x
 
-        other (Right (Just ItemEx{itemItem=IModule mname, itemURL=murl, itemParents=mpar}, i@ItemEx{itemItem=IDecl x})) = Right i
+        other (Right (Just ItemEx{itemItem=IModule mname, itemURL=murl, itemPackage=pkg}, i@ItemEx{itemItem=IDecl x})) = Right i
             {itemURL = if null $ itemURL i then murl ++ "#" ++ url x else itemURL i
-            ,itemParents = mpar ++ [(mname, murl)]}
+            ,itemPackage = pkg
+            ,itemModule = Just (mname, murl)}
         other (Right (_, i)) = Right i
         other (Left x) = Left x
 
