@@ -6,6 +6,7 @@ import General.Web
 import System.FilePath
 import Control.Monad.Extra
 import System.Directory
+import System.IO
 
 
 urls =
@@ -24,6 +25,7 @@ downloadInputs = do
         let file = "input" </> name
         unlessM (doesFileExist file) $ do
             putStr $ "Downloading " ++ url ++ "... "
+            hFlush stdout
             downloadFile (file <.> "part") url
             renameFile (file <.> "part") file
             putStrLn "done"
