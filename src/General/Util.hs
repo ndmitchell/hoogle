@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, ViewPatterns #-}
 
 module General.Util(
     Score,
@@ -10,6 +10,7 @@ module General.Util(
     template,
     escapeHTML,
     isUName,
+    splitPair, joinPair,
     testing, skip
     ) where
 
@@ -90,6 +91,12 @@ escapeHTML = concatMap f
 isUName (x:xs) = isUpper x
 isUName _ = False
 
+splitPair :: String -> String -> (String, String)
+splitPair x y | (a,stripPrefix x -> Just b) <- breakOn x y = (a,b)
+              | otherwise = error $ "splitPair does not contain separator " ++ show x ++ " in " ++ show y
+
+joinPair :: [a] -> ([a], [a]) -> [a]
+joinPair sep (a,b) = a ++ sep ++ b
 
 testing :: String -> IO () -> IO ()
 testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
