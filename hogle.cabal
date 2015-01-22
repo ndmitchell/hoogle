@@ -33,7 +33,7 @@ executable hogle
     build-depends:
         base > 4 && < 5,
         bytestring, filepath, directory, containers, text,
-        deepseq, utf8-string,
+        deepseq, utf8-string, time, old-locale,
         extra, js-jquery, uniplate, cmdargs,
         tar, zlib,
         network, conduit, conduit-extra, http-conduit, wai, http-types, warp,
