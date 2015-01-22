@@ -83,7 +83,7 @@ server hlog port act = do
         now <- getCurrentTime
         withLock lock $ hPutStrLn hlog $ unwords $
             [showTime now
-            ,showSockAddr $ remoteHost req
+            ,show $ remoteHost req
             ,show $ ceiling $ time * 1000
             ,BS.unpack $ rawPathInfo req <> rawQueryString req] ++
             ["ERROR: " ++ s | Left s <- [res]]
