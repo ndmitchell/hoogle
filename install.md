@@ -33,13 +33,14 @@ Then follow the updating steps.
 ## Updating
 
 	pkill hogle
-    cd hogle
+	cd hogle
 	export PATH=/home/www/.cabal/bin:/opt/ghc/7.8.4/bin:/opt/cabal/1.18/bin:/opt/happy/1.19.4/bin:/opt/alex/3.1.3/bin:$PATH
 	git pull
 	cabal update
-	cabal install
-	hogle gen
+	cabal install --ghc-options=-rtsopts
+	hogle gen +RTS -M1G
 	nohup hogle server --port=8080 > log.txt &
+	echo Started
 
 These commands are also stored as `/home/www/update.sh`.
 
@@ -47,3 +48,11 @@ These commands are also stored as `/home/www/update.sh`.
 
 * `df -h`, check there is sufficient disk space.
 * `top`, see what is running.
+
+## Enhancements
+
+To run on port 80, as root do:
+
+    setcap 'cap_net_bind_service=+ep' /home/www/.cabal/bin/hogle
+
+`relrod` on IRC says for port 80 usually we've been doing this (or at least I have for hl): Have the app server run and listen on localhost, then throw nginx front of it as a proxy. Let nginx handle things like SSL and caching (and binding to port 80 and 443). Not really a guide, but you can see the config in the ansible repo
