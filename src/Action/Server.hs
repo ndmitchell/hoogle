@@ -12,6 +12,7 @@ import qualified Language.Javascript.JQuery as JQuery
 import Data.Version
 import Paths_hogle
 import Data.Maybe
+import System.IO
 
 import Output.Tags
 import Query hiding (test)
@@ -26,7 +27,9 @@ spawnMain :: CmdLine -> IO ()
 spawnMain Server{..} = do
     let pkg = Database $ "output" </> head ([database | database /= ""] ++ ["all"])
     putStrLn $ "Server started on port " ++ show port
-    server port $ \Input{..} -> case inputURL of
+    h <- if logs == "" then return stdout else openFile logs AppendMode
+    hSetBuffering h LineBuffering
+    server h port $ \Input{..} -> case inputURL of
         [] -> do
             let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
             let q = parseQuery (unwords $ grab "hoogle") <> Query [] Nothing (map parseScope $ grab "scope")

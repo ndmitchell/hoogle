@@ -27,6 +27,7 @@ data CmdLine
         {port :: Int
         ,database :: FilePath
         ,datadir :: FilePath
+        ,logs :: FilePath
         }
     | Test
       deriving (Data,Typeable,Show)
@@ -56,6 +57,7 @@ generate = Generate
 server = Server
     {port = 80 &= typ "INT" &= help "Port number"
     ,datadir = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
+    ,logs = "" &= typFile &= help "File to requests to"
     } &= help "Start a Hoogle server"
 
 test = Test{} &= help "Run the test suite"
