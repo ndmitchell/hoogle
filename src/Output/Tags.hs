@@ -7,31 +7,28 @@ import Data.List.Extra
 import System.FilePath
 import Data.Tuple.Extra
 import Data.Maybe
+import qualified Data.Map as Map
 
 import Input.Type
 import Query
 import General.Util
 
+-- matches (a,b) if i >= a && i <= b
+-- equal (is the thing in question) if i == a
+-- .pkgs: shake 1002-1048 author:Neil-Mitchell license:GPL
+-- .mods: Data.Shake.Binary 1034-1934 90890-89787 780-897
+
+
 writeTags :: Database -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
 writeTags (Database file) extra xs = do
-    writeFileBinary (file <.> "tags") $ unlines $ f [] [] (Id 0) xs
+    let pkgs = splitIPackage xs
+    writeFileBinary (file <.> "pkgs") $ f extra      $ pkgs
+    writeFileBinary (file <.> "mods") $ f (const []) $ concatMap (splitIModule . snd) pkgs
     where
-        -- active groups currently scope over the thing
-        -- next groups scope from the next identifier
-        -- lst is the last identifier that closing groups scope up to
-        f :: [((String, (String,String)),Id)] -> [(String, (String,String))] -> Id -> [(Maybe Id, Item)] -> [String]
-        f active next lst ((i,x):xs) = case i of
-            Nothing -> f active next2 lst xs
-            Just i ->
-                let (stop,cont) = partition (\x -> fst (fst x) `elem` map fst next2) active
-                in f stop [] lst [] ++ f (cont ++ map (,i) next2) [] i xs
-            where
-                next2 = case g x of Nothing -> next; Just (a,b) -> map (a,) b ++ filter ((/=) a . fst) next
-        f active next lst [] = [a ++ " " ++ b ++ " " ++ show c ++ " " ++ show lst | ((_,(a,b)),c) <- reverse active]
-
-        g (IPackage x) = Just ("package",("package",x):extra x)
-        g (IModule x) = Just ("module",[("module",x)])
-        g _ = Nothing
+        f :: (String -> [(String,String)]) -> [(String,[(Maybe Id,a)])] -> String
+        f extra xs = unlines [unwords $ x : ps ++ map (joinPair ":") (extra x) | (x,ps) <- Map.toAscList mp]
+            where mp = Map.fromListWith (++) [ (s,[show (minimum is) ++ "-" ++ show (maximum is)])
+                                             | (s,mapMaybe fst -> is) <- xs, s /= "", is /= []]
 
 
 newtype Tags = Tags [((String, String), (Id, Id))]
@@ -39,9 +36,13 @@ newtype Tags = Tags [((String, String), (Id, Id))]
 
 readTags :: Database -> IO Tags
 readTags (Database file) = do
-    x <- readFile' $ file <.> "tags"
-    return $ Tags [((cat, unwords bod), (read i1, read i2))
-        | x <- lines x, let cat:xs = words x, let ([i1,i2],bod) = both reverse $ splitAt 2 $ reverse xs]
+    pkgs <- readFile' $ file <.> "pkgs"
+    mods <- readFile' $ file <.> "mods"
+    return $ Tags $
+        [(x, readIds range) | name:range:tags <- map words $ lines pkgs, x <- ("package",name) : map (splitPair ":") tags] ++
+        [(("module",name), readIds r) | name:ranges <- map words $ lines pkgs, r <- ranges]
+    where
+        readIds = both read . splitPair "-"
 
 
 listTags :: Tags -> [String]
