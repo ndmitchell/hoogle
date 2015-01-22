@@ -4,7 +4,7 @@ module Input.Type(
     Database(..),
     ItemEx(..), Item(..),
     showItem, prettyItem, readItem,
-    isIPackage, isIModule,
+    isIPackage, isIModule, splitIPackage, splitIModule,
     URL, Documentation,
     Id(..),
     test
@@ -15,6 +15,8 @@ import Data.Tuple.Extra
 import Language.Haskell.Exts
 import Data.List
 import General.Util
+import Data.List.Extra
+import Data.Maybe
 
 newtype Database = Database FilePath
 
@@ -48,6 +50,15 @@ data Item
 
 isIModule IModule{} = True; isIModule _ = False
 isIPackage IPackage{} = True; isIPackage _ = False
+
+splitIPackage, splitIModule :: [(a, Item)] -> [(String, [(a, Item)])]
+splitIPackage = splitUsing $ \x -> case snd x of IPackage x -> Just x; _ -> Nothing
+splitIModule = splitUsing $ \x -> case snd x of IModule x -> Just x; _ -> Nothing
+
+splitUsing :: (a -> Maybe String) -> [a] -> [(String, [a])]
+splitUsing f = repeatedly $ \(x:xs) ->
+    let (a,b) = break (isJust . f) xs
+    in ((fromMaybe "" $ f x, x:a), b)
 
 
 ---------------------------------------------------------------------
