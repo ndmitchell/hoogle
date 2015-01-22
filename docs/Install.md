@@ -39,7 +39,7 @@ Then follow the updating steps.
 	cabal update
 	cabal install --ghc-options=-rtsopts
 	hogle gen +RTS -M1G
-	nohup hogle server --port=8080 > log.txt &
+	nohup hogle server --port=8080 --log=log.txt &
 	echo Started
 
 These commands are also stored as `/home/www/update.sh`.
