@@ -116,6 +116,7 @@ test = testing "Input.Type.readItem" $ do
     test "newtype Identity a"
     test "foo :: Int# -> b"
     test "(,,) :: a -> b -> c -> (a, b, c)"
+    test "data (,,) a b"
     test "reverse :: [a] -> [a]"
     test "reverse :: [:a:] -> [:a:]"
     test "module Foo.Bar"
