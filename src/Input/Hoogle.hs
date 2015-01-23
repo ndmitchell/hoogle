@@ -5,6 +5,7 @@ module Input.Hoogle(parseHoogle) where
 import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
+import Data.Maybe
 import Input.Type
 import General.Util
 
@@ -40,6 +41,10 @@ parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine i $ fixLine s of
                                Left y -> [Left y | not $ "@version " `isPrefixOf` s]
+                               -- only check Nothing as some items (e.g. "instance () :> Foo a")
+                               -- don't roundtrip but do come out equivalent
+                               Right xs | any (isNothing . readItem . showItem) xs ->
+                                       [Left $ show i ++ ":failed to roundtrip: " ++ fixLine s]
                                Right xs -> [Right $ ItemEx x url Nothing Nothing (reformat $ reverse com) | x <- xs]
                           )
                           ++ f [] "" is
