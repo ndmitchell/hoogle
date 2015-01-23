@@ -9,4 +9,4 @@ After alpha:
 
 * Add easy to restrict/include package: things on the LHS
 * Implement type search
-* Write a better updating script, with redownloading
+* Write a better updating script, with redownloading, zero-downtime and testing
