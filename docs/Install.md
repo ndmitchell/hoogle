@@ -38,7 +38,8 @@ Then follow the updating steps.
 	git pull
 	cabal update
 	cabal install --ghc-options=-rtsopts
-	hogle gen +RTS -M1G
+	hogle generate +RTS -M1G
+	hogle test
 	nohup hogle server --port=8080 --log=log.txt &
 	echo Started
 
