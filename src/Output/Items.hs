@@ -13,6 +13,23 @@ import Data.Maybe
 import Data.IORef
 
 import Input.Type
+import General.Util
+
+
+outputItem :: (Id, ItemEx) -> [String]
+outputItem (i, ItemEx{..}) =
+    [show i ++ " " ++ showItem itemItem
+    ,if null itemURL then "." else itemURL
+    ,maybe "." (joinPair " ") itemPackage
+    ,maybe "." (joinPair " ") itemModule] ++
+    replace [""] ["."] (lines itemDocs)
+
+inputItem :: [String] -> (Id, ItemEx)
+inputItem ((word1 -> (i,name)):url:pkg:modu:docs) =
+    (read i, ItemEx (fromJust $ readItem name) (if url == "." then "" else url) (f pkg) (f modu) (unlines docs))
+    where
+        f "." = Nothing
+        f x = Just (word1 x)
 
 
 -- write all the URLs, docs and enough info to pretty print it to a result
@@ -23,14 +40,11 @@ writeItems file xs = do
     res <- withBinaryFile (file <.> "items") WriteMode $ \hout ->
         withBinaryFile (file <.> "warn") WriteMode $ \herr -> do
             flip mapMaybeM xs $ \x -> case x of
-                Right ItemEx{..} | Just s <- f itemItem -> do
+                _ | rnf (show x) `seq` False -> return Nothing -- avoid a space leak
+                Right item | f $ itemItem item -> do
                     i <- Id . fromIntegral <$> hTell hout
-                    hPutStrLn hout $ show i ++ " " ++ s
-                    hPutStrLn hout itemURL
-                    forM_ [itemPackage,itemModule] $ \p ->
-                        hPutStrLn hout $ maybe "" (\(x,y) -> x ++ " " ++ y) p
-                    hPutStrLn hout $ unlines $ replace [""] ["."] $ lines itemDocs
-                    return $ Just (Just i, itemItem)
+                    hPutStrLn hout $ unlines $ outputItem (i, item)
+                    return $ Just (Just i, itemItem item)
                 Right ItemEx{..} -> return $ Just (Nothing, itemItem)
                 Left err -> do modifyIORef warns (+1); hPutStrLn herr err; return Nothing
     warns <- readIORef warns
@@ -38,9 +52,9 @@ writeItems file xs = do
         putStrLn $ "Failed to parse " ++ show warns ++ " definitions, see " ++ file <.> "warn"
     return res
     where
-        f :: Item -> Maybe String
-        f (IDecl i@InstDecl{}) = rnf (show i) `seq` Nothing
-        f x = rnf (show x) `seq` Just (showItem x)
+        f :: Item -> Bool
+        f (IDecl i@InstDecl{}) = False
+        f x = True
 
 
 lookupItem :: Database -> IO (Id -> IO ItemEx)
@@ -48,12 +62,9 @@ lookupItem (Database file) = do
     h <- openBinaryFile (file <.> "items") ReadMode
     return $ \(Id i) -> do
         hSeek h AbsoluteSeek $ fromIntegral i
-        [name,url,pkg,modu] <- replicateM 4 $ hGetLine h
-        docs <- f h
-        return $ ItemEx (fromJust $ readItem $ snd $ word1 name) url (g pkg) (g modu) (unlines docs)
+        xs <- f h
+        return $ snd $ inputItem xs
         where
-            g "" = Nothing
-            g x = Just (word1 x)
             f h = do
                 s <- hGetLine h
                 if s == "" then return [] else (s:) <$> f h
