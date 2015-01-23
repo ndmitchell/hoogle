@@ -12,6 +12,7 @@ module General.Web(
 import Network.Wai.Handler.Warp hiding (Port, Handle)
 #endif
 
+import Network.Wai.Logger
 import Network.Wai
 import Control.DeepSeq
 import System.IO
@@ -83,7 +84,7 @@ server hlog port act = do
         now <- getCurrentTime
         withLock lock $ hPutStrLn hlog $ unwords $
             [showTime now
-            ,show $ remoteHost req
+            ,showSockAddr $ remoteHost req
             ,show $ ceiling $ time * 1000
             ,BS.unpack $ rawPathInfo req <> rawQueryString req] ++
             ["ERROR: " ++ s | Left s <- [res]]

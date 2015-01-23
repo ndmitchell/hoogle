@@ -36,7 +36,7 @@ executable hogle
         deepseq, utf8-string, time, old-locale,
         extra, js-jquery, uniplate, cmdargs,
         tar, zlib,
-        network, conduit, conduit-extra, http-conduit, wai, http-types, warp,
+        network, conduit, conduit-extra, http-conduit, wai, http-types, warp, wai-logger,
         haskell-src-exts >= 1.16 && < 1.17
 
     other-modules:
