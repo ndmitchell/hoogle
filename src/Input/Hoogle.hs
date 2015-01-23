@@ -85,10 +85,10 @@ heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with
 
 
 parseLine :: Int -> String -> Either String [Item]
-parseLine line ('@':str) = case a of
+parseLine line x@('@':str) = case a of
         "keyword" | b <- words b, b /= [] -> Right [IKeyword $ unwords b]
         "package" | [b] <- words b, b /= "" -> Right [IPackage b]
-        _ -> Left $ show line ++ ": unknown attribute, " ++ a
+        _ -> Left $ show line ++ ":unknown attribute: " ++ x
     where (a,b) = word1 str
 parseLine line x | Just x <- readItem x = case x of
     IDecl (TypeSig a bs c) -> Right [IDecl (TypeSig a [b] c) | b <- bs]
