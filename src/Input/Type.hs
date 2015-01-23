@@ -120,5 +120,4 @@ test = testing "Input.Type.readItem" $ do
     test "data Char"
     "data Char :: *" === "data Char"
     "newtype ModuleName :: *" === "newtype ModuleName"
-
-
+    test "quotRemInt# :: Int# -> Int# -> (# Int#, Int# #)"
