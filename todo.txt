@@ -7,6 +7,9 @@ Before alpha:
 
 After alpha:
 
+* Add a log view, number of errors, average response time etc
+* Add a replay mode to replay web interactions and benchmark
+* Add is:package is:module
 * Add easy to restrict/include package: things on the LHS
 * Implement type search
 * Write a better updating script, with redownloading, zero-downtime and testing
