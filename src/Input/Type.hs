@@ -120,4 +120,6 @@ test = testing "Input.Type.readItem" $ do
     test "data Char"
     "data Char :: *" === "data Char"
     "newtype ModuleName :: *" === "newtype ModuleName"
-    test "quotRemInt# :: Int# -> Int# -> (# Int#, Int# #)"
+    -- Broken in the last HSE release, fixed in HSE HEAD
+    -- test "quotRemInt# :: Int# -> Int# -> (# Int#, Int# #)"
+    test "( # ) :: Int"
