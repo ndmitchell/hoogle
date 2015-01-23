@@ -7,6 +7,8 @@ import System.FilePath
 import Control.Monad.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
+import Data.Tuple.Extra
+import Data.List
 
 import Output.Items
 import Output.Tags
@@ -57,3 +59,39 @@ takeScore = f 0 Map.empty
             in f (nmp-length die) (if null keep then mp else Map.insert s keep mp) i xs
         f nmp mp i ((0,x):xs) = (0,x) : f nmp mp (i-1) xs
         f nmp mp i ((s,x):xs) = f (nmp+1) (Map.insertWith (++) s [x] mp) i xs
+
+
+
+---------------------------------------------------------------------
+-- SCORER
+
+_scorer :: (Ord hash, Ord tag) => Int -> Int -> [(Score, value, hash, [tag])] -> ([(Score, [value])], [(tag, Int)])
+_scorer limitVals limitTags = (valuesScorer &&& tagsScorer) . foldl' f (newScorer limitVals limitTags)
+    where f mp (s,v,h,ts) = delScorer $ addScorer s v h ts mp
+
+data Scorer value hash tag = Scorer
+    {limitVals :: Int -- maximum count for the result values
+    ,limitTags :: Int -- maximum count for any tag
+    ,maxScore :: Maybe Score -- highest score in the map already (cache of maxView)
+    ,mpVals :: Map.Map (Score, Int) (hash, [value]) -- the result I'm building up
+    ,mpSeen :: Map.Map hash (Score, Int)            -- hash is for values which are already stored and where
+    ,mpTags :: Map.Map tag Int                      -- how many times have I seen a tag (may be greater than limitTags)
+    }
+
+newScorer :: Int -> Int -> Scorer value hash tag
+newScorer limitVals limitTags = Scorer limitVals limitTags Nothing Map.empty Map.empty Map.empty
+
+valuesScorer :: Scorer value hash tag -> [(Score, [value])]
+valuesScorer = map (fst *** (reverse . snd)) . Map.toAscList . mpVals
+
+tagsScorer :: Scorer value hash tag -> [(tag, Int)] -- how many time I've seen a tag
+tagsScorer = Map.toList . mpTags
+
+addScorer :: (Ord hash, Ord tag) => Score -> value -> hash -> [tag] -> Scorer value hash tag -> Scorer value hash tag
+addScorer s v h ts o@Scorer{..}
+    | Map.size mpVals >= limitVals, Just s >= maxScore = o -- too high to possibly get in
+    | Just si <- Map.lookup h mpSeen = o{mpVals = Map.adjust (second (v:)) si mpVals}
+
+
+delScorer :: Scorer value hash tag -> Scorer value hash tag
+delScorer o = o
