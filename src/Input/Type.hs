@@ -87,13 +87,15 @@ readItem x -- newtype
 readItem x -- constructors
     | ParseOk (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) <- myParseDecl $ "data Data where " ++ x
     = Just $ IDecl $ TypeSig s [name] ty
-readItem o@('(':xs) -- tuple definitions
-    | ")" `isPrefixOf` rest
-    , ParseOk y <- myParseDecl $ replicate (length com + 2) 'a' ++ drop 1 rest
-    = Just $ IDecl $ f y
-    where
-        (com,rest) = span (== ',') xs
-        f (TypeSig s [Ident _] ty) = TypeSig s [Ident $ '(':com++")"] ty
+readItem ('(':xs) -- tuple constructors
+    | (com,')':rest) <- span (== ',') xs
+    , ParseOk (TypeSig s [Ident _] ty) <- myParseDecl $ replicate (length com + 2) 'a' ++ rest
+    = Just $ IDecl $ TypeSig s [Ident $ '(':com++")"] ty
+readItem (stripPrefix "data (" -> Just xs)  -- tuple data type
+    | (com,')':rest) <- span (== ',') xs
+    , ParseOk (DataDecl a b c _ e f g) <- fmap unGADT $ myParseDecl $
+        "data " ++ replicate (length com + 2) 'A' ++ rest
+    = Just $ IDecl $ DataDecl a b c (Ident $ '(':com++")") e f g
 readItem _ = Nothing
 
 myParseDecl = parseDeclWithMode parseMode -- partial application, to share the initialisation cost
