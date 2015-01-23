@@ -25,8 +25,10 @@ outputItem (i, ItemEx{..}) =
     replace [""] ["."] (lines itemDocs)
 
 inputItem :: [String] -> (Id, ItemEx)
-inputItem ((word1 -> (i,name)):url:pkg:modu:docs) =
-    (read i, ItemEx (fromJust $ readItem name) (if url == "." then "" else url) (f pkg) (f modu) (unlines docs))
+inputItem ((word1 -> (i,name)):url:pkg:modu:docs) = (,) (read i) $ ItemEx
+    (fromMaybe (error $ "Failed to reparse: " ++ name) $ readItem name)
+    (if url == "." then "" else url)
+    (f pkg) (f modu) (unlines docs)
     where
         f "." = Nothing
         f x = Just (word1 x)
