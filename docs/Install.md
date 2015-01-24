@@ -58,4 +58,12 @@ To run on port 80, as root do (as per [here](http://stackoverflow.com/questions/
 
     setcap 'cap_net_bind_service=+ep' /home/www/.cabal/bin/hogle
 
-`relrod` on IRC says for port 80 usually we've been doing this (or at least I have for hl): Have the app server run and listen on localhost, then throw nginx front of it as a proxy. Let nginx handle things like SSL and caching (and binding to port 80 and 443). Not really a guide, but you can see the config in the ansible repo
+`relrod` on IRC says for port 80 usually we've been doing this (or at least I have for hl): Have the app server run and listen on localhost, then throw nginx front of it as a proxy. Let nginx handle things like SSL and caching (and binding to port 80 and 443). Not really a guide, but you can see the config in the ansible repo..
+
+Alternatively, the solution that is running right now is:
+
+	modprobe ip_tables
+	echo 'ip_tables' >> /etc/modules
+	iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080
+
+Only the last line might actually be required. Based on http://unix.stackexchange.com/questions/10735/linux-allowing-an-user-to-listen-to-a-port-below-1024/10791#10791.
