@@ -13,7 +13,8 @@ import qualified Data.Map as Map
 reorderItems :: [(a, Item)] -> IO [(a, Item)]
 reorderItems xs = do
     packageOrder <- packageOrder
-    let rebase ("base",xs) = ("base", concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ splitIModule xs)
+    let rebase (x, xs) | x `elem` ["base","haskell98","haskell2010"]
+                       = (x, concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ splitIModule xs)
         rebase (x, xs) = (x, concatMap snd $ sortOn fst $ splitIModule xs)
     return $ concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitIPackage xs
 
@@ -22,7 +23,7 @@ baseModuleOrder :: String -> Int
 baseModuleOrder x
     | "GHC." `isPrefixOf` x = maxBound
     | otherwise = fromMaybe (maxBound-1) $ elemIndex x
-    ["Prelude","Data.List","Data.Maybe","Data.Function","Control.Monad"]
+    ["Prelude","Data.List","Data.Maybe","Data.Function","Control.Monad","List","Maybe","Monad"]
 
 packageOrder :: IO (String -> Int)
 packageOrder = do
