@@ -39,14 +39,14 @@ data ItemEx = ItemEx
     ,itemPackage :: Maybe (String, URL)
     ,itemModule :: Maybe (String, URL)
     ,itemDocs :: Documentation
-    } deriving (Show,Eq)
+    } deriving (Show,Eq,Ord)
 
 data Item
     = IDecl {fromIDecl :: Decl}
     | IKeyword {fromIKeyword :: String}
     | IPackage {fromIPackage :: String}
     | IModule {fromIModule :: String}
-      deriving (Show,Eq)
+      deriving (Show,Eq,Ord)
 
 isIModule IModule{} = True; isIModule _ = False
 isIPackage IPackage{} = True; isIPackage _ = False
