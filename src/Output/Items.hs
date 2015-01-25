@@ -41,6 +41,8 @@ writeItems file xs = do
     warns <- newIORef 0
     res <- withBinaryFile (file <.> "items") WriteMode $ \hout ->
         withBinaryFile (file <.> "warn") WriteMode $ \herr -> do
+            hSetEncoding hout utf8
+            hSetEncoding herr utf8
             flip mapMaybeM xs $ \x -> case x of
                 _ | rnf (show x) `seq` False -> return Nothing -- avoid a space leak
                 Right item | f $ itemItem item -> do
@@ -62,6 +64,7 @@ writeItems file xs = do
 lookupItem :: Database -> IO (Id -> IO ItemEx)
 lookupItem (Database file) = do
     h <- openBinaryFile (file <.> "items") ReadMode
+    hSetEncoding h utf8
     return $ \(Id i) -> do
         hSeek h AbsoluteSeek $ fromIntegral i
         xs <- f h
