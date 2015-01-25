@@ -1,7 +1,5 @@
 Before alpha:
 
-* Exception on query "D" and "a" (unicode operators)
-* Remove duplicates from the output, between packages and modules
 * Give a reasonable semantics for package:foo set:stackage
 * Make set:stackage be the default, and have no effect (not "")
 * Change restrict= parsing to use the normal parser
