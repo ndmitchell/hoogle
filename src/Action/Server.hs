@@ -13,6 +13,7 @@ import Data.Version
 import Paths_hogle
 import Data.Maybe
 import System.IO
+import qualified Data.Map as Map
 
 import Output.Tags
 import Query hiding (test)
@@ -34,7 +35,7 @@ spawnMain Server{..} = do
             let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
             let q = parseQuery (unwords $ grab "hoogle") <> Query [] Nothing (map parseScope $ grab "scope")
             results <- unsafeInterleaveIO $ search pkg q
-            let body = showResults q results
+            let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
             index <- unsafeInterleaveIO $ readFile "html/index.html"
             welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
             tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
@@ -46,17 +47,35 @@ spawnMain Server{..} = do
         xs -> return $ OutputFile $ joinPath $ "html" : xs
 
 
-showResults :: Query -> [ItemEx] -> String
+dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
+dedupeTake n key = f [] Map.empty
+    where
+        -- map is Map k [v]
+        f res mp xs | Map.size mp >= n || null xs = map (reverse . (Map.!) mp) $ reverse res
+        f res mp (x:xs) | Just vs <- Map.lookup k mp = f res (Map.insert k (x:vs) mp) xs
+                        | otherwise = f (k:res) (Map.insert k [x] mp) xs
+            where k = key x 
+
+
+
+showResults :: Query -> [[ItemEx]] -> String
 showResults query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
      "<div class=ans><a href=\"" ++ itemURL ++ "\">" ++ displayItem query itemItem ++ "</a></div>" ++
-     "<div class=from>" ++ unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes [itemPackage, itemModule]] ++ "</div>" ++
+     "<div class=from>" ++ showFroms is  ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords $ lines itemDocs) ++ "</div>" ++
      "</div>"
-    | ItemEx{..} <- results]
+    | is@(ItemEx{..}:_) <- results]
 
+showFroms :: [ItemEx] -> String
+showFroms xs = intercalate ", " $ for pkgs $ \p ->
+    let ms = filter ((==) p . itemPackage) xs
+    in unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
+    where
+        remod ItemEx{..} = do (a,_) <- itemModule; return (a,itemURL)
+        pkgs = nub $ map itemPackage xs
 
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
