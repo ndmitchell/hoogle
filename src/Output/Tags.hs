@@ -55,9 +55,11 @@ listTags (Tags xs) = nub $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (f &&& second 
         f _ = 4
 
 filterTags :: Tags -> [Scope] -> (Id -> Bool)
-filterTags (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
+filterTags ts qs = let fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) qs in \i -> all ($ i) fs
+
+filterTags2 (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
     where (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
-          f (Scope sense cat val) = map ((,) sense . snd) $ filter ((==) (cat,val) . fst) ts
+          f (Scope sense cat val) = map ((,) (sense) . snd) $ filter ((==) (cat,val) . fst) ts
 
 -- return Left ("module","Data.List") to say "See more results from Data.List" and start cutting them off
 pruneTags :: Tags -> [Id] -> [Either (String,String) Id]
