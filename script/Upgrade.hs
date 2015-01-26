@@ -41,6 +41,6 @@ main = do
         system_ $ exe ++ " test"
         ignore $ system_ "pkill hogle"
         system_ $ "nohup " ++ exe ++ " server --port=8080 --log=../../log.txt >> ../../out.txt &"
-        writeFile "downgrade.sh" "pkill hogle\nnohup dist/build/hogle/hogle server --port=8080 --log=../../log.txt &\n"
+        writeFile "downgrade.sh" "pkill hogle\nnohup dist/build/hogle/hogle server --port=8080 --log=../../log.txt >> ../../out.txt &\n"
     appendFile "hogle-upgrade/upgrade.txt" $ dir ++ "\n"
     putStrLn "Successfully upgraded"
