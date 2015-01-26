@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, CPP #-}
 
 module General.Util(
     Score,
@@ -25,7 +25,9 @@ import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
 import Data.Time.Clock
 import Data.Time.Format
+#if __GLASGOW_HASKELL__< 710
 import System.Locale
+#endif
 
 
 -- 0 is a perfect match, anything lower is less good
