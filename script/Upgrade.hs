@@ -4,6 +4,7 @@ import Control.Monad
 import System.Directory.Extra
 import Data.Time.Clock
 import System.Process.Extra
+import Control.Exception.Extra
 import Data.Time.Clock
 import Data.Time.Format
 import System.FilePath
@@ -38,9 +39,8 @@ main = do
         let exe = normalise "dist/build/hogle/hogle"
         system_ $ exe ++ " generate +RTS -M1G"
         system_ $ exe ++ " test"
-        system_ "pkill hogle"
+        ignore $ system_ "pkill hogle"
         system_ $ "nohup " ++ exe ++ " server --port=8080 --log=../../log.txt >> ../../out.txt &"
         writeFile "downgrade.sh" "pkill hogle\nnohup dist/build/hogle/hogle server --port=8080 --log=../../log.txt &\n"
     appendFile "hogle-upgrade/upgrade.txt" $ dir ++ "\n"
     putStrLn "Successfully upgraded"
-
