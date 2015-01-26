@@ -8,6 +8,7 @@ import Action.Search
 import Action.Server
 import General.Util
 import Input.Type
+import Data.List
 
 
 testMain :: CmdLine -> IO ()
@@ -38,3 +39,6 @@ testURL = testing "testURL" $ do
     "Ord" === hackage "base/docs/Prelude.html#t:Ord"
     ">>=" === hackage "base/docs/Prelude.html#v:-62--62--61-"
     "foldl'" === hackage "base/docs/Data-List.html#v:foldl-39-"
+    "Action package:shake" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
+    "Action package:shake set:stackage" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
+    "map -package:base" ==$ \x -> not $ "/base/" `isInfixOf` x
