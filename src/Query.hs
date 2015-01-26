@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
-module Query(Query(..), Scope(..), parseQuery, renderQuery, parseScope, test) where
+module Query(Query(..), Scope(..), parseQuery, renderQuery, test) where
 
 import Data.List
 import Language.Haskell.Exts
@@ -33,10 +33,6 @@ renderQuery Query{..} = if null xs then "<i>No query</i>" else escapeHTML $ unwo
 
 ---------------------------------------------------------------------
 -- PARSER
-
-parseScope :: String -> Scope
-parseScope xs = let (a,_:b) = break (== ':') xs in Scope True a b
-
 
 parseQuery :: String -> Query
 parseQuery x = Query nam typ scp
