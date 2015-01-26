@@ -11,6 +11,8 @@ import Control.Monad.Extra
 import Control.DeepSeq
 import Data.Maybe
 import Data.IORef
+import qualified Data.ByteString.Lazy.Char8 as LBS
+import qualified Data.ByteString.Lazy.UTF8 as UTF8
 
 import Input.Type
 import General.Util
@@ -41,13 +43,12 @@ writeItems file xs = do
     warns <- newIORef 0
     res <- withBinaryFile (file <.> "items") WriteMode $ \hout ->
         withBinaryFile (file <.> "warn") WriteMode $ \herr -> do
-            hSetEncoding hout utf8
             hSetEncoding herr utf8
             flip mapMaybeM xs $ \x -> case x of
                 _ | rnf (show x) `seq` False -> return Nothing -- avoid a space leak
                 Right item | f $ itemItem item -> do
                     i <- Id . fromIntegral <$> hTell hout
-                    hPutStrLn hout $ unlines $ outputItem (i, item)
+                    LBS.hPutStrLn hout $ UTF8.fromString $ unlines $ outputItem (i, item)
                     return $ Just (Just i, itemItem item)
                 Right ItemEx{..} -> return $ Just (Nothing, itemItem)
                 Left err -> do modifyIORef warns (+1); hPutStrLn herr err; return Nothing
@@ -64,11 +65,10 @@ writeItems file xs = do
 lookupItem :: Database -> IO (Id -> IO ItemEx)
 lookupItem (Database file) = do
     h <- openBinaryFile (file <.> "items") ReadMode
-    hSetEncoding h utf8
     return $ \(Id i) -> do
         hSeek h AbsoluteSeek $ fromIntegral i
         xs <- f h
-        return $ snd $ inputItem xs
+        return $ snd $ inputItem $ map (UTF8.toString . LBS.pack) xs
         where
             f h = do
                 s <- hGetLine h
