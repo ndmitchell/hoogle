@@ -21,11 +21,12 @@ testMain Test{} = do
 
 testURL :: IO ()
 testURL = testing "testURL" $ do
-    let a === b = do
+    let a ==$ f = do
             res <- search (Database "output/all") (parseQuery a)
             case res of
-                ItemEx{..}:_ | itemURL == b -> putChar '.'
-                _ -> error $ show (a, b, take 1 res)
+                ItemEx{..}:_ | f itemURL -> putChar '.'
+                _ -> error $ show (a, take 1 res)
+    let a === b = a ==$ (== b)
     let hackage x = "https://hackage.haskell.org/package/" ++ x
     "base" === hackage "base"
     "Prelude" === hackage "base/docs/Prelude.html"
