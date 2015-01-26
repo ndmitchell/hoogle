@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP, PatternGuards #-}
 
 module General.Web(
-    Input(..), Output(..), server, downloadFile
+    Input(..), Output(..), readInput, server, downloadFile
     ) where
 
 -- #define PROFILE
@@ -25,6 +25,8 @@ import qualified Network.HTTP.Conduit as C
 import qualified Data.Conduit as C
 import Control.Concurrent.Extra
 import Network
+import Data.List.Extra
+import Data.Tuple.Extra
 import Data.Monoid
 import Data.Time.Clock
 import System.FilePath
@@ -38,6 +40,10 @@ data Input = Input
     ,inputArgs :: [(String, String)]
     ,inputBody :: String
     } deriving Show
+
+readInput :: String -> Input
+readInput x = Input (dropWhile null $ splitOn "/" a) (map (second drop1 . breakOn "=") $ splitOn "&" $ drop1 b) ""
+    where (a,b) = breakOn "?" x
 
 data Output
     = OutputString String
