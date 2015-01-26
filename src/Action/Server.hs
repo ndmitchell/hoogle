@@ -4,7 +4,6 @@
 module Action.Server(spawnMain, test) where
 
 import Prelude(); import General.Prelude
-import Control.Applicative
 import Data.List.Extra
 import System.FilePath
 import System.IO.Unsafe
