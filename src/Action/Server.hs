@@ -3,11 +3,11 @@
 
 module Action.Server(spawnMain, test) where
 
+import Prelude(); import General.Prelude
 import Control.Applicative
 import Data.List.Extra
 import System.FilePath
 import System.IO.Unsafe
-import Data.Monoid
 import qualified Language.Javascript.JQuery as JQuery
 import Data.Version
 import Paths_hogle
