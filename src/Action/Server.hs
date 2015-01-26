@@ -1,7 +1,7 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
-module Action.Server(spawnMain, test) where
+module Action.Server(actionServer, test) where
 
 import Prelude(); import General.Prelude
 import Data.List.Extra
@@ -23,8 +23,8 @@ import Action.Search
 import Action.CmdLine
 
 
-spawnMain :: CmdLine -> IO ()
-spawnMain Server{..} = do
+actionServer :: CmdLine -> IO ()
+actionServer Server{..} = do
     let pkg = Database $ "output" </> head ([database | database /= ""] ++ ["all"])
     putStrLn $ "Server started on port " ++ show port
     h <- if logs == "" then return stdout else openFile logs AppendMode

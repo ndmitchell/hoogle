@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 
-module Action.Generate(generateMain) where
+module Action.Generate(actionGenerate) where
 
 import Control.Applicative
 import Data.List.Extra
@@ -36,8 +36,8 @@ import Action.CmdLine
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
-generateMain :: CmdLine -> IO ()
-generateMain Generate{..} = do
+actionGenerate :: CmdLine -> IO ()
+actionGenerate Generate{..} = do
     downloadInputs
     (n,_) <- duration $ generate include
     putStrLn $ "Took " ++ showDuration n

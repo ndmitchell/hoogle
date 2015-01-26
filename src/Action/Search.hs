@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 
-module Action.Search(searchMain, search) where
+module Action.Search(actionSearch, search) where
 
 import Control.Applicative
 import System.FilePath
@@ -23,8 +23,8 @@ import Action.CmdLine
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
-searchMain :: CmdLine -> IO ()
-searchMain Search{..} = do
+actionSearch :: CmdLine -> IO ()
+actionSearch Search{..} = do
     let pkg = [database | database /= ""]
     let rest = query
     forM_ (if null pkg then ["all"] else pkg) $ \pkg -> do

@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 
-module Action.Test(testMain) where
+module Action.Test(actionTest) where
 
 import Query
 import Action.CmdLine
@@ -12,8 +12,8 @@ import Data.List
 import System.IO.Extra
 
 
-testMain :: CmdLine -> IO ()
-testMain Test{} = withBuffering stdout NoBuffering $ do
+actionTest :: CmdLine -> IO ()
+actionTest Test{} = withBuffering stdout NoBuffering $ do
     Input.Type.test
     Query.test
     Action.Server.test

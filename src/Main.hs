@@ -19,8 +19,8 @@ main :: IO ()
 main = do
     args <- getCmdLine
     case args of
-        Search{} -> searchMain args
-        Generate{} -> generateMain args
-        Server{} -> spawnMain args
-        Test{} -> testMain args
+        Search{} -> actionSearch args
+        Generate{} -> actionGenerate args
+        Server{} -> actionServer args
+        Test{} -> actionTest args
 
