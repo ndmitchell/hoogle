@@ -13,7 +13,7 @@
 :def time \xs -> return $ unlines
         [":!mkdir obj"
         ,":!mkdir obj\\prof"
-        ,":!ghc -prof -rtsopts -auto-all -caf-all -isrc -DPROFILE --make src/Paths.hs Main -outputdir obj/prof -o obj/prof/main"
+        ,":!ghc -prof -rtsopts -auto-all -caf-all -O2 -isrc -DPROFILE --make src/Paths.hs Main -outputdir obj/prof -o obj/prof/main"
         ,":!obj\\prof\\main +RTS -p -T -RTS " ++ xs
         ,":!start main.prof"]
 :}
