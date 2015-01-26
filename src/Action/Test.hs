@@ -43,3 +43,4 @@ testURL = testing "testURL" $ do
     "Action package:shake" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
     "Action package:shake set:stackage" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
     "map -package:base" ==$ \x -> not $ "/base/" `isInfixOf` x
+    "<>" === hackage "base/docs/Data-Monoid.html#v:-60--62-"
