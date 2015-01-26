@@ -33,16 +33,17 @@ spawnMain Server{..} = do
     server h port $ \Input{..} -> case inputURL of
         [] -> do
             let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
-            let q = parseQuery (unwords $ grab "hoogle") <> Query [] Nothing (map parseScope $ grab "scope")
+            let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
+            let q = mconcat $ map parseQuery qSource
             results <- unsafeInterleaveIO $ search pkg q
             let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
             index <- unsafeInterleaveIO $ readFile "html/index.html"
             welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
             tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
             return $ case lookup "mode" $ reverse inputArgs of
-                Nothing | xs@(_:_) <- escapeHTML $ unwords $ grab "hoogle" -> OutputString $ template [("body",body),("title",xs ++ " - Hoogle"),("search",xs),("tags",tags),("version",showVersion version)] index
+                Nothing | qSource /= [] -> OutputString $ template [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle"),("tags",tags),("version",showVersion version)] index
                         | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)] index
-                Just "body" -> OutputString $ if null $ unwords $ grab "hoogle" then welcome else body
+                Just "body" -> OutputString $ if null qSource then welcome else body
         ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
         xs -> return $ OutputFile $ joinPath $ "html" : xs
 

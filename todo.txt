@@ -1,8 +1,6 @@
 Before alpha:
 
 * Give a reasonable semantics for package:foo set:stackage
-* Make set:stackage be the default, and have no effect (not "")
-* Change restrict= parsing to use the normal parser
 
 After alpha:
 
