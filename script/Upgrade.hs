@@ -39,7 +39,7 @@ main = do
         system_ $ exe ++ " generate +RTS -M1G"
         system_ $ exe ++ " test"
         system_ "pkill hogle"
-        system_ $ "nohup " ++ exe ++ " --port=8080 --log=../../log.txt &"
+        system_ $ "nohup " ++ exe ++ " server --port=8080 --log=../../log.txt >> ../../out.txt &"
         writeFile "downgrade.sh" "pkill hogle\nnohup dist/build/hogle/hogle server --port=8080 --log=../../log.txt &\n"
     appendFile "hogle-upgrade/upgrade.txt" $ dir ++ "\n"
     putStrLn "Successfully upgraded"
