@@ -27,11 +27,10 @@ import Control.Concurrent.Extra
 import Network
 import Data.Monoid
 import Data.Time.Clock
-import Data.Time.Format
-import System.Locale
 import System.FilePath
 import Control.Exception.Extra
 import System.Time.Extra
+import General.Util
 
 
 data Input = Input
@@ -61,7 +60,7 @@ downloadFile file url = withSocketsDo $ do
 
 
 showTime :: UTCTime -> String
-showTime = formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q"
+showTime = showUTCTime "%Y-%m-%dT%H:%M:%S%Q"
 
 
 server :: Handle -> Int -> (Input -> IO Output) -> IO ()

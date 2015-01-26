@@ -12,6 +12,7 @@ module General.Util(
     isUName,
     splitPair, joinPair,
     testing,
+    showUTCTime
     ) where
 
 import System.IO
@@ -22,6 +23,9 @@ import qualified Data.ByteString.Lazy as LBS
 import Control.Applicative
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
+import Data.Time.Clock
+import Data.Time.Format
+import System.Locale
 
 
 -- 0 is a perfect match, anything lower is less good
@@ -100,3 +104,5 @@ joinPair sep (a,b) = a ++ sep ++ b
 testing :: String -> IO () -> IO ()
 testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
 
+showUTCTime :: String -> UTCTime -> String
+showUTCTime = formatTime defaultTimeLocale
