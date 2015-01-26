@@ -11,7 +11,7 @@ module General.Util(
     escapeHTML,
     isUName,
     splitPair, joinPair,
-    testing, skip
+    testing,
     ) where
 
 import System.IO
@@ -20,7 +20,6 @@ import Data.List.Extra
 import Data.Char
 import qualified Data.ByteString.Lazy as LBS
 import Control.Applicative
-import Control.Exception.Extra
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
 
@@ -101,9 +100,3 @@ joinPair sep (a,b) = a ++ sep ++ b
 testing :: String -> IO () -> IO ()
 testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
 
-skip :: IO () -> IO ()
-skip act = do
-    res <- try_ act
-    case res of
-        Left _ -> putChar '#'
-        _ -> error "Expected test to fail but passed"
