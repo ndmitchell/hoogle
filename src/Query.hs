@@ -83,8 +83,10 @@ lexer [] = []
 scope_ :: [String] -> ([Scope], [String])
 scope_ xs = case xs of
     (readPM -> Just pm):(readCat -> Just cat):":":(readMod -> Just (mod,rest)) -> add pm cat mod rest
+    (readPM -> Just pm):(readCat -> Just cat):":-":(readMod -> Just (mod,rest)) -> add False cat mod rest
     (readPM -> Just pm):(readMod -> Just (mod,rest)) -> add_ pm mod rest
     (readCat -> Just cat):":":(readMod -> Just (mod,rest)) -> add True cat mod rest
+    (readCat -> Just cat):":-":(readMod -> Just (mod,rest)) -> add False cat mod rest
     "(":(readDots -> Just (scp,x:")":rest)) -> out ["(",x,")"] $ add_ True scp rest
     (readDots -> Just (scp,rest)) -> add_ True scp rest
     x:xs -> out [x] $ scope_ xs
