@@ -1,6 +1,3 @@
-Before alpha:
-
-* Give a reasonable semantics for package:foo set:stackage
 
 After alpha:
 
