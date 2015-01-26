@@ -9,10 +9,11 @@ import Action.Server
 import General.Util
 import Input.Type
 import Data.List
+import System.IO.Extra
 
 
 testMain :: CmdLine -> IO ()
-testMain Test{} = do
+testMain Test{} = withBuffering stdout NoBuffering $ do
     Input.Type.test
     Query.test
     Action.Server.test
