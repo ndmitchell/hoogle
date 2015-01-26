@@ -23,4 +23,4 @@ main = do
         Generate{} -> actionGenerate args
         Server{} -> actionServer args
         Test{} -> actionTest args
-
+        Replay{} -> actionReplay args

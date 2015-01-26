@@ -29,13 +29,16 @@ data CmdLine
         ,datadir :: FilePath
         ,logs :: FilePath
         }
+    | Replay
+        {logs :: FilePath
+        }
     | Test
       deriving (Data,Typeable,Show)
 
 getCmdLine :: IO CmdLine
 getCmdLine = cmdArgsRun cmdLineMode
 
-cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,test]
+cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
     &= verbosity &= program "hoogle"
     &= summary ("Hoogle " ++ showVersion version ++ ", http://haskell.org/hoogle")
 
@@ -59,6 +62,8 @@ server = Server
     ,datadir = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
     ,logs = "" &= typFile &= help "File to requests to"
     } &= help "Start a Hoogle server"
+
+replay = Replay{} &= help "Replay a log entry"
 
 test = Test{} &= help "Run the test suite"
 

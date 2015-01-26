@@ -1,16 +1,19 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
-module Action.Server(actionServer, test) where
+module Action.Server(actionServer, actionReplay, test) where
 
 import Prelude(); import General.Prelude
 import Data.List.Extra
 import System.FilePath
 import System.IO.Unsafe
+import Control.Exception
+import Control.DeepSeq
 import qualified Language.Javascript.JQuery as JQuery
 import Data.Version
 import Paths_hogle
 import Data.Maybe
+import Control.Monad
 import System.IO
 import qualified Data.Map as Map
 
@@ -29,22 +32,34 @@ actionServer Server{..} = do
     putStrLn $ "Server started on port " ++ show port
     h <- if logs == "" then return stdout else openFile logs AppendMode
     hSetBuffering h LineBuffering
-    server h port $ \Input{..} -> case inputURL of
-        [] -> do
-            let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
-            let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
-            let q = mconcat $ map parseQuery qSource
-            results <- unsafeInterleaveIO $ search pkg q
-            let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
-            index <- unsafeInterleaveIO $ readFile "html/index.html"
-            welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
-            tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
-            return $ case lookup "mode" $ reverse inputArgs of
-                Nothing | qSource /= [] -> OutputString $ template [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle"),("tags",tags),("version",showVersion version)] index
-                        | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)] index
-                Just "body" -> OutputString $ if null qSource then welcome else body
-        ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
-        xs -> return $ OutputFile $ joinPath $ "html" : xs
+    server h port $ replyServer pkg
+
+actionReplay :: CmdLine -> IO ()
+actionReplay Replay{..} = do
+    src <- readFile logs
+    forM_ [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"] $ \x -> do
+        res <- replyServer (Database "output/all") x
+        evaluate $ rnf res
+        putChar '.'
+    putStrLn ""
+
+replyServer :: Database -> Input -> IO Output
+replyServer pkg Input{..} = case inputURL of
+    [] -> do
+        let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
+        let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
+        let q = mconcat $ map parseQuery qSource
+        results <- unsafeInterleaveIO $ search pkg q
+        let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
+        index <- unsafeInterleaveIO $ readFile "html/index.html"
+        welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
+        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
+        return $ case lookup "mode" $ reverse inputArgs of
+            Nothing | qSource /= [] -> OutputString $ template [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle"),("tags",tags),("version",showVersion version)] index
+                    | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)] index
+            Just "body" -> OutputString $ if null qSource then welcome else body
+    ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
+    xs -> return $ OutputFile $ joinPath $ "html" : xs
 
 
 dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
