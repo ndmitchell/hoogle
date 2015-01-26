@@ -2,10 +2,10 @@
 
 module Query(Query(..), Scope(..), parseQuery, renderQuery, test) where
 
+import Prelude(); import General.Prelude
 import Data.List
 import Language.Haskell.Exts
 import Control.Monad
-import Data.Monoid
 import Data.Char
 import Data.List.Extra
 import Data.Generics.Uniplate.Data

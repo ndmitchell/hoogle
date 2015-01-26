@@ -56,5 +56,6 @@ executable hogle
         Output.Tags
         Output.Types
         Query
+        General.Prelude
         General.Util
         General.Web
