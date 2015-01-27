@@ -36,10 +36,10 @@ writeTypes db@(Database file) xs = do
     writeAlias db $ map snd xs
     writeInstance db $ map snd xs
 
-    let ys = Map.toList $ Map.fromListWith (++) [(t, [i]) | (Just i, IDecl (TypeSig _ _ t)) <- xs]
+    let ys = Map.toList $ Map.fromListWith (++) [(t, [(j,i)]) | (j, (Just i, IDecl (TypeSig _ _ t))) <- zip [1..] xs]
     writeFileBinary (file <.> "types") $ unlines $ concat
-        [ [unwords $ map show i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t, pretty t]
-        | (t,i) <- ys]
+        [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t, pretty t]
+        | (t,i) <- sortOn (minimum . map fst . snd) ys]
 
 
 {-
