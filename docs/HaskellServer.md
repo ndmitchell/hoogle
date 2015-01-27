@@ -71,4 +71,4 @@ Only the last line might actually be required. Based on http://unix.stackexchang
 ## New Instructions
 
     (cd hogle && git pull)
-    runhaskell hogle/scripts/Upgrade.hs
+    runhaskell hogle/script/Upgrade.hs
