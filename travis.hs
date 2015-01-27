@@ -1,6 +1,7 @@
 
 import System.Time.Extra
 import System.Process.Extra
+import Control.Exception.Extra
 
 
 main :: IO ()
@@ -10,7 +11,7 @@ main = do
         (time,_) <- duration $ system_ $ "hogle +RTS -T -RTS " ++ (if x == "" then "" else show x)
         putStrLn $ "Search " ++ show x ++ " took " ++ showDuration time
         putStrLn "\n\n"
-    timed "generate"
+    retry 3 $ timed "generate"
     timed "test"
     timed "map"
     timed "map package:base"
