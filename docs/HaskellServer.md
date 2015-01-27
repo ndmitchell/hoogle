@@ -67,3 +67,8 @@ Alternatively, the solution that is running right now is:
 	iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080
 
 Only the last line might actually be required. Based on http://unix.stackexchange.com/questions/10735/linux-allowing-an-user-to-listen-to-a-port-below-1024/10791#10791.
+
+## New Instructions
+
+    (cd hogle && git pull)
+    runhaskell hogle/scripts/Upgrade.hs
