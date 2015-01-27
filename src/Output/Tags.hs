@@ -40,7 +40,7 @@ readTags (Database file) = do
     mods <- readFile' $ file <.> "mods"
     return $ Tags $
         [(x, readIds range) | name:range:tags <- map words $ lines pkgs, x <- ("package",name) : map (splitPair ":") tags] ++
-        [(("module",name), readIds r) | name:ranges <- map words $ lines pkgs, r <- ranges]
+        [(("module",name), readIds r) | name:ranges <- map words $ lines mods, r <- ranges]
     where
         readIds = both read . splitPair "-"
 
