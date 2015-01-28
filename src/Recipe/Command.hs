@@ -40,7 +40,7 @@ tarList from = do
 type Downloader = FilePath -> URL -> String
 
 wget2 :: Downloader
-wget2 fp url = "wget -nv " ++ url ++ " --output-document=" ++ fp
+wget2 fp url = "wget -nv --no-check-certificate " ++ url ++ " --output-document=" ++ fp
 curl :: Downloader
 curl fp url = "curl -sSL " ++ url ++ " --output " ++ fp
 
