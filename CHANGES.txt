@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+4.2.38
     #96, allow certicate verification failures
     #95, allow a higher version of Cabal on older GHCs
 4.2.37
