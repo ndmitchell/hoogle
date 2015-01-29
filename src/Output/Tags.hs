@@ -31,22 +31,24 @@ writeTags (Database file) extra xs = do
                                              | (s,mapMaybe fst -> is) <- xs, s /= "", is /= []]
 
 
-newtype Tags = Tags [((String, String), (Id, Id))]
+data Tags = Tags [((String, String), (Id, Id))] [String]
 
 
 readTags :: Database -> IO Tags
 readTags = memoIO1 $ \(Database file) -> do
     pkgs <- readFile' $ file <.> "pkgs"
     mods <- readFile' $ file <.> "mods"
-    return $ Tags $
-        [(x, readIds range) | name:range:tags <- map words $ lines pkgs, x <- ("package",name) : map (splitPair ":") tags] ++
-        [(("module",name), readIds r) | name:ranges <- map words $ lines mods, r <- ranges]
+    let xs = [(x, readIds range) | name:range:tags <- map words $ lines pkgs, x <- ("package",name) : map (splitPair ":") tags] ++
+             [(("module",name), readIds r) | name:ranges <- map words $ lines mods, r <- ranges]
+    return $ Tags xs (computeList xs)
     where
         readIds = both read . splitPair "-"
 
-
 listTags :: Tags -> [String]
-listTags (Tags xs) = map head $ group $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (f &&& second lower) $ filter ((/=) "module" . fst) $ map fst xs
+listTags (Tags _ x) = x
+
+computeList :: [((String, String), (Id, Id))] -> [String]
+computeList xs = map head $ group $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (f &&& second lower) $ filter ((/=) "module" . fst) $ map fst xs
     where
         f ("set",x) = fromMaybe 0.9 $ lookup x [("stackage",0.0),("haskell-platform",0.1)]
         f ("package",x) = 1
@@ -57,7 +59,7 @@ listTags (Tags xs) = map head $ group $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (
 filterTags :: Tags -> [Scope] -> (Id -> Bool)
 filterTags ts qs = let fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) qs in \i -> all ($ i) fs
 
-filterTags2 (Tags ts) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
+filterTags2 (Tags ts _) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
     where (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
           f (Scope sense cat val) = map ((,) (sense) . snd) $ filter ((==) (cat,val) . fst) ts
 
@@ -67,4 +69,4 @@ pruneTags _ = map Right
 
 
 searchTags :: Tags -> [Scope] -> [(Score,Id)]
-searchTags (Tags ts) qs = map ((0,) . fst . snd) $ filter (flip elem [(cat,val) | Scope True cat val <- qs] . fst) ts
+searchTags (Tags ts _) qs = map ((0,) . fst . snd) $ filter (flip elem [(cat,val) | Scope True cat val <- qs] . fst) ts
