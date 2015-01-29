@@ -18,7 +18,7 @@ import General.Util
 import Data.List.Extra
 import Data.Maybe
 
-newtype Database = Database FilePath
+newtype Database = Database FilePath deriving Eq
 
 ---------------------------------------------------------------------
 -- DATABASE
