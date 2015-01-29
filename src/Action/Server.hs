@@ -14,7 +14,7 @@ import Data.Version
 import Paths_hogle
 import Data.Maybe
 import Control.Monad
-import System.IO
+import System.IO.Extra
 import qualified Data.Map as Map
 
 import Output.Tags
@@ -35,7 +35,7 @@ actionServer Server{..} = do
     server h port $ replyServer pkg
 
 actionReplay :: CmdLine -> IO ()
-actionReplay Replay{..} = do
+actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
     forM_ [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"] $ \x -> do
         res <- replyServer (Database "output/all") x
