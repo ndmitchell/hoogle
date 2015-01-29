@@ -35,7 +35,7 @@ newtype Tags = Tags [((String, String), (Id, Id))]
 
 
 readTags :: Database -> IO Tags
-readTags (Database file) = do
+readTags = memoIO1 $ \(Database file) -> do
     pkgs <- readFile' $ file <.> "pkgs"
     mods <- readFile' $ file <.> "mods"
     return $ Tags $
