@@ -12,7 +12,8 @@ module General.Util(
     isUName,
     splitPair, joinPair,
     testing,
-    showUTCTime
+    showUTCTime,
+    memoIO1
     ) where
 
 import System.IO
@@ -25,6 +26,8 @@ import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
 import Data.Time.Clock
 import Data.Time.Format
+import System.IO.Unsafe
+import Data.IORef
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
@@ -108,3 +111,17 @@ testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
 
 showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale
+
+
+-- | Memoise the last result called.
+memoIO1 :: Eq k => (k -> IO v) -> (k -> IO v)
+memoIO1 f = unsafePerformIO $ do
+    var <- newIORef Nothing
+    return $ \k -> do
+        val <- readIORef var
+        case val of
+            Just (k2,v) | k == k2 -> return v
+            _ -> do
+                v <- f k
+                writeIORef var $ Just (k,v)
+                return v
