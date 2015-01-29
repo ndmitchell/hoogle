@@ -6,5 +6,5 @@ After alpha:
 * Add is:package is:module
 * Add easy to restrict/include package: things on the LHS
 * Implement type search
-* Write a better updating script, with redownloading, zero-downtime and testing
+* Schedule the updating script with cron
 * Deal with unicode properly
