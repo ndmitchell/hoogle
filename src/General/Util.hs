@@ -13,7 +13,8 @@ module General.Util(
     splitPair, joinPair,
     testing,
     showUTCTime,
-    memoIO1
+    memoIO1,
+    error'
     ) where
 
 import System.IO
@@ -27,6 +28,7 @@ import Codec.Archive.Tar as Tar
 import Data.Time.Clock
 import Data.Time.Format
 import System.IO.Unsafe
+import Control.DeepSeq
 import Data.IORef
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
@@ -125,3 +127,6 @@ memoIO1 f = unsafePerformIO $ do
                 v <- f k
                 writeIORef var $ Just (k,v)
                 return v
+
+error' :: String -> a
+error' msg = rnf msg `seq` error msg
