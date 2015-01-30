@@ -16,6 +16,7 @@ import Data.Maybe
 import Control.Monad
 import System.IO.Extra
 import qualified Data.Map as Map
+import System.Time.Extra
 
 import Output.Tags
 import Query hiding (test)
@@ -39,12 +40,12 @@ actionServer Server{..} = do
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
-    readStoreFile "output/all.hoo" $ \store ->
+    (t,_) <- duration $ readStoreFile "output/all.hoo" $ \store ->
         forM_ [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"] $ \x -> do
             res <- replyServer store (Database "output/all") x
             evaluate $ rnf res
             putChar '.'
-    putStrLn ""
+    putStrLn $ "\nTook " ++ showDuration t
 
 replyServer :: StoreIn -> Database -> Input -> IO Output
 replyServer store pkg Input{..} = case inputURL of
