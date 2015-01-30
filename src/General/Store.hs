@@ -184,5 +184,5 @@ readStoreV (StoreIn ptr atoms)
     | [Atom{..}] <- good, atomSize == sizeOf (undefined :: a) = unsafePerformIO $ do
         ptr <- newForeignPtr_ $ plusPtr ptr atomPosition
         return $ Vector.unsafeFromForeignPtr0 ptr atomCount
-    | otherwise = error "bad vector"
+    | otherwise = error $ "bad vector, " ++ show (map atomSize good)
     where good = filter (null . atomName) atoms
