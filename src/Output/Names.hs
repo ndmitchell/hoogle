@@ -1,21 +1,23 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable #-}
 
 module Output.Names(writeNames, searchNames) where
 
-import Control.Applicative
-import System.IO.Extra
-import System.FilePath
 import Data.List.Extra
 import Data.Maybe
 import Data.Tuple.Extra
 import qualified Data.ByteString.Char8 as BS
+import Data.Typeable
 
 import Input.Type
 import General.Util
+import General.Store
 
 
-writeNames :: Database -> [(Maybe Id, Item)] -> IO ()
-writeNames (Database file) xs = writeFileBinary (file <.> "names") $ unlines
+data Names = Names deriving Typeable
+
+
+writeNames :: StoreOut -> [(Maybe Id, Item)] -> IO ()
+writeNames store xs = writeStoreType store Names $ writeStoreBS store $ BS.pack $ unlines
     [show i ++ " " ++ [' ' | isUName name] ++ lower name | (Just i, x) <- xs, name <- toName x]
 
 toName :: Item -> [String]
@@ -24,9 +26,9 @@ toName (IPackage x) = [x]
 toName (IModule x) = [last $ splitOn "." x]
 toName (IDecl x) = declNames x
 
-searchNames :: Database -> Bool -> [String] -> IO [(Score, Id)]
-searchNames (Database file) exact xs = do
-    src <- BS.lines <$> BS.readFile (file <.> "names")
+searchNames :: StoreIn -> Bool -> [String] -> IO [(Score, Id)]
+searchNames store exact xs = do
+    let src = BS.lines $ readStoreBS $ readStoreType Names store
     return $ mapMaybe (match exact xs) src
 
 match :: Bool -> [String] -> BS.ByteString -> Maybe (Score, Id)

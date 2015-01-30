@@ -10,6 +10,7 @@ import General.Util
 import Input.Type
 import Data.List
 import System.IO.Extra
+import General.Store
 
 
 actionTest :: CmdLine -> IO ()
@@ -22,9 +23,9 @@ actionTest Test{} = withBuffering stdout NoBuffering $ do
 
 
 testURL :: IO ()
-testURL = testing "testURL" $ do
+testURL = testing "testURL" $ readStoreFile "output/all.hoo" $ \store -> do
     let a ==$ f = do
-            res <- search (Database "output/all") (parseQuery a)
+            res <- search store (Database "output/all") (parseQuery a)
             case res of
                 ItemEx{..}:_ | f itemURL -> putChar '.'
                 _ -> error $ show (a, take 1 res)

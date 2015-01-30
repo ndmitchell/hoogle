@@ -1,9 +1,8 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable #-}
 
 module Output.Items(writeItems, lookupItem) where
 
 import Language.Haskell.Exts
-import Control.Applicative
 import System.IO.Extra
 import Data.List.Extra
 import System.FilePath
@@ -11,11 +10,13 @@ import Control.Monad.Extra
 import Control.DeepSeq
 import Data.Maybe
 import Data.IORef
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
 
 import Input.Type
 import General.Util
+import General.Store
 
 
 outputItem :: (Id, ItemEx) -> [String]
@@ -35,21 +36,26 @@ inputItem ((word1 -> (i,name)):url:pkg:modu:docs) = (,) (read i) $ ItemEx
         f "." = Nothing
         f x = Just (word1 x)
 
+data Items = Items deriving Typeable
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: FilePath -> [Either String ItemEx] -> IO [(Maybe Id, Item)]
-writeItems file xs = do
+writeItems :: StoreOut -> FilePath -> [Either String ItemEx] -> IO [(Maybe Id, Item)]
+writeItems store file xs = do
     warns <- newIORef 0
-    res <- withBinaryFile (file <.> "items") WriteMode $ \hout ->
+    pos <- newIORef 0
+    res <- writeStoreType store Items $ writeStoreParts store $ do
         withBinaryFile (file <.> "warn") WriteMode $ \herr -> do
             hSetEncoding herr utf8
             flip mapMaybeM xs $ \x -> case x of
                 _ | rnf (show x) `seq` False -> return Nothing -- avoid a space leak
                 Right item | f $ itemItem item -> do
-                    i <- Id . fromIntegral <$> hTell hout
-                    LBS.hPutStrLn hout $ UTF8.fromString $ unlines $ outputItem (i, item)
-                    return $ Just (Just i, itemItem item)
+                    i <- readIORef pos
+                    let bs = BS.concat $ LBS.toChunks $ UTF8.fromString $ unlines $ outputItem (Id i, item)
+                    writeStoreBS store $ intToBS $ BS.length bs
+                    writeStoreBS store bs
+                    writeIORef pos $ i + intSize + BS.length bs
+                    return $ Just (Just $ Id i, itemItem item)
                 Right ItemEx{..} -> return $ Just (Nothing, itemItem)
                 Left err -> do modifyIORef warns (+1); hPutStrLn herr err; return Nothing
     warns <- readIORef warns
@@ -62,14 +68,9 @@ writeItems file xs = do
         f x = True
 
 
-lookupItem :: Database -> IO (Id -> IO ItemEx)
-lookupItem (Database file) = do
-    h <- openBinaryFile (file <.> "items") ReadMode
+lookupItem :: StoreIn -> IO (Id -> IO ItemEx)
+lookupItem store = do
+    let x = readStoreBS $ readStoreType Items store
     return $ \(Id i) -> do
-        hSeek h AbsoluteSeek $ fromIntegral i
-        xs <- f h
-        return $ snd $ inputItem $ map (UTF8.toString . LBS.pack) xs
-        where
-            f h = do
-                s <- hGetLine h
-                if s == "" then return [] else (s:) <$> f h
+        let n = intFromBS $ BS.take intSize $ BS.drop i x
+        return $ snd $ inputItem $ lines $ UTF8.toString $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i + intSize) x

@@ -22,34 +22,37 @@ import Query hiding (test)
 import Input.Type hiding (test)
 import General.Util
 import General.Web
+import General.Store
 import Action.Search
 import Action.CmdLine
 
 
 actionServer :: CmdLine -> IO ()
 actionServer Server{..} = do
-    let pkg = Database $ "output" </> head ([database | database /= ""] ++ ["all"])
+    let pkg = "output" </> head ([database | database /= ""] ++ ["all"])
     putStrLn $ "Server started on port " ++ show port
     h <- if logs == "" then return stdout else openFile logs AppendMode
     hSetBuffering h LineBuffering
-    server h port $ replyServer pkg
+    readStoreFile (pkg <.> "hoo") $ \store ->
+        server h port $ replyServer store (Database pkg)
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
-    forM_ [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"] $ \x -> do
-        res <- replyServer (Database "output/all") x
-        evaluate $ rnf res
-        putChar '.'
+    readStoreFile "output/all.hoo" $ \store ->
+        forM_ [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"] $ \x -> do
+            res <- replyServer store (Database "output/all") x
+            evaluate $ rnf res
+            putChar '.'
     putStrLn ""
 
-replyServer :: Database -> Input -> IO Output
-replyServer pkg Input{..} = case inputURL of
+replyServer :: StoreIn -> Database -> Input -> IO Output
+replyServer store pkg Input{..} = case inputURL of
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = mconcat $ map parseQuery qSource
-        results <- unsafeInterleaveIO $ search pkg q
+        results <- unsafeInterleaveIO $ search store pkg q
         let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
         index <- unsafeInterleaveIO $ readFile "html/index.html"
         welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
