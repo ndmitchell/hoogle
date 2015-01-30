@@ -35,7 +35,7 @@ executable hogle
         bytestring, filepath, directory, containers, text,
         deepseq, utf8-string, time, old-locale,
         extra, js-jquery, uniplate, cmdargs,
-        tar, zlib,
+        tar, zlib, mmap,
         network, conduit, conduit-extra, http-conduit, wai, http-types, warp, wai-logger,
         haskell-src-exts >= 1.16 && < 1.17
 
@@ -57,5 +57,6 @@ executable hogle
         Output.Types
         Query
         General.Prelude
+        General.Store
         General.Util
         General.Web
