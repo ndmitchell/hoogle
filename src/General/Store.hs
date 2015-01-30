@@ -49,9 +49,9 @@ decodeBS = decode . LBS.fromChunks . return
 -- each atom name is either unique (a scope) or "" (a list entry)
 data Atom = Atom
     {atomName :: [String]
-    ,atomPosition :: Int
-    ,atomCount :: Int
-    ,atomSize :: Int
+    ,atomPosition :: !Int
+    ,atomCount :: !Int
+    ,atomSize :: !Int
     } deriving Show
 
 instance Binary Atom where
