@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, GeneralizedNewtypeDeriving #-}
 
 module Input.Type(
     Database(..),
@@ -17,6 +17,8 @@ import Data.List
 import General.Util
 import Data.List.Extra
 import Data.Maybe
+import Foreign.Storable
+import Data.Word
 
 newtype Database = Database FilePath deriving Eq
 
@@ -25,7 +27,7 @@ newtype Database = Database FilePath deriving Eq
 
 type URL = String
 type Documentation = String
-newtype Id = Id Int deriving (Eq,Ord)
+newtype Id = Id Word32 deriving (Eq,Ord,Storable)
 
 instance Show Id where
     show (Id x) = showHex x ""

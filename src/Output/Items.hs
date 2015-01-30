@@ -54,7 +54,7 @@ writeItems store file xs = do
                     let bs = BS.concat $ LBS.toChunks $ UTF8.fromString $ unlines $ outputItem (Id i, item)
                     writeStoreBS store $ intToBS $ BS.length bs
                     writeStoreBS store bs
-                    writeIORef pos $ i + intSize + BS.length bs
+                    writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
                     return $ Just (Just $ Id i, itemItem item)
                 Right ItemEx{..} -> return $ Just (Nothing, itemItem)
                 Left err -> do modifyIORef warns (+1); hPutStrLn herr err; return Nothing
@@ -72,5 +72,6 @@ lookupItem :: StoreIn -> IO (Id -> IO ItemEx)
 lookupItem store = do
     let x = readStoreBS $ readStoreType Items store
     return $ \(Id i) -> do
-        let n = intFromBS $ BS.take intSize $ BS.drop i x
-        return $ snd $ inputItem $ lines $ UTF8.toString $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i + intSize) x
+        let i2 = fromIntegral i
+        let n = intFromBS $ BS.take intSize $ BS.drop i2 x
+        return $ snd $ inputItem $ lines $ UTF8.toString $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i2 + intSize) x
