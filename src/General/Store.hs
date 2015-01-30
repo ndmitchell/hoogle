@@ -99,7 +99,7 @@ writeStoreFile file act = do
         res <- act $ StoreOut prefix atoms parts h
         -- write the atoms out, probably using binary, then put the size at the end
         atoms <- readIORef atoms
-        let bs = encodeBS atoms
+        let bs = encodeBS $ reverse atoms
         BS.hPut h bs
         BS.hPut h $ intToBS $ BS.length bs
         return res
