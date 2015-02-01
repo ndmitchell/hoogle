@@ -7,7 +7,6 @@ import System.IO.Extra
 import Data.List.Extra
 import System.FilePath
 import Control.Monad.Extra
-import Control.DeepSeq
 import Data.Maybe
 import Data.IORef
 import qualified Data.ByteString as BS
@@ -48,7 +47,6 @@ writeItems store file xs = do
         withBinaryFile (file <.> "warn") WriteMode $ \herr -> do
             hSetEncoding herr utf8
             flip mapMaybeM xs $ \x -> case x of
-                _ | rnf (show x) `seq` False -> return Nothing -- avoid a space leak
                 Right item | f $ itemItem item -> do
                     i <- readIORef pos
                     let bs = BS.concat $ LBS.toChunks $ UTF8.fromString $ unlines $ outputItem (Id i, item)
