@@ -8,6 +8,7 @@ import Data.List.Extra
 import Data.Maybe
 import Input.Type
 import General.Util
+import Control.DeepSeq
 
 
 hackage = "https://hackage.haskell.org/"
@@ -54,8 +55,8 @@ reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy 
           f xs = ["<p>",unwords xs,"</p>"]
 
 
-heirarchy :: URL -> [Either a ItemEx] -> [Either a ItemEx]
-heirarchy hackage = map other . with (isIModule . itemItem) . map modules . with (isIPackage . itemItem) . map packages
+heirarchy :: NFData a => URL -> [Either a ItemEx] -> [Either a ItemEx]
+heirarchy hackage = list' . map other . with (isIModule . itemItem) . map modules . with (isIPackage . itemItem) . map packages
     where
         with :: (b -> Bool) -> [Either a b] -> [Either a (Maybe b, b)]
         with p = snd . mapAccumL f Nothing
