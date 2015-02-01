@@ -19,6 +19,7 @@ import Data.List.Extra
 import Data.Maybe
 import Foreign.Storable
 import Data.Word
+import Control.DeepSeq
 
 newtype Database = Database FilePath deriving Eq
 
@@ -43,12 +44,21 @@ data ItemEx = ItemEx
     ,itemDocs :: Documentation
     } deriving (Show,Eq,Ord)
 
+instance NFData ItemEx where
+    rnf (ItemEx a b c d e) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e
+
 data Item
     = IDecl {fromIDecl :: Decl}
     | IKeyword {fromIKeyword :: String}
     | IPackage {fromIPackage :: String}
     | IModule {fromIModule :: String}
       deriving (Show,Eq,Ord)
+
+instance NFData Item where
+    rnf (IDecl x) = rnf $ show x
+    rnf (IKeyword x) = rnf x
+    rnf (IPackage x) = rnf x
+    rnf (IModule x) = rnf x
 
 isIModule IModule{} = True; isIModule _ = False
 isIPackage IPackage{} = True; isIPackage _ = False
