@@ -1,3 +1,203 @@
 Changelog for Hogle
 
+    Rewrite from scratch
+4.2.38
+    #96, allow certicate verification failures
+    #95, allow a higher version of Cabal on older GHCs
+4.2.37
+    #94, GHC 7.10 support
+4.2.36
+    #85, add support for missing type constructors
+4.2.35
+    Allow haskell-src-exts-1.16
+4.2.34
+    Add defaultDatabaseLocation
+4.2.33
+    Allow WAI-3.0
+4.2.32
+    Allow haskell-src-exts-1.15
+4.2.31
+    #61, support conduit-1.1
+4.2.30
+    #57, support QuickCheck-2.7
+4.2.29
+    #55, if reading as UTF8 fails, explicitly try Latin1
+    Add QuickCheck as a dependency
+    Change createDatabase to also save the file
+    Disable rank feature
+    Remove running a hoogle query without converting the database
+    Ignore packages without documentation to hoogle data
+4.2.28
+    Upgrade to shake-0.11
+    #49, update "hoogle data" to be incremental
+4.2.27
+    Rewrite how "hoogle data" works
+    #45, if you are building all, also depend on default
+    #47, switch to using Shake to build the recipes
+    Add a dependency on Shake
+4.2.26
+    Fix omission of the Test file
+4.2.25
+    Fix timestamps in .tar.gz dist file
+4.2.24
+    Allow WAI 2.0
+    Fix the Keyword generator
+4.2.23
+    Improvements to Haddock conversion
+4.2.22
+    Download Hoogle data from the old Hackage server
+4.2.21
+    #25, make the tarball pass the tests
+    #26, GHC 7.8 compatibility
+    Ensure alias resolution is bottom-up and recursive
+4.2.20
+    #619, do not depend on unix on Windows
+4.2.19
+    Fix version bounds
+4.2.18
+    Allow bytestring-0.9
+4.2.17
+    Upgrade to haskell-src-exts-1.14
+    Visual redesign
+    Require bytestring-0.10 or above, due to NFData instances
+    Add NFData instance to Database
+4.2.16
+    Remove lots of explicit upper bounds
+4.2.15
+    Allow http-types-0.8
+    Allow case-insensitive-1.0
+    Support --local for GHC docs
+    #568, rewrite Haddock links in --local
+4.2.14
+    Switch license from GPL to BSD3
+    GHC 7.6 fixes
+    ##4, Allow Cabal-1.16.*
+4.2.13
+    Allow cmdargs-0.10.*
+4.2.12
+    Allow conduit-0.5, wai-1.3 and warp-1.3
+    Upgrade to http-types-0.7.*
+    In embedded mode, don't hijack the URL bar or title
+    Upgrade to jQuery 1.7.2
+    #89, add a format=json output mode
+    #476, update the URL as you type
+    Improve iPhone support
+    Update the copyright year in the footer
+    Double the speed of hoogle server responses
+4.2.11
+    Allow transformers-0.3
+    Allow conduit-0.4, wai-1.2 and warp-1.2
+    Allow haskell-src-exts-1.12 and 1.13
+4.2.10
+    #533, be paranoid when parsing Cabal files
+4.2.9
+    Upgrade to WAI-1.1 and Warp-1.1
+    #525, don't rely on a redirect to find files
+    Allow Cabal-1.14
+4.2.8
+    Allow cmdargs-0.9
+    Fix setting the global read flags and unsetting them properly
+    Allow case-insensitive-0.4.*
+    Make data --local have a good default on Linux
+    Make server --local work on Windows
+    #407, rewrite OpenSearch plugin to work regardless of the server
+4.2.7
+    Allow cmdargs-0.8
+4.2.6
+    Permit GHC 7.2
+    Allow case-insensitive-0.3.*
+    Fix bug when searching for toString in the embed mode
+    Make --redownload work on the tarballs
+4.2.5
+    Fix hyperlinks to symbols (i.e. &&) in Haddock
+4.2.4
+    #434, use either wget or curl to download the files
+    Allow haskell-src-exts 1.11.*
+    Upgrade to cmdargs==0.7.*
+4.2.3
+    Generate database for ghc internals
+    Give an error if the database is the wrong version
+    Add -fno-cse, to make cmdargs work (was losing args annotations)
+4.2.2
+    Upgrade to WAI==0.4.* and Warp==0.4.*
+    Allow parsec 3, since various people have reported it works
+    Default module URL's correctly when not on Hackage
+    #417, use proper Haddock parsing for package descriptions
+    Make sure https: links work through the web mode
+    Rewrite the binary defer layer, cleaner and slightly faster
+    Eliminate escaping problems when entering "'s in the search
+    Some work on #375, add links to the library page
+    Add --template to override the templates at runtime
+    Add --dynamic flag to server mode, include update stamps
+    Upgrade wai and warp, adds an exception handler
+    #82, rewrite showing document snippets, better expand/collapse
+    Support <em> tags in Haddock output (as well as <i>)
+    Make package matching case insensitive
+    #372, add features to improve module name search
+    Make module name searching case insensitive
+4.2.1
+    Fix for pattern match failure when searching for "to"
+    Fix for not sending text/html when serving local files
+    Eliminate the --nostdin flag, now unnecessary
+    Change to use WAI/Warp instead of HTTP and custom server
+    Fix a bug, didn't ever show Waiting... on the real website
+    Make embed work in IE8
+4.2
+    Make the CGI interface send the right number of newlines
+    Accept prefix and suffix web parameters
+    Eliminate isBlankQuery, make Query a Monoid
+    Make Query abstract, add queryPackages/querySetPackage
+    Rename querySuggestions/queryCompletions by dropping the query
+    Add mode=embed support
+    Add some log analysis features
+    Ignore some whitespace in the input file
+    Work around a cabal bug, include jquery.cookie.js
+    Add ?version=xxx to .css and .js, to make it auto refresh
+4.1.5
+    #399, rehabilitate mode=suggest
+    Stop mode=suggest failing entirely, now cleanly gives no answers
+    Combine --web and --webmode
+    Complete the command line flag help
+    #327, ensure utf8 is found
+    #187, ensure LT is found
+    Use the Hoogle tarball direct from Hackage
+    #54, rework packages, entries and keywords
+    #87, make all database files lowercase
+    Various javascript/ajax enhancements
+4.1.4
+    Running data on Posix sets all files to global read/execute
+    Relax haskell-src-exts to allow 1.10.1
+    Rework the web page display further
+4.1.3
+    Read and write all database files in UTF8
+    #391, add tar -xzf when extracting from the tarball
+    Change search results display, packages/modules on separate line
+    Exclude haskellN* from the platform, they are in base
+    Add --nostdin to server mode, to support running with nohup
+    Loosen dependencies for tagsoup (typo'd it before)
+4.1.2
+    Loosen dependencies for tagsoup and HTTP (but not parsec)
+    Avoid self circular dependencies
+4.1.1
+    #195, include all the necessary resources to run as a server
+    When in server mode, be more robust to errors
+4.1
+    #320, make sure system is found
+    #146, preserve forall's in everywhere
+    #186, switch to using haskell-src-exts to parse input files
+    #249, make sure you find MonadWriter
+    #235, make sure you find forall
+    #309, make sure there are links for keywords
+    #78, add --link flag
+    #59, operators look nicer, and have blue brackets round them
+    #352, can now parse ( # ) as a function name in the input
+    #280, searching for "~ +keyword" should find keyword
+    #116, fix links for types/classes
+    #83, all searching for package-name
+    #94, allow textbases to be used automatically
+    #92, short flags are now handled by cmdargs, so work
+    #51, test mode now does what test and testfile did
+    #66, turn Hoogle into a library
+    Add --server flag, to run as a server
+4.0.7
     Start of changelog
