@@ -73,7 +73,7 @@ generate xs = do
         writeNames store xs
         writeTypes (Database out) xs
 
-    whenM getGCStatsEnabled $ do
-        performGC
-        print =<< getGCStats
-        void $ evaluate xs
+        whenM getGCStatsEnabled $ do
+            performGC
+            print =<< getGCStats
+            void $ evaluate xs
