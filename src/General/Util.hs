@@ -14,7 +14,7 @@ module General.Util(
     testing,
     showUTCTime,
     memoIO1,
-    error'
+    error', list'
     ) where
 
 import System.IO
@@ -130,3 +130,8 @@ memoIO1 f = unsafePerformIO $ do
 
 error' :: String -> a
 error' msg = rnf msg `seq` error msg
+
+
+list' :: NFData a => [a] -> [a]
+list' (x:xs) = rnf x `seq` x : list' xs
+list' [] = []
