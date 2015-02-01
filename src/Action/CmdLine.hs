@@ -4,7 +4,7 @@
 module Action.CmdLine(CmdLine(..), getCmdLine) where
 
 import System.Console.CmdArgs
-import Paths_hogle(version)
+import Paths_hoogle(version)
 import Data.Version(showVersion)
 
 

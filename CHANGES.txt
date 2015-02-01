@@ -1,4 +1,4 @@
-Changelog for Hogle
+Changelog for Hoogle
 
     Rewrite from scratch
 4.2.38

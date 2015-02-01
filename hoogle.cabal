@@ -1,7 +1,7 @@
 cabal-version:      >= 1.10
 build-type:         Simple
-name:               hogle
-version:            0.0
+name:               hoogle
+version:            5.0
 license:            BSD3
 license-file:       LICENSE
 category:           Development
@@ -14,7 +14,7 @@ description:
     search many standard Haskell libraries by either function name,
     or by approximate type signature.
 homepage:           http://www.haskell.org/hoogle/
-bug-reports:        https://github.com/ndmitchell/hogle/issues
+bug-reports:        https://github.com/ndmitchell/hoogle/issues
 tested-with:        GHC==7.10.1, GHC==7.8.3, GHC==7.6.3
 extra-source-files:
     README.md
@@ -23,9 +23,9 @@ extra-source-files:
 
 source-repository head
     type:     git
-    location: https://github.com/ndmitchell/hogle.git
+    location: https://github.com/ndmitchell/hoogle.git
 
-executable hogle
+executable hoogle
     main-is:            Main.hs
     hs-source-dirs:     src
     default-language: Haskell98

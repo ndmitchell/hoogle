@@ -11,7 +11,7 @@ import Control.Exception
 import Control.DeepSeq
 import qualified Language.Javascript.JQuery as JQuery
 import Data.Version
-import Paths_hogle
+import Paths_hoogle
 import Data.Maybe
 import Control.Monad
 import System.IO.Extra

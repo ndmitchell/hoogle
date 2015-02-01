@@ -1,5 +1,5 @@
 
-module Paths_hogle where
+module Paths_hoogle where
 
 import Data.Version(Version(..))
 
