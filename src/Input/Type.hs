@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
 
 module Input.Type(
     Database(..),
@@ -20,6 +20,7 @@ import Data.Maybe
 import Foreign.Storable
 import Data.Word
 import Control.DeepSeq
+import Data.Data
 
 newtype Database = Database FilePath deriving Eq
 
@@ -52,7 +53,7 @@ data Item
     | IKeyword {fromIKeyword :: String}
     | IPackage {fromIPackage :: String}
     | IModule {fromIModule :: String}
-      deriving (Show,Eq,Ord)
+      deriving (Show,Eq,Ord,Typeable,Data)
 
 instance NFData Item where
     rnf (IDecl x) = rnf $ show x
