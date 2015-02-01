@@ -47,13 +47,13 @@ writeItems store file xs = do
         withBinaryFile (file <.> "warn") WriteMode $ \herr -> do
             hSetEncoding herr utf8
             flip mapMaybeM xs $ \x -> case x of
-                Right item | f $ itemItem item -> do
+                Right item@ItemEx{..} | f itemItem -> do
                     i <- readIORef pos
                     let bs = BS.concat $ LBS.toChunks $ UTF8.fromString $ unlines $ outputItem (Id i, item)
                     writeStoreBS store $ intToBS $ BS.length bs
                     writeStoreBS store bs
                     writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
-                    return $ Just (Just $ Id i, itemItem item)
+                    return $ Just (Just $ Id i, itemItem)
                 Right ItemEx{..} -> return $ Just (Nothing, itemItem)
                 Left err -> do modifyIORef warns (+1); hPutStrLn herr err; return Nothing
     warns <- readIORef warns
