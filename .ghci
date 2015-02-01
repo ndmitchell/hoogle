@@ -21,8 +21,8 @@
 :def space \xs -> return $ unlines
         [":!mkdir obj"
         ,":!mkdir obj\\prof"
-        ,":!ghc -prof -rtsopts -auto-all -caf-all -isrc -DPROFILE --make src/Paths.hs Main -outputdir obj/prof -o obj/prof/main"
-        ,":!obj\\prof\\main +RTS -xt -hy -T -RTS " ++ xs
-        ,":!hp2ps -c main.hp"
-        ,":!start main.ps"]
+        ,":!ghc -prof -rtsopts -auto-all -caf-all -isrc -DPROFILE --make src/Paths.hs Main -outputdir obj/prof -o obj/prof/main && " ++
+         "obj\\prof\\main +RTS -xt -hc -T -RTS " ++ xs ++ " && " ++
+         "hp2ps -c main.hp && " ++
+         "start main.ps"]
 :}
