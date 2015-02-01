@@ -9,9 +9,30 @@ import Data.Maybe
 import Input.Type
 import General.Util
 import Control.DeepSeq
+import Data.IORef.Extra
+import System.IO.Unsafe
+import qualified Data.Map as Map
+import Data.Generics.Uniplate.Data
 
 
 hackage = "https://hackage.haskell.org/"
+
+
+{-# NOINLINE strings #-}
+strings :: IORef (Map.Map Name Name)
+strings = unsafePerformIO $ newIORef Map.empty
+
+-- Increases creation time from 27s to 28s
+-- Reduces peak memory from 767Mb to 625Mb, and maximum resident with profiling from 100Mb to 45Mb
+-- Using Name over String is about 20% better
+stringShare :: Name -> Name
+stringShare x = unsafePerformIO $ do
+    mp <- readIORef strings
+    case Map.lookup x mp of
+        Just x -> return x
+        Nothing -> do
+            writeIORef' strings $ Map.insert x x mp
+            return x
 
 
 -- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
@@ -46,7 +67,7 @@ parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
                                -- don't roundtrip but do come out equivalent
                                Right xs | any (isNothing . readItem . showItem) xs ->
                                        [Left $ show i ++ ":failed to roundtrip: " ++ fixLine s]
-                               Right xs -> [Right $ ItemEx x url Nothing Nothing (reformat $ reverse com) | x <- xs]
+                               Right xs -> [Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse com) | x <- xs]
                           )
                           ++ f [] "" is
 
