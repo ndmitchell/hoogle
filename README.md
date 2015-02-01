@@ -1,5 +1,7 @@
 # Hoogle [![Hackage version](https://img.shields.io/hackage/v/hoogle.svg?style=flat)](https://hackage.haskell.org/package/hoogle) [![Build Status](https://img.shields.io/travis/ndmitchell/hoogle.svg?style=flat)](https://travis-ci.org/ndmitchell/hoogle)
 
+**NOTE: This code branch contains the code for the Hoogle v4 series. The `master` branch contains the code for the current Hoogle v5 series.**
+
 Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries by either function name, or by approximate type signature. To experiment, visit the online version at http://haskell.org/hoogle.
 
 * **Online version:** http://haskell.org/hoogle
