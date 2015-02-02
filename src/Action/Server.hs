@@ -17,6 +17,7 @@ import Control.Monad
 import System.IO.Extra
 import qualified Data.Map as Map
 import System.Time.Extra
+import qualified Data.ByteString.Lazy.Char8 as LBS
 
 import Output.Tags
 import Query hiding (test)
@@ -60,9 +61,9 @@ replyServer store pkg Input{..} = case inputURL of
         welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
         tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
         return $ case lookup "mode" $ reverse inputArgs of
-            Nothing | qSource /= [] -> OutputString $ template index [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle"),("tags",tags),("version",showVersion version)]
-                    | otherwise -> OutputString $ template index [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)]
-            Just "body" -> OutputString $ if null qSource then welcome else body
+            Nothing | qSource /= [] -> OutputString $ LBS.pack $ template index [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle"),("tags",tags),("version",showVersion version)]
+                    | otherwise -> OutputString $ LBS.pack $ template index [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)]
+            Just "body" -> OutputString $ LBS.pack $ if null qSource then welcome else body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     xs -> return $ OutputFile $ joinPath $ "html" : xs
 

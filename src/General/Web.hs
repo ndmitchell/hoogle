@@ -45,8 +45,8 @@ readInput (breakOn "?" -> (a,b)) = Input (dropWhile null $ splitOn "/" a) $
     map (second drop1 . breakOn "=") $ splitOn "&" $ drop1 b
 
 data Output
-    = OutputString String
-    | OutputHTML String
+    = OutputString LBS.ByteString
+    | OutputHTML LBS.ByteString
     | OutputFile FilePath
       deriving Show
 
@@ -94,8 +94,8 @@ server hlog port act = do
             Right v -> reply $ case v of
                 OutputFile file -> responseFile status200
                     [("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] file Nothing
-                OutputString msg -> responseLBS status200 [] $ LBS.pack msg
-                OutputHTML msg -> responseLBS status200 [("content-type","text/html")] $ LBS.pack msg
+                OutputString msg -> responseLBS status200 [] msg
+                OutputHTML msg -> responseLBS status200 [("content-type","text/html")] msg
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
 
