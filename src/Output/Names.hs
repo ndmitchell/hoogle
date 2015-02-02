@@ -1,16 +1,24 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, ForeignFunctionInterface #-}
 
 module Output.Names(writeNames, searchNames) where
 
 import Data.List.Extra
-import Data.Maybe
 import qualified Data.ByteString.Char8 as BS
-import qualified Data.Vector.Storable as Vector
+import qualified Data.ByteString.Unsafe as BS
+import qualified Data.Vector.Storable as V
 import Data.Typeable
+import Foreign
+import Foreign.C.String
+import Foreign.C.Types
+import Control.Exception
 
 import Input.Type
 import General.Util
 import General.Store
+
+foreign import ccall text_search_bound :: CString -> IO CInt
+
+foreign import ccall text_search :: CString -> Ptr CString -> CInt -> Ptr CInt -> IO CInt
 
 
 data Names = Names deriving Typeable
@@ -19,9 +27,12 @@ data Names = Names deriving Typeable
 writeNames :: StoreOut -> [(Maybe Id, Item)] -> IO ()
 writeNames store xs = do
     let (ids, strs) = unzip [(i, [' ' | isUName name] ++ lower name) | (Just i, x) <- xs, name <- toName x]
+    let b = BS.intercalate (BS.pack "\0") (map BS.pack strs) `BS.append` BS.pack "\0\0"
+    bound <- BS.unsafeUseAsCString b $ \ptr -> text_search_bound ptr
     writeStoreType store Names $ do
-        writeStoreV store $ Vector.fromList ids
-        writeStoreBS store $ BS.unlines $ map BS.pack strs
+        writeStoreBS store $ intToBS $ fromIntegral bound
+        writeStoreV store $ V.fromList ids
+        writeStoreBS store b
 
 toName :: Item -> [String]
 toName (IKeyword x) = [x]
@@ -31,21 +42,15 @@ toName (IDecl x) = declNames x
 
 searchNames :: StoreIn -> Bool -> [String] -> IO [(Score, Id)]
 searchNames store exact xs = do
-    let [v,bs] = readStoreList $ readStoreType Names store
-    return $ mapMaybe (match exact xs) $ zip (Vector.toList $ readStoreV v) (BS.lines $ readStoreBS bs)
+    let [n,v,bs] = readStoreList $ readStoreType Names store
+    let tweak x = BS.pack $ [' ' | isUName x] ++ lower x ++ "\0"
+    bracket (mallocArray $ intFromBS $ readStoreBS n) free $ \result ->
+        BS.unsafeUseAsCString (readStoreBS bs) $ \haystack ->
+            withs (map (BS.unsafeUseAsCString . tweak) xs) $ \needles ->
+                withArray0 nullPtr needles $ \needles -> do
+                    found <- c_text_search haystack needles (if exact then 1 else 0) result
+                    xs <- peekArray (fromIntegral found) result
+                    return [(0, vv V.! fromIntegral i) | let vv = readStoreV v, i <- xs]
 
-match :: Bool -> [String] -> (Id, BS.ByteString) -> Maybe (Score, Id)
-match exact xs = \(ident, str) -> fmap (,ident) $ case () of
-    _ | BS.length str < mn -> Nothing
-      | not $ all (`BS.isInfixOf` str) xsMatch -> Nothing
-      | any (== str) xsPerfect -> Just 0
-      | exact -> Nothing
-      | any (== str) xsGood -> Just 1
-      | any (`BS.isPrefixOf` str) xsPerfect -> Just 2
-      | any (`BS.isPrefixOf` str) xsGood -> Just 3
-      | otherwise -> Just 4
-    where
-        mn = sum $ map BS.length xsMatch
-        xsMatch = map (BS.pack . lower) xs
-        xsPerfect = [BS.pack $ [' ' | isUName x] ++ lower x | x <- xs]
-        xsGood = [BS.pack $ [' ' | not $ isUName x] ++ lower x | x <- xs]
+{-# NOINLINE c_text_search #-} -- for profiling
+c_text_search a b c d = text_search a b c d

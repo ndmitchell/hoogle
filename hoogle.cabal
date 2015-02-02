@@ -39,6 +39,12 @@ executable hoogle
         network, conduit, conduit-extra, http-conduit, wai, http-types, warp, wai-logger,
         haskell-src-exts >= 1.16 && < 1.17
 
+    c-sources:        cbits/text_search.c
+    include-dirs:     cbits
+    includes:         include.h
+    install-includes: include.h
+    cc-options:       -std=c99 -O2
+
     other-modules:
         Action.CmdLine
         Action.Generate
