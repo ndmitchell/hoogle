@@ -130,7 +130,7 @@ memoIO1 f = unsafePerformIO $ do
                 writeIORef var $ Just (k,v)
                 return v
 
-memoFile :: FilePath -> IO a -> IO a
+memoFile :: FilePath -> (FilePath -> IO a) -> IO a
 memoFile file act = unsafePerformIO $ do
     ref <- newIORef Nothing
     return $ do
@@ -138,7 +138,7 @@ memoFile file act = unsafePerformIO $ do
         new <- getModificationTime file
         case val of
             Just (old, res) | old == new -> return res
-            _ -> do res <- act; writeIORef ref $ Just (new, res); return res
+            _ -> do res <- act file; writeIORef ref $ Just (new, res); return res
 
 
 error' :: String -> a
