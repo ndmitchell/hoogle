@@ -238,7 +238,7 @@ var prefixUrl = document.location.protocol + "//" + document.location.hostname +
 
 $(function(){
     if (embed) return;
-    if (prefixUrl != "http://haskell.org/hoogle/")
+    if (prefixUrl != "http://hoogle.haskell.org/")
     {
         $("link[rel=search]").attr("href", function(){
             return this.href + "?domain=" + escape(prefixUrl);

@@ -40,7 +40,7 @@ getCmdLine = cmdArgsRun cmdLineMode
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
     &= verbosity &= program "hoogle"
-    &= summary ("Hoogle " ++ showVersion version ++ ", http://haskell.org/hoogle")
+    &= summary ("Hoogle " ++ showVersion version ++ ", http://hoogle.haskell.org/")
 
 search_ = Search
     {color = def &= name "colour" &= help "Use colored output (requires ANSI terminal)"
