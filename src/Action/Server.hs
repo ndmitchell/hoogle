@@ -40,12 +40,13 @@ actionServer Server{..} = do
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
+    let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ readStoreFile "output/all.hoo" $ \store ->
-        forM_ [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"] $ \x -> do
+        forM_ qs $ \x -> do
             res <- replyServer store (Database "output/all") x
             evaluate $ rnf res
             putChar '.'
-    putStrLn $ "\nTook " ++ showDuration t
+    putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / genericLength qs) ++ ")"
 
 replyServer :: StoreIn -> Database -> Input -> IO Output
 replyServer store pkg Input{..} = case inputURL of
