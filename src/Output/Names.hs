@@ -41,16 +41,18 @@ toName (IModule x) = [last $ splitOn "." x]
 toName (IDecl x) = declNames x
 
 searchNames :: StoreIn -> Bool -> [String] -> IO [(Score, Id)]
-searchNames store exact xs = do
+searchNames store exact (filter (/= "") -> xs) = do
     let [n,v,bs] = readStoreList $ readStoreType Names store
-    let tweak x = BS.pack $ [' ' | isUName x] ++ lower x ++ "\0"
-    bracket (mallocArray $ intFromBS $ readStoreBS n) free $ \result ->
-        BS.unsafeUseAsCString (readStoreBS bs) $ \haystack ->
-            withs (map (BS.unsafeUseAsCString . tweak) xs) $ \needles ->
-                withArray0 nullPtr needles $ \needles -> do
-                    found <- c_text_search haystack needles (if exact then 1 else 0) result
-                    xs <- peekArray (fromIntegral found) result
-                    return [(0, vv V.! fromIntegral i) | let vv = readStoreV v, i <- xs]
+    -- if there are no questions, we will match everything, which exceeds the result buffer
+    if null xs then return $ map (0,) $ V.toList $ readStoreV v else do
+        let tweak x = BS.pack $ [' ' | isUName x] ++ lower x ++ "\0"
+        bracket (mallocArray $ intFromBS $ readStoreBS n) free $ \result ->
+            BS.unsafeUseAsCString (readStoreBS bs) $ \haystack ->
+                withs (map (BS.unsafeUseAsCString . tweak) xs) $ \needles ->
+                    withArray0 nullPtr needles $ \needles -> do
+                        found <- c_text_search haystack needles (if exact then 1 else 0) result
+                        xs <- peekArray (fromIntegral found) result
+                        return [(0, vv V.! fromIntegral i) | let vv = readStoreV v, i <- xs]
 
 {-# NOINLINE c_text_search #-} -- for profiling
 c_text_search a b c d = text_search a b c d
