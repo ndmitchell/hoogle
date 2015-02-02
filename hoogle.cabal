@@ -43,7 +43,7 @@ executable hoogle
     include-dirs:     cbits
     includes:         include.h
     install-includes: include.h
-    cc-options:       -std=c99 -O2
+    cc-options:       -std=c99
 
     other-modules:
         Action.CmdLine
