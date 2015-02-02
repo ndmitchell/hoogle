@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
-#include <stdio.h>
+
 
 int min_int(int a, int b){return a > b ? b : a;}
 int max_int(int a, int b){return a < b ? b : a;}
@@ -85,9 +84,9 @@ int text_search(char* haystack, char** needles, int exact, int* results)
 {
     // information about the needles
     int n = count_pointers(needles);
-    int* uppers = alloca(sizeof(int) * n);        // is this needle uppercase prefix
-    int* lengths = alloca(sizeof(int) * n);        // length of this needle
-    char** strings = alloca(sizeof(char*) * n);    // actual text of this needle
+    int uppers[n];        // is this needle uppercase prefix
+    int lengths[n];       // length of this needle
+    char* strings[n];     // actual text of this needle
 
     for (int i = 0; i < n; i++)
     {
