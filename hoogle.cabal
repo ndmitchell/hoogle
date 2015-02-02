@@ -20,6 +20,8 @@ extra-source-files:
     README.md
     CHANGES.txt
     misc/tag-rename.txt
+    cbits/*.h
+    cbits/*.c
 
 source-repository head
     type:     git
