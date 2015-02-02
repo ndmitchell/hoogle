@@ -14,7 +14,8 @@ module General.Util(
     testing,
     showUTCTime,
     memoIO1,
-    error', list'
+    error', list',
+    withs
     ) where
 
 import System.IO
@@ -135,3 +136,8 @@ error' msg = rnf msg `seq` error msg
 list' :: NFData a => [a] -> [a]
 list' (x:xs) = rnf x `seq` x : list' xs
 list' [] = []
+
+
+withs :: Monad m => [(a -> m r) -> m r] -> ([a] -> m r) -> m r
+withs [] act = act []
+withs (f:fs) act = f $ \a -> withs fs $ \as -> act $ a:as
