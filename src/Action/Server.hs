@@ -60,8 +60,8 @@ replyServer store pkg Input{..} = case inputURL of
         welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
         tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
         return $ case lookup "mode" $ reverse inputArgs of
-            Nothing | qSource /= [] -> OutputString $ template [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle"),("tags",tags),("version",showVersion version)] index
-                    | otherwise -> OutputString $ template [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)] index
+            Nothing | qSource /= [] -> OutputString $ template index [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle"),("tags",tags),("version",showVersion version)]
+                    | otherwise -> OutputString $ template index [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)]
             Just "body" -> OutputString $ if null qSource then welcome else body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     xs -> return $ OutputFile $ joinPath $ "html" : xs

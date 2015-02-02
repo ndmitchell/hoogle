@@ -81,8 +81,8 @@ tarballReadFiles file = f . Tar.read . GZip.decompress <$> LBS.readFile file
         f (Fail e) = error $ "tarballReadFiles on " ++ file ++ ", " ++ show e
 
 
-template :: [(String, String)] -> String -> String
-template vars = f
+template :: String -> [(String, String)] -> String
+template x vars = f x
     where
         f ('#':'{':xs) | (name,'}':rest) <- break (== '}') xs, Just val <- lookup name vars = val ++ f rest
         f (x:xs) = x : f xs
