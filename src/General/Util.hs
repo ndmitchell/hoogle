@@ -13,7 +13,7 @@ module General.Util(
     splitPair, joinPair,
     testing,
     showUTCTime,
-    memoIO1,
+    memoIO1, memoFile,
     error', list',
     withs
     ) where
@@ -30,6 +30,7 @@ import Data.Time.Clock
 import Data.Time.Format
 import System.IO.Unsafe
 import Control.DeepSeq
+import System.Directory
 import Data.IORef
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
@@ -128,6 +129,17 @@ memoIO1 f = unsafePerformIO $ do
                 v <- f k
                 writeIORef var $ Just (k,v)
                 return v
+
+memoFile :: FilePath -> IO a -> IO a
+memoFile file act = unsafePerformIO $ do
+    ref <- newIORef Nothing
+    return $ do
+        val <- readIORef ref
+        new <- getModificationTime file
+        case val of
+            Just (old, res) | old == new -> return res
+            _ -> do res <- act; writeIORef ref $ Just (new, res); return res
+
 
 error' :: String -> a
 error' msg = rnf msg `seq` error msg
