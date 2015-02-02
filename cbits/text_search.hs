@@ -30,20 +30,14 @@ text_search_ haystack needles exact =
         map fromIntegral <$> peekArray (fromIntegral found) result
 
 
+(===) :: (Show a, Eq a) => IO a -> a -> IO ()
+(===) x y = do x <- x; if x == y then putChar '.' else error $ show ("Mismatch",x,y)
+
+
 main :: IO ()
 main = do
     hSetBuffering stdout NoBuffering
-
-    res <- text_search_bound_ "Test\0abcccccccc\0new\0"
-    when (res /= 2) $ error $ show ("text_search_bound", res)
-    putChar '.'
-
-    res <- text_search_ " test\0more\0tex\0xtee\0" ["te"] False
-    when (res /= [2,0,3]) $ error $ show ("text_search", res)
-    putChar '.'
-
-    res <- text_search_ " base\0base\0" ["base"] False
-    when (res /= [1,0]) $ error $ show ("text_search", res)
-    putChar '.'
-
+    text_search_bound_ "Test\0abcccccccc\0new\0" === 2
+    text_search_ " test\0more\0tex\0xtee\0" ["te"] False === [2,0,3]
+    text_search_ " base\0base\0" ["base"] False === [1,0]
     putStrLn ""
