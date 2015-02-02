@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP, PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP, PatternGuards, ViewPatterns #-}
 
 module General.Web(
     Input(..), Output(..), readInput, server, downloadFile
@@ -38,12 +38,11 @@ import General.Util
 data Input = Input
     {inputURL :: [String]
     ,inputArgs :: [(String, String)]
-    ,inputBody :: String
     } deriving Show
 
 readInput :: String -> Input
-readInput x = Input (dropWhile null $ splitOn "/" a) (map (second drop1 . breakOn "=") $ splitOn "&" $ drop1 b) ""
-    where (a,b) = breakOn "?" x
+readInput (breakOn "?" -> (a,b)) = Input (dropWhile null $ splitOn "/" a) $
+    map (second drop1 . breakOn "=") $ splitOn "&" $ drop1 b
 
 data Output
     = OutputString String
@@ -79,11 +78,8 @@ server hlog port act = do
     hPutStrLn hlog $ "\n" ++ showTime now ++ " - Server started on port " ++ show port
     hFlush hlog
     runSettings (setOnException exception $ setPort port defaultSettings) $ \req reply -> do
-        bod <- strictRequestBody req
-        let pay = Input
-                (map Text.unpack $ pathInfo req)
-                [(BS.unpack a, maybe "" BS.unpack b) | (a,b) <- queryString req]
-                (LBS.unpack bod)
+        let pay = Input (map Text.unpack $ pathInfo req)
+                        [(BS.unpack a, maybe "" BS.unpack b) | (a,b) <- queryString req]
         (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ rnf s; return s
         res <- either (fmap Left . showException) (return . Right) res
         now <- getCurrentTime
