@@ -29,7 +29,7 @@ newtype Database = Database FilePath deriving Eq
 
 type URL = String
 type Documentation = String
-newtype Id = Id Word32 deriving (Eq,Ord,Storable)
+newtype Id = Id Word32 deriving (Eq,Ord,Storable,NFData)
 
 instance Show Id where
     show (Id x) = showHex x ""
