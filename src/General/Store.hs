@@ -22,6 +22,9 @@ import Data.List
 import System.IO.MMap
 import Control.Applicative
 import System.IO.Unsafe
+import General.Util
+import Control.DeepSeq
+import Control.Exception.Extra
 
 
 ---------------------------------------------------------------------
@@ -156,11 +159,14 @@ writeStoreType StoreOut{..} t act = notParts storeParts $ do
 
 data StoreIn = StoreIn (Ptr ()) [Atom] -- atoms are filtered by readStoreType
 
-readStoreFile :: FilePath -> (StoreIn -> IO a) -> IO a
+readStoreFile :: NFData a => FilePath -> (StoreIn -> IO a) -> IO a
 readStoreFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> do
     n <- intFromBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - intSize, intSize)
     atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - intSize - n, n)
-    act $ StoreIn ptr atoms
+    res <- try_ $ act $ StoreIn ptr atoms
+    case res of
+        Left e -> error' =<< showException e
+        Right v -> do evaluate $ rnf v; return v
 
 readStoreList :: StoreIn -> [StoreIn]
 readStoreList (StoreIn ptr xs) = map (StoreIn ptr . return) $ filter (null . atomName) xs
