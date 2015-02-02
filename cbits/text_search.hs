@@ -40,4 +40,6 @@ main = do
     text_search_bound_ "Test\0abcccccccc\0new\0" === 2
     text_search_ " test\0more\0tex\0xtee\0" ["te"] False === [2,0,3]
     text_search_ " base\0base\0" ["base"] False === [1,0]
+    text_search_ " base\0base\0" [] False === [0,1]
+    text_search_ " base\0base\0" [""] False === [1,0]
     putStrLn ""
