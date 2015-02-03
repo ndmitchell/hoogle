@@ -1,6 +1,7 @@
 
 import Data.List.Extra
 import Control.Monad
+import Control.Applicative
 import System.Directory.Extra
 import Data.Time.Clock
 import System.Process.Extra
@@ -32,16 +33,24 @@ main = do
     now <- createDirectoryIfMissing True dir
     withCurrentDirectory dir $ do
         putStrLn $ "Upgrading into " ++ dir
-        system_ "git clone https://github.com/ndmitchell/hoogle.git ."
-        system_ "cabal update"
-        system_ "cabal install --only-dependencies"
-        system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
-        system_ "cabal build"
+        echo system_ "git clone https://github.com/ndmitchell/hoogle.git ."
+        sha1 <- trim <$> echo systemOutput_ "git rev-parse HEAD"
+        echo system_ "cabal update"
+        echo system_ "cabal install --only-dependencies"
+        echo system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
+        echo system_ "cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
-        system_ $ exe ++ " generate +RTS -M1G"
-        system_ $ exe ++ " test"
-        ignore $ system_ "pkill hoogle"
-        system_ $ "nohup " ++ exe ++ " server --port=8080 --log=../../log.txt >> ../../out.txt &"
+        echo system_ $ exe ++ " generate +RTS -M1G"
+        echo system_ $ exe ++ " test"
+        ignore $ echo system_ "pkill hoogle"
+        let cmd = "nohup " ++ exe ++ " server --port=8080 " ++
+                  "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
+                  "--log=../../log.txt >> ../../out.txt &"
+        echo system_ cmd
         writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --port=8080 --log=../../log.txt >> ../../out.txt &\n"
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
     putStrLn "Successfully upgraded"
+
+
+echo :: (String -> IO a) -> String -> IO a
+echo f x = putStrLn x >> f x
