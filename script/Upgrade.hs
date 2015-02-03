@@ -53,4 +53,4 @@ main = do
 
 
 echo :: (String -> IO a) -> String -> IO a
-echo f x = putStrLn x >> f x
+echo f x = putStrLn ("# " ++ x) >> f x
