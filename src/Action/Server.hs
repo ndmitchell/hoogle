@@ -39,7 +39,7 @@ actionServer Server{..} = do
     h <- if logs == "" then return stdout else openFile logs AppendMode
     hSetBuffering h LineBuffering
     readStoreFile (pkg <.> "hoo") $ \store ->
-        server h port $ replyServer (Just logs) store (Database pkg)
+        server h port $ replyServer (Just logs) store (Database pkg) cdn
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -47,7 +47,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ readStoreFile "output/all.hoo" $ \store ->
         forM_ qs $ \x -> do
-            res <- replyServer Nothing store (Database "output/all") x
+            res <- replyServer Nothing store (Database "output/all") "" x
             evaluate $ rnf res
             putChar '.'
     putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / genericLength qs) ++ ")"
@@ -55,8 +55,8 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 --welcome = memoFile "html/welcome.html" BS.readFile
 --index = memoFile "html/index.html" (template . BS.readFile)
 
-replyServer :: Maybe FilePath -> StoreIn -> Database -> Input -> IO Output
-replyServer logs store pkg Input{..} = case inputURL of
+replyServer :: Maybe FilePath -> StoreIn -> Database -> String -> Input -> IO Output
+replyServer logs store pkg cdn Input{..} = case inputURL of
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
@@ -66,9 +66,11 @@ replyServer logs store pkg Input{..} = case inputURL of
         index <- unsafeInterleaveIO $ readFile "html/index.html"
         welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
         tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
+        let common = [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.hs" else JQuery.url)
+                     ,("tags",tags),("version",showVersion version)]
         return $ case lookup "mode" $ reverse inputArgs of
-            Nothing | qSource /= [] -> OutputString $ LBS.pack $ template index [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle"),("tags",tags),("version",showVersion version)]
-                    | otherwise -> OutputString $ LBS.pack $ template index [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)]
+            Nothing | qSource /= [] -> OutputString $ LBS.pack $ template index $ common ++ [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
+                    | otherwise -> OutputString $ LBS.pack $ template index $ common ++ [("body",welcome),("title","Hoogle"),("search","")]
             Just "body" -> OutputString $ LBS.pack $ if null qSource then welcome else body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["log.txt"] | Just s <- logs -> OutputString . LBS.fromChunks . return <$> readLog s

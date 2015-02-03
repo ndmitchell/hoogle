@@ -70,5 +70,4 @@ Only the last line might actually be required. Based on http://unix.stackexchang
 
 ## New Instructions
 
-    (cd hoogle && git pull)
-    runhaskell hoogle/script/Upgrade.hs
+    (cd hoogle && git pull) && runhaskell hoogle/script/Upgrade.hs

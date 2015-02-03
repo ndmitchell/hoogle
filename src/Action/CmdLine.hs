@@ -27,6 +27,7 @@ data CmdLine
         {port :: Int
         ,database :: FilePath
         ,datadir :: FilePath
+        ,cdn :: String
         ,logs :: FilePath
         }
     | Replay
@@ -60,6 +61,7 @@ generate = Generate
 server = Server
     {port = 80 &= typ "INT" &= help "Port number"
     ,datadir = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
+    ,cdn = "" &= typ "URL" &= help "URL prefix to use"
     ,logs = "" &= typFile &= help "File to requests to"
     } &= help "Start a Hoogle server"
 
