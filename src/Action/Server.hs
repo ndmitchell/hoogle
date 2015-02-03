@@ -17,6 +17,9 @@ import Control.Monad
 import System.IO.Extra
 import qualified Data.Map as Map
 import System.Time.Extra
+import System.Process.Extra
+import System.Info.Extra
+import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 
 import Output.Tags
@@ -36,7 +39,7 @@ actionServer Server{..} = do
     h <- if logs == "" then return stdout else openFile logs AppendMode
     hSetBuffering h LineBuffering
     readStoreFile (pkg <.> "hoo") $ \store ->
-        server h port $ replyServer store (Database pkg)
+        server h port $ replyServer (Just logs) store (Database pkg)
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -44,13 +47,16 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ readStoreFile "output/all.hoo" $ \store ->
         forM_ qs $ \x -> do
-            res <- replyServer store (Database "output/all") x
+            res <- replyServer Nothing store (Database "output/all") x
             evaluate $ rnf res
             putChar '.'
     putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / genericLength qs) ++ ")"
 
-replyServer :: StoreIn -> Database -> Input -> IO Output
-replyServer store pkg Input{..} = case inputURL of
+--welcome = memoFile "html/welcome.html" BS.readFile
+--index = memoFile "html/index.html" (template . BS.readFile)
+
+replyServer :: Maybe FilePath -> StoreIn -> Database -> Input -> IO Output
+replyServer logs store pkg Input{..} = case inputURL of
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
@@ -65,7 +71,17 @@ replyServer store pkg Input{..} = case inputURL of
                     | otherwise -> OutputString $ LBS.pack $ template index [("body",welcome),("title","Hoogle"),("search",""),("tags",tags),("version",showVersion version)]
             Just "body" -> OutputString $ LBS.pack $ if null qSource then welcome else body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
+    ["log.txt"] | Just s <- logs -> OutputString . LBS.fromChunks . return <$> readLog s
+    ["log.html"] | Just s <- logs -> do
+        n <- BS.count '\n' <$> readLog s
+        return $ OutputString $ LBS.pack $ show n
     xs -> return $ OutputFile $ joinPath $ "html" : xs
+
+
+readLog :: FilePath -> IO BS.ByteString
+readLog file = withTempFile $ \tmp -> do
+    system_ $ (if isWindows then "copy" else "cp") ++ " \"" ++ file ++ "\" \"" ++ tmp ++ "\""
+    BS.readFile tmp
 
 
 dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
