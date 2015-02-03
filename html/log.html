@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html style="height:100%">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="plugin/jquery.js"> </script>
+<script type="text/javascript" src="plugin/jquery.flot.js"> </script>
+<script type="text/javascript">
+var data = #{data};
+function series(name, val)
+{
+    val.label = name;
+    val.data = [];
+    for (var i = 0; i < data.length; i++)
+        val.data.push([i,data[i][name]]);
+    return val;
+}
+$(function(){
+    $.plot("#placeholder",
+        [series("searchers",{})
+        ,series("searches",{})
+        ,series("average",{yaxis:2})
+        ,series("slowest",{yaxis:2})
+        ,series("error",{})]);
+});
+</script>
+</head>
+<body style="height:100%">
+<div style="height:90%; width:90%;" id="placeholder"></div>
+</body>
+</html>

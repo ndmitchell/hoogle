@@ -10,17 +10,21 @@ import System.IO.Unsafe
 import Control.Exception
 import Control.DeepSeq
 import qualified Language.Javascript.JQuery as JQuery
+import qualified Language.Javascript.Flot as Flot
 import Data.Version
 import Paths_hoogle
 import Data.Maybe
 import Control.Monad
 import System.IO.Extra
+import qualified Data.Set as Set
 import qualified Data.Map as Map
 import System.Time.Extra
 import System.Process.Extra
 import System.Info.Extra
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import Data.Monoid
+import Numeric.Extra
 
 import Output.Tags
 import Query hiding (test)
@@ -73,16 +77,18 @@ replyServer logs store pkg cdn Input{..} = case inputURL of
                     | otherwise -> OutputString $ LBS.pack $ template index $ common ++ [("body",welcome),("title","Hoogle"),("search","")]
             Just "body" -> OutputString $ LBS.pack $ if null qSource then welcome else body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
+    ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["log.txt"] | Just s <- logs -> OutputString . LBS.fromChunks . return <$> readLog s
     ["log.html"] | Just s <- logs -> do
-        n <- BS.count '\n' <$> readLog s
-        return $ OutputString $ LBS.pack $ show n
+        log <- readLog s
+        t <- readFile "html/log.html"
+        return $ OutputHTML $ LBS.pack $ template t [("data",analyseLog log)]
     xs -> return $ OutputFile $ joinPath $ "html" : xs
 
 
 readLog :: FilePath -> IO BS.ByteString
 readLog file = withTempFile $ \tmp -> do
-    system_ $ (if isWindows then "copy" else "cp") ++ " \"" ++ file ++ "\" \"" ++ tmp ++ "\""
+    systemOutput_ $ (if isWindows then "copy" else "cp") ++ " \"" ++ file ++ "\" \"" ++ tmp ++ "\""
     BS.readFile tmp
 
 
@@ -94,7 +100,6 @@ dedupeTake n key = f [] Map.empty
         f res mp (x:xs) | Just vs <- Map.lookup k mp = f res (Map.insert k (x:vs) mp) xs
                         | otherwise = f (k:res) (Map.insert k [x] mp) xs
             where k = key x 
-
 
 
 showResults :: Query -> [[ItemEx]] -> String
@@ -160,3 +165,57 @@ test = testing "Action.Server.displayItem" $ do
     "foo" === "{*data*} {|{*Foo*}d|}"
     "foo" === "{*module*} Foo.Bar.{|F{*Foo*}|}"
     "foo" === "{*module*} {|{*Foo*}o|}"
+
+
+-------------------------------------------------------------
+-- ANALYSE THE LOG
+
+data Average = Average !Int !Int deriving Show -- a / b
+
+average (Average a b) = intToDouble a / intToDouble b
+
+instance Monoid Average where
+    mempty = Average 0 0
+    mappend (Average x1 x2) (Average y1 y2) = Average (x1+y1) (x2+y2)
+
+data Info = Info
+    {searchIPs :: !(Set.Set BS.ByteString) -- number of IP addresses doing a hoogle= search
+    ,searchCount :: !Int -- number of searches in total
+    ,slowestPage :: !Int -- slowest page load time (/ or hoogle=)
+    ,averagePage :: !Average -- time taken to display a page on average
+    ,errorCount :: !Int -- number of instances of error
+    } deriving Show
+
+instance Monoid Info where
+    mempty = Info Set.empty 0 0 mempty 0
+    mappend (Info x1 x2 x3 x4 x5) (Info y1 y2 y3 y4 y5) =
+        Info (x1 <> y1) (x2 + y2) (x3 + y3) (x4 <> y4) (x5 + y5)
+
+-- | Per day
+-- number of IP addresses containing hoogle=
+-- number of searches containing hoogle=
+-- longest page, average search or home page
+-- any instances of ERROR
+analyseLog :: BS.ByteString -> String
+analyseLog = view . foldl' add Map.empty . BS.lines
+    where
+        view mp = "[" ++ intercalate "," (map f $ Map.toAscList mp) ++ "]"
+            where
+                f (t, Info{..}) = "{date:" ++ show t ++
+                                  ",searchers:" ++ show (Set.size searchIPs) ++ ",searches:" ++ show searchCount ++
+                                  ",slowest:" ++ show slowestPage ++ ",average:" ++ show (average averagePage) ++
+                                  ",errors:" ++ show errorCount ++ "}"
+
+        add mp (BS.words -> date:ip:(BS.readInt -> Just (time,_)):url)
+            | ip /= BS.pack "-" = Map.alter (Just . add2 . fromMaybe mempty) (BS.takeWhile (/= 'T') date) mp
+            where
+                isPage = isSearch || url == [BS.pack "/"]
+                isSearch = any (BS.pack "hoogle=" `BS.isInfixOf`) url
+                isError = any (BS.pack "ERROR:" ==) url
+                add2 Info{..} = Info
+                    (if isSearch then Set.insert ip searchIPs else searchIPs)
+                    (searchCount + if isSearch then 1 else 0)
+                    (max slowestPage $ if isPage then time else 0)
+                    (averagePage <> if isPage then Average time 1 else mempty)
+                    (errorCount + if isError then 1 else 0)
+        add mp _ = mp
