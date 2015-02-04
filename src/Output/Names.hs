@@ -42,7 +42,7 @@ toName (IModule x) = [last $ splitOn "." x]
 toName (IDecl x) = declNames x
 
 searchNames :: StoreIn -> Bool -> [String] -> [(Score, Id)]
-searchNames store exact (filter (/= "") -> xs) = unsafePerformIO $ do
+searchNames store exact (filter (/= "") -> xs) = System.IO.Unsafe.unsafePerformIO $ do
     let [n,v,bs] = readStoreList $ readStoreType Names store
     -- if there are no questions, we will match everything, which exceeds the result buffer
     if null xs then return $ map (0,) $ V.toList $ readStoreV v else do
