@@ -16,6 +16,7 @@ module General.Util(
     error', list',
     withs,
     tag, tag_,
+    noinline
     ) where
 
 import System.IO
@@ -155,3 +156,6 @@ tag name attr inner = "<" ++ unwords (name : map f attr) ++ ">" ++ inner ++ "</"
 tag_ :: String -> String -> String
 tag_ name inner = tag name [] inner
 
+{-# NOINLINE noinline #-}
+noinline :: a -> a
+noinline a = a
