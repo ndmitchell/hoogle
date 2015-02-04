@@ -13,6 +13,7 @@ import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
 import Data.Typeable
+import Data.Functor.Identity
 
 import Input.Type
 import General.Util
@@ -53,8 +54,8 @@ writeTypes store xs = writeStoreType store Types $ do
         [pretty t | (_, IDecl t@TypeDecl{}) <- xs]
 -}
 
-searchTypes :: StoreIn -> Type -> IO [(Score,Id)]
-searchTypes store q = do
+searchTypes :: StoreIn -> Type -> [(Score,Id)]
+searchTypes store q = runIdentity $ do
     let [x1,x2,x3,x4] = readStoreList $ readStoreType Types store
     dbRare <- return $ readRarity x1
     dbAlias <- return $ readAlias x2

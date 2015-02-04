@@ -2,7 +2,6 @@
 
 module Action.Search(actionSearch, search) where
 
-import Control.Applicative
 import System.FilePath
 import Control.Monad.Extra
 import qualified Data.Set as Set
@@ -39,10 +38,10 @@ search store (Query strs typ qtags) = do
     is <- case (strs, typ) of
         ([], Nothing) | not $ null qtags, xs@(_:_) <- searchTags tags qtags -> return xs
                       | otherwise -> return $ searchNames store exact []
-        ([], Just t ) -> searchTypes store t
+        ([], Just t ) -> return $ searchTypes store t
         (xs, Nothing) -> return $ searchNames store exact xs
         (xs, Just t ) -> do
             nam <- return $ Set.fromList $ searchNames store exact xs
-            filter (`Set.member` nam) <$> searchTypes store t
+            return $ filter (`Set.member` nam) $ searchTypes store t
     let look = lookupItem store
     return $ map (look . snd) $ sortOn fst $ filter (filterTags tags qtags . snd) is

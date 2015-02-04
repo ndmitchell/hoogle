@@ -34,7 +34,7 @@ executable hoogle
 
     build-depends:
         base > 4 && < 5,
-        bytestring, filepath, directory, containers, text,
+        bytestring, filepath, directory, containers, text, transformers,
         deepseq, utf8-string, time, old-locale, vector, binary,
         extra, js-jquery, js-flot, uniplate, cmdargs,
         tar, zlib, mmap,
