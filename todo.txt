@@ -1,10 +1,12 @@
 
-After alpha:
+Before beta:
 
-* Add a log view, number of errors, average response time etc
-* Add a replay mode to replay web interactions and benchmark
-* Add is:package is:module
+* Fix module searching
 * Add easy to restrict/include package: things on the LHS
 * Implement type search
 * Schedule the updating script with cron
+
+After beta:
+
 * Deal with unicode properly
+* Add is:package is:module
