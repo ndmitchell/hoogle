@@ -62,10 +62,12 @@ server = Server
     {port = 80 &= typ "INT" &= help "Port number"
     ,datadir = "" &= typDir &= help "Directory to use for resources (images, CSS etc)"
     ,cdn = "" &= typ "URL" &= help "URL prefix to use"
-    ,logs = "" &= typFile &= help "File to requests to"
+    ,logs = "" &= opt "log.txt" &= typFile &= help "File to log requests to (defaults to stdout)"
     } &= help "Start a Hoogle server"
 
-replay = Replay{} &= help "Replay a log entry"
+replay = Replay
+    {logs = "log.txt" &= args &= typ "FILE"
+    } &= help "Replay a log file"
 
 test = Test{} &= help "Run the test suite"
 
