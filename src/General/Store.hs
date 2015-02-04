@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP, PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, PatternGuards #-}
 
 module General.Store(
     Typeable, intSize, intFromBS, intToBS, encodeBS, decodeBS,
