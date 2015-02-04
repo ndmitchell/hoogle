@@ -7,7 +7,6 @@ module General.Util(
     fromName, fromTyVarBind,
     declNames,
     tarballReadFiles,
-    template,
     escapeHTML,
     isUName,
     splitPair, joinPair,
@@ -80,14 +79,6 @@ tarballReadFiles file = f . Tar.read . GZip.decompress <$> LBS.readFile file
         f (Next _ rest) = f rest
         f Done = []
         f (Fail e) = error $ "tarballReadFiles on " ++ file ++ ", " ++ show e
-
-
-template :: String -> [(String, String)] -> String
-template x vars = f x
-    where
-        f ('#':'{':xs) | (name,'}':rest) <- break (== '}') xs, Just val <- lookup name vars = val ++ f rest
-        f (x:xs) = x : f xs
-        f [] = []
 
 
 -- | Take a piece of text and escape all the HTML special bits
