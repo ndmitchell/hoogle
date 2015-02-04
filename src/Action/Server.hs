@@ -63,6 +63,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 
 replyServer :: Maybe FilePath -> StoreIn -> String -> Input -> IO Output
 replyServer logs store cdn = \Input{..} -> case inputURL of
+    -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
