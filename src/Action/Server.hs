@@ -24,6 +24,8 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Monoid
 import Numeric.Extra
+import Data.Time.Clock
+import System.IO.Unsafe
 
 import Output.Tags
 import Query hiding (test)
@@ -57,6 +59,9 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
             putChar '.'
     putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / genericLength qs) ++ ")"
 
+{-# NOINLINE time #-}
+time :: String
+time = unsafePerformIO $ showUTCTime "%Y-%m-%d %H:%M" <$> getCurrentTime
 
 replyServer :: Maybe FilePath -> StoreIn -> String -> Input -> IO Output
 replyServer logs store cdn = \Input{..} -> case inputURL of
@@ -84,7 +89,7 @@ replyServer logs store cdn = \Input{..} -> case inputURL of
         tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- listTags $ readTags store]
         params = map (second str)
             [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
-            ,("version",showVersion version)]
+            ,("version",showVersion version ++ " " ++ time)]
         templateIndex = templateFile "html/index.html" `templateApply` params
         templateEmpty = templateFile "html/welcome.html"
         templateHome = templateIndex `templateApply` [("tag",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str "")]
