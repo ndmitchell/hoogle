@@ -60,10 +60,9 @@ writeTags store extra xs = writeStoreType store (undefined :: Tags) $ do
         weightTag _ = 4
 
 
-readTags :: StoreIn -> IO Tags
-readTags store = do
-    let [x1,x2,x3,x4,x5,x6,x7] = readStoreList $ readStoreType (undefined :: Tags) store
-    return $ Tags (readStoreBS x1) (readStoreBS x2) (readStoreV x3) (readStoreV x4) (readStoreV x5) (readStoreBS x6) (readStoreV x7)
+readTags :: StoreIn -> Tags
+readTags store = Tags (readStoreBS x1) (readStoreBS x2) (readStoreV x3) (readStoreV x4) (readStoreV x5) (readStoreBS x6) (readStoreV x7)
+    where [x1,x2,x3,x4,x5,x6,x7] = readStoreList $ readStoreType (undefined :: Tags) store
 
 
 listTags :: Tags -> [String]

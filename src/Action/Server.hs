@@ -72,7 +72,7 @@ replyServer logs store pkg cdn Input{..} = case inputURL of
         let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
         let index = templateFile "html/index.html"
         let welcome = templateFile "html/welcome.html"
-        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags store
+        let tags = concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") $ listTags $ readTags store
         let common = [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
                      ,("tags",tags),("version",showVersion version)]
         case lookup "mode" $ reverse inputArgs of
