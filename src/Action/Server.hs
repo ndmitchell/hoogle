@@ -45,14 +45,14 @@ actionServer Server{..} = do
     h <- if logs == "" then return stdout else openFile logs AppendMode
     hSetBuffering h LineBuffering
     readStoreFile (pkg <.> "hoo") $ \store ->
-        server h port $ replyServer (Just logs) store (Database pkg) cdn
+        server h port $ replyServer (Just logs) store cdn
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ readStoreFile "output/all.hoo" $ \store -> do
-        let op = replyServer Nothing store (Database "output/all") ""
+        let op = replyServer Nothing store ""
         forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
@@ -62,13 +62,13 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 --welcome = memoFile "html/welcome.html" BS.readFile
 --index = memoFile "html/index.html" (template . BS.readFile)
 
-replyServer :: Maybe FilePath -> StoreIn -> Database -> String -> Input -> IO Output
-replyServer logs store pkg cdn Input{..} = case inputURL of
+replyServer :: Maybe FilePath -> StoreIn -> String -> Input -> IO Output
+replyServer logs store cdn Input{..} = case inputURL of
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = mconcat $ map parseQuery qSource
-        results <- unsafeInterleaveIO $ search store pkg q
+        results <- unsafeInterleaveIO $ search store q
         let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
         let index = templateFile "html/index.html"
         let welcome = templateFile "html/welcome.html"

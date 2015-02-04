@@ -30,11 +30,11 @@ actionSearch Search{..} = do
     let rest = query
     forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
         readStoreFile ("output" </> pkg <.> "hoo") $ \store -> do
-            res <- search store (Database $ "output" </> pkg) $ parseQuery $ unwords rest
+            res <- search store $ parseQuery $ unwords rest
             forM_ (maybe id take count res) $ putStrLn . prettyItem . itemItem
 
-search :: StoreIn -> Database -> Query -> IO [ItemEx]
-search store pkg (Query strs typ qtags) = do
+search :: StoreIn -> Query -> IO [ItemEx]
+search store (Query strs typ qtags) = do
     let tags = readTags store
     let exact = Scope True "is" "exact" `elem` qtags
     is <- case (strs, typ) of
