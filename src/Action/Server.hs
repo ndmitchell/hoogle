@@ -6,7 +6,6 @@ module Action.Server(actionServer, actionReplay, test) where
 import Prelude(); import General.Prelude
 import Data.List.Extra
 import System.FilePath
-import System.IO.Unsafe
 import Control.Exception
 import Control.DeepSeq
 import Data.Tuple.Extra
@@ -63,29 +62,35 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 --index = memoFile "html/index.html" (template . BS.readFile)
 
 replyServer :: Maybe FilePath -> StoreIn -> String -> Input -> IO Output
-replyServer logs store cdn Input{..} = case inputURL of
+replyServer logs store cdn = \Input{..} -> case inputURL of
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = mconcat $ map parseQuery qSource
         let results = search store q
         let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
-        let index = templateFile "html/index.html"
-        let welcome = templateFile "html/welcome.html"
-        let tags = concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") $ listTags $ readTags store
-        let common = [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
-                     ,("tags",tags),("version",showVersion version)]
         case lookup "mode" $ reverse inputArgs of
-            Nothing | qSource /= [] -> fmap OutputString $ templateRender index $ map (second $ templateStr . LBS.pack) $ common ++ [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
-                    | otherwise -> fmap OutputString $ templateRender index $ ("body",welcome) : map (second $ templateStr . LBS.pack) (common ++ [("title","Hoogle"),("search","")])
-            Just "body" -> OutputString <$> if null qSource then templateRender welcome [] else return $ LBS.pack body
+            Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
+                        [("tag",tagOptions $ grab "scope"),("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
+                    | otherwise -> fmap OutputString $ templateRender templateHome []
+            Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ LBS.pack body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["log.txt"] | Just s <- logs -> OutputString . LBS.fromChunks . return <$> readLog s
     ["log.html"] | Just s <- logs -> do
         log <- readLog s
-        OutputHTML <$> templateRender (templateFile "html/log.html") [("data",templateStr $ LBS.pack $ analyseLog log)]
+        OutputHTML <$> templateRender templateLog [("data",str $ analyseLog log)]
     xs -> return $ OutputFile $ joinPath $ "html" : xs
+    where
+        str = templateStr . LBS.pack
+        tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- listTags $ readTags store]
+        params = map (second str)
+            [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
+            ,("version",showVersion version)]
+        templateIndex = templateFile "html/index.html" `templateApply` params
+        templateEmpty = templateFile "html/welcome.html"
+        templateHome = templateIndex `templateApply` [("tag",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str "")]
+        templateLog = templateFile "html/log.html"
 
 
 readLog :: FilePath -> IO BS.ByteString
