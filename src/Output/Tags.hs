@@ -1,68 +1,90 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable #-}
 
 module Output.Tags(Tags, writeTags, readTags, listTags, filterTags, searchTags) where
 
-import System.IO.Extra
 import Data.List.Extra
-import System.FilePath
 import Data.Tuple.Extra
 import Data.Maybe
 import qualified Data.Map as Map
+import qualified Data.Vector.Storable as V
+import qualified Data.ByteString.Char8 as BS
+import Data.Word
 
 import Input.Type
 import Query
 import General.Util
+import General.Store
 
 -- matches (a,b) if i >= a && i <= b
--- equal (is the thing in question) if i == a
--- .pkgs: shake 1002-1048 author:Neil-Mitchell license:GPL
--- .mods: Data.Shake.Binary 1034-1934 90890-89787 780-897
 
+data Tags = Tags
+    {packageNames :: BS.ByteString -- sorted
+    ,categoryNames :: BS.ByteString -- sorted
+    ,packageIds :: V.Vector (Id, Id)
+    ,categoryOffsets :: V.Vector Word32 -- position I start, use +1 to find one after I end
+    ,categoryIds :: V.Vector (Id, Id)
+    ,moduleNames :: BS.ByteString -- not sorted
+    ,moduleIds :: V.Vector (Id, Id)
+    } deriving Typeable
 
-writeTags :: Database -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
-writeTags (Database file) extra xs = do
-    let pkgs = splitIPackage xs
-    writeFileBinary (file <.> "pkgs") $ f extra      $ pkgs
-    writeFileBinary (file <.> "mods") $ f (const []) $ concatMap (splitIModule . snd) pkgs
+join0 :: [String] -> BS.ByteString
+join0 = BS.pack . intercalate "\0"
+
+split0 :: BS.ByteString -> [BS.ByteString]
+split0 = BS.split '\0'
+
+writeTags :: StoreOut -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
+writeTags store extra xs = writeStoreType store (undefined :: Tags) $ do
+    let splitPkg = splitIPackage xs
+    let packages = sortOn (lower . fst) $ addRange splitPkg
+    let categories = map (first snd) $ Map.toList $ Map.fromListWith (++)
+            [((weightTag ex, joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
+
+    writeStoreBS store $ join0 $ map fst packages
+    writeStoreBS store $ join0 $ map fst categories
+    writeStoreV store $ V.fromList $ map snd packages
+    writeStoreV store $ V.fromList $ scanl (+) 0 $ map (length . snd) categories
+    writeStoreV store $ V.fromList $ concatMap snd categories
+
+    let modules = addRange $ concatMap (splitIModule . snd) splitPkg
+    writeStoreBS store $ join0 $ map fst modules
+    writeStoreV store $ V.fromList $ map snd modules
     where
-        f :: (String -> [(String,String)]) -> [(String,[(Maybe Id,a)])] -> String
-        f extra xs = unlines [unwords $ x : ps ++ map (joinPair ":") (extra x) | (x,ps) <- Map.toAscList mp]
-            where mp = Map.fromListWith (++) [ (s,[show (minimum is) ++ "-" ++ show (maximum is)])
-                                             | (s,mapMaybe fst -> is) <- xs, s /= "", is /= []]
+        addRange :: [(String, [(Maybe Id,a)])] -> [(String, (Id, Id))]
+        addRange xs = [(a, (minimum is, maximum is)) | (a,b) <- xs, let is = mapMaybe fst b, a /= "", is /= []]
+
+        weightTag ("set",x) = fromMaybe 0.9 $ lookup x [("stackage",0.0),("haskell-platform",0.1)]
+        weightTag ("package",x) = 1
+        weightTag ("category",x) = 2
+        weightTag ("license",x) = 3
+        weightTag _ = 4
 
 
-data Tags = Tags [((String, String), (Id, Id))] [String]
+readTags :: StoreIn -> IO Tags
+readTags store = do
+    let [x1,x2,x3,x4,x5,x6,x7] = readStoreList $ readStoreType (undefined :: Tags) store
+    return $ Tags (readStoreBS x1) (readStoreBS x2) (readStoreV x3) (readStoreV x4) (readStoreV x5) (readStoreBS x6) (readStoreV x7)
 
-
-readTags :: Database -> IO Tags
-readTags = memoIO1 $ \(Database file) -> do
-    pkgs <- readFile' $ file <.> "pkgs"
-    mods <- readFile' $ file <.> "mods"
-    let xs = [(x, readIds range) | name:range:tags <- map words $ lines pkgs, x <- ("package",name) : map (splitPair ":") tags] ++
-             [(("module",name), readIds r) | name:ranges <- map words $ lines mods, r <- ranges]
-    return $ Tags xs (computeList xs)
-    where
-        readIds = both read . splitPair "-"
 
 listTags :: Tags -> [String]
-listTags (Tags _ x) = x
+listTags Tags{..} = let (a,b) = span ("set:" `isPrefixOf`) (f categoryNames) in a ++ map ("package:"++) (f packageNames) ++ b
+    where f = map BS.unpack . split0
 
-computeList :: [((String, String), (Id, Id))] -> [String]
-computeList xs = map head $ group $ map (\(a,b) -> a ++ ":" ++ b) $ sortOn (f &&& second lower) $ filter ((/=) "module" . fst) $ map fst xs
-    where
-        f ("set",x) = fromMaybe 0.9 $ lookup x [("stackage",0.0),("haskell-platform",0.1)]
-        f ("package",x) = 1
-        f ("category",x) = 2
-        f ("license",x) = 3
-        f _ = 4
+lookupTag :: Tags -> (String, String) -> [(Id,Id)]
+lookupTag Tags{..} ("package",x) = map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
+lookupTag Tags{..} ("module",x) = map (moduleIds V.!) $ findIndices (== BS.pack x) $ split0 moduleNames
+lookupTag Tags{..} (cat,x) = concat
+    [ V.toList $ V.take (fromIntegral $ end - start) $ V.drop (fromIntegral start) categoryIds
+    | i <- findIndices (== BS.pack x) $ split0 categoryNames
+    , let start = categoryOffsets V.! i, let end = categoryOffsets V.! i
+    ]
 
 filterTags :: Tags -> [Scope] -> (Id -> Bool)
 filterTags ts qs = let fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) qs in \i -> all ($ i) fs
 
-filterTags2 (Tags ts _) qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
+filterTags2 ts qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
     where (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
-          f (Scope sense cat val) = map ((,) (sense) . snd) $ filter ((==) (cat,val) . fst) ts
-
+          f (Scope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
 
 searchTags :: Tags -> [Scope] -> [(Score,Id)]
-searchTags (Tags ts _) qs = map ((0,) . fst . snd) $ filter (flip elem [(cat,val) | Scope True cat val <- qs] . fst) ts
+searchTags ts qs = map ((0,) . fst) $ concat [lookupTag ts (cat,val) | Scope True cat val <- qs]

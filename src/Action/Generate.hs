@@ -69,7 +69,7 @@ generate xs = do
     writeStoreFile (out <.> "hoo") $ \store -> do
         xs <- reorderItems =<< writeItems store out xs
         putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
-        writeTags (Database out) extra xs
+        writeTags store extra xs
         writeNames store xs
         writeTypes (Database out) xs
 

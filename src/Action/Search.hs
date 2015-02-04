@@ -35,7 +35,7 @@ actionSearch Search{..} = do
 
 search :: StoreIn -> Database -> Query -> IO [ItemEx]
 search store pkg (Query strs typ qtags) = do
-    tags <- readTags pkg
+    tags <- readTags store
     let exact = Scope True "is" "exact" `elem` qtags
     is <- case (strs, typ) of
         ([], Nothing) | not $ null qtags, xs@(_:_) <- searchTags tags qtags -> return xs
