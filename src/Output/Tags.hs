@@ -43,7 +43,7 @@ writeTags store extra xs = writeStoreType store (undefined :: Tags) $ do
     writeStoreBS store $ join0 $ map fst packages
     writeStoreBS store $ join0 $ map fst categories
     writeStoreV store $ V.fromList $ map snd packages
-    writeStoreV store $ V.fromList $ scanl (+) 0 $ map (length . snd) categories
+    writeStoreV store $ V.fromList $ scanl (+) (0 :: Word32) $ map (genericLength . snd) categories
     writeStoreV store $ V.fromList $ concatMap snd categories
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
