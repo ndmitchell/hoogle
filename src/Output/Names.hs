@@ -11,6 +11,7 @@ import Foreign
 import Foreign.C.String
 import Foreign.C.Types
 import Control.Exception
+import System.IO.Unsafe
 
 import Input.Type
 import General.Util
@@ -40,8 +41,8 @@ toName (IPackage x) = [x]
 toName (IModule x) = [last $ splitOn "." x]
 toName (IDecl x) = declNames x
 
-searchNames :: StoreIn -> Bool -> [String] -> IO [(Score, Id)]
-searchNames store exact (filter (/= "") -> xs) = do
+searchNames :: StoreIn -> Bool -> [String] -> [(Score, Id)]
+searchNames store exact (filter (/= "") -> xs) = unsafePerformIO $ do
     let [n,v,bs] = readStoreList $ readStoreType Names store
     -- if there are no questions, we will match everything, which exceeds the result buffer
     if null xs then return $ map (0,) $ V.toList $ readStoreV v else do

@@ -39,11 +39,11 @@ search store (Query strs typ qtags) = do
     let exact = Scope True "is" "exact" `elem` qtags
     is <- case (strs, typ) of
         ([], Nothing) | not $ null qtags, xs@(_:_) <- searchTags tags qtags -> return xs
-                      | otherwise -> searchNames store exact []
+                      | otherwise -> return $ searchNames store exact []
         ([], Just t ) -> searchTypes store t
-        (xs, Nothing) -> searchNames store exact xs
+        (xs, Nothing) -> return $ searchNames store exact xs
         (xs, Just t ) -> do
-            nam <- Set.fromList <$> searchNames store exact xs
+            nam <- return $ Set.fromList $ searchNames store exact xs
             filter (`Set.member` nam) <$> searchTypes store t
     look <- lookupItem store
     return $ map (unsafePerformIO . look . snd) $ sortOn fst $ filter (filterTags tags qtags . snd) is
