@@ -67,10 +67,10 @@ writeItems store file xs = do
         f x = True
 
 
-lookupItem :: StoreIn -> IO (Id -> IO ItemEx)
-lookupItem store = do
+lookupItem :: StoreIn -> (Id -> ItemEx)
+lookupItem store =
     let x = readStoreBS $ readStoreType Items store
-    return $ \(Id i) -> do
+    in \(Id i) ->
         let i2 = fromIntegral i
-        let n = intFromBS $ BS.take intSize $ BS.drop i2 x
-        return $ snd $ inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i2 + intSize) x
+            n = intFromBS $ BS.take intSize $ BS.drop i2 x
+        in snd $ inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i2 + intSize) x

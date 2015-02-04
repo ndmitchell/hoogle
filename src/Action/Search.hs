@@ -7,7 +7,6 @@ import System.FilePath
 import Control.Monad.Extra
 import qualified Data.Set as Set
 import Data.List.Extra
-import System.IO.Unsafe
 
 import Output.Items
 import Output.Tags
@@ -45,5 +44,5 @@ search store (Query strs typ qtags) = do
         (xs, Just t ) -> do
             nam <- return $ Set.fromList $ searchNames store exact xs
             filter (`Set.member` nam) <$> searchTypes store t
-    look <- lookupItem store
-    return $ map (unsafePerformIO . look . snd) $ sortOn fst $ filter (filterTags tags qtags . snd) is
+    let look = lookupItem store
+    return $ map (look . snd) $ sortOn fst $ filter (filterTags tags qtags . snd) is
