@@ -71,3 +71,15 @@ Only the last line might actually be required. Based on http://unix.stackexchang
 ## New Instructions
 
     (cd hoogle && git pull) && runhaskell hoogle/script/Upgrade.hs
+
+## Cron
+
+A Cron job is scheduled (using `crontab -e`) with:
+
+	0 20 * * * bash -l /home/www/update.sh > /home/www/update.txt 2>&1
+
+The `update.sh` script is:
+
+	(cd /home/www/hoogle && git pull) && (cd /home/www && runhaskell hoogle/script/Upgrade.hs)
+
+That relies on /home/www/hoogle being a git clone of the Hoogle repo.
