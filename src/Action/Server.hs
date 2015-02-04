@@ -75,7 +75,7 @@ replyServer logs store cdn = \Input{..} -> case inputURL of
         let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
-                        [("tag",tagOptions $ grab "scope"),("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
+                        [("tags",tagOptions $ grab "scope"),("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
                     | otherwise -> fmap OutputString $ templateRender templateHome []
             Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ LBS.pack body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
@@ -93,7 +93,7 @@ replyServer logs store cdn = \Input{..} -> case inputURL of
             ,("version",showVersion version ++ " " ++ time)]
         templateIndex = templateFile "html/index.html" `templateApply` params
         templateEmpty = templateFile "html/welcome.html"
-        templateHome = templateIndex `templateApply` [("tag",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str "")]
+        templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str "")]
         templateLog = templateFile "html/log.html"
 
 
