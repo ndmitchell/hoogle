@@ -1,7 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, GeneralizedNewtypeDeriving, DeriveDataTypeable, FlexibleInstances #-}
 
 module Input.Type(
-    Database(..),
     ItemEx(..), Item(..),
     showItem, prettyItem, readItem,
     isIPackage, isIModule, splitIPackage, splitIModule,
@@ -23,7 +22,6 @@ import Control.Monad
 import Control.DeepSeq
 import Data.Data
 
-newtype Database = Database FilePath deriving Eq
 
 ---------------------------------------------------------------------
 -- DATABASE
