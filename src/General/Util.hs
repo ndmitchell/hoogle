@@ -14,7 +14,8 @@ module General.Util(
     showUTCTime,
     memoIO1, memoFile,
     error', list',
-    withs
+    withs,
+    tag, tag_,
     ) where
 
 import System.IO
@@ -144,3 +145,13 @@ list' [] = []
 withs :: Monad m => [(a -> m r) -> m r] -> ([a] -> m r) -> m r
 withs [] act = act []
 withs (f:fs) act = f $ \a -> withs fs $ \as -> act $ a:as
+
+
+tag :: String -> [String] -> String -> String
+tag name attr inner = "<" ++ unwords (name : map f attr) ++ ">" ++ inner ++ "</" ++ name ++ ">"
+    where f (break (== '=') -> (a,'=':b)) = a ++ "=\"" ++ escapeHTML b ++ "\""
+          f x = x
+
+tag_ :: String -> String -> String
+tag_ name inner = tag name [] inner
+
