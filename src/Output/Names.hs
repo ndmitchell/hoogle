@@ -7,7 +7,8 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.Vector.Storable as V
 import Data.Typeable
-import Foreign
+import Foreign.Ptr
+import Foreign.Marshal
 import Foreign.C.String
 import Foreign.C.Types
 import Control.Exception
