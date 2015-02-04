@@ -61,27 +61,6 @@ instance Binary Atom where
     put (Atom a b c d) = put a >> put b >> put c >> put d
     get = liftM4 Atom get get get get
 
-{-
-data Tree = Tree [(Scope, Tree)] [(Int, Tree)]
-          | TreeAtom Int Int Int
-
-writeScope Items{} $ do
-    writeParts $ do
-        writeByteString ...
-        writeByteString ...
-
-
-writeScope Package{} $ do
-    writeByteString ...
-    writeVector ...
-
-
-readList :: Scope -> [Scope] -- find all Int indexed children beneath me
-readScope (Tree scope)
-
-readVector :: Scope -> value
-
--}
 
 ---------------------------------------------------------------------
 -- WRITE OUT
