@@ -44,6 +44,7 @@ actionServer Server{..} = do
     putStrLn $ "Server started on port " ++ show port
     h <- if logs == "" then return stdout else openFile logs AppendMode
     hSetBuffering h LineBuffering
+    evaluate time
     readStoreFile (pkg <.> "hoo") $ \store ->
         server h port $ replyServer (Just logs) store cdn
 
