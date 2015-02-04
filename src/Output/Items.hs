@@ -12,6 +12,7 @@ import Data.IORef
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
+import Codec.Compression.GZip as GZip
 
 import Input.Type
 import General.Util
@@ -49,7 +50,7 @@ writeItems store file xs = do
             flip mapMaybeM xs $ \x -> case x of
                 Right item@ItemEx{..} | f itemItem -> do
                     i <- readIORef pos
-                    let bs = BS.concat $ LBS.toChunks $ UTF8.fromString $ unlines $ outputItem (Id i, item)
+                    let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, item)
                     writeStoreBS store $ intToBS $ BS.length bs
                     writeStoreBS store bs
                     writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
@@ -72,4 +73,4 @@ lookupItem store = do
     return $ \(Id i) -> do
         let i2 = fromIntegral i
         let n = intFromBS $ BS.take intSize $ BS.drop i2 x
-        return $ snd $ inputItem $ lines $ UTF8.toString $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i2 + intSize) x
+        return $ snd $ inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i2 + intSize) x
