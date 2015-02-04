@@ -56,9 +56,9 @@ writeTypes store xs = writeStoreType store Types $ do
 searchTypes :: StoreIn -> Type -> IO [(Score,Id)]
 searchTypes store q = do
     let [x1,x2,x3,x4] = readStoreList $ readStoreType Types store
-    dbRare <- readRarity x1
-    dbAlias <- readAlias x2
-    dbInst <- readInstance x3
+    dbRare <- return $ readRarity x1
+    dbAlias <- return $ readAlias x2
+    dbInst <- return $ readInstance x3
     let chkArity = checkArity q
         chkRare = checkRarity dbRare q
         chkNames = checkNames dbAlias dbInst q
@@ -125,10 +125,9 @@ writeRarity store xs = do
     return $ Rarity n r
 
 
-readRarity :: StoreIn -> IO Rarity
-readRarity store = do
-    count:rares <- return $ lines $ BS.unpack $ readStoreBS store
-    return $ Rarity (read count) $ Map.fromList $ map (second read . word1) rares
+readRarity :: StoreIn -> Rarity
+readRarity store = Rarity (read count) $ Map.fromList $ map (second read . word1) rares
+    where count:rares = lines $ BS.unpack $ readStoreBS store
 
 
 askRarity :: Rarity -> Type -> Int
@@ -155,10 +154,9 @@ writeAlias store xs = do
         [pretty $ packAlias name body | (name, xs) <- Map.toList a, body <- xs]
     return $ Aliases a
 
-readAlias :: StoreIn -> IO Aliases
-readAlias store = do
-    src <- return $ BS.unpack $ readStoreBS store
-    return $ Aliases $ Map.fromListWith (++) [second return $ fromJust $ unpackAlias $ fromParseResult $ parseDecl x | x <- lines src]
+readAlias :: StoreIn -> Aliases
+readAlias store = Aliases $ Map.fromListWith (++) [second return $ fromJust $ unpackAlias $ fromParseResult $ parseDecl x | x <- lines src]
+    where src = BS.unpack $ readStoreBS store
 
 {-
 aliasWords :: Aliases -> Type -> [String]
@@ -181,10 +179,9 @@ writeInstance store xs =
     writeStoreBS store $ BS.pack $ unlines
         [pretty t | IDecl t@InstDecl{} <- xs]
 
-readInstance :: StoreIn -> IO Instances
-readInstance store = do
-    src <- return $ BS.unpack $ readStoreBS store
-    return $ Instances $ map (fromParseResult . parseDecl) $ lines src
+readInstance :: StoreIn -> Instances
+readInstance store = Instances $ map (fromParseResult . parseDecl) $ lines src
+    where src = BS.unpack $ readStoreBS store
 
 
 ---------------------------------------------------------------------
