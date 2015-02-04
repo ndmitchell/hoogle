@@ -9,6 +9,7 @@ import System.FilePath
 import System.IO.Unsafe
 import Control.Exception
 import Control.DeepSeq
+import Data.Tuple.Extra
 import qualified Language.Javascript.JQuery as JQuery
 import qualified Language.Javascript.Flot as Flot
 import Data.Version
@@ -32,6 +33,7 @@ import Input.Type hiding (test)
 import General.Util
 import General.Web
 import General.Store
+import General.Template
 import Action.Search
 import Action.CmdLine
 
@@ -68,22 +70,21 @@ replyServer logs store pkg cdn Input{..} = case inputURL of
         let q = mconcat $ map parseQuery qSource
         results <- unsafeInterleaveIO $ search store pkg q
         let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
-        index <- unsafeInterleaveIO $ readFile "html/index.html"
-        welcome <- unsafeInterleaveIO $ readFile "html/welcome.html"
-        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags pkg
-        let common = [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.hs" else JQuery.url)
+        let index = templateFile "html/index.html"
+        let welcome = templateFile "html/welcome.html"
+        tags <- unsafeInterleaveIO $ concatMap (\x -> "<option" ++ (if x `elem` grab "scope" then " selected=selected" else "") ++ ">" ++ x ++ "</option>") . listTags <$> readTags store
+        let common = [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
                      ,("tags",tags),("version",showVersion version)]
-        return $ case lookup "mode" $ reverse inputArgs of
-            Nothing | qSource /= [] -> OutputString $ LBS.pack $ template index $ common ++ [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
-                    | otherwise -> OutputString $ LBS.pack $ template index $ common ++ [("body",welcome),("title","Hoogle"),("search","")]
-            Just "body" -> OutputString $ LBS.pack $ if null qSource then welcome else body
+        case lookup "mode" $ reverse inputArgs of
+            Nothing | qSource /= [] -> fmap OutputString $ templateRender index $ map (second $ templateStr . LBS.pack) $ common ++ [("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
+                    | otherwise -> fmap OutputString $ templateRender index $ ("body",welcome) : map (second $ templateStr . LBS.pack) (common ++ [("title","Hoogle"),("search","")])
+            Just "body" -> OutputString <$> if null qSource then templateRender welcome [] else return $ LBS.pack body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["log.txt"] | Just s <- logs -> OutputString . LBS.fromChunks . return <$> readLog s
     ["log.html"] | Just s <- logs -> do
         log <- readLog s
-        t <- readFile "html/log.html"
-        return $ OutputHTML $ LBS.pack $ template t [("data",analyseLog log)]
+        OutputHTML <$> templateRender (templateFile "html/log.html") [("data",templateStr $ LBS.pack $ analyseLog log)]
     xs -> return $ OutputFile $ joinPath $ "html" : xs
 
 

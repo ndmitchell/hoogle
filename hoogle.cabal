@@ -66,5 +66,6 @@ executable hoogle
         Query
         General.Prelude
         General.Store
+        General.Template
         General.Util
         General.Web
