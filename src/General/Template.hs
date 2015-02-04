@@ -73,6 +73,7 @@ treeEval = f . treeRemoveApp
 -- a tree, and a pre-optimised tree you can create
 data Template = Template Tree (IO Tree)
 
+{-# NOINLINE treeCache #-}
 treeCache :: Tree -> IO Tree
 treeCache t0 = unsafePerformIO $ do
     let files = [x | Lam x <- universe t0]
