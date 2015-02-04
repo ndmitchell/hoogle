@@ -1,23 +1,22 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable #-}
 
 module Output.Types(writeTypes, searchTypes) where
 
 
 import Language.Haskell.Exts
 import Language.Haskell.Exts.SrcLoc
-import System.IO.Extra
-import System.FilePath
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.ByteString.Char8 as BS
-import Control.Applicative
 import Data.Maybe
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
+import Data.Typeable
 
 import Input.Type
 import General.Util
+import General.Store
 
 
 {-
@@ -30,14 +29,16 @@ main: fromList [(0,6260),(1,21265),(2,12188),(3,4557),(4,1681),(5,732),(6,363),(
 ),(52,1),(53,1),(54,1),(55,1),(56,1),(57,1),(58,1),(59,1),(60,1),(61,1),(62,1),(
 75,1)] -}
 
-writeTypes :: Database -> [(Maybe Id, Item)] -> IO ()
-writeTypes db@(Database file) xs = do
-    rare <- writeRarity db $ map snd xs
-    writeAlias db $ map snd xs
-    writeInstance db $ map snd xs
+data Types = Types deriving Typeable
+
+writeTypes :: StoreOut -> [(Maybe Id, Item)] -> IO ()
+writeTypes store xs = writeStoreType store Types $ do
+    rare <- writeRarity store $ map snd xs
+    writeAlias store $ map snd xs
+    writeInstance store $ map snd xs
 
     let ys = Map.toList $ Map.fromListWith (++) [(t, [(j,i)]) | (j, (Just i, IDecl (TypeSig _ _ t))) <- zip [1..] xs]
-    writeFileBinary (file <.> "types") $ unlines $ concat
+    writeStoreBS store $ BS.pack $ unlines $ concat
         [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t, pretty t]
         | (t,i) <- sortOn (minimum . map fst . snd) ys]
 
@@ -52,11 +53,12 @@ writeTypes db@(Database file) xs = do
         [pretty t | (_, IDecl t@TypeDecl{}) <- xs]
 -}
 
-searchTypes :: Database -> Type -> IO [(Score,Id)]
-searchTypes db@(Database file) q = do
-    dbRare <- readRarity db
-    dbAlias <- readAlias db
-    dbInst <- readInstance db
+searchTypes :: StoreIn -> Type -> IO [(Score,Id)]
+searchTypes store q = do
+    let [x1,x2,x3,x4] = readStoreList $ readStoreType Types store
+    dbRare <- readRarity x1
+    dbAlias <- readAlias x2
+    dbInst <- readInstance x3
     let chkArity = checkArity q
         chkRare = checkRarity dbRare q
         chkNames = checkNames dbAlias dbInst q
@@ -70,7 +72,7 @@ searchTypes db@(Database file) q = do
             = (c, map read $ words $ BS.unpack ids) : f xs
             | otherwise = f xs
         f _ = []
-    map (0,) . concatMap snd . sortOn fst . f . BS.lines <$> BS.readFile (file <.> "types")
+    return $ map (0,) $ concatMap snd $ sortOn fst $ f $ BS.lines $ readStoreBS x4
 
 
 {-
@@ -113,19 +115,19 @@ typeNames = typ
 
 data Rarity = Rarity Int (Map.Map String Int)
 
-writeRarity :: Database -> [Item] -> IO Rarity
-writeRarity  (Database file) xs = do
+writeRarity :: StoreOut -> [Item] -> IO Rarity
+writeRarity store xs = do
     let n = length xs
     let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
-    writeFileBinary (file <.> "rare") $ unlines $
+    writeStoreBS store $ BS.pack $ unlines $
         show n :
         [x ++ " " ++ show i | (x,i) <- Map.toList r]
     return $ Rarity n r
 
 
-readRarity :: Database -> IO Rarity
-readRarity (Database file) = do
-    count:rares <- fmap lines $ readFile' $ file <.> "rare"
+readRarity :: StoreIn -> IO Rarity
+readRarity store = do
+    count:rares <- return $ lines $ BS.unpack $ readStoreBS store
     return $ Rarity (read count) $ Map.fromList $ map (second read . word1) rares
 
 
@@ -146,16 +148,16 @@ unpackAlias _ = Nothing
 packAlias :: String -> ([String], Type) -> Decl
 packAlias name (bind, rhs) = TypeDecl noLoc (Ident name) (map (UnkindedVar . Ident) bind) rhs
 
-writeAlias :: Database -> [Item] -> IO Aliases
-writeAlias (Database file) xs = do
+writeAlias :: StoreOut -> [Item] -> IO Aliases
+writeAlias store xs = do
     let a = Map.fromListWith (++) [(a, [b]) | IDecl t <- xs, Just (a,b) <- [unpackAlias t]]
-    writeFileBinary (file <.> "alias") $ unlines
+    writeStoreBS store $ BS.pack $ unlines
         [pretty $ packAlias name body | (name, xs) <- Map.toList a, body <- xs]
     return $ Aliases a
 
-readAlias :: Database -> IO Aliases
-readAlias (Database file) = do
-    src <- readFile $ file <.> "alias"
+readAlias :: StoreIn -> IO Aliases
+readAlias store = do
+    src <- return $ BS.unpack $ readStoreBS store
     return $ Aliases $ Map.fromListWith (++) [second return $ fromJust $ unpackAlias $ fromParseResult $ parseDecl x | x <- lines src]
 
 {-
@@ -174,14 +176,14 @@ aliasWords (Aliases mp) t = g Set.empty $ f t
 
 newtype Instances = Instances [Decl]
 
-writeInstance :: Database -> [Item] -> IO ()
-writeInstance (Database file) xs =
-    writeFileBinary (file <.> "instance") $ unlines
+writeInstance :: StoreOut -> [Item] -> IO ()
+writeInstance store xs =
+    writeStoreBS store $ BS.pack $ unlines
         [pretty t | IDecl t@InstDecl{} <- xs]
 
-readInstance :: Database -> IO Instances
-readInstance (Database file) = do
-    src <- readFile $ file <.> "instance"
+readInstance :: StoreIn -> IO Instances
+readInstance store = do
+    src <- return $ BS.unpack $ readStoreBS store
     return $ Instances $ map (fromParseResult . parseDecl) $ lines src
 
 

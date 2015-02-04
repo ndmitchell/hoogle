@@ -40,10 +40,10 @@ search store pkg (Query strs typ qtags) = do
     is <- case (strs, typ) of
         ([], Nothing) | not $ null qtags, xs@(_:_) <- searchTags tags qtags -> return xs
                       | otherwise -> searchNames store exact []
-        ([], Just t ) -> searchTypes pkg t
+        ([], Just t ) -> searchTypes store t
         (xs, Nothing) -> searchNames store exact xs
         (xs, Just t ) -> do
             nam <- Set.fromList <$> searchNames store exact xs
-            filter (`Set.member` nam) <$> searchTypes pkg t
+            filter (`Set.member` nam) <$> searchTypes store t
     look <- lookupItem store
     return $ map (unsafePerformIO . look . snd) $ sortOn fst $ filter (filterTags tags qtags . snd) is

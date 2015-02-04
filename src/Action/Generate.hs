@@ -24,7 +24,6 @@ import Input.Hoogle
 import Input.Download
 import Input.Reorder
 import Input.Set
-import Input.Type
 import General.Util
 import General.Store
 import System.Mem
@@ -71,7 +70,7 @@ generate xs = do
         putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
         writeTags store extra xs
         writeNames store xs
-        writeTypes (Database out) xs
+        writeTypes store xs
 
         whenM getGCStatsEnabled $ do
             performGC
