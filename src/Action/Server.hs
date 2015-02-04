@@ -57,8 +57,6 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
             putChar '.'
     putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / genericLength qs) ++ ")"
 
---welcome = memoFile "html/welcome.html" BS.readFile
---index = memoFile "html/index.html" (template . BS.readFile)
 
 replyServer :: Maybe FilePath -> StoreIn -> String -> Input -> IO Output
 replyServer logs store cdn = \Input{..} -> case inputURL of
