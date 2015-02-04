@@ -72,10 +72,10 @@ listTags Tags{..} = let (a,b) = span ("set:" `isPrefixOf`) (f categoryNames) in 
 lookupTag :: Tags -> (String, String) -> [(Id,Id)]
 lookupTag Tags{..} ("package",x) = map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
 lookupTag Tags{..} ("module",x) = map (moduleIds V.!) $ findIndices (== BS.pack x) $ split0 moduleNames
-lookupTag Tags{..} (cat,x) = concat
+lookupTag Tags{..} x = concat
     [ V.toList $ V.take (fromIntegral $ end - start) $ V.drop (fromIntegral start) categoryIds
-    | i <- findIndices (== BS.pack x) $ split0 categoryNames
-    , let start = categoryOffsets V.! i, let end = categoryOffsets V.! i
+    | i <- findIndices (== BS.pack (joinPair ":" x)) $ split0 categoryNames
+    , let start = categoryOffsets V.! i, let end = categoryOffsets V.! (i + 1)
     ]
 
 filterTags :: Tags -> [Scope] -> (Id -> Bool)
