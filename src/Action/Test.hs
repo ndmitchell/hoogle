@@ -25,7 +25,7 @@ actionTest Test{} = withBuffering stdout NoBuffering $ do
 testURL :: IO ()
 testURL = testing "testURL" $ readStoreFile "output/all.hoo" $ \store -> do
     let a ==$ f = do
-            res <- search store (parseQuery a)
+            res <- return $ search store (parseQuery a)
             case res of
                 ItemEx{..}:_ | f itemURL -> putChar '.'
                 _ -> error $ show (a, take 1 res)

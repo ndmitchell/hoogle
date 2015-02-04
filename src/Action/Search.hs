@@ -6,6 +6,7 @@ import System.FilePath
 import Control.Monad.Extra
 import qualified Data.Set as Set
 import Data.List.Extra
+import Data.Functor.Identity
 
 import Output.Items
 import Output.Tags
@@ -28,11 +29,11 @@ actionSearch Search{..} = do
     let rest = query
     forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
         readStoreFile ("output" </> pkg <.> "hoo") $ \store -> do
-            res <- search store $ parseQuery $ unwords rest
+            res <- return $ search store $ parseQuery $ unwords rest
             forM_ (maybe id take count res) $ putStrLn . prettyItem . itemItem
 
-search :: StoreIn -> Query -> IO [ItemEx]
-search store (Query strs typ qtags) = do
+search :: StoreIn -> Query -> [ItemEx]
+search store (Query strs typ qtags) = runIdentity $ do
     let tags = readTags store
     let exact = Scope True "is" "exact" `elem` qtags
     is <- case (strs, typ) of

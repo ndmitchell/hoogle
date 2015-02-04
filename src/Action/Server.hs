@@ -68,7 +68,7 @@ replyServer logs store cdn Input{..} = case inputURL of
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = mconcat $ map parseQuery qSource
-        results <- unsafeInterleaveIO $ search store q
+        let results = search store q
         let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
         let index = templateFile "html/index.html"
         let welcome = templateFile "html/welcome.html"
