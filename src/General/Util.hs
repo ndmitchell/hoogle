@@ -16,7 +16,8 @@ module General.Util(
     error', list',
     withs,
     tag, tag_,
-    noinline
+    noinline,
+    strict
     ) where
 
 import System.IO
@@ -32,6 +33,7 @@ import Data.Time.Format
 import System.IO.Unsafe
 import Control.DeepSeq
 import System.Directory
+import Control.Exception.Extra
 import Data.IORef
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
@@ -159,3 +161,12 @@ tag_ name inner = tag name [] inner
 {-# NOINLINE noinline #-}
 noinline :: a -> a
 noinline a = a
+
+
+-- ensure that no value escapes in a thunk from the value
+strict :: NFData a => IO a -> IO a
+strict act = do
+    res <- try_ act
+    case res of
+        Left e -> error' =<< showException e
+        Right v -> do evaluate $ rnf v; return v
