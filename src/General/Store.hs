@@ -10,7 +10,7 @@ import Data.IORef
 import System.IO.Extra
 import Data.Typeable
 import qualified Data.Vector.Storable as Vector
-import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.Lazy as LBS
 import Foreign.Storable
@@ -18,13 +18,17 @@ import Foreign.Ptr
 import Foreign.ForeignPtr
 import Control.Monad.Extra
 import Data.Binary
-import Data.List
+import Data.List.Extra
 import System.IO.MMap
 import Control.Applicative
 import System.IO.Unsafe
 import General.Util
 import Control.DeepSeq
+import Data.Version
+import Paths_hoogle
 
+-- ensure the string is always 25 chars long, so version numbers don't change its size
+verString = BS.pack $ take 25 $ "HOOGLE-" ++ showVersion version ++ repeat ' '
 
 ---------------------------------------------------------------------
 -- SERIALISATION HELPERS
@@ -83,6 +87,7 @@ writeStoreFile file act = do
         let bs = encodeBS $ reverse atoms
         BS.hPut h bs
         BS.hPut h $ intToBS $ BS.length bs
+        BS.hPut h verString
         return res
 
 notParts :: IORef Bool -> IO a -> IO a
@@ -139,9 +144,21 @@ data StoreIn = StoreIn (Ptr ()) [Atom] -- atoms are filtered by readStoreType
 
 readStoreFile :: NFData a => FilePath -> (StoreIn -> IO a) -> IO a
 readStoreFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> strict $ do
-    n <- intFromBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - intSize, intSize)
-    atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - intSize - n, n)
+    -- check is longer than my version string
+    when (len < BS.length verString + intSize) $
+        error $ "The file " ++ file ++ " is " ++ show len ++ " bytes, corrupt Hoogle database."
+
     let verN = BS.length verString
+    ver <- BS.unsafePackCStringLen (plusPtr ptr $ len - verN, verN)
+    when (verString /= ver) $
+        error $ "The file " ++ file ++ " is the wrong version.\n" ++
+                "Expected: " ++ trim (BS.unpack verString) ++ "\n" ++
+                "Got     : " ++ trim (BS.unpack ver)
+
+    atomSize <- intFromBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize, intSize)
+    when (len < BS.length verString + intSize + atomSize) $
+        error $ "The file " ++ file ++ " is corrupt, couldn't read atom table."
+    atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize - atomSize, atomSize)
     act $ StoreIn ptr atoms
 
 readStoreList :: StoreIn -> [StoreIn]
