@@ -141,8 +141,10 @@ storeWriteType StoreWrite{..} t act = notParts swParts $ do
 -- READ OUT
 
 data StoreRead = StoreRead
-    {srPtr :: Ptr ()
-    ,srAtoms :: [Atom] -- atoms are filtered by storeReadType
+    {srFile :: FilePath
+    ,srPtr :: Ptr ()
+    ,srAtoms :: [Atom] -- filtered and name prefix stripped list of atoms
+    ,srPrefix :: [String] -- grows as we descend
     }
 
 storeReadFile :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
@@ -162,18 +164,19 @@ storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> 
     when (len < BS.length verString + intSize + atomSize) $
         error $ "The file " ++ file ++ " is corrupt, couldn't read atom table."
     atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize - atomSize, atomSize)
-    act $ StoreRead ptr atoms
+    act $ StoreRead file ptr atoms []
 
 storeReadList :: StoreRead -> [StoreRead]
-storeReadList StoreRead{..} = map (StoreRead srPtr . return) $ filter (null . atomName) srAtoms
+storeReadList sr@StoreRead{..} =
+    [sr{srAtoms=[a], srPrefix=srPrefix++["@" ++ show i]} | (i,a) <- zip [0..] $ filter (null . atomName) srAtoms]
 
 storeReadType :: Typeable t => t -> StoreRead -> StoreRead
-storeReadType t StoreRead{..}
-    | null good = error $ "Couldn't find atom with name " ++ name
-    | otherwise = StoreRead srPtr [a{atomName = tail $ atomName a} | a <- good]
+storeReadType t sr@StoreRead{..}
+    | null found = error $ "The file " ++ srFile ++ " has no atoms named " ++ intercalate "." (srPrefix++[name])
+    | otherwise = sr{srAtoms=found, srPrefix=srPrefix++[name]}
     where
         name = show $ typeOf t
-        good = filter (isPrefixOf [name] . atomName) srAtoms
+        found = [a{atomName=xs} | a@Atom{atomName=x:xs} <- srAtoms, x == name]
 
 storeReadBS :: StoreRead -> BS.ByteString
 storeReadBS StoreRead{..}
