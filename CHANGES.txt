@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    G521, make sure it works with inverted color preferences
     Rewrite from scratch
 4.2.38
     #96, allow certicate verification failures
