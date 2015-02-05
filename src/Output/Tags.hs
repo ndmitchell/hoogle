@@ -70,6 +70,8 @@ listTags Tags{..} = let (a,b) = span ("set:" `isPrefixOf`) (f categoryNames) in 
     where f = map BS.unpack . split0
 
 lookupTag :: Tags -> (String, String) -> [(Id,Id)]
+lookupTag Tags{..} ("is",'p':xs) | xs `isPrefixOf` "ackage" = map (dupe . fst) $ V.toList packageIds
+lookupTag Tags{..} ("is",'m':xs) | xs `isPrefixOf` "odule" = map (dupe . fst) $ V.toList moduleIds
 lookupTag Tags{..} ("package",x) = map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
 lookupTag Tags{..} ("module",lower -> x) = map (moduleIds V.!) $ findIndices f $ split0 moduleNames
     where
