@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards #-}
 
 module General.Store(
     Typeable, intSize, intFromBS, intToBS, encodeBS, decodeBS,
@@ -25,6 +25,7 @@ import System.IO.Unsafe
 import General.Util
 import Control.DeepSeq
 import Data.Version
+import Data.Char
 import Paths_hoogle
 
 -- ensure the string is always 25 chars long, so version numbers don't change its size
@@ -142,6 +143,7 @@ storeWriteType StoreWrite{..} t act = notParts swParts $ do
 
 data StoreRead = StoreRead
     {srFile :: FilePath
+    ,srLen :: Int
     ,srPtr :: Ptr ()
     ,srAtoms :: [Atom] -- filtered and name prefix stripped list of atoms
     ,srPrefix :: [String] -- grows as we descend
@@ -151,20 +153,20 @@ storeReadFile :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
 storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> strict $ do
     -- check is longer than my version string
     when (len < BS.length verString + intSize) $
-        error $ "The file " ++ file ++ " is " ++ show len ++ " bytes, corrupt Hoogle database."
+        error $ "The Hoogle file " ++ file ++ " is corrupt, only " ++ show len ++ " bytes."
 
     let verN = BS.length verString
     ver <- BS.unsafePackCStringLen (plusPtr ptr $ len - verN, verN)
     when (verString /= ver) $
-        error $ "The file " ++ file ++ " is the wrong version.\n" ++
+        error $ "The Hoogle file " ++ file ++ " is the wrong version.\n" ++
                 "Expected: " ++ trim (BS.unpack verString) ++ "\n" ++
-                "Got     : " ++ trim (BS.unpack ver)
+                "Got     : " ++ map (\x -> if isAlphaNum x || x `elem` "_-. " then x else '?') (trim $ BS.unpack ver)
 
     atomSize <- intFromBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize, intSize)
-    when (len < BS.length verString + intSize + atomSize) $
-        error $ "The file " ++ file ++ " is corrupt, couldn't read atom table."
+    when (len < verN + intSize + atomSize) $
+        error $ "The Hoogle file " ++ file ++ " is corrupt, couldn't read atom table."
     atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize - atomSize, atomSize)
-    act $ StoreRead file ptr atoms []
+    act $ StoreRead file len ptr atoms []
 
 storeReadList :: StoreRead -> [StoreRead]
 storeReadList sr@StoreRead{..} =
@@ -172,22 +174,30 @@ storeReadList sr@StoreRead{..} =
 
 storeReadType :: Typeable t => t -> StoreRead -> StoreRead
 storeReadType t sr@StoreRead{..}
-    | null found = error $ "The file " ++ srFile ++ " has no atoms named " ++ intercalate "." (srPrefix++[name])
+    | null found = error $ "The Hoogle file " ++ srFile ++ " is corrupt, no atoms named " ++ concatMap (++".") (srPrefix++[name])
     | otherwise = sr{srAtoms=found, srPrefix=srPrefix++[name]}
     where
         name = show $ typeOf t
         found = [a{atomName=xs} | a@Atom{atomName=x:xs} <- srAtoms, x == name]
 
+storeReadAtom :: StoreRead -> Int -> (Ptr a, Int)
+storeReadAtom StoreRead{..} size = case filter (null . atomName) srAtoms of
+    [Atom{..}] ->
+        if atomSize /= size then
+            error $ "The Hoogle file " ++ srFile ++ " is corrupt, incorrect atom size for " ++ name ++ "."
+        else if atomPosition < 0 || atomPosition + (atomSize * atomCount) > srLen then
+            error $ "The hoogle file " ++ srFile ++ " is corrupt, incorrect bounds for " ++ name ++ "."
+        else
+            (plusPtr srPtr atomPosition, atomCount)
+    [] -> error $ "The Hoogle file " ++ srFile ++ " is corrupt, no atom named " ++ name ++ "."
+    xs -> error $ "The Hoogle file " ++ srFile ++ " is corrupt, " ++ show (length xs) ++ " atoms named " ++ name ++ ", expected 1."
+    where name = intercalate "." srPrefix
+
 storeReadBS :: StoreRead -> BS.ByteString
-storeReadBS StoreRead{..}
-    | [Atom{..}] <- good, atomSize == 1 = unsafePerformIO $ BS.unsafePackCStringLen (plusPtr srPtr atomPosition, atomCount)
-    | otherwise = error "bad BS"
-    where good = filter (null . atomName) srAtoms
+storeReadBS sr = unsafePerformIO $ BS.unsafePackCStringLen $ storeReadAtom sr 1
 
 storeReadV :: forall a . Storable a => StoreRead -> Vector.Vector a
-storeReadV StoreRead{..}
-    | [Atom{..}] <- good, atomSize == sizeOf (undefined :: a) = unsafePerformIO $ do
-        ptr <- newForeignPtr_ $ plusPtr srPtr atomPosition
-        return $ Vector.unsafeFromForeignPtr0 ptr atomCount
-    | otherwise = error $ "bad vector, " ++ show (map atomSize good)
-    where good = filter (null . atomName) srAtoms
+storeReadV sr = unsafePerformIO $ do
+    let (ptr, len) = storeReadAtom sr $ sizeOf (undefined :: a)
+    ptr <- newForeignPtr_ ptr
+    return $ Vector.unsafeFromForeignPtr0 ptr len
