@@ -47,7 +47,7 @@ writeTags store extra xs = storeWriteType store (undefined :: Tags) $ do
     storeWriteV store $ V.fromList $ concatMap snd categories
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
-    storeWriteBS store $ join0 $ map fst modules
+    storeWriteBS store $ join0 $ map (lower . fst) modules
     storeWriteV store $ V.fromList $ map snd modules
     where
         addRange :: [(String, [(Maybe Id,a)])] -> [(String, (Id, Id))]
@@ -71,7 +71,12 @@ listTags Tags{..} = let (a,b) = span ("set:" `isPrefixOf`) (f categoryNames) in 
 
 lookupTag :: Tags -> (String, String) -> [(Id,Id)]
 lookupTag Tags{..} ("package",x) = map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
-lookupTag Tags{..} ("module",x) = map (moduleIds V.!) $ findIndices (== BS.pack x) $ split0 moduleNames
+lookupTag Tags{..} ("module",lower -> x) = map (moduleIds V.!) $ findIndices f $ split0 moduleNames
+    where
+        f | Just x <- stripPrefix "." x, Just x <- stripSuffix "." x = (==) (BS.pack x)
+          | Just x <- stripPrefix "." x = BS.isPrefixOf $ BS.pack x
+          | otherwise = let y = BS.pack x; y2 = BS.pack $ ('.':x)
+                        in \v -> y `BS.isPrefixOf` v || y2 `BS.isInfixOf` v
 lookupTag Tags{..} x = concat
     [ V.toList $ V.take (fromIntegral $ end - start) $ V.drop (fromIntegral start) categoryIds
     | i <- findIndices (== BS.pack (joinPair ":" x)) $ split0 categoryNames

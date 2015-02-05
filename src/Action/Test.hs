@@ -46,3 +46,4 @@ testURL = testing "testURL" $ storeReadFile "output/all.hoo" $ \store -> do
     "map -package:base" ==$ \x -> not $ "/base/" `isInfixOf` x
     "<>" === hackage "base/docs/Data-Monoid.html#v:-60--62-"
     "Data.Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
+    "Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
