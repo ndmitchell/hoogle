@@ -69,10 +69,10 @@ instance Binary Atom where
 -- WRITE OUT
 
 data StoreWrite = StoreWrite
-    {storePrefix :: IORef [String] -- the current prefix
-    ,storeAtoms :: IORef [Atom] -- the atoms that have been stored
-    ,storeParts :: IORef Bool -- am I currently storing a part (part is first in storeAtoms)
-    ,storeHandle :: Handle
+    {swPrefix :: IORef [String] -- the current prefix
+    ,swAtoms :: IORef [Atom] -- the atoms that have been stored
+    ,swParts :: IORef Bool -- am I currently storing a part (part is first in swAtoms)
+    ,swHandle :: Handle
     }
 
 storeWriteFile :: FilePath -> (StoreWrite -> IO a) -> IO a
@@ -97,17 +97,17 @@ notParts ref act = do
 
 storeWritePtr :: forall a . Storable a => StoreWrite -> Ptr a -> Int -> IO ()
 storeWritePtr StoreWrite{..} ptr len = do
-    parts <- readIORef storeParts
+    parts <- readIORef swParts
     let size = sizeOf (undefined :: a)
     if parts then do
-        a:as <- readIORef storeAtoms
+        a:as <- readIORef swAtoms
         when (atomSize a `notElem` [0, size]) $ error "Writing parts, but atom size has changed"
-        writeIORef storeAtoms $ a{atomSize=size, atomCount=atomCount a + len} : as
+        writeIORef swAtoms $ a{atomSize=size, atomCount=atomCount a + len} : as
      else do
-        tell <- hTell storeHandle
-        prefix <- readIORef storePrefix
-        modifyIORef storeAtoms (Atom prefix (fromInteger tell) len size:)
-    hPutBuf storeHandle ptr $ len * size
+        tell <- hTell swHandle
+        prefix <- readIORef swPrefix
+        modifyIORef swAtoms (Atom prefix (fromInteger tell) len size:)
+    hPutBuf swHandle ptr $ len * size
 
 storeWriteBS :: StoreWrite -> BS.ByteString -> IO ()
 storeWriteBS s bs = BS.unsafeUseAsCStringLen bs $ \(ptr,len) -> storeWritePtr s ptr len
@@ -116,24 +116,24 @@ storeWriteV :: Storable a => StoreWrite -> Vector.Vector a -> IO ()
 storeWriteV s v = Vector.unsafeWith v $ \ptr -> storeWritePtr s ptr $ Vector.length v
 
 storeWriteParts :: StoreWrite -> IO a -> IO a
-storeWriteParts StoreWrite{..} act = notParts storeParts $ do
-    prefix <- readIORef storePrefix
-    tell <- hTell storeHandle
-    modifyIORef storeAtoms (Atom prefix 0 (fromIntegral tell) 0 :)
-    writeIORef storeParts True
+storeWriteParts StoreWrite{..} act = notParts swParts $ do
+    prefix <- readIORef swPrefix
+    tell <- hTell swHandle
+    modifyIORef swAtoms (Atom prefix 0 (fromIntegral tell) 0 :)
+    writeIORef swParts True
     res <- act
-    writeIORef storeParts False
+    writeIORef swParts False
     return res
 
 storeWriteType :: Typeable t => StoreWrite -> t -> IO a -> IO a
-storeWriteType StoreWrite{..} t act = notParts storeParts $ do
-    prefix <- readIORef storePrefix
+storeWriteType StoreWrite{..} t act = notParts swParts $ do
+    prefix <- readIORef swPrefix
     let name = prefix ++ [show $ typeOf t]
-    atoms <- readIORef storeAtoms
+    atoms <- readIORef swAtoms
     when (name `elem` map atomName atoms) $ error $ "Duplicate atom name, " ++ show name
-    writeIORef storePrefix name
+    writeIORef swPrefix name
     res <- act
-    modifyIORef storePrefix init
+    modifyIORef swPrefix init
     return res
 
 
