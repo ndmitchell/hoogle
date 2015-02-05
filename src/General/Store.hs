@@ -24,7 +24,6 @@ import Control.Applicative
 import System.IO.Unsafe
 import General.Util
 import Control.DeepSeq
-import Control.Exception.Extra
 
 
 ---------------------------------------------------------------------
@@ -139,13 +138,11 @@ writeStoreType StoreOut{..} t act = notParts storeParts $ do
 data StoreIn = StoreIn (Ptr ()) [Atom] -- atoms are filtered by readStoreType
 
 readStoreFile :: NFData a => FilePath -> (StoreIn -> IO a) -> IO a
-readStoreFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> do
+readStoreFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> strict $ do
     n <- intFromBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - intSize, intSize)
     atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - intSize - n, n)
-    res <- try_ $ act $ StoreIn ptr atoms
-    case res of
-        Left e -> error' =<< showException e
-        Right v -> do evaluate $ rnf v; return v
+    let verN = BS.length verString
+    act $ StoreIn ptr atoms
 
 readStoreList :: StoreIn -> [StoreIn]
 readStoreList (StoreIn ptr xs) = map (StoreIn ptr . return) $ filter (null . atomName) xs
