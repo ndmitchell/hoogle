@@ -2,6 +2,8 @@
 :set -isrc
 :load Main src\Paths.hs
 
+:def test const $ return ":main test"
+
 :{
 :def opt \xs -> return $ unlines
         [":!mkdir obj"
