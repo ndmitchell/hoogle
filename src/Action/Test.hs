@@ -23,7 +23,7 @@ actionTest Test{} = withBuffering stdout NoBuffering $ do
 
 
 testURL :: IO ()
-testURL = testing "testURL" $ readStoreFile "output/all.hoo" $ \store -> do
+testURL = testing "testURL" $ storeReadFile "output/all.hoo" $ \store -> do
     let a ==$ f = do
             res <- return $ search store (parseQuery a)
             case res of

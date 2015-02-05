@@ -45,14 +45,14 @@ actionServer Server{..} = do
     h <- if logs == "" then return stdout else openFile logs AppendMode
     hSetBuffering h LineBuffering
     evaluate time
-    readStoreFile (pkg <.> "hoo") $ \store ->
+    storeReadFile (pkg <.> "hoo") $ \store ->
         server h port $ replyServer (Just logs) store cdn
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
-    (t,_) <- duration $ readStoreFile "output/all.hoo" $ \store -> do
+    (t,_) <- duration $ storeReadFile "output/all.hoo" $ \store -> do
         let op = replyServer Nothing store ""
         forM_ qs $ \x -> do
             res <- op x
@@ -64,7 +64,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 time :: String
 time = unsafePerformIO $ showUTCTime "%Y-%m-%d %H:%M" <$> getCurrentTime
 
-replyServer :: Maybe FilePath -> StoreIn -> String -> Input -> IO Output
+replyServer :: Maybe FilePath -> StoreRead -> String -> Input -> IO Output
 replyServer logs store cdn = \Input{..} -> case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do

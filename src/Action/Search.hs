@@ -28,11 +28,11 @@ actionSearch Search{..} = do
     let pkg = [database | database /= ""]
     let rest = query
     forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
-        readStoreFile ("output" </> pkg <.> "hoo") $ \store -> do
+        storeReadFile ("output" </> pkg <.> "hoo") $ \store -> do
             res <- return $ search store $ parseQuery $ unwords rest
             forM_ (maybe id take count res) $ putStrLn . prettyItem . itemItem
 
-search :: StoreIn -> Query -> [ItemEx]
+search :: StoreRead -> Query -> [ItemEx]
 search store (Query strs typ qtags) = runIdentity $ do
     let tags = readTags store
     let exact = Scope True "is" "exact" `elem` qtags

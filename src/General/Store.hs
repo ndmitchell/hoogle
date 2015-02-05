@@ -2,8 +2,8 @@
 
 module General.Store(
     Typeable, intSize, intFromBS, intToBS, encodeBS, decodeBS,
-    StoreOut, writeStoreFile, writeStoreType, writeStoreParts, writeStoreBS, writeStoreV,
-    StoreIn, readStoreFile, readStoreType, readStoreList, readStoreBS, readStoreV
+    StoreWrite, storeWriteFile, storeWriteType, storeWriteParts, storeWriteBS, storeWriteV,
+    StoreRead, storeReadFile, storeReadType, storeReadList, storeReadBS, storeReadV
     ) where
 
 import Data.IORef
@@ -68,20 +68,20 @@ instance Binary Atom where
 ---------------------------------------------------------------------
 -- WRITE OUT
 
-data StoreOut = StoreOut
+data StoreWrite = StoreWrite
     {storePrefix :: IORef [String] -- the current prefix
     ,storeAtoms :: IORef [Atom] -- the atoms that have been stored
     ,storeParts :: IORef Bool -- am I currently storing a part (part is first in storeAtoms)
     ,storeHandle :: Handle
     }
 
-writeStoreFile :: FilePath -> (StoreOut -> IO a) -> IO a
-writeStoreFile file act = do
+storeWriteFile :: FilePath -> (StoreWrite -> IO a) -> IO a
+storeWriteFile file act = do
     prefix <- newIORef []
     atoms <- newIORef []
     parts <- newIORef False
     withBinaryFile file WriteMode $ \h -> do
-        res <- act $ StoreOut prefix atoms parts h
+        res <- act $ StoreWrite prefix atoms parts h
         -- write the atoms out, probably using binary, then put the size at the end
         atoms <- readIORef atoms
         let bs = encodeBS $ reverse atoms
@@ -95,8 +95,8 @@ notParts ref act = do
     whenM (readIORef ref) $ error "Not allowed to be storing parts"
     act
 
-writeStorePtr :: forall a . Storable a => StoreOut -> Ptr a -> Int -> IO ()
-writeStorePtr StoreOut{..} ptr len = do
+storeWritePtr :: forall a . Storable a => StoreWrite -> Ptr a -> Int -> IO ()
+storeWritePtr StoreWrite{..} ptr len = do
     parts <- readIORef storeParts
     let size = sizeOf (undefined :: a)
     if parts then do
@@ -109,14 +109,14 @@ writeStorePtr StoreOut{..} ptr len = do
         modifyIORef storeAtoms (Atom prefix (fromInteger tell) len size:)
     hPutBuf storeHandle ptr $ len * size
 
-writeStoreBS :: StoreOut -> BS.ByteString -> IO ()
-writeStoreBS s bs = BS.unsafeUseAsCStringLen bs $ \(ptr,len) -> writeStorePtr s ptr len
+storeWriteBS :: StoreWrite -> BS.ByteString -> IO ()
+storeWriteBS s bs = BS.unsafeUseAsCStringLen bs $ \(ptr,len) -> storeWritePtr s ptr len
 
-writeStoreV :: Storable a => StoreOut -> Vector.Vector a -> IO ()
-writeStoreV s v = Vector.unsafeWith v $ \ptr -> writeStorePtr s ptr $ Vector.length v
+storeWriteV :: Storable a => StoreWrite -> Vector.Vector a -> IO ()
+storeWriteV s v = Vector.unsafeWith v $ \ptr -> storeWritePtr s ptr $ Vector.length v
 
-writeStoreParts :: StoreOut -> IO a -> IO a
-writeStoreParts StoreOut{..} act = notParts storeParts $ do
+storeWriteParts :: StoreWrite -> IO a -> IO a
+storeWriteParts StoreWrite{..} act = notParts storeParts $ do
     prefix <- readIORef storePrefix
     tell <- hTell storeHandle
     modifyIORef storeAtoms (Atom prefix 0 (fromIntegral tell) 0 :)
@@ -125,8 +125,8 @@ writeStoreParts StoreOut{..} act = notParts storeParts $ do
     writeIORef storeParts False
     return res
 
-writeStoreType :: Typeable t => StoreOut -> t -> IO a -> IO a
-writeStoreType StoreOut{..} t act = notParts storeParts $ do
+storeWriteType :: Typeable t => StoreWrite -> t -> IO a -> IO a
+storeWriteType StoreWrite{..} t act = notParts storeParts $ do
     prefix <- readIORef storePrefix
     let name = prefix ++ [show $ typeOf t]
     atoms <- readIORef storeAtoms
@@ -140,10 +140,10 @@ writeStoreType StoreOut{..} t act = notParts storeParts $ do
 ---------------------------------------------------------------------
 -- READ OUT
 
-data StoreIn = StoreIn (Ptr ()) [Atom] -- atoms are filtered by readStoreType
+data StoreRead = StoreRead (Ptr ()) [Atom] -- atoms are filtered by storeReadType
 
-readStoreFile :: NFData a => FilePath -> (StoreIn -> IO a) -> IO a
-readStoreFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> strict $ do
+storeReadFile :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
+storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> strict $ do
     -- check is longer than my version string
     when (len < BS.length verString + intSize) $
         error $ "The file " ++ file ++ " is " ++ show len ++ " bytes, corrupt Hoogle database."
@@ -159,27 +159,27 @@ readStoreFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> 
     when (len < BS.length verString + intSize + atomSize) $
         error $ "The file " ++ file ++ " is corrupt, couldn't read atom table."
     atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize - atomSize, atomSize)
-    act $ StoreIn ptr atoms
+    act $ StoreRead ptr atoms
 
-readStoreList :: StoreIn -> [StoreIn]
-readStoreList (StoreIn ptr xs) = map (StoreIn ptr . return) $ filter (null . atomName) xs
+storeReadList :: StoreRead -> [StoreRead]
+storeReadList (StoreRead ptr xs) = map (StoreRead ptr . return) $ filter (null . atomName) xs
 
-readStoreType :: Typeable t => t -> StoreIn -> StoreIn
-readStoreType t (StoreIn ptr atoms)
+storeReadType :: Typeable t => t -> StoreRead -> StoreRead
+storeReadType t (StoreRead ptr atoms)
     | null good = error $ "Couldn't find atom with name " ++ name
-    | otherwise = StoreIn ptr [a{atomName = tail $ atomName a} | a <- good]
+    | otherwise = StoreRead ptr [a{atomName = tail $ atomName a} | a <- good]
     where
         name = show $ typeOf t
         good = filter (isPrefixOf [name] . atomName) atoms
 
-readStoreBS :: StoreIn -> BS.ByteString
-readStoreBS (StoreIn ptr atoms)
+storeReadBS :: StoreRead -> BS.ByteString
+storeReadBS (StoreRead ptr atoms)
     | [Atom{..}] <- good, atomSize == 1 = unsafePerformIO $ BS.unsafePackCStringLen (plusPtr ptr atomPosition, atomCount)
     | otherwise = error "bad BS"
     where good = filter (null . atomName) atoms
 
-readStoreV :: forall a . Storable a => StoreIn -> Vector.Vector a
-readStoreV (StoreIn ptr atoms)
+storeReadV :: forall a . Storable a => StoreRead -> Vector.Vector a
+storeReadV (StoreRead ptr atoms)
     | [Atom{..}] <- good, atomSize == sizeOf (undefined :: a) = unsafePerformIO $ do
         ptr <- newForeignPtr_ $ plusPtr ptr atomPosition
         return $ Vector.unsafeFromForeignPtr0 ptr atomCount

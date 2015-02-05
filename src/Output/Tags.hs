@@ -33,22 +33,22 @@ join0 = BS.pack . intercalate "\0"
 split0 :: BS.ByteString -> [BS.ByteString]
 split0 = BS.split '\0'
 
-writeTags :: StoreOut -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
-writeTags store extra xs = writeStoreType store (undefined :: Tags) $ do
+writeTags :: StoreWrite -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
+writeTags store extra xs = storeWriteType store (undefined :: Tags) $ do
     let splitPkg = splitIPackage xs
     let packages = sortOn (lower . fst) $ addRange splitPkg
     let categories = map (first snd) $ Map.toList $ Map.fromListWith (++)
             [((weightTag ex, joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
 
-    writeStoreBS store $ join0 $ map fst packages
-    writeStoreBS store $ join0 $ map fst categories
-    writeStoreV store $ V.fromList $ map snd packages
-    writeStoreV store $ V.fromList $ scanl (+) (0 :: Word32) $ map (genericLength . snd) categories
-    writeStoreV store $ V.fromList $ concatMap snd categories
+    storeWriteBS store $ join0 $ map fst packages
+    storeWriteBS store $ join0 $ map fst categories
+    storeWriteV store $ V.fromList $ map snd packages
+    storeWriteV store $ V.fromList $ scanl (+) (0 :: Word32) $ map (genericLength . snd) categories
+    storeWriteV store $ V.fromList $ concatMap snd categories
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
-    writeStoreBS store $ join0 $ map fst modules
-    writeStoreV store $ V.fromList $ map snd modules
+    storeWriteBS store $ join0 $ map fst modules
+    storeWriteV store $ V.fromList $ map snd modules
     where
         addRange :: [(String, [(Maybe Id,a)])] -> [(String, (Id, Id))]
         addRange xs = [(a, (minimum is, maximum is)) | (a,b) <- xs, let is = mapMaybe fst b, a /= "", is /= []]
@@ -60,9 +60,9 @@ writeTags store extra xs = writeStoreType store (undefined :: Tags) $ do
         weightTag _ = 4
 
 
-readTags :: StoreIn -> Tags
-readTags store = Tags (readStoreBS x1) (readStoreBS x2) (readStoreV x3) (readStoreV x4) (readStoreV x5) (readStoreBS x6) (readStoreV x7)
-    where [x1,x2,x3,x4,x5,x6,x7] = readStoreList $ readStoreType (undefined :: Tags) store
+readTags :: StoreRead -> Tags
+readTags store = Tags (storeReadBS x1) (storeReadBS x2) (storeReadV x3) (storeReadV x4) (storeReadV x5) (storeReadBS x6) (storeReadV x7)
+    where [x1,x2,x3,x4,x5,x6,x7] = storeReadList $ storeReadType (undefined :: Tags) store
 
 
 listTags :: Tags -> [String]

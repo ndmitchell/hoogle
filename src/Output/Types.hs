@@ -32,14 +32,14 @@ main: fromList [(0,6260),(1,21265),(2,12188),(3,4557),(4,1681),(5,732),(6,363),(
 
 data Types = Types deriving Typeable
 
-writeTypes :: StoreOut -> [(Maybe Id, Item)] -> IO ()
-writeTypes store xs = writeStoreType store Types $ do
+writeTypes :: StoreWrite -> [(Maybe Id, Item)] -> IO ()
+writeTypes store xs = storeWriteType store Types $ do
     rare <- writeRarity store $ map snd xs
     writeAlias store $ map snd xs
     writeInstance store $ map snd xs
 
     let ys = Map.toList $ Map.fromListWith (++) [(t, [(j,i)]) | (j, (Just i, IDecl (TypeSig _ _ t))) <- zip [1..] xs]
-    writeStoreBS store $ BS.pack $ unlines $ concat
+    storeWriteBS store $ BS.pack $ unlines $ concat
         [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t, pretty t]
         | (t,i) <- sortOn (minimum . map fst . snd) ys]
 
@@ -54,9 +54,9 @@ writeTypes store xs = writeStoreType store Types $ do
         [pretty t | (_, IDecl t@TypeDecl{}) <- xs]
 -}
 
-searchTypes :: StoreIn -> Type -> [(Score,Id)]
+searchTypes :: StoreRead -> Type -> [(Score,Id)]
 searchTypes store q = runIdentity $ do
-    let [x1,x2,x3,x4] = readStoreList $ readStoreType Types store
+    let [x1,x2,x3,x4] = storeReadList $ storeReadType Types store
     dbRare <- return $ readRarity x1
     dbAlias <- return $ readAlias x2
     dbInst <- return $ readInstance x3
@@ -73,7 +73,7 @@ searchTypes store q = runIdentity $ do
             = (c, map read $ words $ BS.unpack ids) : f xs
             | otherwise = f xs
         f _ = []
-    return $ map (0,) $ concatMap snd $ sortOn fst $ f $ BS.lines $ readStoreBS x4
+    return $ map (0,) $ concatMap snd $ sortOn fst $ f $ BS.lines $ storeReadBS x4
 
 
 {-
@@ -116,19 +116,19 @@ typeNames = typ
 
 data Rarity = Rarity Int (Map.Map String Int)
 
-writeRarity :: StoreOut -> [Item] -> IO Rarity
+writeRarity :: StoreWrite -> [Item] -> IO Rarity
 writeRarity store xs = do
     let n = length xs
     let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
-    writeStoreBS store $ BS.pack $ unlines $
+    storeWriteBS store $ BS.pack $ unlines $
         show n :
         [x ++ " " ++ show i | (x,i) <- Map.toList r]
     return $ Rarity n r
 
 
-readRarity :: StoreIn -> Rarity
+readRarity :: StoreRead -> Rarity
 readRarity store = Rarity (read count) $ Map.fromList $ map (second read . word1) rares
-    where count:rares = lines $ BS.unpack $ readStoreBS store
+    where count:rares = lines $ BS.unpack $ storeReadBS store
 
 
 askRarity :: Rarity -> Type -> Int
@@ -148,16 +148,16 @@ unpackAlias _ = Nothing
 packAlias :: String -> ([String], Type) -> Decl
 packAlias name (bind, rhs) = TypeDecl noLoc (Ident name) (map (UnkindedVar . Ident) bind) rhs
 
-writeAlias :: StoreOut -> [Item] -> IO Aliases
+writeAlias :: StoreWrite -> [Item] -> IO Aliases
 writeAlias store xs = do
     let a = Map.fromListWith (++) [(a, [b]) | IDecl t <- xs, Just (a,b) <- [unpackAlias t]]
-    writeStoreBS store $ BS.pack $ unlines
+    storeWriteBS store $ BS.pack $ unlines
         [pretty $ packAlias name body | (name, xs) <- Map.toList a, body <- xs]
     return $ Aliases a
 
-readAlias :: StoreIn -> Aliases
+readAlias :: StoreRead -> Aliases
 readAlias store = Aliases $ Map.fromListWith (++) [second return $ fromJust $ unpackAlias $ fromParseResult $ parseDecl x | x <- lines src]
-    where src = BS.unpack $ readStoreBS store
+    where src = BS.unpack $ storeReadBS store
 
 {-
 aliasWords :: Aliases -> Type -> [String]
@@ -175,14 +175,14 @@ aliasWords (Aliases mp) t = g Set.empty $ f t
 
 newtype Instances = Instances [Decl]
 
-writeInstance :: StoreOut -> [Item] -> IO ()
+writeInstance :: StoreWrite -> [Item] -> IO ()
 writeInstance store xs =
-    writeStoreBS store $ BS.pack $ unlines
+    storeWriteBS store $ BS.pack $ unlines
         [pretty t | IDecl t@InstDecl{} <- xs]
 
-readInstance :: StoreIn -> Instances
+readInstance :: StoreRead -> Instances
 readInstance store = Instances $ map (fromParseResult . parseDecl) $ lines src
-    where src = BS.unpack $ readStoreBS store
+    where src = BS.unpack $ storeReadBS store
 
 
 ---------------------------------------------------------------------

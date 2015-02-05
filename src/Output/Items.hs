@@ -40,19 +40,19 @@ data Items = Items deriving Typeable
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: StoreOut -> FilePath -> [Either String ItemEx] -> IO [(Maybe Id, Item)]
+writeItems :: StoreWrite -> FilePath -> [Either String ItemEx] -> IO [(Maybe Id, Item)]
 writeItems store file xs = do
     warns <- newIORef 0
     pos <- newIORef 0
-    res <- writeStoreType store Items $ writeStoreParts store $ do
+    res <- storeWriteType store Items $ storeWriteParts store $ do
         withBinaryFile (file <.> "warn") WriteMode $ \herr -> do
             hSetEncoding herr utf8
             flip mapMaybeM xs $ \x -> case x of
                 Right item@ItemEx{..} | f itemItem -> do
                     i <- readIORef pos
                     let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, item)
-                    writeStoreBS store $ intToBS $ BS.length bs
-                    writeStoreBS store bs
+                    storeWriteBS store $ intToBS $ BS.length bs
+                    storeWriteBS store bs
                     writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
                     return $ Just (Just $ Id i, itemItem)
                 Right ItemEx{..} -> return $ Just (Nothing, itemItem)
@@ -67,9 +67,9 @@ writeItems store file xs = do
         f x = True
 
 
-lookupItem :: StoreIn -> (Id -> ItemEx)
+lookupItem :: StoreRead -> (Id -> ItemEx)
 lookupItem store =
-    let x = readStoreBS $ readStoreType Items store
+    let x = storeReadBS $ storeReadType Items store
     in \(Id i) ->
         let i2 = fromIntegral i
             n = intFromBS $ BS.take intSize $ BS.drop i2 x
