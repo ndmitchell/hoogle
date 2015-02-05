@@ -140,7 +140,10 @@ storeWriteType StoreWrite{..} t act = notParts swParts $ do
 ---------------------------------------------------------------------
 -- READ OUT
 
-data StoreRead = StoreRead (Ptr ()) [Atom] -- atoms are filtered by storeReadType
+data StoreRead = StoreRead
+    {srPtr :: Ptr ()
+    ,srAtoms :: [Atom] -- atoms are filtered by storeReadType
+    }
 
 storeReadFile :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
 storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> strict $ do
@@ -162,26 +165,26 @@ storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> 
     act $ StoreRead ptr atoms
 
 storeReadList :: StoreRead -> [StoreRead]
-storeReadList (StoreRead ptr xs) = map (StoreRead ptr . return) $ filter (null . atomName) xs
+storeReadList StoreRead{..} = map (StoreRead srPtr . return) $ filter (null . atomName) srAtoms
 
 storeReadType :: Typeable t => t -> StoreRead -> StoreRead
-storeReadType t (StoreRead ptr atoms)
+storeReadType t StoreRead{..}
     | null good = error $ "Couldn't find atom with name " ++ name
-    | otherwise = StoreRead ptr [a{atomName = tail $ atomName a} | a <- good]
+    | otherwise = StoreRead srPtr [a{atomName = tail $ atomName a} | a <- good]
     where
         name = show $ typeOf t
-        good = filter (isPrefixOf [name] . atomName) atoms
+        good = filter (isPrefixOf [name] . atomName) srAtoms
 
 storeReadBS :: StoreRead -> BS.ByteString
-storeReadBS (StoreRead ptr atoms)
-    | [Atom{..}] <- good, atomSize == 1 = unsafePerformIO $ BS.unsafePackCStringLen (plusPtr ptr atomPosition, atomCount)
+storeReadBS StoreRead{..}
+    | [Atom{..}] <- good, atomSize == 1 = unsafePerformIO $ BS.unsafePackCStringLen (plusPtr srPtr atomPosition, atomCount)
     | otherwise = error "bad BS"
-    where good = filter (null . atomName) atoms
+    where good = filter (null . atomName) srAtoms
 
 storeReadV :: forall a . Storable a => StoreRead -> Vector.Vector a
-storeReadV (StoreRead ptr atoms)
+storeReadV StoreRead{..}
     | [Atom{..}] <- good, atomSize == sizeOf (undefined :: a) = unsafePerformIO $ do
-        ptr <- newForeignPtr_ $ plusPtr ptr atomPosition
+        ptr <- newForeignPtr_ $ plusPtr srPtr atomPosition
         return $ Vector.unsafeFromForeignPtr0 ptr atomCount
     | otherwise = error $ "bad vector, " ++ show (map atomSize good)
-    where good = filter (null . atomName) atoms
+    where good = filter (null . atomName) srAtoms
