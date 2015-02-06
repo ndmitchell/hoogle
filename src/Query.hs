@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
-module Query(Query(..), Scope(..), parseQuery, renderQuery, test) where
+module Query(Query(..), Scope(..), parseQuery, renderQuery, query_test) where
 
 import Prelude(); import General.Prelude
 import Data.List
@@ -156,8 +156,8 @@ typeSig_ xs = case parseTypeWithMode parseMode $ unwords $ fixup $ filter (not .
         underscore = replace ["_"] ["__"]
 
 
-test :: IO ()
-test = testing "Query.parseQuery" $ do
+query_test :: IO ()
+query_test = testing "Query.parseQuery" $ do
     let names x (bad,q) = (["bad name, expected " ++ show x | queryName q /= x] ++ bad, q{queryName=[]})
         name x = names [x]
         typ x (bad,q) = (["bad type, expected " ++ show x | queryType q /= Just (fromParseResult $ parseTypeWithMode parseMode x)] ++ bad, q{queryType=Nothing})

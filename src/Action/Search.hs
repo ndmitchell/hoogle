@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 
-module Action.Search(actionSearch, search) where
+module Action.Search(actionSearch, search, action_search_test) where
 
 import System.FilePath
 import Control.Monad.Extra
@@ -16,6 +16,7 @@ import General.Store
 import Query
 import Input.Type
 import Action.CmdLine
+import General.Util
 
 
 -- -- generate all
@@ -46,3 +47,30 @@ search store (Query strs typ qtags) = runIdentity $ do
             return $ filter (`Set.member` nam) $ searchTypes store t
     let look = lookupItem store
     return $ map (look . snd) $ sortOn fst $ filter (filterTags tags qtags . snd) is
+
+
+action_search_test :: IO ()
+action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.hoo" $ \store -> do
+    let a ==$ f = do
+            res <- return $ search store (parseQuery a)
+            case res of
+                ItemEx{..}:_ | f itemURL -> putChar '.'
+                _ -> error $ show (a, take 1 res)
+    let a === b = a ==$ (== b)
+    let hackage x = "https://hackage.haskell.org/package/" ++ x
+    "base" === hackage "base"
+    "Prelude" === hackage "base/docs/Prelude.html"
+    "map" === hackage "base/docs/Prelude.html#v:map"
+    "map package:base" === hackage "base/docs/Prelude.html#v:map"
+    "True" === hackage "base/docs/Prelude.html#v:True"
+    "Bool" === hackage "base/docs/Prelude.html#t:Bool"
+    "String" === hackage "base/docs/Prelude.html#t:String"
+    "Ord" === hackage "base/docs/Prelude.html#t:Ord"
+    ">>=" === hackage "base/docs/Prelude.html#v:-62--62--61-"
+    "foldl'" === hackage "base/docs/Data-List.html#v:foldl-39-"
+    "Action package:shake" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
+    "Action package:shake set:stackage" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
+    "map -package:base" ==$ \x -> not $ "/base/" `isInfixOf` x
+    "<>" === hackage "base/docs/Data-Monoid.html#v:-60--62-"
+    "Data.Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
+    "Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"

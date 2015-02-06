@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 
-module Action.Server(actionServer, actionReplay, test) where
+module Action.Server(actionServer, actionReplay, action_server_test) where
 
 import Prelude(); import General.Prelude
 import Data.List.Extra
@@ -164,8 +164,8 @@ displayItem Query{..} = keyword . focus
               f [] = []
 
 
-test :: IO ()
-test = testing "Action.Server.displayItem" $ do
+action_server_test :: IO ()
+action_server_test = testing "Action.Server.displayItem" $ do
     let expand = replace "{|" "<span class=name>" . replace "|}" "</span>" . replace "{*" "<b>" . replace "*}" "</b>"
         collapse = replace "{|" "" . replace "|}" "" . replace "{*" "" . replace "*}" ""
     let q === s | Just i <- readItem $ collapse s, displayItem (parseQuery q) i == expand (escapeHTML s) = putChar '.'
