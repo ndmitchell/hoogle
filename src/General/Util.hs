@@ -12,7 +12,9 @@ module General.Util(
     withs,
     escapeHTML, tag, tag_,
     noinline,
+    Average, toAverage, fromAverage,
     inRanges,
+    readMaybe,
     general_util_test
     ) where
 
@@ -32,6 +34,7 @@ import Control.DeepSeq
 import Control.Exception.Extra
 import Test.QuickCheck
 import Data.Int
+import Data.Monoid
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
@@ -140,6 +143,24 @@ strict act = do
     case res of
         Left e -> do msg <- showException e; evaluate $ rnf msg; error msg
         Right v -> do evaluate $ rnf v; return v
+
+
+data Average a = Average !a !Int deriving Show -- a / b
+
+toAverage :: a -> Average a
+toAverage x = Average x 1
+
+fromAverage :: Fractional a => Average a -> a
+fromAverage (Average a b) = a / fromIntegral b
+
+instance Num a => Monoid (Average a) where
+    mempty = Average 0 0
+    mappend (Average x1 x2) (Average y1 y2) = Average (x1+y1) (x2+y2)
+
+
+readMaybe :: Read a => String -> Maybe a
+readMaybe s | [x] <- [x | (x,t) <- reads s, ("","") <- lex t] = Just x
+            | otherwise = Nothing
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient

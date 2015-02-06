@@ -14,6 +14,7 @@ import Control.Monad.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Monoid
 import General.Util
 import Data.Maybe
@@ -54,8 +55,9 @@ logAddEntry :: Log -> String -> String -> Double -> Maybe String -> IO ()
 logAddEntry Log{..} user question taken err = do
     time <- showTime <$> getCurrentTime
     whenJust logHandle $ \h -> withLock logLock $ hPutStrLn h $ unwords $
-        [time, user, show $ ceiling $ taken * 1000, question] ++ maybeToList (fmap ("ERROR: " ++) err)
+        [time, user, showDP 3 taken, question] ++ maybeToList (fmap ("ERROR: " ++) err)
 
+-- Summary collapsed
 data Summary = Summary
     {summaryDate :: String
     ,summaryUsers :: Int
@@ -65,58 +67,47 @@ data Summary = Summary
     ,summaryErrors :: Int
     }
 
+-- Summary accumulating
+data SummaryI = SummaryI
+    {iUsers :: !(Set.Set String) -- number of distinct users
+    ,iUses :: !Int -- number of uses
+    ,iSlowest :: !Double -- slowest result
+    ,iAverage :: !(Average Double) -- average result
+    ,iErrors :: !Int -- number of errors
+    }
+
+instance Monoid SummaryI where
+    mempty = SummaryI Set.empty 0 0 (toAverage 0) 0
+    mappend (SummaryI x1 x2 x3 x4 x5) (SummaryI y1 y2 y3 y4 y5) =
+        SummaryI (f x1 y1) (x2+y2) (max x3 y3) (x4 <> y4) (x5+y5)
+        -- more efficient union for the very common case of a single element
+        where f x y | Set.size x == 1 = Set.insert (head $ Set.toList x) y
+                    | Set.size y == 1 = Set.insert (head $ Set.toList y) x
+                    | otherwise = Set.union x y
+
+summarize :: String -> SummaryI -> Summary
+summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest (fromAverage iAverage) iErrors
+
+parseLogLine :: (String -> Bool) -> LBS.ByteString -> Maybe (String, SummaryI)
+parseLogLine interesting (LBS.words -> time:user:dur:rest) | user /= LBS.pack "-" = Just
+    (LBS.unpack $ LBS.takeWhile (/= 'T') time, SummaryI
+        (if use then Set.singleton $ LBS.unpack user else Set.empty)
+        (if use then 1 else 0)
+        (if use then time2 else 0)
+        (toAverage $ if use then time2 else 0)
+        (if [LBS.pack "ERROR:"] `isPrefixOf` drop 1 rest then 1 else 0))
+    where use = any (interesting . LBS.unpack) $ take 1 rest
+          time2 = fromMaybe 0 $ readMaybe $ LBS.unpack time
+
 
 logSummary :: Log -> IO [Summary]
-logSummary Log{..} | Just s <- logFile = analyseLog <$> readLog s
-                   | otherwise = return []
-
-
-data Average = Average !Int !Int deriving Show -- a / b
-
-average (Average a b) = intToDouble a / intToDouble b
-
-instance Monoid Average where
-    mempty = Average 0 0
-    mappend (Average x1 x2) (Average y1 y2) = Average (x1+y1) (x2+y2)
-
-data Info = Info
-    {searchIPs :: !(Set.Set BS.ByteString) -- number of IP addresses doing a hoogle= search
-    ,searchCount :: !Int -- number of searches in total
-    ,slowestPage :: !Int -- slowest page load time (/ or hoogle=)
-    ,averagePage :: !Average -- time taken to display a page on average
-    ,errorCount :: !Int -- number of instances of error
-    } deriving Show
-
-instance Monoid Info where
-    mempty = Info Set.empty 0 0 mempty 0
-    mappend (Info x1 x2 x3 x4 x5) (Info y1 y2 y3 y4 y5) =
-        Info (x1 <> y1) (x2 + y2) (x3 + y3) (x4 <> y4) (x5 + y5)
-
--- | Per day
--- number of IP addresses containing hoogle=
--- number of searches containing hoogle=
--- longest page, average search or home page
--- any instances of ERROR
-analyseLog :: BS.ByteString -> [Summary]
-analyseLog = view . foldl' add Map.empty . BS.lines
-    where
-        view mp = map f $ Map.toAscList mp
-            where
-                f (t, Info{..}) = Summary (BS.unpack t) (Set.size searchIPs) searchCount (intToDouble slowestPage) (average averagePage) errorCount
-
-        add mp (BS.words -> date:ip:(BS.readInt -> Just (time,_)):url)
-            | ip /= BS.pack "-" = Map.alter (Just . add2 . fromMaybe mempty) (BS.takeWhile (/= 'T') date) mp
-            where
-                isPage = isSearch || url == [BS.pack "/"]
-                isSearch = any (BS.pack "hoogle=" `BS.isInfixOf`) url
-                isError = any (BS.pack "ERROR:" ==) url
-                add2 Info{..} = Info
-                    (if isSearch then Set.insert ip searchIPs else searchIPs)
-                    (searchCount + if isSearch then 1 else 0)
-                    (max slowestPage $ if isPage then time else 0)
-                    (averagePage <> if isPage then Average time 1 else mempty)
-                    (errorCount + if isError then 1 else 0)
-        add mp _ = mp
+logSummary Log{..}
+    | Just s <- logFile = do
+        src <- readLog s
+        let xs = mapMaybe (parseLogLine logInteresting) $ LBS.lines $ LBS.fromChunks [src]
+        let mp = foldl' (\mp (k,v) -> Map.alter (Just . maybe v (<> v)) k mp) Map.empty xs
+        return $ map (uncurry summarize) $ Map.toAscList mp
+    | otherwise = return []
 
 
 readLog :: FilePath -> IO BS.ByteString
