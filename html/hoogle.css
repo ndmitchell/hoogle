@@ -121,6 +121,7 @@ form {
     margin: 0px;
     padding: 0px;
     margin-left: 10px;
+    overflow: hidden;
 }
 
 #left li {
