@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE RecordWildCards, ViewPatterns, TupleSections #-}
 
 module General.Log(
     Log, logCreate, logNone, logAddMessage, logAddEntry,
@@ -13,21 +13,17 @@ import Numeric.Extra
 import Control.Monad.Extra
 import qualified Data.Set as Set
 import qualified Data.Map.Strict as Map
-import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Monoid
 import General.Util
 import Data.Maybe
 import Data.List
-import System.Info.Extra
-import System.IO.Extra
-import System.Process.Extra
+import Data.IORef
 
 
 data Log = Log
-    {logLock :: Lock
-    ,logHandle :: Maybe Handle
-    ,logFile :: Maybe FilePath
+    {logOutput :: Maybe (Var Handle)
+    ,logCurrent :: IORef (Map.Map String SummaryI)
     ,logInteresting :: String -> Bool
     }
 
@@ -35,27 +31,42 @@ showTime :: UTCTime -> String
 showTime = showUTCTime "%Y-%m-%dT%H:%M:%S%Q"
 
 logNone :: IO Log
-logNone = do lock <- newLock; return $ Log lock Nothing Nothing (const False)
+logNone = do ref <- newIORef Map.empty; return $ Log Nothing ref (const False)
 
 logCreate :: Either Handle FilePath -> (String -> Bool) -> IO Log
 logCreate store interesting = do
-    logHandle <- either return (`openFile` AppendMode) store
-    hSetBuffering logHandle LineBuffering
-    logLock <- newLock
-    return $ Log logLock (Just logHandle) (either (const Nothing) Just store) interesting
+    (h, old) <- case store of
+        Left h -> return (h, Map.empty)
+        Right file -> do
+            mp <- withFile file ReadMode $ \h -> do
+                src <- LBS.hGetContents h
+                let xs = mapMaybe (parseLogLine interesting) $ LBS.lines $ src
+                return $! foldl' (\mp (k,v) -> Map.alter (Just . maybe v (<> v)) k mp) Map.empty xs
+            (,mp) <$> openFile file AppendMode
+    hSetBuffering h LineBuffering
+    var <- newVar h
+    ref <- newIORef old
+    return $ Log (Just var) ref interesting
 
 logAddMessage :: Log -> String -> IO ()
 logAddMessage Log{..} msg = do
     time <- showTime <$> getCurrentTime
-    whenJust logHandle $ \h -> do
-        withLock logLock $ hPutStrLn h $ time ++ " - " ++ msg
-        hFlush h
+    whenJust logOutput $ \var -> withVar var $ \h ->
+        hPutStrLn h $ time ++ " - " ++ msg
 
 logAddEntry :: Log -> String -> String -> Double -> Maybe String -> IO ()
 logAddEntry Log{..} user question taken err = do
     time <- showTime <$> getCurrentTime
-    whenJust logHandle $ \h -> withLock logLock $ hPutStrLn h $ unwords $
-        [time, user, showDP 3 taken, question] ++ maybeToList (fmap ("ERROR: " ++) err)
+    let k = takeWhile (/= 'T') time
+    let add v = atomicModifyIORef logCurrent $ \mp -> (Map.alter (Just . maybe v (<> v)) k mp, ())
+    if logInteresting question then
+        add $ SummaryI (Set.singleton user) 1 taken (toAverage taken) (if isJust err then 1 else 0)
+     else if isJust err then
+        add mempty{iErrors=1}
+     else
+        return ()
+    whenJust logOutput $ \var -> withVar var $ \h ->
+        hPutStrLn h $ unwords $ [time, user, showDP 3 taken, question] ++ maybeToList (fmap ("ERROR: " ++) err)
 
 -- Summary collapsed
 data Summary = Summary
@@ -93,24 +104,14 @@ parseLogLine interesting (LBS.words -> time:user:dur:rest) | user /= LBS.pack "-
     (LBS.unpack $ LBS.takeWhile (/= 'T') time, SummaryI
         (if use then Set.singleton $ LBS.unpack user else Set.empty)
         (if use then 1 else 0)
-        (if use then time2 else 0)
-        (toAverage $ if use then time2 else 0)
+        (if use then dur2 else 0)
+        (toAverage $ if use then dur2 else 0)
         (if [LBS.pack "ERROR:"] `isPrefixOf` drop 1 rest then 1 else 0))
     where use = any (interesting . LBS.unpack) $ take 1 rest
-          time2 = fromMaybe 0 $ readMaybe $ LBS.unpack time
+          dur2 = let s = LBS.unpack dur in fromMaybe 0 $
+                 if '.' `elem` s then readMaybe s else (/ 1000) . intToDouble <$> readMaybe s
+parseLogLine _ _ = Nothing
 
 
 logSummary :: Log -> IO [Summary]
-logSummary Log{..}
-    | Just s <- logFile = do
-        src <- readLog s
-        let xs = mapMaybe (parseLogLine logInteresting) $ LBS.lines $ LBS.fromChunks [src]
-        let mp = foldl' (\mp (k,v) -> Map.alter (Just . maybe v (<> v)) k mp) Map.empty xs
-        return $ map (uncurry summarize) $ Map.toAscList mp
-    | otherwise = return []
-
-
-readLog :: FilePath -> IO BS.ByteString
-readLog file = withTempFile $ \tmp -> do
-    systemOutput_ $ (if isWindows then "copy" else "cp") ++ " \"" ++ file ++ "\" \"" ++ tmp ++ "\""
-    BS.readFile tmp
+logSummary Log{..} = map (uncurry summarize) . Map.toAscList <$> readIORef logCurrent
