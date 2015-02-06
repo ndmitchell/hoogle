@@ -12,13 +12,17 @@ module General.Util(
     withs,
     escapeHTML, tag, tag_,
     noinline,
+    inRanges,
     general_util_test
     ) where
 
 import Language.Haskell.Exts
 import Data.List.Extra
 import Data.Char
+import Data.Either
 import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Map as Map
+import Data.Ix
 import Control.Applicative
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
@@ -133,6 +137,20 @@ strict act = do
     case res of
         Left e -> do msg <- showException e; evaluate $ rnf msg; error msg
         Right v -> do evaluate $ rnf v; return v
+
+
+-- | Equivalent to any (`inRange` x) xs, but more efficient
+inRanges :: (Ix a, Show a) => [(a,a)] -> (a -> Bool)
+inRanges xs = \x -> maybe False (`inRange` x) $ Map.lookupLE x mp
+    where
+        mp = foldl' add Map.empty xs
+
+        merge (l1,u1) (l2,u2) = (min l1 l2, max u1 u2)
+        overlap x1 x2 = x1 `inRange` fst x2 || x2 `inRange` fst x1
+        add mp x
+            | Just x2 <- Map.lookupLE (fst x) mp, overlap x x2 = add (Map.delete (fst x2) mp) (merge x x2)
+            | Just x2 <- Map.lookupGE (fst x) mp, overlap x x2 = add (Map.delete (fst x2) mp) (merge x x2)
+            | otherwise = Map.insert (fst x) (snd x) mp
 
 
 general_util_test :: IO ()
