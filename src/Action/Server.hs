@@ -114,7 +114,11 @@ dedupeTake n key = f [] Map.empty
 
 showResults :: [Query] -> [[ItemEx]] -> String
 showResults query results = unlines $
-    ["<h1>" ++ renderQuery query ++ "</h1>"] ++
+    ["<h1>" ++ renderQuery query ++ "</h1>"
+    ,"<ul id=left>"
+    ,"<li><b>Packages</b></li>"] ++
+    [tag_ "li" $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query] ++
+    ["</ul>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
      "<div class=ans><a href=\"" ++ itemURL ++ "\">" ++ displayItem query itemItem ++ "</a></div>" ++
@@ -122,6 +126,16 @@ showResults query results = unlines $
      "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords $ lines itemDocs) ++ "</div>" ++
      "</div>"
     | is@(ItemEx{..}:_) <- results]
+    where
+        f cat val = "<a class='minus' href='?'></a><a class='plus' href='?'>" ++
+                    (if cat == "package" then "" else cat ++ ":") ++ val ++ "</a>"
+
+
+itemCategories :: [ItemEx] -> [(String,String)]
+itemCategories xs =
+    [("is","exact")] ++
+    [("is","package") | any (isIPackage . itemItem) xs] ++ [("is","module") | any (isIModule . itemItem) xs] ++
+    nub [("package",p) | Just (p,_) <- map itemPackage xs]
 
 showFroms :: [ItemEx] -> String
 showFroms xs = intercalate ", " $ for pkgs $ \p ->
