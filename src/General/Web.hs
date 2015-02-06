@@ -15,7 +15,6 @@ import Network.Wai.Handler.Warp hiding (Port, Handle)
 import Network.Wai.Logger
 import Network.Wai
 import Control.DeepSeq
-import System.IO
 import Network.HTTP.Types.Status
 import qualified Data.Text as Text
 import qualified Data.ByteString.Char8 as BS
@@ -23,16 +22,14 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Conduit.Binary (sinkFile)
 import qualified Network.HTTP.Conduit as C
 import qualified Data.Conduit as C
-import Control.Concurrent.Extra
 import Network
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Monoid
-import Data.Time.Clock
 import System.FilePath
 import Control.Exception.Extra
 import System.Time.Extra
-import General.Util
+import General.Log
 
 
 data Input = Input
@@ -64,31 +61,20 @@ downloadFile file url = withSocketsDo $ do
         C.responseBody response C.$$+- sinkFile file
 
 
-showTime :: UTCTime -> String
-showTime = showUTCTime "%Y-%m-%dT%H:%M:%S%Q"
 
-
-server :: Handle -> Int -> (Input -> IO Output) -> IO ()
+server :: Log -> Int -> (Input -> IO Output) -> IO ()
 #ifdef PROFILE
-server hlog port act = return ()
+server log port act = return ()
 #else
-server hlog port act = do
-    lock <- newLock
-    now <- getCurrentTime
-    hPutStrLn hlog $ "\n" ++ showTime now ++ " - Server started on port " ++ show port
-    hFlush hlog
+server log port act = do
+    logAddMessage log $ "Server started on port " ++ show port
     runSettings (setOnException exception $ setPort port defaultSettings) $ \req reply -> do
         let pay = Input (map Text.unpack $ pathInfo req)
                         [(BS.unpack a, maybe "" BS.unpack b) | (a,b) <- queryString req]
         (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ rnf s; return s
         res <- either (fmap Left . showException) (return . Right) res
-        now <- getCurrentTime
-        withLock lock $ hPutStrLn hlog $ unwords $
-            [showTime now
-            ,showSockAddr $ remoteHost req
-            ,show $ ceiling $ time * 1000
-            ,BS.unpack $ rawPathInfo req <> rawQueryString req] ++
-            ["ERROR: " ++ s | Left s <- [res]]
+        logAddEntry log (showSockAddr $ remoteHost req)
+            (BS.unpack $ rawPathInfo req <> rawQueryString req) time (either Just (const Nothing) res)
         case res of
             Left s -> reply $ responseLBS status500 [] $ LBS.pack s
             Right v -> reply $ case v of

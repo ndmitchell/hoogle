@@ -34,6 +34,7 @@ import General.Util
 import General.Web
 import General.Store
 import General.Template
+import General.Log
 import Action.Search
 import Action.CmdLine
 
@@ -42,11 +43,10 @@ actionServer :: CmdLine -> IO ()
 actionServer Server{..} = do
     let pkg = "output" </> head ([database | database /= ""] ++ ["all"])
     putStrLn $ "Server started on port " ++ show port
-    h <- if logs == "" then return stdout else openFile logs AppendMode
-    hSetBuffering h LineBuffering
+    log <- logCreate (if logs == "" then Left stdout else Right logs) ("hoogle=" `isInfixOf`)
     evaluate time
     storeReadFile (pkg <.> "hoo") $ \store ->
-        server h port $ replyServer (Just logs) store cdn
+        server log port $ replyServer (Just logs) store cdn
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
