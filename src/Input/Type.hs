@@ -16,6 +16,7 @@ import Data.List
 import General.Util
 import Data.List.Extra
 import Data.Maybe
+import Data.Ix
 import Foreign.Storable
 import Data.Word
 import Control.Monad
@@ -28,7 +29,7 @@ import Data.Data
 
 type URL = String
 type Documentation = String
-newtype Id = Id Word32 deriving (Eq,Ord,Storable,NFData)
+newtype Id = Id Word32 deriving (Eq,Ord,Storable,NFData,Ix)
 
 instance Storable (Id, Id) where
     sizeOf _ = sizeOf (Id 0) * 2
