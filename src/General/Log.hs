@@ -101,7 +101,7 @@ summarize :: Day -> SummaryI -> Summary
 summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest (fromAverage iAverage) iErrors
 
 parseLogLine :: (String -> Bool) -> LBS.ByteString -> Maybe (Day, SummaryI)
-parseLogLine interesting (LBS.words -> time:user:dur:rest)
+parseLogLine interesting (LBS.words -> time:user:dur:query:err)
     | user /= LBS.pack "-"
     , Just [a, b, c] <- mapM (readMaybe . LBS.unpack) $ LBS.split '-' $ LBS.takeWhile (/= 'T') time
     = Just (fromGregorian (fromIntegral a) b c, SummaryI
@@ -109,8 +109,8 @@ parseLogLine interesting (LBS.words -> time:user:dur:rest)
         (if use then 1 else 0)
         (if use then dur2 else 0)
         (toAverage $ if use then dur2 else 0)
-        (if [LBS.pack "ERROR:"] `isPrefixOf` drop 1 rest then 1 else 0))
-    where use = any (interesting . LBS.unpack) $ take 1 rest
+        (if [LBS.pack "ERROR:"] `isPrefixOf` err then 1 else 0))
+    where use = interesting $ LBS.unpack query
           dur2 = let s = LBS.unpack dur in fromMaybe 0 $
                  if '.' `elem` s then readMaybe s else (/ 1000) . intToDouble <$> readMaybe s
 parseLogLine _ _ = Nothing
