@@ -94,4 +94,5 @@ filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
           f (Scope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
 
 searchTags :: Tags -> [Scope] -> [(Score,Id)]
-searchTags ts qs = map ((0,) . fst) $ concat [lookupTag ts (cat,val) | Scope True cat val <- qs]
+searchTags ts qs = map ((0,) . fst) $ if null xs then V.toList $ packageIds ts else xs
+    where xs = concat [lookupTag ts (cat,val) | Scope True cat val <- qs]

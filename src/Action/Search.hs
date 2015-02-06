@@ -38,8 +38,7 @@ search store (Query strs typ qtags) = runIdentity $ do
     let tags = readTags store
     let exact = Scope True "is" "exact" `elem` qtags
     is <- case (strs, typ) of
-        ([], Nothing) | not $ null qtags, xs@(_:_) <- searchTags tags qtags -> return xs
-                      | otherwise -> return $ searchNames store exact []
+        ([], Nothing) -> return $ searchTags tags qtags
         ([], Just t ) -> return $ searchTypes store t
         (xs, Nothing) -> return $ searchNames store exact xs
         (xs, Just t ) -> do
