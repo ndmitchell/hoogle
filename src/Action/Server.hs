@@ -15,15 +15,9 @@ import Paths_hoogle
 import Data.Maybe
 import Control.Monad
 import System.IO.Extra
-import qualified Data.Set as Set
 import qualified Data.Map as Map
 import System.Time.Extra
-import System.Process.Extra
-import System.Info.Extra
-import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.Monoid
-import Numeric.Extra
 import Data.Time.Clock
 import System.IO.Unsafe
 
@@ -46,14 +40,15 @@ actionServer Server{..} = do
     log <- logCreate (if logs == "" then Left stdout else Right logs) ("hoogle=" `isInfixOf`)
     evaluate time
     storeReadFile (pkg <.> "hoo") $ \store ->
-        server log port $ replyServer (Just logs) store cdn
+        server log port $ replyServer log store cdn
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ storeReadFile "output/all.hoo" $ \store -> do
-        let op = replyServer Nothing store ""
+        log <- logNone
+        let op = replyServer log store ""
         forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
@@ -64,8 +59,8 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 time :: String
 time = unsafePerformIO $ showUTCTime "%Y-%m-%d %H:%M" <$> getCurrentTime
 
-replyServer :: Maybe FilePath -> StoreRead -> String -> Input -> IO Output
-replyServer logs store cdn = \Input{..} -> case inputURL of
+replyServer :: Log -> StoreRead -> String -> Input -> IO Output
+replyServer log store cdn = \Input{..} -> case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
@@ -80,10 +75,9 @@ replyServer logs store cdn = \Input{..} -> case inputURL of
             Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ LBS.pack body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
-    ["log.txt"] | Just s <- logs -> OutputString . LBS.fromChunks . return <$> readLog s
-    ["log.html"] | Just s <- logs -> do
-        log <- readLog s
-        OutputHTML <$> templateRender templateLog [("data",str $ analyseLog log)]
+    ["log.html"] -> do
+        log <- displayLog <$> logSummary log
+        OutputHTML <$> templateRender templateLog [("data",str log)]
     xs -> return $ OutputFile $ joinPath $ "html" : xs
     where
         str = templateStr . LBS.pack
@@ -95,12 +89,6 @@ replyServer logs store cdn = \Input{..} -> case inputURL of
         templateEmpty = templateFile "html/welcome.html"
         templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str "")]
         templateLog = templateFile "html/log.html"
-
-
-readLog :: FilePath -> IO BS.ByteString
-readLog file = withTempFile $ \tmp -> do
-    systemOutput_ $ (if isWindows then "copy" else "cp") ++ " \"" ++ file ++ "\" \"" ++ tmp ++ "\""
-    BS.readFile tmp
 
 
 dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
@@ -181,52 +169,11 @@ action_server_test = testing "Action.Server.displayItem" $ do
 -------------------------------------------------------------
 -- ANALYSE THE LOG
 
-data Average = Average !Int !Int deriving Show -- a / b
 
-average (Average a b) = intToDouble a / intToDouble b
-
-instance Monoid Average where
-    mempty = Average 0 0
-    mappend (Average x1 x2) (Average y1 y2) = Average (x1+y1) (x2+y2)
-
-data Info = Info
-    {searchIPs :: !(Set.Set BS.ByteString) -- number of IP addresses doing a hoogle= search
-    ,searchCount :: !Int -- number of searches in total
-    ,slowestPage :: !Int -- slowest page load time (/ or hoogle=)
-    ,averagePage :: !Average -- time taken to display a page on average
-    ,errorCount :: !Int -- number of instances of error
-    } deriving Show
-
-instance Monoid Info where
-    mempty = Info Set.empty 0 0 mempty 0
-    mappend (Info x1 x2 x3 x4 x5) (Info y1 y2 y3 y4 y5) =
-        Info (x1 <> y1) (x2 + y2) (x3 + y3) (x4 <> y4) (x5 + y5)
-
--- | Per day
--- number of IP addresses containing hoogle=
--- number of searches containing hoogle=
--- longest page, average search or home page
--- any instances of ERROR
-analyseLog :: BS.ByteString -> String
-analyseLog = view . foldl' add Map.empty . BS.lines
+displayLog :: [Summary] -> String
+displayLog xs = "[" ++ intercalate "," (map f xs) ++ "]"
     where
-        view mp = "[" ++ intercalate "," (map f $ Map.toAscList mp) ++ "]"
-            where
-                f (t, Info{..}) = "{date:" ++ show t ++
-                                  ",searchers:" ++ show (Set.size searchIPs) ++ ",searches:" ++ show searchCount ++
-                                  ",slowest:" ++ show slowestPage ++ ",average:" ++ show (average averagePage) ++
-                                  ",errors:" ++ show errorCount ++ "}"
-
-        add mp (BS.words -> date:ip:(BS.readInt -> Just (time,_)):url)
-            | ip /= BS.pack "-" = Map.alter (Just . add2 . fromMaybe mempty) (BS.takeWhile (/= 'T') date) mp
-            where
-                isPage = isSearch || url == [BS.pack "/"]
-                isSearch = any (BS.pack "hoogle=" `BS.isInfixOf`) url
-                isError = any (BS.pack "ERROR:" ==) url
-                add2 Info{..} = Info
-                    (if isSearch then Set.insert ip searchIPs else searchIPs)
-                    (searchCount + if isSearch then 1 else 0)
-                    (max slowestPage $ if isPage then time else 0)
-                    (averagePage <> if isPage then Average time 1 else mempty)
-                    (errorCount + if isError then 1 else 0)
-        add mp _ = mp
+        f Summary{..} = "{date:" ++ show summaryDate ++
+                        ",searchers:" ++ show summaryUsers ++ ",searches:" ++ show summaryUses ++
+                        ",slowest:" ++ show summarySlowest ++ ",average:" ++ show summaryAverage ++
+                        ",errors:" ++ show summaryErrors ++ "}"
