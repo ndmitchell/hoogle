@@ -1,9 +1,17 @@
 <!DOCTYPE HTML>
-<html style="height:100%">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<script type="text/javascript" src="plugin/jquery.js"> </script>
-<script type="text/javascript" src="plugin/jquery.flot.js"> </script>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+        <title>Log view</title>
+        <link type="text/css" rel="stylesheet" href="#{cdn}hoogle.css" />
+        <link type="image/png" rel="icon" href="#{cdn}favicon.png" />
+        <script type="text/javascript" src="#{jquery}"> </script>
+        <script type="text/javascript" src="plugin/jquery.flot.js"> </script>
+
+<style type="text/css">
+.plot {width: 90%; max-width: 600px; height: 200px;}
+</style>
+
 <script type="text/javascript">
 var data = #{data};
 function series(name, val)
@@ -11,20 +19,26 @@ function series(name, val)
     val.label = name;
     val.data = [];
     for (var i = 0; i < data.length; i++)
-        val.data.push([i,data[i][name]]);
+    {
+        var x = data[i][name];
+        val.data.push([i,x == 0 ? null : x]);
+    }
     return val;
 }
 $(function(){
-    $.plot("#placeholder",
-        [series("searchers",{})
-        ,series("searches",{})
-        ,series("average",{yaxis:2})
-        ,series("slowest",{yaxis:2})
-        ,series("error",{})]);
+    $.plot("#users",[series("users",{}),series("uses",{yaxis:2})]);
+    $.plot("#timings",[series("average",{}),series("slowest",{yaxis:2})]);
+    $.plot("#errors",[series("errors",{})]);
 });
 </script>
+
+    </head>
+    <body>
 </head>
-<body style="height:100%">
-<div style="height:90%; width:90%;" id="placeholder"></div>
+<body style="height:100%;width:100%;">
+<h2>Hoogle Log</h2>
+<b>Users</b><div id="users" class="plot"></div><br/>
+<b>Timings</b><div id="timings" class="plot"></div><br/>
+<b>Errors</b><div id="errors" class="plot"></div><br/>
 </body>
 </html>

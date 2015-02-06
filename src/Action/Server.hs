@@ -99,7 +99,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         templateIndex = templateFile "html/index.html" `templateApply` params
         templateEmpty = templateFile "html/welcome.html"
         templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str "")]
-        templateLog = templateFile "html/log.html"
+        templateLog = templateFile "html/log.html" `templateApply` params
 
 
 dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
@@ -185,6 +185,6 @@ displayLog :: [Summary] -> String
 displayLog xs = "[" ++ intercalate "," (map f xs) ++ "]"
     where
         f Summary{..} = "{date:" ++ show (showGregorian summaryDate) ++
-                        ",searchers:" ++ show summaryUsers ++ ",searches:" ++ show summaryUses ++
+                        ",users:" ++ show summaryUsers ++ ",uses:" ++ show summaryUses ++
                         ",slowest:" ++ show summarySlowest ++ ",average:" ++ show summaryAverage ++
                         ",errors:" ++ show summaryErrors ++ "}"
