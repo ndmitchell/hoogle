@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, CPP #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
 
 module General.Util(
     Score,
@@ -30,6 +30,8 @@ import Data.Time.Clock
 import Data.Time.Format
 import Control.DeepSeq
 import Control.Exception.Extra
+import Test.QuickCheck
+import Data.Int
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
@@ -100,8 +102,9 @@ splitPair x y | (a,stripPrefix x -> Just b) <- breakOn x y = (a,b)
 joinPair :: [a] -> ([a], [a]) -> [a]
 joinPair sep (a,b) = a ++ sep ++ b
 
-testing :: String -> IO () -> IO ()
-testing name act = do putStr $ "Test " ++ name ++ " "; act; putStrLn ""
+testing_, testing :: String -> IO () -> IO ()
+testing_ name act = do putStr $ "Test " ++ name ++ " "; act
+testing name act = do testing_ name act; putStrLn ""
 
 showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale
@@ -160,3 +163,5 @@ general_util_test = do
         splitPair ":" "module:foo:bar" === ("module","foo:bar")
         do x <- try_ $ evaluate $ rnf $ splitPair "-" "module:foo"; isLeft x === True
         splitPair "-" "module-" === ("module","")
+    testing_ "General.Util.inRanges" $ do
+        quickCheck $ \(x :: Int8) xs -> inRanges xs x == any (`inRange` x) xs
