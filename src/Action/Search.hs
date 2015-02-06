@@ -33,19 +33,19 @@ actionSearch Search{..} = do
             res <- return $ search store $ parseQuery $ unwords rest
             forM_ (maybe id take count res) $ putStrLn . prettyItem . itemItem
 
-search :: StoreRead -> Query -> [ItemEx]
-search store (Query strs typ qtags) = runIdentity $ do
+search :: StoreRead -> [Query] -> [ItemEx]
+search store qs = runIdentity $ do
     let tags = readTags store
-    let exact = Scope True "is" "exact" `elem` qtags
-    is <- case (strs, typ) of
-        ([], Nothing) -> return $ searchTags tags qtags
-        ([], Just t ) -> return $ searchTypes store t
-        (xs, Nothing) -> return $ searchNames store exact xs
-        (xs, Just t ) -> do
-            nam <- return $ Set.fromList $ searchNames store exact xs
-            return $ filter (`Set.member` nam) $ searchTypes store t
+    let exact = QueryScope True "is" "exact" `elem` qs
+    is <- case (filter isQueryName qs, filter isQueryType qs) of
+        ([], [] ) -> return $ searchTags tags qs
+        ([], t:_) -> return $ searchTypes store $ fromQueryType t
+        (xs, [] ) -> return $ searchNames store exact $ map fromQueryName xs
+        (xs, t:_) -> do
+            nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
+            return $ filter (`Set.member` nam) $ searchTypes store $ fromQueryType t
     let look = lookupItem store
-    return $ map (look . snd) $ sortOn fst $ filter (filterTags tags qtags . snd) is
+    return $ map (look . snd) $ sortOn fst $ filter (filterTags tags qs . snd) is
 
 
 action_search_test :: IO ()

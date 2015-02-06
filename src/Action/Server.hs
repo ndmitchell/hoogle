@@ -70,7 +70,7 @@ replyServer logs store cdn = \Input{..} -> case inputURL of
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
-        let q = mconcat $ map parseQuery qSource
+        let q = concatMap parseQuery qSource
         let results = search store q
         let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
@@ -113,7 +113,7 @@ dedupeTake n key = f [] Map.empty
             where k = key x 
 
 
-showResults :: Query -> [[ItemEx]] -> String
+showResults :: [Query] -> [[ItemEx]] -> String
 showResults query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"] ++
     ["<p>No results found</p>" | null results] ++
@@ -135,8 +135,8 @@ showFroms xs = intercalate ", " $ for pkgs $ \p ->
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
 
-displayItem :: Query -> Item -> String
-displayItem Query{..} = keyword . focus
+displayItem :: [Query] -> Item -> String
+displayItem qs = keyword . focus
     where
         keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ dropWhile (== '@') a ++ "</b> " ++ b
                   | otherwise = x
@@ -159,7 +159,7 @@ displayItem Query{..} = keyword . focus
                     groupOn fst . (\x -> zip (f x) x)
             where
               f (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (f xs)
-                  where m = maximum $ 0 : [length y | y <- queryName, lower y `isPrefixOf` lower (x:xs)]
+                  where m = maximum $ 0 : [length y | QueryName y <- qs, lower y `isPrefixOf` lower (x:xs)]
               f (x:xs) = False : f xs
               f [] = []
 

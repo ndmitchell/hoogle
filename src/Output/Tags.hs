@@ -85,14 +85,14 @@ lookupTag Tags{..} x = concat
     , let start = categoryOffsets V.! i, let end = categoryOffsets V.! (i + 1)
     ]
 
-filterTags :: Tags -> [Scope] -> (Id -> Bool)
-filterTags ts qs = let fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) qs in \i -> all ($ i) fs
+filterTags :: Tags -> [Query] -> (Id -> Bool)
+filterTags ts qs = let fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs in \i -> all ($ i) fs
 
 filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
     where (posq,negq) = both inRanges (pos,neg)
           (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
-          f (Scope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
+          f (QueryScope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
 
-searchTags :: Tags -> [Scope] -> [(Score,Id)]
+searchTags :: Tags -> [Query] -> [(Score,Id)]
 searchTags ts qs = map ((0,) . fst) $ if null xs then V.toList $ packageIds ts else xs
-    where xs = concat [lookupTag ts (cat,val) | Scope True cat val <- qs]
+    where xs = concat [lookupTag ts (cat,val) | QueryScope True cat val <- qs]

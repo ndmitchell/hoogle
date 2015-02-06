@@ -1,41 +1,47 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
 
-module Query(Query(..), Scope(..), parseQuery, renderQuery, query_test) where
+module Query(
+    Query(..), isQueryName, isQueryType, isQueryScope,
+    parseQuery, renderQuery,
+    query_test
+    ) where
 
 import Prelude(); import General.Prelude
 import Data.List
 import Language.Haskell.Exts
-import Control.Monad
 import Data.Char
 import Data.List.Extra
 import Data.Generics.Uniplate.Data
 import General.Util
+import Data.Maybe
 
 ---------------------------------------------------------------------
 -- DATA TYPE
 
-data Query = Query {queryName :: [String], queryType :: Maybe Type, queryScope :: [Scope]} deriving (Show,Eq)
+data Query
+    = QueryName {fromQueryName :: String}
+    | QueryType {fromQueryType :: Type}
+    | QueryScope {scopeInclude :: Bool, scopeCategory :: String, scopeValue :: String}
+      deriving (Show,Eq)
 
-instance Monoid Query where
-    mempty = Query [] Nothing []
-    mappend (Query x1 x2 x3) (Query y1 y2 y3) = Query (x1 ++ y1) (x2 `mplus` y2) (x3 ++ y3)
+isQueryName, isQueryType, isQueryScope :: Query -> Bool
+isQueryName QueryName{} = True; isQueryName _ = False
+isQueryType QueryType{} = True; isQueryType _ = False
+isQueryScope QueryScope{} = True; isQueryScope _ = False
 
-data Scope = Scope {scopeInclude :: Bool, scopeCategory :: String, scopeValue :: String} deriving (Show,Eq)
-
-
-renderQuery :: Query -> String
-renderQuery Query{..} = if null xs then "<i>No query</i>" else escapeHTML $ unwords xs
-    where
-        xs = queryName ++
-             concat [["::",pretty t] | Just t <- [queryType]] ++
-             [['-' | not scopeInclude] ++ scopeCategory ++ ":" ++ scopeValue | Scope{..} <- queryScope]
+renderQuery :: [Query] -> String
+renderQuery [] = "<i>No query</i>"
+renderQuery xs = escapeHTML $ unwords $
+    [x | QueryName x <- xs] ++
+    [":: " ++ pretty x | QueryType x <- xs] ++
+    [['-' | not scopeInclude] ++ scopeCategory ++ ":" ++ scopeValue | QueryScope{..} <- xs]
 
 
 ---------------------------------------------------------------------
 -- PARSER
 
-parseQuery :: String -> Query
-parseQuery x = Query nam typ scp
+parseQuery :: String -> [Query]
+parseQuery x = map QueryName nam ++ map QueryType (maybeToList typ) ++ scp
     where
         (scp,rest) = scope_ $ lexer x
         (nam,typ) = divide rest
@@ -77,7 +83,7 @@ lexer [] = []
 -- > name.++ name.(++) (name.++)
 -- > +foo -foo
 -- > +scope:foo -scope:foo scope:foo
-scope_ :: [String] -> ([Scope], [String])
+scope_ :: [String] -> ([Query], [String])
 scope_ xs = case xs of
     (readPM -> Just pm):(readCat -> Just cat):":":(readMod -> Just (mod,rest)) -> add pm cat mod rest
     (readPM -> Just pm):(readCat -> Just cat):":-":(readMod -> Just (mod,rest)) -> add False cat mod rest
@@ -94,7 +100,7 @@ scope_ xs = case xs of
     [] -> ([], [])
     where
         out xs (a,b) = (a,xs++b)
-        add a b c rest = let (x,y) = scope_ rest in (Scope a b c : x, y)
+        add a b c rest = let (x,y) = scope_ rest in (QueryScope a b c : x, y)
         add_ a c rest = add a b c rest
             where b = if '.' `elem` c || any isUpper (take 1 c) then "module" else "package"
 
@@ -158,12 +164,12 @@ typeSig_ xs = case parseTypeWithMode parseMode $ unwords $ fixup $ filter (not .
 
 query_test :: IO ()
 query_test = testing "Query.parseQuery" $ do
-    let names x (bad,q) = (["bad name, expected " ++ show x | queryName q /= x] ++ bad, q{queryName=[]})
-        name x = names [x]
-        typ x (bad,q) = (["bad type, expected " ++ show x | queryType q /= Just (fromParseResult $ parseTypeWithMode parseMode x)] ++ bad, q{queryType=Nothing})
-        typpp x (bad,q) = (["bad type, expected " ++ show x | fmap pretty (queryType q) /= Just x], q)
-        scopes xs (bad,q) = (["bad scope, expected " ++ show xs | not $ xs `isPrefixOf` queryScope q] ++ bad, q{queryScope=drop (length xs) $ queryScope q})
-        scope b c v = scopes [Scope b c v]
+    let want s p (bad,q) = (["missing " ++ s | not $ any p q], filter (not . p) q)
+        wantEq v = want (show v) (== v)
+        name = wantEq . QueryName
+        scope b c v = wantEq $ QueryScope b c v
+        typ = wantEq . QueryType . fromParseResult . parseTypeWithMode parseMode
+        typpp x = want ("type " ++ x) (\v -> case v of QueryType s -> pretty s == x; _ -> False)
     let infixl 0 ===
         a === f | bad@(_:_) <- fst $ f ([], q) = error $ show (a,q,bad :: [String])
                 | otherwise = putChar '.'
@@ -179,7 +185,7 @@ query_test = testing "Query.parseQuery" $ do
     "foldl'" === name "foldl'"
     "fold'l" === name "fold'l"
     "Int#" === name "Int#"
-    "concat map" === names ["concat","map"]
+    "concat map" === name "concat" . name "map"
     "a -> b" === typ "a -> b"
     "(a b)" === typ "(a b)"
     "map :: a -> b" === typ "a -> b"
