@@ -2,20 +2,16 @@
 
 module General.Util(
     Score,
-    pretty, parseMode,
-    fromName, fromTyVarBind,
-    declNames,
+    pretty, parseMode, fromName, fromTyVarBind, declNames,
     tarballReadFiles,
-    escapeHTML,
     isUpper1, isAlpha1,
     splitPair, joinPair,
     testing,
     showUTCTime,
-    list',
+    list', strict,
     withs,
-    tag, tag_,
-    noinline,
-    strict
+    escapeHTML, tag, tag_,
+    noinline
     ) where
 
 import Language.Haskell.Exts
