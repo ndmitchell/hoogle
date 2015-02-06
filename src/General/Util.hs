@@ -11,7 +11,8 @@ module General.Util(
     list', strict,
     withs,
     escapeHTML, tag, tag_,
-    noinline
+    noinline,
+    general_util_test
     ) where
 
 import Language.Haskell.Exts
@@ -132,3 +133,11 @@ strict act = do
     case res of
         Left e -> do msg <- showException e; evaluate $ rnf msg; error msg
         Right v -> do evaluate $ rnf v; return v
+
+
+general_util_test :: IO ()
+general_util_test = testing "General.Util.splitPair" $ do
+    let a === b = if a == b then putChar '.' else error $ show (a,b)
+    splitPair ":" "module:foo:bar" === ("module","foo:bar")
+    do x <- try_ $ evaluate $ rnf $ splitPair "-" "module:foo"; isLeft x === True
+    splitPair "-" "module-" === ("module","")
