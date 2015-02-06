@@ -19,6 +19,7 @@ import qualified Data.Map as Map
 import System.Time.Extra
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Time.Clock
+import Data.Time.Calendar
 import System.IO.Unsafe
 
 import Output.Tags
@@ -173,7 +174,7 @@ action_server_test = testing "Action.Server.displayItem" $ do
 displayLog :: [Summary] -> String
 displayLog xs = "[" ++ intercalate "," (map f xs) ++ "]"
     where
-        f Summary{..} = "{date:" ++ show summaryDate ++
+        f Summary{..} = "{date:" ++ show (showGregorian summaryDate) ++
                         ",searchers:" ++ show summaryUsers ++ ",searches:" ++ show summaryUses ++
                         ",slowest:" ++ show summarySlowest ++ ",average:" ++ show summaryAverage ++
                         ",errors:" ++ show summaryErrors ++ "}"

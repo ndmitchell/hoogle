@@ -2,12 +2,13 @@
 
 module General.Log(
     Log, logCreate, logNone, logAddMessage, logAddEntry,
-    Summary(..), logSummary
+    Summary(..), logSummary,
     ) where
 
 import Control.Concurrent.Extra
 import Control.Applicative
 import System.IO
+import Data.Time.Calendar
 import Data.Time.Clock
 import Numeric.Extra
 import Control.Monad.Extra
@@ -23,7 +24,7 @@ import Data.IORef
 
 data Log = Log
     {logOutput :: Maybe (Var Handle)
-    ,logCurrent :: IORef (Map.Map String SummaryI)
+    ,logCurrent :: IORef (Map.Map Day SummaryI)
     ,logInteresting :: String -> Bool
     }
 
@@ -56,9 +57,8 @@ logAddMessage Log{..} msg = do
 
 logAddEntry :: Log -> String -> String -> Double -> Maybe String -> IO ()
 logAddEntry Log{..} user question taken err = do
-    time <- showTime <$> getCurrentTime
-    let k = takeWhile (/= 'T') time
-    let add v = atomicModifyIORef logCurrent $ \mp -> (Map.alter (Just . maybe v (<> v)) k mp, ())
+    time <- getCurrentTime
+    let add v = atomicModifyIORef logCurrent $ \mp -> (Map.alter (Just . maybe v (<> v)) (utctDay time) mp, ())
     if logInteresting question then
         add $ SummaryI (Set.singleton user) 1 taken (toAverage taken) (if isJust err then 1 else 0)
      else if isJust err then
@@ -66,11 +66,11 @@ logAddEntry Log{..} user question taken err = do
      else
         return ()
     whenJust logOutput $ \var -> withVar var $ \h ->
-        hPutStrLn h $ unwords $ [time, user, showDP 3 taken, question] ++ maybeToList (fmap ("ERROR: " ++) err)
+        hPutStrLn h $ unwords $ [showTime time, user, showDP 3 taken, question] ++ maybeToList (fmap ("ERROR: " ++) err)
 
 -- Summary collapsed
 data Summary = Summary
-    {summaryDate :: String
+    {summaryDate :: Day
     ,summaryUsers :: Int
     ,summaryUses :: Int
     ,summarySlowest :: Double
@@ -96,12 +96,14 @@ instance Monoid SummaryI where
                     | Set.size y == 1 = Set.insert (head $ Set.toList y) x
                     | otherwise = Set.union x y
 
-summarize :: String -> SummaryI -> Summary
+summarize :: Day -> SummaryI -> Summary
 summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest (fromAverage iAverage) iErrors
 
-parseLogLine :: (String -> Bool) -> LBS.ByteString -> Maybe (String, SummaryI)
-parseLogLine interesting (LBS.words -> time:user:dur:rest) | user /= LBS.pack "-" = Just
-    (LBS.unpack $ LBS.takeWhile (/= 'T') time, SummaryI
+parseLogLine :: (String -> Bool) -> LBS.ByteString -> Maybe (Day, SummaryI)
+parseLogLine interesting (LBS.words -> time:user:dur:rest)
+    | user /= LBS.pack "-"
+    , Just [a, b, c] <- mapM (readMaybe . LBS.unpack) $ LBS.split '-' $ LBS.takeWhile (/= 'T') time
+    = Just (fromGregorian (fromIntegral a) b c, SummaryI
         (if use then Set.singleton $ LBS.unpack user else Set.empty)
         (if use then 1 else 0)
         (if use then dur2 else 0)
