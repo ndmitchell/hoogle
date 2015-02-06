@@ -6,7 +6,7 @@ module General.Util(
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
-    testing,
+    testing, timed,
     showUTCTime,
     list', strict,
     withs,
@@ -35,6 +35,8 @@ import Control.Exception.Extra
 import Test.QuickCheck
 import Data.Int
 import Data.Monoid
+import System.IO
+import System.Time.Extra
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
@@ -108,6 +110,13 @@ joinPair sep (a,b) = a ++ sep ++ b
 testing_, testing :: String -> IO () -> IO ()
 testing_ name act = do putStr $ "Test " ++ name ++ " "; act
 testing name act = do testing_ name act; putStrLn ""
+
+timed :: String -> IO a -> IO a
+timed msg act = do
+    putStr (msg ++ "... ") >> hFlush stdout
+    (t,v) <- duration act
+    putStrLn $ showDuration t
+    return v
 
 showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale
