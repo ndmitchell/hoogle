@@ -18,6 +18,7 @@ module General.Util(
     general_util_test
     ) where
 
+import Prelude(); import General.Prelude
 import Language.Haskell.Exts
 import Data.List.Extra
 import Data.Char
@@ -34,7 +35,6 @@ import Control.DeepSeq
 import Control.Exception.Extra
 import Test.QuickCheck
 import Data.Int
-import Data.Monoid
 import System.IO
 import System.Time.Extra
 #if __GLASGOW_HASKELL__< 710
