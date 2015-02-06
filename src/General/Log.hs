@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards, ViewPatterns #-}
 
 module General.Log(
-    Log, logCreate, logAddMessage, logAddEntry,
+    Log, logCreate, logNone, logAddMessage, logAddEntry,
     Summary(..), logSummary
     ) where
 
@@ -10,6 +10,7 @@ import Control.Applicative
 import System.IO
 import Data.Time.Clock
 import Numeric.Extra
+import Control.Monad.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.ByteString.Char8 as BS
@@ -24,7 +25,7 @@ import System.Process.Extra
 
 data Log = Log
     {logLock :: Lock
-    ,logHandle :: Handle
+    ,logHandle :: Maybe Handle
     ,logFile :: Maybe FilePath
     ,logInteresting :: String -> Bool
     }
@@ -32,24 +33,27 @@ data Log = Log
 showTime :: UTCTime -> String
 showTime = showUTCTime "%Y-%m-%dT%H:%M:%S%Q"
 
+logNone :: IO Log
+logNone = do lock <- newLock; return $ Log lock Nothing Nothing (const False)
+
 logCreate :: Either Handle FilePath -> (String -> Bool) -> IO Log
 logCreate store interesting = do
     logHandle <- either return (`openFile` AppendMode) store
     hSetBuffering logHandle LineBuffering
     logLock <- newLock
-    return $ Log logLock logHandle (either (const Nothing) Just store) interesting
+    return $ Log logLock (Just logHandle) (either (const Nothing) Just store) interesting
 
 logAddMessage :: Log -> String -> IO ()
 logAddMessage Log{..} msg = do
     time <- showTime <$> getCurrentTime
-    withLock logLock $ hPutStrLn logHandle $ unwords $
-        [time, "-", msg]
-    hFlush logHandle
+    whenJust logHandle $ \h -> do
+        withLock logLock $ hPutStrLn h $ time ++ " - " ++ msg
+        hFlush h
 
 logAddEntry :: Log -> String -> String -> Double -> Maybe String -> IO ()
 logAddEntry Log{..} user question taken err = do
     time <- showTime <$> getCurrentTime
-    withLock logLock $ hPutStrLn logHandle $ unwords $
+    whenJust logHandle $ \h -> withLock logLock $ hPutStrLn h $ unwords $
         [time, user, show $ ceiling $ taken * 1000, question] ++ maybeToList (fmap ("ERROR: " ++) err)
 
 data Summary = Summary
