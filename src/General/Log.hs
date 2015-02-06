@@ -12,7 +12,7 @@ import Data.Time.Clock
 import Numeric.Extra
 import Control.Monad.Extra
 import qualified Data.Set as Set
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Monoid
