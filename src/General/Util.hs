@@ -136,8 +136,9 @@ strict act = do
 
 
 general_util_test :: IO ()
-general_util_test = testing "General.Util.splitPair" $ do
-    let a === b = if a == b then putChar '.' else error $ show (a,b)
-    splitPair ":" "module:foo:bar" === ("module","foo:bar")
-    do x <- try_ $ evaluate $ rnf $ splitPair "-" "module:foo"; isLeft x === True
-    splitPair "-" "module-" === ("module","")
+general_util_test = do
+    testing "General.Util.splitPair" $ do
+        let a === b = if a == b then putChar '.' else error $ show (a,b)
+        splitPair ":" "module:foo:bar" === ("module","foo:bar")
+        do x <- try_ $ evaluate $ rnf $ splitPair "-" "module:foo"; isLeft x === True
+        splitPair "-" "module-" === ("module","")
