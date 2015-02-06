@@ -21,6 +21,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Time.Clock
 import Data.Time.Calendar
 import System.IO.Unsafe
+import Numeric.Extra
 
 import Output.Tags
 import Query hiding (test)
@@ -78,6 +79,13 @@ replyServer log store cdn = \Input{..} -> case inputURL of
             Just m -> return $ OutputFail $ LBS.pack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
+    ["canary"] -> do
+        now <- getCurrentTime
+        summ <- logSummary log
+        let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
+        let alive = (now `subtractTime` spawned) / (24 * 60 * 60)
+        let s = show errs ++ " errors since yesterday, running for " ++ showDP 2 alive ++ " days."
+        return $ if errs == 0 && alive < 1.5 then OutputString $ LBS.pack $ "Happy. " ++ s else OutputFail $ LBS.pack $ "Sad. " ++ s
     ["log"] -> do
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
