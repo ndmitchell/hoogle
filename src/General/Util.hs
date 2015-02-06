@@ -11,7 +11,7 @@ module General.Util(
     splitPair, joinPair,
     testing,
     showUTCTime,
-    error', list',
+    list',
     withs,
     tag, tag_,
     noinline,
@@ -103,10 +103,6 @@ showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale
 
 
-error' :: String -> a
-error' msg = rnf msg `seq` error msg
-
-
 list' :: NFData a => [a] -> [a]
 list' (x:xs) = rnf x `seq` x : list' xs
 list' [] = []
@@ -135,5 +131,5 @@ strict :: NFData a => IO a -> IO a
 strict act = do
     res <- try_ act
     case res of
-        Left e -> error' =<< showException e
+        Left e -> do msg <- showException e; evaluate $ rnf msg; error msg
         Right v -> do evaluate $ rnf v; return v
