@@ -88,8 +88,9 @@ lookupTag Tags{..} x = concat
 filterTags :: Tags -> [Scope] -> (Id -> Bool)
 filterTags ts qs = let fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) qs in \i -> all ($ i) fs
 
-filterTags2 ts qs = \i -> let g (lb,ub) = i >= lb && i <= ub in not (any g neg) && (null pos || any g pos)
-    where (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
+filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
+    where (posq,negq) = both inRanges (pos,neg)
+          (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
           f (Scope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
 
 searchTags :: Tags -> [Scope] -> [(Score,Id)]

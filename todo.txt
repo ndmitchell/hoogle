@@ -3,7 +3,6 @@ Before beta:
 
 * Add easy to restrict/include package: things on the LHS
 * Implement type search
-* Optimise is:package is:module
 
 After beta:
 
