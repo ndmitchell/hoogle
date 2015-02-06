@@ -19,7 +19,7 @@ module General.Util(
 import Language.Haskell.Exts
 import Data.List.Extra
 import Data.Char
-import Data.Either
+import Data.Either.Extra
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
 import Data.Ix
