@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns, TupleSections #-}
+{-# LANGUAGE RecordWildCards, ViewPatterns, TupleSections, PatternGuards #-}
 
 module General.Log(
     Log, logCreate, logNone, logAddMessage, logAddEntry,
