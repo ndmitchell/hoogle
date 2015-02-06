@@ -38,9 +38,9 @@ actionServer :: CmdLine -> IO ()
 actionServer Server{..} = do
     let pkg = "output" </> head ([database | database /= ""] ++ ["all"])
     putStrLn $ "Server started on port " ++ show port
-    evaluate time
     log <- timed "Reading log" $ logCreate (if logs == "" then Left stdout else Right logs) $
         \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
+    evaluate spawned
     storeReadFile (pkg <.> "hoo") $ \store ->
         server log port $ replyServer log store cdn
 
@@ -57,9 +57,9 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
             putChar '.'
     putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / genericLength qs) ++ ")"
 
-{-# NOINLINE time #-}
-time :: String
-time = unsafePerformIO $ showUTCTime "%Y-%m-%d %H:%M" <$> getCurrentTime
+{-# NOINLINE spawned #-}
+spawned :: UTCTime
+spawned = unsafePerformIO getCurrentTime
 
 replyServer :: Log -> StoreRead -> String -> Input -> IO Output
 replyServer log store cdn = \Input{..} -> case inputURL of
@@ -86,7 +86,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- listTags $ readTags store]
         params = map (second str)
             [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
-            ,("version",showVersion version ++ " " ++ time)]
+            ,("version",showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
         templateIndex = templateFile "html/index.html" `templateApply` params
         templateEmpty = templateFile "html/welcome.html"
         templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str "")]
