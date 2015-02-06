@@ -28,7 +28,7 @@ data Names = Names deriving Typeable
 
 writeNames :: StoreWrite -> [(Maybe Id, Item)] -> IO ()
 writeNames store xs = do
-    let (ids, strs) = unzip [(i, [' ' | isUName name] ++ lower name) | (Just i, x) <- xs, name <- toName x]
+    let (ids, strs) = unzip [(i, [' ' | isUpper1 name] ++ lower name) | (Just i, x) <- xs, name <- toName x]
     let b = BS.intercalate (BS.pack "\0") (map BS.pack strs) `BS.append` BS.pack "\0\0"
     bound <- BS.unsafeUseAsCString b $ \ptr -> text_search_bound ptr
     storeWriteType store Names $ do
@@ -47,7 +47,7 @@ searchNames store exact (filter (/= "") -> xs) = unsafePerformIO $ do
     let [n,v,bs] = storeReadList $ storeReadType Names store
     -- if there are no questions, we will match everything, which exceeds the result buffer
     if null xs then return $ map (0,) $ V.toList $ storeReadV v else do
-        let tweak x = BS.pack $ [' ' | isUName x] ++ lower x ++ "\0"
+        let tweak x = BS.pack $ [' ' | isUpper1 x] ++ lower x ++ "\0"
         bracket (mallocArray $ intFromBS $ storeReadBS n) free $ \result ->
             BS.unsafeUseAsCString (storeReadBS bs) $ \haystack ->
                 withs (map (BS.unsafeUseAsCString . tweak) xs) $ \needles ->

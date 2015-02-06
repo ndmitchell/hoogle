@@ -47,9 +47,6 @@ shutBrackets = ["#)",":]",")","]"]
 isBracket x = x `elem` (openBrackets ++ shutBrackets)
 isBracketPair x = x `elem` zipWith (++) openBrackets shutBrackets
 
-isAlphas (x:xs) = isAlpha x
-isAlphas [] = False
-
 isSym x = x `elem` "->!#$%&*+./<=?@\\^|~:"
 
 isSyms xs | isBracket xs || isBracketPair xs = False
@@ -103,17 +100,17 @@ scope_ xs = case xs of
 
         readPM x = case x of "+" -> Just True; "-" -> Just False; _ -> Nothing
 
-        readCat x | isAlphas x = Just x
+        readCat x | isAlpha1 x = Just x
                   | otherwise = Nothing
 
-        readMod (x:xs) | isAlphas x = Just $ case xs of
+        readMod (x:xs) | isAlpha1 x = Just $ case xs of
             ".":ys | Just (a,b) <- readMod ys -> (x ++ "." ++ a, b)
             ".":[] -> (x ++ ".",[])
             ".":" ":ys -> (x ++ "."," ":ys)
             _ -> (x,xs)
         readMod _ = Nothing
 
-        readDots (x:xs) | isAlphas x = case xs of
+        readDots (x:xs) | isAlpha1 x = case xs of
             ".":ys | Just (a,b) <- readDots ys -> Just (x ++ "." ++ a, b)
             ('.':y):ys -> Just (x, [y | y /= ""] ++ ys)
             _ -> Nothing
@@ -122,7 +119,7 @@ scope_ xs = case xs of
 
 -- | If everything is a name, or everything is a symbol, then you only have names.
 divide :: [String] -> ([String], Maybe Type)
-divide xs | all isAlphas ns = (ns, Nothing)
+divide xs | all isAlpha1 ns = (ns, Nothing)
           | all isSyms ns = (ns, Nothing)
           | length ns == 1 = (ns, Nothing)
           | otherwise = case break (== "::") xs of

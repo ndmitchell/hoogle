@@ -7,7 +7,7 @@ module General.Util(
     declNames,
     tarballReadFiles,
     escapeHTML,
-    isUName,
+    isUpper1, isAlpha1,
     splitPair, joinPair,
     testing,
     showUTCTime,
@@ -86,8 +86,11 @@ escapeHTML = concatMap f
         f '\"' = "&quot;"
         f  x  = [x]
 
-isUName (x:xs) = isUpper x
-isUName _ = False
+isUpper1 (x:xs) = isUpper x
+isUpper1 _ = False
+
+isAlpha1 (x:xs) = isAlpha x
+isAlpha1 [] = False
 
 splitPair :: String -> String -> (String, String)
 splitPair x y | (a,stripPrefix x -> Just b) <- breakOn x y = (a,b)
