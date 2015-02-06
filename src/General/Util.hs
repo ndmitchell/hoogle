@@ -26,7 +26,6 @@ import Data.Either.Extra
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
 import Data.Ix
-import Control.Applicative
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
 import Data.Time.Clock
