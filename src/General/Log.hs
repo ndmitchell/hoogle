@@ -103,7 +103,7 @@ summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest (fro
 parseLogLine :: (String -> Bool) -> LBS.ByteString -> Maybe (Day, SummaryI)
 parseLogLine interesting (LBS.words -> time:user:dur:query:err)
     | user /= LBS.pack "-"
-    , Just [a, b, c] <- mapM (readMaybe . LBS.unpack) $ LBS.split '-' $ LBS.takeWhile (/= 'T') time
+    , Just [a, b, c] <- fmap (map fst) $ mapM LBS.readInt $ LBS.split '-' $ LBS.takeWhile (/= 'T') time
     = Just (fromGregorian (fromIntegral a) b c, SummaryI
         (if use then Set.singleton $ LBS.unpack user else Set.empty)
         (if use then 1 else 0)
