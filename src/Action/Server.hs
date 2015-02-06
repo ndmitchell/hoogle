@@ -75,7 +75,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
             Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ LBS.pack body
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
-    ["log.html"] -> do
+    ["log"] -> do
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
     xs -> return $ OutputFile $ joinPath $ "html" : xs
