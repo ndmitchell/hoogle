@@ -66,7 +66,8 @@ logAddEntry Log{..} user question taken err = do
      else
         return ()
     whenJust logOutput $ \var -> withVar var $ \h ->
-        hPutStrLn h $ unwords $ [showTime time, user, showDP 3 taken, question] ++ maybeToList (fmap ("ERROR: " ++) err)
+        hPutStrLn h $ unwords $ [showTime time, user, showDP 3 taken, question] ++
+                                maybeToList (fmap ((++) "ERROR: " . unwords . words) err)
 
 -- Summary collapsed
 data Summary = Summary
