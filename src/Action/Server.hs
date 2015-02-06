@@ -38,8 +38,9 @@ actionServer :: CmdLine -> IO ()
 actionServer Server{..} = do
     let pkg = "output" </> head ([database | database /= ""] ++ ["all"])
     putStrLn $ "Server started on port " ++ show port
-    log <- timed "Reading log" $ logCreate (if logs == "" then Left stdout else Right logs) ("hoogle=" `isInfixOf`)
     evaluate time
+    log <- timed "Reading log" $ logCreate (if logs == "" then Left stdout else Right logs) $
+        \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
     storeReadFile (pkg <.> "hoo") $ \store ->
         server log port $ replyServer log store cdn
 
