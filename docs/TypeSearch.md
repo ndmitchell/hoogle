@@ -1,5 +1,7 @@
 # TypeSearch algorithm
 
+This document outlines the type search algorithm used in Hoogle.
+
 The basic question is:
 
     (?) :: TypeQ -> TypeA -> Maybe Cost
