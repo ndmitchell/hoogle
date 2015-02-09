@@ -1,7 +1,6 @@
 
 Before beta:
 
-* Add easy to restrict/include package: things on the LHS
 * Implement type search
 
 After beta:

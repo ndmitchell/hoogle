@@ -70,7 +70,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = concatMap parseQuery qSource
         let results = search store q
-        let body = showResults q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
+        let body = showResults inputArgs q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions $ grab "scope"),("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
@@ -112,8 +112,8 @@ dedupeTake n key = f [] Map.empty
             where k = key x 
 
 
-showResults :: [Query] -> [[ItemEx]] -> String
-showResults query results = unlines $
+showResults :: [(String, String)] -> [Query] -> [[ItemEx]] -> String
+showResults args query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"
     ,"<ul id=left>"
     ,"<li><b>Packages</b></li>"] ++
@@ -127,7 +127,13 @@ showResults query results = unlines $
      "</div>"
     | is@(ItemEx{..}:_) <- results]
     where
-        f cat val = "<a class='minus' href='?'></a><a class='plus' href='?'>" ++
+        add x = escapeHTML $ ("?" ++) $ intercalate "&" $ map (joinPair "=") $
+            case break ((==) "hoogle" . fst) args of
+                (a,[]) -> a ++ [("hoogle",x)]
+                (a,(_,x1):b) -> a ++ [("hoogle",x1 ++ " " ++ x)] ++ b
+
+        f cat val = "<a class='minus' href='" ++ add ("-" ++ cat ++ ":" ++ val) ++ "'></a>" ++
+                    "<a class='plus' href='" ++ add (cat ++ ":" ++ val) ++ "'>" ++
                     (if cat == "package" then "" else cat ++ ":") ++ val ++ "</a>"
 
 
