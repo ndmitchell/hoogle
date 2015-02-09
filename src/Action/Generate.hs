@@ -66,11 +66,12 @@ generate xs = do
     (seen, xs) <- second (parseHoogle . filter (/= '\r') . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
     storeWriteFile (out <.> "hoo") $ \store -> do
-        xs <- reorderItems =<< writeItems store out xs
+        xs <- writeItems store out xs
         putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
-        writeTags store extra xs
-        writeNames store xs
-        writeTypes store xs
+        xs <- timed "Reodering items" $ reorderItems xs
+        timed "Writing tags" $ writeTags store extra xs
+        timed "Writing names" $ writeNames store xs
+        timed "Writing types" $ writeTypes store xs
 
         whenM getGCStatsEnabled $ do
             performGC
