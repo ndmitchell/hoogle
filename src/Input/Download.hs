@@ -3,10 +3,10 @@
 module Input.Download(downloadInputs) where
 
 import General.Web
+import General.Util
 import System.FilePath
 import Control.Monad.Extra
 import System.Directory
-import System.IO
 
 
 urls =
@@ -23,8 +23,6 @@ downloadInputs = do
     forM_ urls $ \(name, url) -> do
         let file = "input" </> name
         unlessM (doesFileExist file) $ do
-            putStr $ "Downloading " ++ url ++ "... "
-            hFlush stdout
-            downloadFile (file <.> "part") url
-            renameFile (file <.> "part") file
-            putStrLn "done"
+            timed ("Downloading " ++ url) $ do
+                downloadFile (file <.> "part") url
+                renameFile (file <.> "part") file
