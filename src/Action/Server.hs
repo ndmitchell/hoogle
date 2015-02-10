@@ -22,6 +22,7 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import System.IO.Unsafe
 import Numeric.Extra
+import GHC.Stats
 
 import Output.Tags
 import Query hiding (test)
@@ -90,6 +91,13 @@ replyServer log store cdn = \Input{..} -> case inputURL of
     ["log"] -> do
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
+    ["stats"] -> do
+        stats <- getGCStatsEnabled
+        if stats then do
+            x <- getGCStats
+            return $ OutputString $ LBS.pack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
+         else
+            return $ OutputFail $ LBS.pack "GHC Statistics is not enabled, restart with +RTS -T"
     xs -> return $ OutputFile $ joinPath $ "html" : xs
     where
         str = templateStr . LBS.pack
