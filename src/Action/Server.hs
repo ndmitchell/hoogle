@@ -79,6 +79,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
             Just m -> return $ OutputFail $ LBS.pack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
+    ["plugin","jquery.flot.time.js"] -> OutputFile <$> Flot.file Flot.FlotTime
     ["canary"] -> do
         now <- getCurrentTime
         summ <- logSummary log
