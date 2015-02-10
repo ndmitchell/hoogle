@@ -7,6 +7,7 @@
         <link type="image/png" rel="icon" href="#{cdn}favicon.png" />
         <script type="text/javascript" src="#{jquery}"> </script>
         <script type="text/javascript" src="plugin/jquery.flot.js"> </script>
+        <script type="text/javascript" src="plugin/jquery.flot.time.js"> </script>
 
 <style type="text/css">
 .plot {width: 90%; max-width: 600px; height: 200px;}
@@ -20,15 +21,36 @@ function series(name, val)
     val.data = [];
     for (var i = 0; i < data.length; i++)
     {
-        var x = data[i][name];
-        val.data.push([i,x == 0 ? null : x]);
+        var x = data[i][name.toLowerCase()];
+        val.data.push([new Date(data[i].date),x == 0 ? null : x]);
     }
     return val;
 }
 $(function(){
-    $.plot("#users",[series("users",{}),series("uses",{yaxis:2})]);
-    $.plot("#timings",[series("average",{}),series("slowest",{yaxis:2})]);
-    $.plot("#errors",[series("errors",{})]);
+    var settings =
+        {series: {lines: {show: true}, points: {show: true}}
+        ,xaxis: {mode: "time", minTickSize: [1, "day"]}
+        ,yaxes: [{}, {position: "right"}]
+        ,grid: {hoverable: true, clickable: true}};
+    $.plot("#users",[series("Uses",{yaxis:2}),series("Users",{})], settings);
+    $.plot("#timings",[series("Average",{}),series("Slowest",{yaxis:2})], settings);
+    settings.series.lines.show = false;
+    $.plot("#errors",[series("Errors",{color:"darkred"})], settings);
+
+    $(".plot").bind("plothover", function (event, pos, item) {
+        if (item) {
+            var x = new Date(item.datapoint[0]).toDateString();
+            var y = item.datapoint[1];
+            y = Math.floor(y) == y ? y : y.toFixed(3);
+
+            $("#tooltip").html(y + " = " + item.series.label + " on " + x)
+                .css({top: item.pageY+5, left: item.pageX+5})
+                .fadeIn(200);
+        } else {
+            $("#tooltip").hide();
+        }
+    });
+
 });
 </script>
 
@@ -40,5 +62,8 @@ $(function(){
 <b>Users</b><div id="users" class="plot"></div><br/>
 <b>Timings</b><div id="timings" class="plot"></div><br/>
 <b>Errors</b><div id="errors" class="plot"></div><br/>
+
+<div id="tooltip" style="position:absolute;display:none;border-radius:4px;border:1px solid gray;padding:3px;background-color:#fea;box-shadow: 4px 3px 8px -1px rgba(0,0,0,0.38);"></div>
+
 </body>
 </html>
