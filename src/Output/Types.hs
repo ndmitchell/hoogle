@@ -7,8 +7,11 @@ import Language.Haskell.Exts
 import Language.Haskell.Exts.SrcLoc
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
+import Control.Monad
 import Data.Maybe
+import Data.Word
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
@@ -32,8 +35,18 @@ main: fromList [(0,6260),(1,21265),(2,12188),(3,4557),(4,1681),(5,732),(6,363),(
 
 data Types = Types deriving Typeable
 
+data Ctors = Ctors deriving Typeable
+
 writeTypes :: StoreWrite -> [(Maybe Id, Item)] -> IO ()
 writeTypes store xs = storeWriteType store Types $ do
+
+    when False $
+        storeWriteType store Ctors $ do
+            let rare = createRarity $ map snd xs
+            let rew = map (second $ second $ encodeSig undefined) $ createRewrite $ map snd xs
+            storeWriteBS store $ BS.pack $ intercalate "\0" (Map.keys rare) ++ "\0\0"
+            storeWriteV store $ V.fromList $ concatMap (snd . snd) rew
+
     rare <- writeRarity store $ map snd xs
     writeAlias store $ map snd xs
     writeInstance store $ map snd xs
@@ -42,6 +55,23 @@ writeTypes store xs = storeWriteType store Types $ do
     storeWriteBS store $ BS.pack $ unlines $ concat
         [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t, pretty t]
         | (t,i) <- sortOn (minimum . map fst . snd) ys]
+
+
+
+createRarity :: [Item] -> Map.Map String Int
+createRarity xs = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
+
+
+createRewrite :: [Item] -> [(String, (Int, Sig))] -- (arity, type)
+createRewrite = mapMaybe $ \x -> case x of
+    IDecl (TypeDecl _ name (map fromTyVarBind -> bind) exp) -> Just (fromName name, (length bind, toSig $ transformBi f exp))
+        where f x = maybe x (Ident . show) $ elemIndex x bind
+    IDecl (InstDecl _ _ _ ctxt name [ty] _) -> Nothing -- FIXME! Should reduce here
+    _ -> Nothing
+
+
+encodeSig :: Map.Map String Word16 -> Sig -> [Word16]
+encodeSig = undefined
 
 
 {-
@@ -120,6 +150,7 @@ writeRarity :: StoreWrite -> [Item] -> IO Rarity
 writeRarity store xs = do
     let n = length xs
     let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
+    error $ show $ length $ concat $ Map.keys r
     storeWriteBS store $ BS.pack $ unlines $
         show n :
         [x ++ " " ++ show i | (x,i) <- Map.toList r]
@@ -238,3 +269,44 @@ data Term = Con String
 -- * Int ==> C Eq a, abstract
 
 -- rewrite :: [((Term,Term),Cost)] -> ([Term],Term) -> ([Term],Term) -> Maybe Cost
+
+
+---------------------------------------------------------------------
+-- SIMPLIFIED TYPES
+
+data Sig = Sig [Ctx] [Ty] -- list of -> types
+data Ctx = Ctx String String -- context, second will usually be a free variable
+data Ty = Ty String [Ty] -- type application, vectorised, all symbols may occur at multiple kinds
+
+toSig :: Type -> Sig
+toSig = tyForall
+    where
+        -- forall at the top is different
+        tyForall (TyParen x) = tyForall x
+        tyForall (TyForall _ c t) | Sig cs ts <- tyForall t = Sig (toCtx c ++ cs) ts
+        tyForall x = Sig [] $ tyFun x
+
+        tyFun (TyParen x) = tyFun x
+        tyFun (TyFun a b) = ty a : tyFun b
+        tyFun x = [ty x]
+
+        ty (TyForall _ _ x) = Ty "\\/" [ty x]
+        ty x@TyFun{} = Ty "->" $ tyFun x
+        ty (TyTuple box ts) = Ty (fromQName $ Special $ TupleCon box $ length ts) (map ty ts)
+        ty (TyList x) = Ty "[]" [ty x]
+        ty (TyParArray x) = Ty "[::]" [ty x]
+        ty (TyApp x y) | Ty a b <- ty x = Ty a (b ++ [ty y])
+        ty (TyVar x) = Ty (fromName x) []
+        ty (TyCon x) = Ty (fromQName x) []
+        ty (TyInfix a b c) = ty $ TyCon b `TyApp` a `TyApp` c
+        ty (TyKind x _) = ty x
+        ty (TyBang _ x) = ty x
+        ty _ = Ty "_" []
+
+
+toCtx :: Context -> [Ctx]
+toCtx = mapMaybe f
+    where
+        f (ParenA x) = f x
+        f (ClassA con [TyVar var]) = Just $ Ctx (fromQName con) (fromName var)
+        f _ = Nothing
