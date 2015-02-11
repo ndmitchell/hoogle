@@ -1,7 +1,6 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
 
 module General.Util(
-    Score,
     pretty, parseMode, fromName, fromTyVarBind, declNames,
     tarballReadFiles,
     isUpper1, isAlpha1,
@@ -42,9 +41,6 @@ import System.Time.Extra
 import System.Locale
 #endif
 
-
--- 0 is a perfect match, anything lower is less good
-type Score = Double
 
 pretty :: Pretty a => a -> String
 pretty = trim . unwords . words . prettyPrint
