@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
 
 module General.Util(
-    pretty, parseMode, fromName, fromTyVarBind, declNames,
+    pretty, parseMode, fromName, fromQName, fromTyVarBind, declNames,
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
@@ -55,6 +55,18 @@ parseMode = defaultParseMode{extensions=map EnableExtension es}
 fromName :: Name -> String
 fromName (Ident x) = x
 fromName (Symbol x) = x
+
+fromQName :: QName -> String
+fromQName (Qual _ x) = fromName x
+fromQName (UnQual x) = fromName x
+fromQName (Special UnitCon) = "()"
+fromQName (Special ListCon) = "[]"
+fromQName (Special FunCon) = "->"
+fromQName (Special (TupleCon box n)) = "(" ++ h ++ replicate n ',' ++ h ++ ")"
+    where h = ['#' | box == Unboxed]
+fromQName (Special UnboxedSingleCon) = "(##)"
+fromQName (Special Cons) = ":"
+
 
 fromTyVarBind :: TyVarBind -> Name
 fromTyVarBind (KindedVar x _) = x
