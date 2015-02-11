@@ -82,6 +82,8 @@ storeWriteFile file act = do
     atoms <- newIORef []
     parts <- newIORef False
     withBinaryFile file WriteMode $ \h -> do
+        -- put the version string at the start and end, so we can tell truncation vs wrong version
+        BS.hPut h verString
         res <- act $ StoreWrite prefix atoms parts h
         -- write the atoms out, probably using binary, then put the size at the end
         atoms <- readIORef atoms
@@ -152,15 +154,19 @@ data StoreRead = StoreRead
 storeReadFile :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
 storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> strict $ do
     -- check is longer than my version string
-    when (len < BS.length verString + intSize) $
+    when (len < (BS.length verString * 2) + intSize) $
         error $ "The Hoogle file " ++ file ++ " is corrupt, only " ++ show len ++ " bytes."
 
     let verN = BS.length verString
-    ver <- BS.unsafePackCStringLen (plusPtr ptr $ len - verN, verN)
-    when (verString /= ver) $
-        error $ "The Hoogle file " ++ file ++ " is the wrong version.\n" ++
-                "Expected: " ++ trim (BS.unpack verString) ++ "\n" ++
-                "Got     : " ++ map (\x -> if isAlphaNum x || x `elem` "_-. " then x else '?') (trim $ BS.unpack ver)
+    verEnd <- BS.unsafePackCStringLen (plusPtr ptr $ len - verN, verN)
+    when (verString /= verEnd) $ do
+        verStart <- BS.unsafePackCStringLen (plusPtr ptr 0, verN)
+        if verString /= verStart then
+            error $ "The Hoogle file " ++ file ++ " is the wrong version or format.\n" ++
+                    "Expected: " ++ trim (BS.unpack verString) ++ "\n" ++
+                    "Got     : " ++ map (\x -> if isAlphaNum x || x `elem` "_-. " then x else '?') (trim $ BS.unpack verStart)
+         else
+            error $ "The Hoogle file " ++ file ++ " is truncated, probably due to an error during creation."
 
     atomSize <- intFromBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize, intSize)
     when (len < verN + intSize + atomSize) $
