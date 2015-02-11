@@ -45,7 +45,7 @@ search store qs = runIdentity $ do
             nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
             return $ filter (`Set.member` nam) $ searchTypes store $ fromQueryType t
     let look = lookupItem store
-    return $ map (look . snd) $ sortOn fst $ filter (filterTags tags qs . snd) is
+    return $ map look $ filter (filterTags tags qs) is
 
 
 action_search_test :: IO ()

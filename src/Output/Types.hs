@@ -54,7 +54,7 @@ writeTypes store xs = storeWriteType store Types $ do
         [pretty t | (_, IDecl t@TypeDecl{}) <- xs]
 -}
 
-searchTypes :: StoreRead -> Type -> [(Score,Id)]
+searchTypes :: StoreRead -> Type -> [Id]
 searchTypes store q = runIdentity $ do
     let [x1,x2,x3,x4] = storeReadList $ storeReadType Types store
     dbRare <- return $ readRarity x1
@@ -73,7 +73,7 @@ searchTypes store q = runIdentity $ do
             = (c, map read $ words $ BS.unpack ids) : f xs
             | otherwise = f xs
         f _ = []
-    return $ map (0,) $ concatMap snd $ sortOn fst $ f $ BS.lines $ storeReadBS x4
+    return $ concatMap snd $ sortOn fst $ f $ BS.lines $ storeReadBS x4
 
 
 {-

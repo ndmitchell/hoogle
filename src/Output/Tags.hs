@@ -93,6 +93,6 @@ filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
           (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
           f (QueryScope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
 
-searchTags :: Tags -> [Query] -> [(Score,Id)]
-searchTags ts qs = map ((0,) . fst) $ if null xs then V.toList $ packageIds ts else xs
+searchTags :: Tags -> [Query] -> [Id]
+searchTags ts qs = map fst $ if null xs then V.toList $ packageIds ts else xs
     where xs = concat [lookupTag ts (cat,val) | QueryScope True cat val <- qs]

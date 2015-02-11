@@ -42,11 +42,11 @@ toName (IPackage x) = [x]
 toName (IModule x) = [last $ splitOn "." x]
 toName (IDecl x) = declNames x
 
-searchNames :: StoreRead -> Bool -> [String] -> [(Score, Id)]
+searchNames :: StoreRead -> Bool -> [String] -> [Id]
 searchNames store exact (filter (/= "") -> xs) = unsafePerformIO $ do
     let [n,v,bs] = storeReadList $ storeReadType Names store
     -- if there are no questions, we will match everything, which exceeds the result buffer
-    if null xs then return $ map (0,) $ V.toList $ storeReadV v else do
+    if null xs then return $ V.toList $ storeReadV v else do
         let tweak x = BS.pack $ [' ' | isUpper1 x] ++ lower x ++ "\0"
         bracket (mallocArray $ intFromBS $ storeReadBS n) free $ \result ->
             BS.unsafeUseAsCString (storeReadBS bs) $ \haystack ->
@@ -54,7 +54,8 @@ searchNames store exact (filter (/= "") -> xs) = unsafePerformIO $ do
                     withArray0 nullPtr needles $ \needles -> do
                         found <- c_text_search haystack needles (if exact then 1 else 0) result
                         xs <- peekArray (fromIntegral found) result
-                        return [(0, vv V.! fromIntegral i) | let vv = storeReadV v, i <- xs]
+                        let vs = storeReadV v
+                        return $ map ((vs V.!) . fromIntegral) xs
 
 {-# NOINLINE c_text_search #-} -- for profiling
 c_text_search a b c d = text_search a b c d
