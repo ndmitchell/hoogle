@@ -31,7 +31,7 @@ actionSearch Search{..} = do
     forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
         storeReadFile ("output" </> pkg <.> "hoo") $ \store -> do
             res <- return $ search store $ parseQuery $ unwords rest
-            forM_ (maybe id take count res) $ putStrLn . prettyItem . itemItem
+            mapM_ putStrLn $ maybe id take count $ nubOrd $ map (prettyItem . itemItem) res
 
 search :: StoreRead -> [Query] -> [ItemEx]
 search store qs = runIdentity $ do
