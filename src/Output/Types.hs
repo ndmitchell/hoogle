@@ -150,7 +150,6 @@ writeRarity :: StoreWrite -> [Item] -> IO Rarity
 writeRarity store xs = do
     let n = length xs
     let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
-    error $ show $ length $ concat $ Map.keys r
     storeWriteBS store $ BS.pack $ unlines $
         show n :
         [x ++ " " ++ show i | (x,i) <- Map.toList r]
