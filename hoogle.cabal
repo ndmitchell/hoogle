@@ -67,7 +67,6 @@ executable hoogle
         Output.Types
         Query
         General.Log
-        General.Prelude
         General.Store
         General.Template
         General.Util
