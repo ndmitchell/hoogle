@@ -30,6 +30,53 @@ import System.Mem
 import GHC.Stats
 import Action.CmdLine
 
+{-
+
+
+data GenList
+    = GenList_Package String -- a literally named package
+    | GenList_GhcPkg String -- command to run, or "" for @ghc-pkg list@
+    | GenList_Stackage String -- URL of stackage file, defaults to @http://www.stackage.org/lts/cabal.config@
+    | GenList_Dependencies String -- dependencies in a named .cabal file
+    | GenList_Sort String -- URL of file to sort by, defaults to @http://packdeps.haskellers.com/reverse@
+
+data GenTags
+    = GenTags_GhcPkg String -- command to run, or "" for @ghc-pkg dump@
+    | GenTags_Diff FilePath -- a diff to apply to previous metadata
+    | GenTags_Tarball String -- tarball of Cabal files, defaults to http://hackage.haskell.org/packages/index.tar.gz
+    | GetTags_Cabal FilePath -- tarball to get tag information from
+
+data GenData
+    = GenData_File FilePath -- a file containing package data
+    | GenData_Tarball String -- URL where a tarball of data files resides
+
+
+* `hoogle generate` - generate for all things in Stackage based on Hackage information.
+* `hoogle generate --source=file1.txt --source=local --source=stackage --source=hackage --source=tarball.tar.gz`
+
+Which files you want to index. Currently the list on stackage, could be those locally installed, those in a .cabal file etc. A `--list` flag, defaults to `stackage=url`. Can also be `ghc-pkg`, `ghc-pkg=user` `ghc-pkg=global`. `name=p1`.
+
+Extra metadata you want to apply. Could be a file. `+shake author:Neil-Mitchell`, `-shake author:Neil-Mitchel`. Can be sucked out of .cabal files. A `--tags` flag, defaults to `tarball=url` and `diff=renamings.txt`.
+
+Where the haddock files are. Defaults to `tarball=hackage-url`. Can also be `file=p1.txt`. Use `--data` flag.
+
+Defaults to: `hoogle generate --list=ghc-pkg --list=constrain=stackage-url`.
+
+Three pieces of data:
+
+* Which packages to index, in order.
+* Metadata.
+
+
+generate :: Maybe Int -> [GenList] -> [GenTags] -> [GenData] -> IO ()
+-- how often to redownload, where to put the files
+
+
+
+generate :: FilePath -> [(String, [(String, String)])] -> [(String, LBS.ByteString)] -> IO ()
+generate output metadata  = undefined
+-}
+
 
 -- -- generate all
 -- @tagsoup -- generate tagsoup
