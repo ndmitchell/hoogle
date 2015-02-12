@@ -122,7 +122,7 @@ storeWriteParts :: StoreWrite -> IO a -> IO a
 storeWriteParts StoreWrite{..} act = notParts swParts $ do
     prefix <- readIORef swPrefix
     tell <- hTell swHandle
-    modifyIORef swAtoms (Atom prefix 0 (fromIntegral tell) 0 :)
+    modifyIORef swAtoms (Atom prefix (fromIntegral tell) 0 0 :)
     writeIORef swParts True
     res <- act
     writeIORef swParts False
