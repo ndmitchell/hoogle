@@ -18,11 +18,12 @@ module General.Util(
     general_util_test
     ) where
 
-import Prelude(); import General.Prelude
 import Language.Haskell.Exts
+import Control.Applicative
 import Data.List.Extra
 import Data.Char
 import Data.Either.Extra
+import Data.Monoid
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -40,6 +41,7 @@ import System.Time.Extra
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
+import Prelude
 
 
 pretty :: Pretty a => a -> String

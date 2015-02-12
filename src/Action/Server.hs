@@ -2,7 +2,6 @@
 
 module Action.Server(actionServer, actionReplay, action_server_test) where
 
-import Prelude(); import General.Prelude
 import Data.List.Extra
 import System.FilePath
 import Control.Exception
@@ -34,6 +33,8 @@ import General.Template
 import General.Log
 import Action.Search
 import Action.CmdLine
+import Control.Applicative
+import Prelude
 
 
 actionServer :: CmdLine -> IO ()
