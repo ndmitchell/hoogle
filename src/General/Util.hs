@@ -14,7 +14,6 @@ module General.Util(
     Average, toAverage, fromAverage,
     inRanges,
     readMaybe,
-    nubOrd,
     general_util_test
     ) where
 
@@ -26,7 +25,6 @@ import Data.Either.Extra
 import Data.Monoid
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import Data.Ix
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
@@ -181,14 +179,6 @@ instance Num a => Monoid (Average a) where
 readMaybe :: Read a => String -> Maybe a
 readMaybe s | [x] <- [x | (x,t) <- reads s, ("","") <- lex t] = Just x
             | otherwise = Nothing
-
-
--- | Like 'nub', but requires Ord and completes in O(n log n)
-nubOrd :: Ord a => [a] -> [a]
-nubOrd = f Set.empty
-    where f seen [] = []
-          f seen (x:xs) | x `Set.member` seen = f seen xs
-                        | otherwise = x : f (Set.insert x seen) xs
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient
