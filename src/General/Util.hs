@@ -126,7 +126,7 @@ list' (x:xs) = rnf x `seq` x : list' xs
 list' [] = []
 
 
-withs :: Monad m => [(a -> m r) -> m r] -> ([a] -> m r) -> m r
+withs :: [(a -> r) -> r] -> ([a] -> r) -> r
 withs [] act = act []
 withs (f:fs) act = f $ \a -> withs fs $ \as -> act $ a:as
 
