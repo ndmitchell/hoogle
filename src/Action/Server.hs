@@ -74,7 +74,11 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         let body = showResults inputArgs q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
-                        [("tags",tagOptions $ grab "scope"),("body",body),("title",unwords qSource ++ " - Hoogle"),("search",unwords $ grab "hoogle")]
+                        [("tags",tagOptions $ grab "scope")
+                        ,("body",body)
+                        ,("title",unwords qSource ++ " - Hoogle")
+                        ,("search",unwords $ grab "hoogle")
+                        ,("robots",if any isQueryScope q then "none" else "index")]
                     | otherwise -> fmap OutputString $ templateRender templateHome []
             Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ LBS.pack body
             Just m -> return $ OutputFail $ LBS.pack $ "Mode " ++ m ++ " not (currently) supported"
@@ -107,7 +111,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
             ,("version",showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
         templateIndex = templateFile "html/index.html" `templateApply` params
         templateEmpty = templateFile "html/welcome.html"
-        templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str "")]
+        templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str ""),("robots",str "index")]
         templateLog = templateFile "html/log.html" `templateApply` params
 
 
