@@ -1,0 +1,110 @@
+Refinement on type search
+
+Each preprocessor can contribute a negative weight
+
+
+rarity returns either Nothing or a score
+
+arity returns either Nothing or a score
+
+
+* **LHS only:** _[Alias follow]_ `type X = Y` provides a rewrite `X ~> Y`.
+* **LHS only:** _[Instance subtype]_ `instance C X` provides a rewrite `X ~> forall z . C z`.
+* **RHS only:** _[Context delete]_ `C x => y ~> y`.
+* **Both:** _[Special]_ `Maybe a ~> a` can be applied, along with a few other special rules.
+
+from a RHS, can follow away
+
+
+TypeQ -> TypeA -> Maybe Score
+-- nothing is stop now
+-- just is a good value
+-- pass around [(Double,String)]
+
+refine by arity -- what is the arity, use a single byte
+refine by rarity -- how many times the rarist thing occurs
+refine by names
+refine by matching
+
+9110 distinct names, 97K worth of names
+need to give each an id (2 bytes) and a rarity (2 bytes) to each constructor
+
+ByteString in order (so I can find a set matching only one at a time), plus an array of (Word16:id, Word16:rarity)
+
+arity for each function
+
+rarity for each function
+
+names for each function
+
+aliases
+instances
+
+
+for a given type, what can i reduce it to via aliases, what can i reduce it to via instances
+
+types are stored with a type lambda....
+
+type T a = T2 a a
+
+FilePath := String
+T1 := \x -> T2 x String x
+
+[] := Foldable a => a -- Foldable instance
+[] := \a -> Eq a => a -- Eq instance
+
+how rare it is, index into bytestring of packed reductions
+
+
+[], not very rare, index into list of reducers
+
+ctor :-> (rarity, [reductions])
+function :-> (arity, rarity, body)
+search -> (arity, body, ctorinfo)
+
+first check arity
+
+then check rarity
+
+then check names
+
+then try and match the body
+
+don't worry about kind mismatches
+
+
+(Maybe a) -> Bool
+
+give a weight between an argument and something else
+
+at the end, sum the mismatched variables
+
+
+2 byte encodings
+open bracket
+
+Signature is:
+
+-- context, list of arguments
+[(Ctor, Var)] [Bracketed (Var|Ctor)]
+
+Word16
+
+
+
+
+
+constraints are namespaced into a different universe
+
+
+Way to map constructor names to ranks
+
+pack things like Just into that table? No, have Just be very special
+have kind errors pretty much ignored
+
+
+
+
+
+
+

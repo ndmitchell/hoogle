@@ -31,7 +31,7 @@ actionSearch Search{..} = do
     forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
         storeReadFile ("output" </> pkg <.> "hoo") $ \store -> do
             res <- return $ search store $ parseQuery $ unwords rest
-            forM_ (maybe id take count res) $ putStrLn . prettyItem . itemItem
+            mapM_ putStrLn $ maybe id take count $ nubOrd $ map (prettyItem . itemItem) res
 
 search :: StoreRead -> [Query] -> [ItemEx]
 search store qs = runIdentity $ do
@@ -45,7 +45,7 @@ search store qs = runIdentity $ do
             nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
             return $ filter (`Set.member` nam) $ searchTypes store $ fromQueryType t
     let look = lookupItem store
-    return $ map (look . snd) $ sortOn fst $ filter (filterTags tags qs . snd) is
+    return $ map look $ filter (filterTags tags qs) is
 
 
 action_search_test :: IO ()

@@ -6,7 +6,6 @@ module Query(
     query_test
     ) where
 
-import Prelude(); import General.Prelude
 import Data.List
 import Language.Haskell.Exts
 import Data.Char

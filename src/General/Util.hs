@@ -1,8 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
 
 module General.Util(
-    Score,
-    pretty, parseMode, fromName, fromTyVarBind, declNames,
+    pretty, parseMode, fromName, fromQName, fromTyVarBind, declNames,
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
@@ -15,16 +14,19 @@ module General.Util(
     Average, toAverage, fromAverage,
     inRanges,
     readMaybe,
+    nubOrd,
     general_util_test
     ) where
 
-import Prelude(); import General.Prelude
 import Language.Haskell.Exts
+import Control.Applicative
 import Data.List.Extra
 import Data.Char
 import Data.Either.Extra
+import Data.Monoid
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Data.Ix
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
@@ -39,10 +41,8 @@ import System.Time.Extra
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
+import Prelude
 
-
--- 0 is a perfect match, anything lower is less good
-type Score = Double
 
 pretty :: Pretty a => a -> String
 pretty = trim . unwords . words . prettyPrint
@@ -57,6 +57,18 @@ parseMode = defaultParseMode{extensions=map EnableExtension es}
 fromName :: Name -> String
 fromName (Ident x) = x
 fromName (Symbol x) = x
+
+fromQName :: QName -> String
+fromQName (Qual _ x) = fromName x
+fromQName (UnQual x) = fromName x
+fromQName (Special UnitCon) = "()"
+fromQName (Special ListCon) = "[]"
+fromQName (Special FunCon) = "->"
+fromQName (Special (TupleCon box n)) = "(" ++ h ++ replicate n ',' ++ h ++ ")"
+    where h = ['#' | box == Unboxed]
+fromQName (Special UnboxedSingleCon) = "(##)"
+fromQName (Special Cons) = ":"
+
 
 fromTyVarBind :: TyVarBind -> Name
 fromTyVarBind (KindedVar x _) = x
@@ -169,6 +181,14 @@ instance Num a => Monoid (Average a) where
 readMaybe :: Read a => String -> Maybe a
 readMaybe s | [x] <- [x | (x,t) <- reads s, ("","") <- lex t] = Just x
             | otherwise = Nothing
+
+
+-- | Like 'nub', but requires Ord and completes in O(n log n)
+nubOrd :: Ord a => [a] -> [a]
+nubOrd = f Set.empty
+    where f seen [] = []
+          f seen (x:xs) | x `Set.member` seen = f seen xs
+                        | otherwise = x : f (Set.insert x seen) xs
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient
