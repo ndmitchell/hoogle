@@ -211,7 +211,7 @@ checkRarity r (askRarity r -> q) = \a -> q <= a * 5
 -- PRECOMPUTE RARITY
 
 preNames :: Type -> [String]
-preNames = nub . typeNames
+preNames = nubOrd . typeNames
 
 checkNames :: Aliases -> Instances -> Type -> ([String] -> Bool)
 checkNames alias inst (typeNames -> q) = \a -> all (`elem` a) q

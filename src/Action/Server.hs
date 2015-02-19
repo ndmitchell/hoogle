@@ -154,7 +154,7 @@ itemCategories :: [ItemEx] -> [(String,String)]
 itemCategories xs =
     [("is","exact")] ++
     [("is","package") | any (isIPackage . itemItem) xs] ++ [("is","module") | any (isIModule . itemItem) xs] ++
-    nub [("package",p) | Just (p,_) <- map itemPackage xs]
+    nubOrd [("package",p) | Just (p,_) <- map itemPackage xs]
 
 showFroms :: [ItemEx] -> String
 showFroms xs = intercalate ", " $ for pkgs $ \p ->
@@ -162,7 +162,7 @@ showFroms xs = intercalate ", " $ for pkgs $ \p ->
     in unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
     where
         remod ItemEx{..} = do (a,_) <- itemModule; return (a,itemURL)
-        pkgs = nub $ map itemPackage xs
+        pkgs = nubOrd $ map itemPackage xs
 
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)

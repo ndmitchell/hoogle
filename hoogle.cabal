@@ -36,7 +36,7 @@ executable hoogle
         base > 4 && < 5,
         bytestring, filepath, directory, containers, text, transformers,
         deepseq, utf8-string, time, old-locale, vector, binary, QuickCheck,
-        extra, js-jquery, js-flot, uniplate, cmdargs,
+        extra >= 1.1, js-jquery, js-flot, uniplate, cmdargs,
         tar, zlib, mmap,
         network, conduit, conduit-extra, http-conduit, wai, http-types, warp, wai-logger,
         haskell-src-exts >= 1.16 && < 1.17
