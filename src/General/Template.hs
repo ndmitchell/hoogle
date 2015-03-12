@@ -12,6 +12,7 @@ import Control.Applicative
 import System.IO.Unsafe
 import System.Directory
 import Data.IORef
+import Prelude
 
 ---------------------------------------------------------------------
 -- TREE DATA TYPE

@@ -27,6 +27,7 @@ import Control.DeepSeq
 import Data.Version
 import Data.Char
 import Paths_hoogle
+import Prelude
 
 -- ensure the string is always 25 chars long, so version numbers don't change its size
 verString = BS.pack $ take 25 $ "HOOGLE-" ++ showVersion version ++ repeat ' '
