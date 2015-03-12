@@ -14,6 +14,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import Debug.Trace
 import Control.Monad.Extra
+import Prelude
 
 import Output.Items
 import Output.Tags
