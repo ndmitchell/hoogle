@@ -107,8 +107,15 @@ heirarchy hackage = list' . map other . with (isIModule . itemItem) . map module
 
         esc = concatMap f
             where
-                f x | isAlphaNum x = [x]
+                f x | isLegal x = [x]
                     | otherwise = "-" ++ show (ord x) ++ "-"
+                -- isLegal is from haddock-api:Haddock.Utils; we need to use
+                -- the same escaping strategy here in order for fragment links
+                -- to work
+                isLegal ':' = True
+                isLegal '_' = True
+                isLegal '.' = True
+                isLegal c = isAscii c && isAlphaNum c
 
 
 parseLine :: Int -> String -> Either String [Item]

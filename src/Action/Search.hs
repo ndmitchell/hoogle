@@ -73,3 +73,5 @@ action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.
     "<>" === hackage "base/docs/Data-Monoid.html#v:-60--62-"
     "Data.Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
     "Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
+    "Prelude.mapM_" === hackage "base/docs/Prelude.html#v:mapM_"
+    "Data.Complex.(:+)" === hackage "base/docs/Data-Complex.html#v::-43-"
