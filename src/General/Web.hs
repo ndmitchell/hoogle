@@ -17,6 +17,7 @@ import Network.Wai
 import Control.DeepSeq
 import Network.HTTP.Types.Status
 import qualified Data.Text as Text
+import General.Str
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Conduit.Binary (sinkFile)
@@ -72,7 +73,7 @@ server log port act = do
     logAddMessage log $ "Server started on port " ++ show port
     runSettings (setOnException exception $ setPort port defaultSettings) $ \req reply -> do
         let pay = Input (map Text.unpack $ pathInfo req)
-                        [(BS.unpack a, maybe "" BS.unpack b) | (a,b) <- queryString req]
+                        [(strUnpack a, maybe "" strUnpack b) | (a,b) <- queryString req]
         (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ rnf s; return s
         res <- either (fmap Left . showException) (return . Right) res
         logAddEntry log (showSockAddr $ remoteHost req)
