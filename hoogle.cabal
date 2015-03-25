@@ -70,4 +70,5 @@ executable hoogle
         General.Store
         General.Template
         General.Util
+        General.UTF8
         General.Web
