@@ -14,9 +14,9 @@ import Paths_hoogle
 import Data.Maybe
 import Control.Monad
 import System.IO.Extra
+import General.Str
 import qualified Data.Map as Map
 import System.Time.Extra
-import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Time.Clock
 import Data.Time.Calendar
 import System.IO.Unsafe
@@ -81,8 +81,8 @@ replyServer log store cdn = \Input{..} -> case inputURL of
                         ,("search",unwords $ grab "hoogle")
                         ,("robots",if any isQueryScope q then "none" else "index")]
                     | otherwise -> fmap OutputString $ templateRender templateHome []
-            Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ LBS.pack body
-            Just m -> return $ OutputFail $ LBS.pack $ "Mode " ++ m ++ " not (currently) supported"
+            Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ lstrPack body
+            Just m -> return $ OutputFail $ lstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["plugin","jquery.flot.time.js"] -> OutputFile <$> Flot.file Flot.FlotTime
@@ -92,7 +92,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
         let alive = (now `subtractTime` spawned) / (24 * 60 * 60)
         let s = show errs ++ " errors since yesterday, running for " ++ showDP 2 alive ++ " days."
-        return $ if errs == 0 && alive < 1.5 then OutputString $ LBS.pack $ "Happy. " ++ s else OutputFail $ LBS.pack $ "Sad. " ++ s
+        return $ if errs == 0 && alive < 1.5 then OutputString $ lstrPack $ "Happy. " ++ s else OutputFail $ lstrPack $ "Sad. " ++ s
     ["log"] -> do
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
@@ -100,12 +100,12 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         stats <- getGCStatsEnabled
         if stats then do
             x <- getGCStats
-            return $ OutputString $ LBS.pack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
+            return $ OutputString $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
          else
-            return $ OutputFail $ LBS.pack "GHC Statistics is not enabled, restart with +RTS -T"
+            return $ OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
     xs -> return $ OutputFile $ joinPath $ "html" : xs
     where
-        str = templateStr . LBS.pack
+        str = templateStr . lstrPack
         tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- listTags $ readTags store]
         params = map (second str)
             [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
