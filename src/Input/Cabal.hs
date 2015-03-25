@@ -39,7 +39,8 @@ lastValues [] = []
 extractCabal :: [(String, String)] -> String -> [(String,String)]
 extractCabal rename src = f ["license"] ++ f ["category"] ++ f ["author","maintainer"]
     where
-        f name = nubOrd [ (head name, fromMaybe x $ lookup x rename)
+        f name = nubOrd [ (head name, x)
                         | x <- lines src, let (a,b) = break (== ':') x, lower a `elem` name
-                         , x <- filter (/= "") $ map g $ concatMap (splitOn "and") $ split (`elem` ",&") $ drop 1 b]
+                        , x <- map g $ concatMap (map unwords . split (== "and") . words) $ split (`elem` ",&") $ drop 1 b
+                        , x <- [fromMaybe x $ lookup x rename], x /= ""]
         g = intercalate "-" . filter ('@' `notElem`) . words . takeWhile (`notElem` "<(")
