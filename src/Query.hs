@@ -225,5 +225,7 @@ query_test = testing "Query.parseQuery" $ do
     "insert module:.Map." === name "insert" . scope True "module" ".Map."
     ".Map.insert" === name "insert" . scope True "module" ".Map"
     ".Map." === scope True "module" ".Map"
---    ".Map" === scope True "module" ".Map" -- probably should work, but really needs to rewrite a fair bit
+--  FIXME: ".Map" === scope True "module" ".Map" -- probably should work, but really needs to rewrite a fair bit
     "(.Monad.>>=" === name ">>=" . scope True "module" ".Monad"
+--  FIXME: "author:Taylor-M.-Hedberg" === scope True "author" "Taylor-M.-Hedberg"
+    "author:Bryan-O'Sullivan" === scope True "author" "Bryan-O'Sullivan"
