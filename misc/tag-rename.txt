@@ -16,3 +16,7 @@ contributors-see-README =
 author =
 http://www.cse.chalmers.se/~nad/ = Nils Anders Danielsson
 many-others =
+Error-handling = Error-Handling
+Daniel-SchÃ¼ssler = Daniel Schüssler
+Various =
+Various;-see-individual-modules =
