@@ -52,7 +52,9 @@ shutBrackets = ["#)",":]",")","]"]
 isBracket x = x `elem` (openBrackets ++ shutBrackets)
 isBracketPair x = x `elem` zipWith (++) openBrackets shutBrackets
 
-isSym x = x `elem` "->!#$%&*+./<=?@\\^|~:"
+isSym x = ((isSymbol x || isPunctuation x) && x `notElem` special) || x `elem` ascSymbol
+    where special = "(),;[]`{}\"'"
+          ascSymbol = "!#$%&*+./<=>?@\\^|-~"
 
 isSyms xs | isBracket xs || isBracketPair xs = False
 isSyms (x:xs) = isSym x
