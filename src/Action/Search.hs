@@ -75,3 +75,5 @@ action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.
     "Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
     "Prelude.mapM_" === hackage "base/docs/Prelude.html#v:mapM_"
     "Data.Complex.(:+)" === hackage "base/docs/Data-Complex.html#v::-43-"
+    "\8801" === hackage "base-unicode-symbols/docs/Data-Eq-Unicode.html#v:-8801-"
+    "\8484" === hackage "base-unicode-symbols/docs/Prelude-Unicode.html#t:-8484-"
