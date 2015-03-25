@@ -6,6 +6,7 @@ import Data.List.Extra
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.Vector.Storable as V
+import General.Str
 import Data.Typeable
 import Foreign.Ptr
 import Foreign.Marshal
@@ -29,7 +30,7 @@ data Names = Names deriving Typeable
 writeNames :: StoreWrite -> [(Maybe Id, Item)] -> IO ()
 writeNames store xs = do
     let (ids, strs) = unzip [(i, [' ' | isUpper1 name] ++ lower name) | (Just i, x) <- xs, name <- toName x]
-    let b = BS.intercalate (BS.pack "\0") (map BS.pack strs) `BS.append` BS.pack "\0\0"
+    let b = BS.intercalate (BS.pack "\0") (map strPack strs) `BS.append` BS.pack "\0\0"
     bound <- BS.unsafeUseAsCString b $ \ptr -> text_search_bound ptr
     storeWriteType store Names $ do
         storeWriteBS store $ intToBS $ fromIntegral bound
@@ -47,7 +48,7 @@ searchNames store exact (filter (/= "") -> xs) = unsafePerformIO $ do
     let [n,v,bs] = storeReadList $ storeReadType Names store
     -- if there are no questions, we will match everything, which exceeds the result buffer
     if null xs then return $ V.toList $ storeReadV v else do
-        let tweak x = BS.pack $ [' ' | isUpper1 x] ++ lower x ++ "\0"
+        let tweak x = strPack $ [' ' | isUpper1 x] ++ lower x ++ "\0"
         bracket (mallocArray $ intFromBS $ storeReadBS n) free $ \result ->
             BS.unsafeUseAsCString (storeReadBS bs) $ \haystack ->
                 withs (map (BS.unsafeUseAsCString . tweak) xs) $ \needles ->
