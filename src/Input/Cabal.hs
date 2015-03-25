@@ -9,7 +9,6 @@ import Control.DeepSeq
 import Control.Exception
 import System.IO.Extra
 import General.Str
-import Data.Maybe
 import Data.Tuple.Extra
 import qualified Data.Map as Map
 import General.Util
@@ -22,7 +21,7 @@ import Prelude
 -- rely on the fact the highest version is last (using lastValues)
 parseCabal :: (String -> Bool) -> IO (Map.Map String [(String, String)])
 parseCabal want = do
-    rename <- map (both trim . second (drop 1) . break (== '=')) . lines <$> readFileUTF8 "misc/tag-rename.txt"
+    rename <- Map.fromList . map (both trim . second (drop 1) . break (== '=')) . lines <$> readFileUTF8 "misc/tag-rename.txt"
     res <- foldl' (f rename) Map.empty . filter (want . fst) . lastValues . map (first takeBaseName) <$> tarballReadFiles "input/cabal.tar.gz"
     evaluate res
     where
@@ -36,11 +35,11 @@ lastValues (x:xs) = x : lastValues xs
 lastValues [] = []
 
 
-extractCabal :: [(String, String)] -> String -> [(String,String)]
+extractCabal :: Map.Map String String -> String -> [(String,String)]
 extractCabal rename src = f ["license"] ++ f ["category"] ++ f ["author","maintainer"]
     where
         f name = nubOrd [ (head name, x)
                         | x <- lines src, let (a,b) = break (== ':') x, lower a `elem` name
                         , x <- map g $ concatMap (map unwords . split (== "and") . words) $ split (`elem` ",&") $ drop 1 b
-                        , x <- [fromMaybe x $ lookup x rename], x /= ""]
+                        , x <- [Map.findWithDefault x x rename], x /= ""]
         g = intercalate "-" . filter ('@' `notElem`) . words . takeWhile (`notElem` "<(")
