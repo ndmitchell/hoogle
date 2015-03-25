@@ -68,7 +68,7 @@ executable hoogle
         Query
         General.Log
         General.Store
+        General.Str
         General.Template
         General.Util
-        General.UTF8
         General.Web

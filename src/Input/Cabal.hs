@@ -7,7 +7,7 @@ import System.FilePath
 import Control.Applicative
 import Control.DeepSeq
 import Control.Exception
-import General.UTF8
+import General.Str
 import Data.Maybe
 import Data.Tuple.Extra
 import qualified Data.Map as Map
@@ -26,7 +26,7 @@ parseCabal want = do
     evaluate res
     where
         f rename mp (pkg,body) = rnf pkg `seq` rnf res `seq` Map.insert pkg res mp
-            where res = extractCabal rename $ lutf8Unpack body
+            where res = extractCabal rename $ lstrUnpack body
 
 
 lastValues :: Eq a => [(a,b)] -> [(a,b)]

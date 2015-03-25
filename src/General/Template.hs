@@ -6,7 +6,7 @@ module General.Template(
 
 import Data.Data
 import Data.Monoid
-import General.UTF8
+import General.Str
 import Data.Generics.Uniplate.Data
 import Control.Applicative
 import System.IO.Unsafe
@@ -18,9 +18,9 @@ import Prelude
 -- TREE DATA TYPE
 
 data Tree = Lam FilePath -- #{foo} defines a lambda
-          | Var UTF8 -- a real variable
-          | App Tree [(UTF8, Tree)] -- applies a foo string to the lambda
-          | Lit UTF8
+          | Var Str -- a real variable
+          | App Tree [(Str, Tree)] -- applies a foo string to the lambda
+          | Lit Str
           | List [Tree]
             deriving (Typeable,Data,Show)
 
@@ -29,11 +29,11 @@ data Tree = Lam FilePath -- #{foo} defines a lambda
 treeRemoveLam :: Tree -> IO Tree
 treeRemoveLam = transformM f
     where
-        f (Lam file) = List . parse <$> utf8ReadFile file
+        f (Lam file) = List . parse <$> strReadFile file
         f x = return x
 
-        parse x | Just (a,b) <- utf8SplitInfix (utf8Pack "#{") x
-                , Just (b,c) <- utf8SplitInfix (utf8Pack "}") b
+        parse x | Just (a,b) <- strSplitInfix (strPack "#{") x
+                , Just (b,c) <- strSplitInfix (strPack "}") b
                 = Lit a : Var b : parse c
         parse x = [Lit x]
 
@@ -59,7 +59,7 @@ treeOptimise = transform f . treeRemoveApp
         g xs = [Lit x | let x = mconcat $ map fromLit a, x /= mempty] ++ g b
             where (a,b) = span isLit xs
 
-treeEval :: Tree -> [UTF8]
+treeEval :: Tree -> [Str]
 treeEval = f . treeRemoveApp
     where f (Lit x) = [x]
           f (List xs) = concatMap f xs
@@ -91,14 +91,14 @@ templateTree t = Template t $ treeCache t
 templateFile :: FilePath -> Template
 templateFile = templateTree . Lam
 
-templateStr :: LUTF8 -> Template
-templateStr = templateTree . List . map Lit . lutf8ToChunks
+templateStr :: LStr -> Template
+templateStr = templateTree . List . map Lit . lstrToChunks
 
 templateApply :: Template -> [(String, Template)] -> Template
-templateApply (Template t _) args = templateTree $ App t [(utf8Pack a, b) | (a,Template b _) <- args]
+templateApply (Template t _) args = templateTree $ App t [(strPack a, b) | (a,Template b _) <- args]
 
-templateRender :: Template -> [(String, Template)] -> IO LUTF8
+templateRender :: Template -> [(String, Template)] -> IO LStr
 templateRender (Template _ t) args = do
     t <- t
     let Template t2 _ = templateApply (Template t $ return t) args
-    lutf8FromChunks . treeEval <$> treeRemoveLam t2
+    lstrFromChunks . treeEval <$> treeRemoveLam t2
