@@ -38,7 +38,7 @@ writeTags store extra xs = storeWriteType store (undefined :: Tags) $ do
     let splitPkg = splitIPackage xs
     let packages = sortOn (lower . fst) $ addRange splitPkg
     let categories = map (first snd) $ Map.toList $ Map.fromListWith (++)
-            [((weightTag ex, joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
+            [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
 
     storeWriteBS store $ join0 $ map fst packages
     storeWriteBS store $ join0 $ map fst categories
