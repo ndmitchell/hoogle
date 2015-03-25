@@ -1,12 +1,13 @@
 
 module General.UTF8(
     UTF8, utf8Pack, utf8ReadFile, utf8SplitInfix,
-    LUTF8, lutf8ToChunks, lutf8FromChunks
+    LUTF8, lutf8Unpack, lutf8ToChunks, lutf8FromChunks
     ) where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.UTF8 as US
 import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Lazy.UTF8 as LUS
 
 
 type UTF8 = BS.ByteString
@@ -33,3 +34,6 @@ lutf8ToChunks = LBS.toChunks
 
 lutf8FromChunks :: [UTF8] -> LUTF8
 lutf8FromChunks = LBS.fromChunks
+
+lutf8Unpack :: LUTF8 -> String
+lutf8Unpack = LUS.toString
