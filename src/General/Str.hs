@@ -1,7 +1,7 @@
 
 module General.Str(
-    Str, strPack, strReadFile, strSplitInfix,
-    LStr, lstrUnpack, lstrToChunks, lstrFromChunks
+    Str, strPack, strUnpack, strReadFile, strSplitInfix,
+    LStr, lstrPack, lstrUnpack, lstrToChunks, lstrFromChunks
     ) where
 
 import qualified Data.ByteString as BS
@@ -17,6 +17,9 @@ type LStr = LBS.ByteString
 
 strPack :: String -> Str
 strPack = US.fromString
+
+strUnpack :: Str -> String
+strUnpack = US.toString
 
 strReadFile :: FilePath -> IO Str
 strReadFile = BS.readFile
@@ -37,3 +40,6 @@ lstrFromChunks = LBS.fromChunks
 
 lstrUnpack :: LStr -> String
 lstrUnpack = LUS.toString
+
+lstrPack :: String -> LStr
+lstrPack = LUS.fromString
