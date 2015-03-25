@@ -231,3 +231,4 @@ query_test = testing "Query.parseQuery" $ do
     "(.Monad.>>=" === name ">>=" . scope True "module" ".Monad"
 --  FIXME: "author:Taylor-M.-Hedberg" === scope True "author" "Taylor-M.-Hedberg"
     "author:Bryan-O'Sullivan" === scope True "author" "Bryan-O'Sullivan"
+    "\8801" === name "\8801"
