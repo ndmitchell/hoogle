@@ -4,6 +4,7 @@
 --   have been in base, or could plausibly be added.
 module General.Base(module General.Base, module X) where
 
+import Prelude as X
 #if __GLASGOW_HASKELL__ < 710
 import Control.Applicative as X ((<*>),(<$>))
 #endif
