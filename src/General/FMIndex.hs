@@ -12,6 +12,7 @@ import Data.Binary
 import Control.Applicative
 import Control.Arrow
 import System.IO
+import Prelude
 
 
 data FMIndex a = FMIndex Char [(BS.ByteString, a)] deriving Show
