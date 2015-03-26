@@ -21,11 +21,11 @@ import Recipe.Cabal
 import Hoogle
 import qualified Paths_hoogle as V
 import Data.Version
-import CmdLine.All
+import CmdLine.All as C
 
 
 -- CmdLine is guaranteed to be a constructor of type Data
-recipes :: CmdLine -> IO ()
+recipes :: C.CmdLine -> IO ()
 recipes opt@Data{..} = withModeGlobalRead $ do
     hSetBuffering stdout NoBuffering
     createDirectoryIfMissing True datadir
@@ -45,7 +45,7 @@ recipes opt@Data{..} = withModeGlobalRead $ do
 newtype CabalVersion = CabalVersion String deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
 newtype HoogleVersion = HoogleVersion String deriving (Show,Typeable,Eq,Hashable,Binary,NFData)
 
-rules :: CmdLine -> ([String] -> IO ()) -> Rules ()
+rules :: C.CmdLine -> ([String] -> IO ()) -> Rules ()
 rules opts@Data{..} warn = do
     let srcCabal name ver = "downloads/cabal" </> name </> ver </> name <.> "cabal"
     let srcHoogle name ver = "downloads/hoogle" </> name </> ver </> "doc" </> "html" </> name <.> "txt"
@@ -178,7 +178,7 @@ rules opts@Data{..} warn = do
                 liftIO $ warn [takeBaseName out ++ ": " ++ show e | e <- err]
 
 
-urls :: CmdLine -> [(FilePath, URL)]
+urls :: C.CmdLine -> [(FilePath, URL)]
 urls Data{..} = let (*) = (,) in
     ["keyword.htm" * "http://www.haskell.org/haskellwiki/Keywords"
     ,"platform.cabal" * "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal"

@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #106, shake-0.15 compatibility
 4.2.38
     #96, allow certicate verification failures
     #95, allow a higher version of Cabal on older GHCs

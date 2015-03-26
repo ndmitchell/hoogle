@@ -6,10 +6,10 @@ import General.Base
 import General.System
 import Development.Shake
 import Development.Shake.FilePath
-import CmdLine.All
+import CmdLine.All as C
 
 
-wget :: CmdLine -> URL -> FilePath -> Action ()
+wget :: C.CmdLine -> URL -> FilePath -> Action ()
 wget opt@Data{..} from to = do
     when nodownload $
          error "Downloads are disabled."
