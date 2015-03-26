@@ -6,8 +6,6 @@ module General.Base(module General.Base, module X) where
 
 #if __GLASGOW_HASKELL__ < 710
 import Control.Applicative as X ((<*>),(<$>))
-#else
-import Control.Applicative as X ((<$>))
 #endif
 import Control.Arrow as X
 import Control.DeepSeq as X
@@ -27,7 +25,6 @@ import Debug.Trace as X (trace)
 import Numeric as X (readHex,showHex)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Prelude as X
 
 import System.IO
 
