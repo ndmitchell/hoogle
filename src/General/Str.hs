@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module General.Str(
     Str, strPack, strUnpack, strReadFile, strSplitInfix,
