@@ -6,7 +6,6 @@ Before beta:
 
 After beta:
 
-* Deal with unicode properly
 * Rename Input to Generate, Output to Search, and move some out from Action to Search.All
 * Implement the Generate design
 * Add a Hoogle API
