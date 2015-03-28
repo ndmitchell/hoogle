@@ -131,9 +131,9 @@ parseLine line x = Left $ show line ++ ":failed to parse: " ++ x
 
 
 fixLine :: String -> String
-fixLine (stripPrefix "instance [incoherent] " -> Just x) = "instance " ++ x
-fixLine (stripPrefix "instance [overlap ok] " -> Just x) = "instance " ++ x
-fixLine (stripPrefix "instance [safe] " -> Just x) = "instance " ++ x
+fixLine (stripPrefix "instance [incoherent] " -> Just x) = fixLine $ "instance " ++ x
+fixLine (stripPrefix "instance [overlap ok] " -> Just x) = fixLine $ "instance " ++ x
+fixLine (stripPrefix "instance [safe] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "(#) " -> Just x) = "( # ) " ++ x
 fixLine x | "class " `isPrefixOf` x = fst $ breakOn " where " x
 fixLine x = x
