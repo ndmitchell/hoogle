@@ -109,9 +109,9 @@ generate xs = do
             | pkg `Set.member` want
             = (Set.insert pkg seen,
                 trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                    UTF8.toString body)
-        f seen _ = (seen, "")
-    (seen, xs) <- second (parseHoogle . filter (/= '\r') . unlines) . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
+                    parseHoogle $ filter (/= '\r') $ UTF8.toString body)
+        f seen _ = (seen, [])
+    (seen, xs) <- second concat . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
     storeWriteFile (out <.> "hoo") $ \store -> do
         xs <- writeItems store out xs
