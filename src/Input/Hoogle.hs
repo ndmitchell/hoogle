@@ -135,7 +135,7 @@ fixLine (stripPrefix "instance [incoherent] " -> Just x) = fixLine $ "instance "
 fixLine (stripPrefix "instance [overlap ok] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "instance [safe] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "(#) " -> Just x) = "( # ) " ++ x
-fixLine ('[':x:xs) | isAlpha x, (a,']':b) <- break (== ']') xs = x : a ++ b
+fixLine ('[':x:xs) | isAlpha x || x == '_', (a,']':b) <- break (== ']') xs = x : a ++ b
 fixLine ('[':':':xs) | (a,']':b) <- break (== ']') xs = "(:" ++ a ++ ")" ++ b
 fixLine x | "class " `isPrefixOf` x = fst $ breakOn " where " x
 fixLine x = x
