@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP, PatternGuards, ViewPatterns #-}
 
 module General.Web(
-    Input(..), Output(..), readInput, server, downloadFile
+    Input(..), Output(..), readInput, server
     ) where
 
 -- #define PROFILE
@@ -20,10 +20,6 @@ import qualified Data.Text as Text
 import General.Str
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.Conduit.Binary (sinkFile)
-import qualified Network.HTTP.Conduit as C
-import qualified Data.Conduit as C
-import Network
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Monoid
@@ -54,15 +50,6 @@ instance NFData Output where
     rnf (OutputHTML x) = rnf x
     rnf (OutputFail x) = rnf x
     rnf (OutputFile x) = rnf x
-
-
-downloadFile :: FilePath -> String -> IO ()
-downloadFile file url = withSocketsDo $ do
-    request <- C.parseUrl url
-    C.withManager $ \manager -> do
-        response <- C.http request manager
-        C.responseBody response C.$$+- sinkFile file
-
 
 
 server :: Log -> Int -> (Input -> IO Output) -> IO ()
