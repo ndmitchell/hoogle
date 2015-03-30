@@ -4,6 +4,7 @@ module Input.Set(setStackage, setPlatform, setGHC) where
 
 import Control.Applicative
 import Data.List.Extra
+import System.IO.Extra
 import Prelude
 
 
