@@ -1,5 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, GeneralizedNewtypeDeriving, DeriveDataTypeable, FlexibleInstances #-}
 
+-- | Types used to generate the input.
 module Input.Type(
     ItemEx(..), Item(..),
     showItem, prettyItem, readItem,

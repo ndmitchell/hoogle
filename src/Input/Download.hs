@@ -20,6 +20,7 @@ urls =
     ,("reverse.htm","https://packdeps.haskellers.com/reverse")
     ]
 
+-- | Download all the input files to input/
 downloadInputs :: IO ()
 downloadInputs = do
     createDirectoryIfMissing True "input"

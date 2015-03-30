@@ -10,6 +10,7 @@ import Data.Tuple.Extra
 import qualified Data.Map as Map
 
 
+-- | Reorder items so the most popular ones are first, using reverse dependencies
 reorderItems :: [(a, Item)] -> IO [(a, Item)]
 reorderItems xs = do
     packageOrder <- packageOrder

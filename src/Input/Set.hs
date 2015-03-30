@@ -7,6 +7,7 @@ import Data.List.Extra
 import Prelude
 
 
+-- | Return information about which items are in a particular set.
 setStackage :: IO [String]
 setStackage = f . lines <$> readFile' "input/stackage.txt"
     where

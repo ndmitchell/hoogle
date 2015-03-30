@@ -15,11 +15,13 @@ import General.Util
 import Prelude
 
 
+
+-- | Given the Cabal files we care about, pull out the fields you care about
+parseCabal :: (String -> Bool) -> IO (Map.Map String [(String, String)])
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal
 -- rely on the fact the highest version is last (using lastValues)
-parseCabal :: (String -> Bool) -> IO (Map.Map String [(String, String)])
 parseCabal want = do
     rename <- Map.fromList . map (both trim . second (drop 1) . break (== '=')) . lines <$> readFileUTF8 "misc/tag-rename.txt"
     res <- foldl' (f rename) Map.empty . filter (want . fst) . lastValues . map (first takeBaseName) <$> tarballReadFiles "input/cabal.tar.gz"
