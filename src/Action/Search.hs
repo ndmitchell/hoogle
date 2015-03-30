@@ -31,7 +31,11 @@ actionSearch Search{..} = do
     forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
         storeReadFile ("output" </> pkg <.> "hoo") $ \store -> do
             res <- return $ search store $ parseQuery $ unwords rest
-            mapM_ putStrLn $ take count $ nubOrd $ map (prettyItem . itemItem) res
+            let (shown, hidden) = splitAt count $ nubOrd $ map (prettyItem . itemItem) res
+            putStr $ unlines shown
+            when (hidden /= []) $ do
+                putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+
 
 search :: StoreRead -> [Query] -> [ItemEx]
 search store qs = runIdentity $ do
