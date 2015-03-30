@@ -14,7 +14,7 @@ data CmdLine
         ,link :: Bool
         ,info :: Bool
         ,database :: FilePath
-        ,count :: Maybe Int
+        ,count :: Int
         ,query :: [String]
         }
     | Generate
@@ -48,7 +48,7 @@ search_ = Search
     ,link = def &= help "Give URL's for each result"
     ,info = def &= help "Give extended information about the first result"
     ,database = def &= typFile &= help "Location of database to use"
-    ,count = def &= name "n" &= help "Maximum number of results to return"
+    ,count = 10 &= name "n" &= help "Maximum number of results to return"
     ,query = def &= args &= typ "QUERY"
     } &= help "Perform a search"
 
