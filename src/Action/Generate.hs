@@ -97,11 +97,11 @@ generate xs = do
     setPlatform <- setPlatform
     setGHC <- setGHC
     createDirectoryIfMissing True "output"
-    let want = Set.fromList $ if null xs then setStackage ++ setPlatform ++ setGHC else xs
+    let want = if null xs then Set.unions [setStackage, setPlatform, setGHC] else Set.fromList xs
 
     cbl <- parseCabal (`Set.member` want)
-    let extra pkg = [("set","included-with-ghc") | pkg `elem` setGHC] ++
-                    [("set","haskell-platform") | pkg `elem` setPlatform] ++
+    let extra pkg = [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
+                    [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
                     [("set","stackage")] ++
                     Map.findWithDefault [] pkg cbl
 
