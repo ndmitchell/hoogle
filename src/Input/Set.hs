@@ -8,7 +8,7 @@ import Prelude
 
 
 setStackage :: IO [String]
-setStackage = f . lines <$> readFile "input/stackage.txt"
+setStackage = f . lines <$> readFile' "input/stackage.txt"
     where
         f (x:xs) | Just x <- stripPrefix "constraints:" x =
                     map (fst . word1) $ takeWhile (" " `isPrefixOf`) $ (' ':x) : xs
@@ -21,7 +21,7 @@ setPlatform = setPlatformWith ["incGHCLib","incLib"]
 
 setPlatformWith :: [String] -> IO [String]
 setPlatformWith names = do
-    src <- lines <$> readFile "input/platform.txt"
+    src <- lines <$> readFile' "input/platform.txt"
     return [read lib | ",":name:lib:_ <- map words src, name `elem` names]
 
 setGHC :: IO [String]
