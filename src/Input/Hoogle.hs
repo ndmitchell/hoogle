@@ -36,7 +36,7 @@ stringShare x = unsafePerformIO $ do
 
 
 -- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
-parseHoogle :: String -> [Either String ItemEx]
+parseHoogle :: FilePath -> String -> [Either String ItemEx]
 {-
 parseHoogle = f [] . lines
     where
@@ -52,7 +52,7 @@ parseHoogle = f [] . lines
 parseInputHaskell :: HackageURL -> String -> ([ParseError], Input)
 parseInputHaskell hackage =
 -}
-parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
+parseHoogle file = heirarchy hackage . f [] "" . zip [1..] . lines
     where
         f :: [String] -> URL -> [(Int,String)] -> [Either String ItemEx]
         f com url [] = []
@@ -62,11 +62,11 @@ parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
             | "@url " `isPrefixOf` s =  f com (drop 5 s) is
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine $ fixLine s of
-                               Left y -> [Left $ show i ++ ":" ++ y | not $ "@version " `isPrefixOf` s]
+                               Left y -> [Left $ file ++ ":" ++ show i ++ ":" ++ y | not $ "@version " `isPrefixOf` s]
                                -- only check Nothing as some items (e.g. "instance () :> Foo a")
                                -- don't roundtrip but do come out equivalent
                                Right xs | any (isNothing . readItem . showItem) xs ->
-                                       [Left $ show i ++ ":failed to roundtrip: " ++ fixLine s]
+                                       [Left $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine s]
                                Right xs -> [Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse com) | x <- xs]
                           )
                           ++ f [] "" is

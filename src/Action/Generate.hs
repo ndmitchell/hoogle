@@ -109,7 +109,7 @@ generate xs = do
             | pkg `Set.member` want
             = (Set.insert pkg seen,
                 trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                    parseHoogle $ filter (/= '\r') $ UTF8.toString body)
+                    parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body)
         f seen _ = (seen, [])
     (seen, xs) <- second concat . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
