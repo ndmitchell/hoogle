@@ -61,8 +61,8 @@ parseHoogle = heirarchy hackage . f [] "" . zip [1..] . lines
             | "--" `isPrefixOf` s = f ([dropWhile isSpace $ drop 2 s | com /= []] ++ com) url is
             | "@url " `isPrefixOf` s =  f com (drop 5 s) is
             | all isSpace s = f [] "" is
-            | otherwise = (case parseLine i $ fixLine s of
-                               Left y -> [Left y | not $ "@version " `isPrefixOf` s]
+            | otherwise = (case parseLine $ fixLine s of
+                               Left y -> [Left $ show i ++ ":" ++ y | not $ "@version " `isPrefixOf` s]
                                -- only check Nothing as some items (e.g. "instance () :> Foo a")
                                -- don't roundtrip but do come out equivalent
                                Right xs | any (isNothing . readItem . showItem) xs ->
@@ -118,16 +118,16 @@ heirarchy hackage = list' . map other . with (isIModule . itemItem) . map module
                 isLegal c = isAscii c && isAlphaNum c
 
 
-parseLine :: Int -> String -> Either String [Item]
-parseLine line x@('@':str) = case a of
+parseLine :: String -> Either String [Item]
+parseLine x@('@':str) = case a of
         "keyword" | b <- words b, b /= [] -> Right [IKeyword $ unwords b]
         "package" | [b] <- words b, b /= "" -> Right [IPackage b]
-        _ -> Left $ show line ++ ":unknown attribute: " ++ x
+        _ -> Left $ "unknown attribute: " ++ x
     where (a,b) = word1 str
-parseLine line x | Just x <- readItem x = case x of
+parseLine x | Just x <- readItem x = case x of
     IDecl (TypeSig a bs c) -> Right [IDecl (TypeSig a [b] c) | b <- bs]
     x -> Right [x]
-parseLine line x = Left $ show line ++ ":failed to parse: " ++ x
+parseLine x = Left $ "failed to parse: " ++ x
 
 
 fixLine :: String -> String
