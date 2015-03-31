@@ -138,4 +138,6 @@ fixLine (stripPrefix "(#) " -> Just x) = "( # ) " ++ x
 fixLine ('[':x:xs) | isAlpha x || x `elem` "_(", (a,']':b) <- break (== ']') xs = x : a ++ b
 fixLine ('[':':':xs) | (a,']':b) <- break (== ']') xs = "(:" ++ a ++ ")" ++ b
 fixLine x | "class " `isPrefixOf` x = fst $ breakOn " where " x
+fixLine "(+, -, *) :: Num a => a -> a -> a" = "(+), (-), (*) :: Num a => a -> a -> a"
+fixLine "(**, logBase) :: Floating a => a -> a -> a" = "(**), logBase :: Floating a => a -> a -> a"
 fixLine x = x
