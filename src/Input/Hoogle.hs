@@ -133,6 +133,7 @@ parseLine x = Left $ "failed to parse: " ++ x
 fixLine :: String -> String
 fixLine (stripPrefix "instance [incoherent] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "instance [overlap ok] " -> Just x) = fixLine $ "instance " ++ x
+fixLine (stripPrefix "instance [overlapping] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "instance [safe] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "(#) " -> Just x) = "( # ) " ++ x
 fixLine ('[':x:xs) | isAlpha x || x `elem` "_(", (a,']':b) <- break (== ']') xs = x : a ++ b
