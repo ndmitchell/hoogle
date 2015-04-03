@@ -8,10 +8,10 @@ main :: IO ()
 main = do
     let timed x = do
         putStrLn $ "\n\nSearching for " ++ x
-        (time,_) <- duration $ system_ $ "hoogle +RTS -T -RTS " ++ (if x == "" then "" else show x)
+        (time,_) <- duration $ system_ $ "hoogle +RTS -T -M1.8G -RTS " ++ (if x == "" then "" else show x)
         putStrLn $ "Search " ++ show x ++ " took " ++ showDuration time
         putStrLn "\n\n"
-    retry 3 $ timed "generate +RTS -M1.8G"
+    retry 3 $ timed "generate"
     timed "test"
     timed "map"
     timed "map package:base"
