@@ -2,7 +2,7 @@
 :set -isrc
 :load Main src\Paths.hs
 
-:def test const $ return ":main test"
+:def test \xs -> return $ ":main test " ++ xs
 
 :{
 :def opt \xs -> return $ unlines
