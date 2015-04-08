@@ -34,6 +34,8 @@ data CmdLine
         {logs :: FilePath
         }
     | Test
+        {deep :: Bool
+        }
       deriving (Data,Typeable,Show)
 
 getCmdLine :: IO CmdLine
@@ -69,5 +71,6 @@ replay = Replay
     {logs = "log.txt" &= args &= typ "FILE"
     } &= help "Replay a log file"
 
-test = Test{} &= help "Run the test suite"
-
+test = Test
+    {deep = False &= help "Run extra long tests"
+    } &= help "Run the test suite"
