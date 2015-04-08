@@ -5,7 +5,7 @@ module Input.Type(
     ItemEx(..), Item(..),
     showItem, prettyItem, readItem,
     isIPackage, isIModule, splitIPackage, splitIModule,
-    URL, Documentation,
+    URL,
     Id(..),
     input_type_test
     ) where
@@ -29,7 +29,6 @@ import Data.Data
 -- DATABASE
 
 type URL = String
-type Documentation = String
 newtype Id = Id Word32 deriving (Eq,Ord,Storable,NFData,Ix)
 
 instance Storable (Id, Id) where
@@ -49,7 +48,7 @@ data ItemEx = ItemEx
     ,itemURL :: URL
     ,itemPackage :: Maybe (String, URL)
     ,itemModule :: Maybe (String, URL)
-    ,itemDocs :: Documentation
+    ,itemDocs :: String
     } deriving (Show,Eq,Ord)
 
 instance NFData ItemEx where
