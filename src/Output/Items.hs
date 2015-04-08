@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable #-}
 
-module Output.Items(writeItems, lookupItem) where
+module Output.Items(writeItems, lookupItem, listItems) where
 
 import Language.Haskell.Exts
 import System.IO.Extra
@@ -65,6 +65,15 @@ writeItems store file xs = do
         f :: Item -> Bool
         f (IDecl i@InstDecl{}) = False
         f x = True
+
+listItems :: StoreRead -> [ItemEx]
+listItems store = unfoldr f $ storeReadBS $ storeReadType Items store
+    where
+        f x | BS.null x = Nothing
+            | (n,x) <- BS.splitAt intSize x
+            , n <- intFromBS n
+            , (this,x) <- BS.splitAt n x
+            = Just (snd $ inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks [this], x)
 
 
 lookupItem :: StoreRead -> (Id -> ItemEx)
