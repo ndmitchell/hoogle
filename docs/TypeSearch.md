@@ -14,7 +14,7 @@ Given `a ? b`, we answer with a cost by applying rewrites until we get to equal 
 
 * **Both:** _[Arg reorder]_ `x -> y -> z ~> y -> x -> z`.
 * **Both:** _[Arg delete]_ `x -> y -> z ~> y -> z`, at most once per side.
-* **Both:** _[Freevar rename]_ `x ~> y`. 
+* **Both:** _[Freevar rename]_ `x ~> y`.
 * **LHS only:** _[Alias follow]_ `type X = Y` provides a rewrite `X ~> Y`.
 * **LHS only:** _[Instance subtype]_ `instance C X` provides a rewrite `X ~> forall z . C z`.
 * **RHS only:** _[Context delete]_ `C x => y ~> y`.
