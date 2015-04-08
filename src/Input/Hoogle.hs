@@ -42,9 +42,9 @@ parseHoogle file = heirarchy hackage . f [] "" . zip [1..] . lines
         f :: [String] -> URL -> [(Int,String)] -> [Either String ItemEx]
         f com url [] = []
         f com url ((i,s):is)
-            | "-- | " `isPrefixOf` s = f [drop 5 s] url is
-            | "--" `isPrefixOf` s = f ([dropWhile isSpace $ drop 2 s | com /= []] ++ com) url is
-            | "@url " `isPrefixOf` s =  f com (drop 5 s) is
+            | Just s <- stripPrefix "-- | " s = f [s] url is
+            | Just s <- stripPrefix "--" s = f (if null com then [] else trimStart s : com) url is
+            | ("@url",s) <- word1 s =  f com s is
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine $ fixLine s of
                                Left y -> [Left $ file ++ ":" ++ show i ++ ":" ++ y]
