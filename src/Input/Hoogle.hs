@@ -50,9 +50,10 @@ parseHoogle file = heirarchy hackage . f [] "" . zip [1..] . lines
                                Left y -> [Left $ file ++ ":" ++ show i ++ ":" ++ y]
                                -- only check Nothing as some items (e.g. "instance () :> Foo a")
                                -- don't roundtrip but do come out equivalent
-                               Right xs | any (isNothing . readItem . showItem) xs ->
-                                       [Left $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine s]
-                               Right xs -> [Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse com) | x <- xs]
+                               Right xs -> [ if isNothing $ readItem $ showItem x
+                                             then Left $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine s
+                                             else Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse com)
+                                           | x <- xs]
                           )
                           ++ f [] "" is
 
