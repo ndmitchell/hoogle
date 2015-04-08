@@ -16,7 +16,7 @@ keywordPrefix =
     ,"-- See Hoogle, http://www.haskell.org/hoogle/"
     ,""
     ,"-- | Haskell keywords, always available"
-    ,"@url http://haskell.org/haskellwiki/Keywords"
+    ,"@url http://wiki.haskell.org/Keywords"
     ,"@package keyword"
     ]
 
