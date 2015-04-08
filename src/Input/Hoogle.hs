@@ -47,7 +47,7 @@ parseHoogle file = heirarchy hackage . f [] "" . zip [1..] . lines
             | "@url " `isPrefixOf` s =  f com (drop 5 s) is
             | all isSpace s = f [] "" is
             | otherwise = (case parseLine $ fixLine s of
-                               Left y -> [Left $ file ++ ":" ++ show i ++ ":" ++ y | not $ "@version " `isPrefixOf` s]
+                               Left y -> [Left $ file ++ ":" ++ show i ++ ":" ++ y]
                                -- only check Nothing as some items (e.g. "instance () :> Foo a")
                                -- don't roundtrip but do come out equivalent
                                Right xs | any (isNothing . readItem . showItem) xs ->
@@ -107,6 +107,7 @@ parseLine :: String -> Either String [Item]
 parseLine x@('@':str) = case a of
         "keyword" | b <- words b, b /= [] -> Right [IKeyword $ unwords b]
         "package" | [b] <- words b, b /= "" -> Right [IPackage b]
+        "version" -> Right []
         _ -> Left $ "unknown attribute: " ++ x
     where (a,b) = word1 str
 parseLine x | Just x <- readItem x = case x of
