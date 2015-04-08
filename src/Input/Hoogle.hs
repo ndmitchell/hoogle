@@ -37,21 +37,6 @@ stringShare x = unsafePerformIO $ do
 
 -- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
 parseHoogle :: FilePath -> String -> [Either String ItemEx]
-{-
-parseHoogle = f [] . lines
-    where
-        f com ((stripPrefix "-- " -> Just x):xs) = f (com ++ [x]) xs
-        f com (x:xs) | all isSpace x = f [] xs
-        f com (('@': (word1 -> (key,val))):xs) = Right (Tagged key val) : f [] xs
-        f com ((stripPrefix "module " -> Just x):xs) = Right (Tagged "module" x) : f [] xs
-        f com (x:xs) | ParseOk res <- parseDecl x = Right (ItemEx $ ItemEx "http:" (unlines com) [] $ IDecl $ fmap (const ()) res) : f [] xs
-        f com (x:xs) = Left ("Could not parse line: " ++ x) : f [] xs
-        f com [] = []
-
-
-parseInputHaskell :: HackageURL -> String -> ([ParseError], Input)
-parseInputHaskell hackage =
--}
 parseHoogle file = heirarchy hackage . f [] "" . zip [1..] . lines
     where
         f :: [String] -> URL -> [(Int,String)] -> [Either String ItemEx]
