@@ -66,6 +66,7 @@ executable hoogle
         Output.Tags
         Output.Types
         Query
+        General.Conduit
         General.Log
         General.Store
         General.Str
