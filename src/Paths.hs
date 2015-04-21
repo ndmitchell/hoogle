@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -w #-}
 
 module Paths_hoogle where
 
