@@ -3,9 +3,9 @@
 module General.Conduit(
     module Data.Conduit,
     sourceList, sinkList,
-    foldC, mapC, mapMaybeC, mapAccumC,
+    foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     (|||),
-    zipFromC, eitherC, countC, sumC, rightsC,
+    zipFromC, eitherC, countC, sumC, rightsC, awaitJust
     ) where
 
 import Data.Conduit
@@ -14,18 +14,22 @@ import Control.Applicative
 import Control.Monad.Extra
 
 
+concatC = C.concat
 mapC = C.map
 foldC = C.fold
 mapMaybeC = C.mapMaybe
 mapAccumC = C.mapAccum
+filterC = C.filter
+
+awaitJust act = do
+    x <- await
+    whenJust x act
 
 
 zipFromC :: Monad m => Int -> Conduit a m (Int, a)
-zipFromC i = do
-    a <- await
-    whenJust a $ \a -> do
-        yield (i,a)
-        zipFromC (i+1)
+zipFromC i = awaitJust $ \a -> do
+    yield (i,a)
+    zipFromC (i+1)
 
 eitherC :: Monad m => ConduitM i1 o m r1 -> ConduitM i2 o m r2 -> ConduitM (Either i1 i2) o m (r1,r2)
 eitherC left right = (mapMaybeC l =$= left) ||| (mapMaybeC r =$= right)
