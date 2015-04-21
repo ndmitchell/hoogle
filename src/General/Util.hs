@@ -132,7 +132,7 @@ showUTCTime = formatTime defaultTimeLocale
 
 
 list' :: NFData a => [a] -> [a]
-list' (x:xs) = rnf x `seq` x : list' xs
+list' (x:xs) = rnf x `seq` (x : list' xs)
 list' [] = []
 
 
