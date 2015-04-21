@@ -25,11 +25,14 @@ import Input.Hoogle
 import Input.Download
 import Input.Reorder
 import Input.Set
+import Input.Type
 import General.Util
 import General.Store
 import System.Mem
 import GHC.Stats
 import Action.CmdLine
+import General.Conduit
+import Control.Monad.IO.Class
 
 {-
 
@@ -105,13 +108,15 @@ generate xs = do
                     [("set","stackage")] ++
                     Map.findWithDefault [] pkg cbl
 
-    let f seen (takeBaseName -> pkg, body)
-            | pkg `Set.member` want
-            = (Set.insert pkg seen,
-                trace ("[" ++ show (Set.size seen + 1) ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                    parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body)
-        f seen _ = (seen, [])
-    (seen, xs) <- second concat . mapAccumL f Set.empty <$> tarballReadFiles "input/hoogle.tar.gz"
+    files <- tarballReadFiles "input/hoogle.tar.gz"
+    let consumer :: Conduit (Int, (String, UTF8.ByteString)) IO [Either String ItemEx]
+        consumer = awaitForever $ \(i,(pkg, body)) -> do
+            liftIO $ putStrLn $ "[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg
+            yield $ parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body
+
+    (seen, xs) <- runConduit $ sourceList files =$= mapC (first takeBaseName) =$= filterC (flip Set.member want . fst) =$=
+        ((Set.fromList <$> (mapC fst =$= sinkList)) ||| (zipFromC 1 =$= consumer =$= concatC =$= sinkList))
+
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
     storeWriteFile (out <.> "hoo") $ \store -> do
         xs <- writeItems store out xs
