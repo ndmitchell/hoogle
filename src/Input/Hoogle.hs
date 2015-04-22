@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
 
-module Input.Hoogle(parseHoogle) where
+module Input.Hoogle(parseHoogle, parseHoogleC) where
 
 import Language.Haskell.Exts as HSE
 import Data.Char
@@ -8,11 +8,13 @@ import Data.List.Extra
 import Data.Maybe
 import Input.Type
 import General.Util
-import Control.DeepSeq
 import Data.IORef.Extra
 import System.IO.Unsafe
 import qualified Data.Map as Map
 import Data.Generics.Uniplate.Data
+import General.Conduit
+import Control.Monad.Extra
+import Data.Functor.Identity
 
 
 hackage = "https://hackage.haskell.org/"
@@ -37,55 +39,59 @@ stringShare x = unsafePerformIO $ do
 
 -- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
 parseHoogle :: FilePath -> String -> [Either String ItemEx]
-parseHoogle file = heirarchy hackage . f [] "" . zip [1..] . lines
+parseHoogle file xs = list' $ runIdentity $ runConduit $ sourceList (lines xs) |> parseHoogleC file |> sinkList
+
+-- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
+parseHoogleC :: Monad m => FilePath -> Conduit String m (Either String ItemEx)
+parseHoogleC file = zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage)
+
+parserC :: Monad m => FilePath -> Conduit (Int, String) m (Either String ItemEx)
+parserC file = f [] ""
     where
-        f :: [String] -> URL -> [(Int,String)] -> [Either String ItemEx]
-        f com url [] = []
-        f com url ((i,s):is)
-            | Just s <- stripPrefix "-- | " s = f [s] url is
-            | Just s <- stripPrefix "--" s = f (if null com then [] else trimStart s : com) url is
-            | ("@url",s) <- word1 s =  f com s is
-            | all isSpace s = f [] "" is
-            | otherwise = (case parseLine $ fixLine s of
-                               Left y -> [Left $ file ++ ":" ++ show i ++ ":" ++ y]
-                               -- only check Nothing as some items (e.g. "instance () :> Foo a")
-                               -- don't roundtrip but do come out equivalent
-                               Right xs -> [ if isNothing $ readItem $ showItem x
-                                             then Left $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine s
-                                             else Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse com)
-                                           | x <- xs]
-                          )
-                          ++ f [] "" is
+        f com url = do
+            x <- await
+            whenJust x $ \(i,s) -> case () of
+                _ | Just s <- stripPrefix "-- | " s -> f [s] url
+                  | Just s <- stripPrefix "--" s -> f (if null com then [] else trimStart s : com) url
+                  | ("@url",s) <- word1 s -> f com s
+                  | all isSpace s -> f [] ""
+                  | otherwise -> do
+                        case parseLine $ fixLine s of
+                            Left y -> yield $ Left $ file ++ ":" ++ show i ++ ":" ++ y
+                            -- only check Nothing as some items (e.g. "instance () :> Foo a")
+                            -- don't roundtrip but do come out equivalent
+                            Right xs -> forM_ xs $ \x -> yield $
+                                if isNothing $ readItem $ showItem x
+                                then Left $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine s
+                                else Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse com)
+                        f [] ""
+
 
 reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy (== "")
     where f xs@(x:_) | x `elem` ["<pre>","<ul>"] = xs
           f xs = ["<p>",unwords xs,"</p>"]
 
 
-heirarchy :: NFData a => URL -> [Either a ItemEx] -> [Either a ItemEx]
-heirarchy hackage = list' . map other . with (isIModule . itemItem) . map modules . with (isIPackage . itemItem) . map packages
+hierarchyC :: Monad m => String -> Conduit ItemEx m ItemEx
+hierarchyC hackage = mapC packages |> with (isIPackage . itemItem) |> mapC modules |> with (isIModule . itemItem) |> mapC other
     where
-        with :: (b -> Bool) -> [Either a b] -> [Either a (Maybe b, b)]
-        with p = snd . mapAccumL f Nothing
-            where
-                f s (Left e) = (s,Left e)
-                f s (Right x) = let s2 = if p x then Just x else s in (s2,Right (s2,x))
+        with :: Monad m => (b -> Bool) -> Conduit b m (Maybe b, b)
+        with p = void $ mapAccumC f Nothing
+            where f s x = let s2 = if p x then Just x else s in (s2,(s2,x))
 
-        packages (Right i@ItemEx{itemItem=IPackage x, itemURL=""}) = Right i{itemURL = hackage ++ "package/" ++ x}
+        packages i@ItemEx{itemItem=IPackage x, itemURL=""} = i{itemURL = hackage ++ "package/" ++ x}
         packages i = i
 
-        modules (Right (Just ItemEx{itemItem=IPackage pname, itemURL=purl}, i@ItemEx{itemItem=IModule x})) = Right i
+        modules (Just ItemEx{itemItem=IPackage pname, itemURL=purl}, i@ItemEx{itemItem=IModule x}) = i
             {itemURL = if null $ itemURL i then purl ++ "/docs/" ++ replace "." "-" x ++ ".html" else itemURL i
             ,itemPackage = Just (pname, purl)}
-        modules (Right (_, i)) = Right i
-        modules (Left x) = Left x
+        modules (_, i) = i
 
-        other (Right (Just ItemEx{itemItem=IModule mname, itemURL=murl, itemPackage=pkg}, i@ItemEx{itemItem=IDecl x})) = Right i
+        other (Just ItemEx{itemItem=IModule mname, itemURL=murl, itemPackage=pkg}, i@ItemEx{itemItem=IDecl x}) = i
             {itemURL = if null $ itemURL i then murl ++ "#" ++ url x else itemURL i
             ,itemPackage = pkg
             ,itemModule = Just (mname, murl)}
-        other (Right (_, i)) = Right i
-        other (Left x) = Left x
+        other (_, i) = i
 
         url (TypeSig _ [name] _) = "v:" ++ esc (fromName name)
         url x | [x] <- declNames x = "t:" ++ esc x
