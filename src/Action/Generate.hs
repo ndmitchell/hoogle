@@ -2,7 +2,6 @@
 
 module Action.Generate(actionGenerate) where
 
-import Control.Applicative
 import Data.List.Extra
 import System.FilePath
 import System.Directory.Extra
@@ -113,8 +112,8 @@ generate xs = do
             liftIO $ putStrLn $ "[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg
             yield $ parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body
 
-    (seen, xs) <- runConduit $ sourceList files =$= mapC (first takeBaseName) =$= filterC (flip Set.member want . fst) =$=
-        ((Set.fromList <$> (mapC fst =$= sinkList)) ||| (zipFromC 1 =$= consumer =$= concatC =$= sinkList))
+    (seen, xs) <- runConduit $ sourceList files |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
+        ((fmap Set.fromList $ mapC fst |> sinkList) |$|  (zipFromC 1 |> consumer |> concatC |> sinkList))
 
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
     storeWriteFile (out <.> "hoo") $ \store -> do

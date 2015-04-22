@@ -4,7 +4,7 @@ module General.Conduit(
     module Data.Conduit,
     sourceList, sinkList,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
-    (|||),
+    (|$|), (|>), (<|),
     zipFromC, eitherC, countC, sumC, rightsC, awaitJust
     ) where
 
@@ -13,6 +13,12 @@ import Data.Conduit.List as C
 import Control.Applicative
 import Control.Monad.Extra
 
+
+(|>) = (=$=)
+
+(<|) = flip (|>)
+
+(|$|) = (|||)
 
 concatC = C.concat
 mapC = C.map
