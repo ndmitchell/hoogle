@@ -39,11 +39,11 @@ stringShare x = unsafePerformIO $ do
 
 -- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
 parseHoogle :: FilePath -> String -> [Either String ItemEx]
-parseHoogle file xs = list' $ runIdentity $ runConduit $ sourceList (lines xs) =$= parseHoogleC file =$= sinkList
+parseHoogle file xs = list' $ runIdentity $ runConduit $ sourceList (lines xs) |> parseHoogleC file |> sinkList
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogleC :: Monad m => FilePath -> Conduit String m (Either String ItemEx)
-parseHoogleC file = zipFromC 1 =$= parserC file =$= rightsC (hierarchyC hackage)
+parseHoogleC file = zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage)
 
 parserC :: Monad m => FilePath -> Conduit (Int, String) m (Either String ItemEx)
 parserC file = f [] ""
@@ -73,7 +73,7 @@ reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy 
 
 
 hierarchyC :: Monad m => String -> Conduit ItemEx m ItemEx
-hierarchyC hackage = mapC packages =$= with (isIPackage . itemItem) =$= mapC modules =$= with (isIModule . itemItem) =$= mapC other
+hierarchyC hackage = mapC packages |> with (isIPackage . itemItem) |> mapC modules |> with (isIModule . itemItem) |> mapC other
     where
         with :: Monad m => (b -> Bool) -> Conduit b m (Maybe b, b)
         with p = void $ mapAccumC f Nothing
