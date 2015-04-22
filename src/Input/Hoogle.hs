@@ -77,7 +77,7 @@ hierarchyC hackage = mapC packages =$= with (isIPackage . itemItem) =$= mapC mod
     where
         with :: Monad m => (b -> Bool) -> Conduit b m (Maybe b, b)
         with p = void $ mapAccumC f Nothing
-            where f x s = let s2 = if p x then Just x else s in (s2,(s2,x))
+            where f s x = let s2 = if p x then Just x else s in (s2,(s2,x))
 
         packages i@ItemEx{itemItem=IPackage x, itemURL=""} = i{itemURL = hackage ++ "package/" ++ x}
         packages i = i

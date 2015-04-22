@@ -24,7 +24,7 @@ concatC = C.concat
 mapC = C.map
 foldC = C.fold
 mapMaybeC = C.mapMaybe
-mapAccumC = C.mapAccum
+mapAccumC f = C.mapAccum (\a s -> f s a)
 filterC = C.filter
 
 awaitJust act = do
