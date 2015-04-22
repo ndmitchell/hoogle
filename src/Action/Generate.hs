@@ -12,7 +12,6 @@ import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import Control.Exception.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-import Debug.Trace
 import Control.Monad.Extra
 import Prelude
 
