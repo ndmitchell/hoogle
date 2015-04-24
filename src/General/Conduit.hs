@@ -12,6 +12,7 @@ import Data.Conduit
 import Data.Conduit.List as C
 import Control.Applicative
 import Control.Monad.Extra
+import Prelude
 
 
 (|>) = (=$=)
