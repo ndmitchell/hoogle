@@ -182,7 +182,7 @@ readMaybe s | [x] <- [x | (x,t) <- reads s, ("","") <- lex t] = Just x
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient
-inRanges :: (Ix a, Show a) => [(a,a)] -> (a -> Bool)
+inRanges :: Ix a => [(a,a)] -> (a -> Bool)
 inRanges xs = \x -> maybe False (`inRange` x) $ Map.lookupLE x mp
     where
         mp = foldl' add Map.empty xs
