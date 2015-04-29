@@ -111,7 +111,7 @@ generate xs = do
                 yield $ parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body
 
     (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
-        ((fmap Set.fromList $ mapC fst |> sinkList) |$|  (zipFromC 1 |> consumer |> concatC |> sinkList))
+        ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
 
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
     storeWriteFile (out <.> "hoo") $ \store -> do
