@@ -40,31 +40,31 @@ stringShare x = unsafePerformIO $ do
 
 -- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
 parseHoogle :: FilePath -> LStr -> [Either String ItemEx]
-parseHoogle file body = list' $ runIdentity $ runConduit $ sourceLStr body |> linesCR |> mapC strUnpack |> parseHoogleC file |> sinkList
+parseHoogle file body = list' $ runIdentity $ runConduit $ sourceLStr body |> linesCR |> parseHoogleC file |> sinkList
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogleC :: Monad m => FilePath -> Conduit String m (Either String ItemEx)
+parseHoogleC :: Monad m => FilePath -> Conduit Str m (Either String ItemEx)
 parseHoogleC file = zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage)
 
-parserC :: Monad m => FilePath -> Conduit (Int, String) m (Either String ItemEx)
+parserC :: Monad m => FilePath -> Conduit (Int, Str) m (Either String ItemEx)
 parserC file = f [] ""
     where
         f com url = do
             x <- await
             whenJust x $ \(i,s) -> case () of
-                _ | Just s <- stripPrefix "-- | " s -> f [s] url
-                  | Just s <- stripPrefix "--" s -> f (if null com then [] else trimStart s : com) url
-                  | ("@url",s) <- word1 s -> f com s
-                  | all isSpace s -> f [] ""
+                _ | Just s <- strStripPrefix "-- | " s -> f [s] url
+                  | Just s <- strStripPrefix "--" s -> f (if null com then [] else strTrimStart s : com) url
+                  | Just s <- strStripPrefix "@url " s -> f com (strUnpack s)
+                  | strNull $ strTrimStart s -> f [] ""
                   | otherwise -> do
-                        case parseLine $ fixLine s of
+                        case parseLine $ fixLine $ strUnpack s of
                             Left y -> yield $ Left $ file ++ ":" ++ show i ++ ":" ++ y
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
                             Right xs -> forM_ xs $ \x -> yield $
                                 if isNothing $ readItem $ showItem x
-                                then Left $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine s
-                                else Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse com)
+                                then Left $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine (strUnpack s)
+                                else Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
                         f [] ""
 
 
