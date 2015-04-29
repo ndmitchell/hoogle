@@ -2,7 +2,7 @@
 
 module General.Util(
     pretty, parseMode, fromName, fromQName, fromTyVarBind, declNames,
-    tarballReadFiles,
+    tarballReadFiles, tarballReadFilesC,
     isUpper1, isAlpha1,
     splitPair, joinPair,
     testing, timed,
@@ -17,6 +17,7 @@ module General.Util(
     general_util_test
     ) where
 
+import General.Conduit
 import Language.Haskell.Exts
 import Control.Applicative
 import Data.List.Extra
@@ -83,6 +84,11 @@ declNames x = map fromName $ case x of
     TypeSig _ names _ -> names
     _ -> []
 
+
+tarballReadFilesC :: FilePath -> Source IO (FilePath, LBS.ByteString)
+tarballReadFilesC file = do
+    x <- liftIO $ tarballReadFiles file
+    sourceList x
 
 tarballReadFiles :: FilePath -> IO [(FilePath, LBS.ByteString)]
 tarballReadFiles file = f . Tar.read . GZip.decompress <$> LBS.readFile file
