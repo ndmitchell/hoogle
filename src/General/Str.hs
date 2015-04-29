@@ -1,14 +1,15 @@
 {-# LANGUAGE PatternGuards #-}
 
 module General.Str(
-    Str, strPack, strUnpack, strReadFile, strSplitInfix,
+    Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strConcat, strStripPrefix, strTrimStart,
     LStr, lstrPack, lstrUnpack, lstrToChunks, lstrFromChunks
     ) where
 
-import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.UTF8 as US
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.ByteString.Lazy.UTF8 as LUS
+import Data.Char
 
 
 type Str = BS.ByteString
@@ -32,6 +33,19 @@ strSplitInfix needle haystack
     = Just (a, BS.drop (BS.length needle) b)
 strSplitInfix _ _ = Nothing
 
+strNull :: Str -> Bool
+strNull = BS.null
+
+strConcat :: [Str] -> Str
+strConcat = BS.concat
+
+strStripPrefix :: Str -> Str -> Maybe Str
+strStripPrefix needle x
+    | BS.isPrefixOf needle x = Just $ BS.drop (BS.length needle) x
+    | otherwise = Nothing
+
+strTrimStart :: Str -> Str
+strTrimStart = BS.dropWhile isSpace
 
 lstrToChunks :: LStr -> [Str]
 lstrToChunks = LBS.toChunks
