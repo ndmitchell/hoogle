@@ -11,10 +11,12 @@ import General.Util
 import Data.IORef.Extra
 import System.IO.Unsafe
 import qualified Data.Map as Map
+import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import Data.Generics.Uniplate.Data
 import General.Conduit
 import Control.Monad.Extra
 import Data.Functor.Identity
+import General.Str
 
 
 hackage = "https://hackage.haskell.org/"
@@ -38,8 +40,8 @@ stringShare x = unsafePerformIO $ do
 
 
 -- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
-parseHoogle :: FilePath -> String -> [Either String ItemEx]
-parseHoogle file xs = list' $ runIdentity $ runConduit $ sourceList (lines xs) |> parseHoogleC file |> sinkList
+parseHoogle :: FilePath -> LStr -> [Either String ItemEx]
+parseHoogle file body = list' $ runIdentity $ runConduit $ sourceList (lines $ filter (/= '\r') $ UTF8.toString body) |> parseHoogleC file |> sinkList
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogleC :: Monad m => FilePath -> Conduit String m (Either String ItemEx)

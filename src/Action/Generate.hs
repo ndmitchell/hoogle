@@ -7,7 +7,6 @@ import System.FilePath
 import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
-import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import Control.Exception.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -26,6 +25,7 @@ import Input.Set
 import Input.Type
 import General.Util
 import General.Store
+import General.Str
 import System.Mem
 import GHC.Stats
 import Action.CmdLine
@@ -105,10 +105,10 @@ generate xs = do
                     [("set","stackage")] ++
                     Map.findWithDefault [] pkg cbl
 
-    let consumer :: Conduit (Int, (String, UTF8.ByteString)) IO [Either String ItemEx]
+    let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
         consumer = awaitForever $ \(i,(pkg, body)) -> do
             timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                yield $ parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body
+                yield $ parseHoogle pkg body
 
     (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
         ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
