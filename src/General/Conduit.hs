@@ -63,9 +63,8 @@ linesC = loop []
     where
         loop acc = await >>= maybe (finish acc) (go acc)
 
-        finish acc =
-            let final = BS.concat $ reverse acc
-             in unless (BS.null final) (yield final)
+        finish acc = unless (BS.null final) (yield final)
+            where final = BS.concat $ reverse acc
 
         go acc more = case BS.uncons second of
             Just (_, second') -> yield (BS.concat $ reverse $ first:acc) >> go [] second'
