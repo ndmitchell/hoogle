@@ -14,6 +14,7 @@ import Control.Applicative
 import Control.Monad.Extra
 import qualified Data.ByteString.Char8 as BS
 import Control.Monad.IO.Class
+import General.Str
 import Prelude
 
 
@@ -58,7 +59,7 @@ sinkList :: Monad m => Consumer a m [a]
 sinkList = consume
 
 
-linesC :: Monad m => Conduit BS.ByteString m BS.ByteString
+linesC :: Monad m => Conduit Str m Str
 linesC = loop []
     where
         loop acc = await >>= maybe (finish acc) (go acc)
@@ -71,7 +72,7 @@ linesC = loop []
             Nothing -> loop $ more:acc
             where (first, second) = BS.break (== '\n') more
 
-linesCR :: Monad m => Conduit BS.ByteString m BS.ByteString
+linesCR :: Monad m => Conduit Str m Str
 linesCR = linesC |> mapC f
     where f x | Just (x, '\r') <- BS.unsnoc x = x
               | otherwise = x
