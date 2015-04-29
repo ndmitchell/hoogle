@@ -11,7 +11,6 @@ import General.Util
 import Data.IORef.Extra
 import System.IO.Unsafe
 import qualified Data.Map as Map
-import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import Data.Generics.Uniplate.Data
 import General.Conduit
 import Control.Monad.Extra
@@ -41,7 +40,7 @@ stringShare x = unsafePerformIO $ do
 
 -- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
 parseHoogle :: FilePath -> LStr -> [Either String ItemEx]
-parseHoogle file body = list' $ runIdentity $ runConduit $ sourceList (lines $ filter (/= '\r') $ UTF8.toString body) |> parseHoogleC file |> sinkList
+parseHoogle file body = list' $ runIdentity $ runConduit $ sourceLStr body |> linesCR |> mapC strUnpack |> parseHoogleC file |> sinkList
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogleC :: Monad m => FilePath -> Conduit String m (Either String ItemEx)
