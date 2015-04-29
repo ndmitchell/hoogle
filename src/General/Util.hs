@@ -120,12 +120,14 @@ testing_, testing :: String -> IO () -> IO ()
 testing_ name act = do putStr $ "Test " ++ name ++ " "; act
 testing name act = do testing_ name act; putStrLn ""
 
-timed :: String -> IO a -> IO a
+timed :: MonadIO m => String -> m a -> m a
 timed msg act = do
-    putStr (msg ++ "... ") >> hFlush stdout
-    (t,v) <- duration act
-    putStrLn $ showDuration t
-    return v
+    liftIO $ putStr (msg ++ "... ") >> hFlush stdout
+    time <- liftIO offsetTime
+    res <- act
+    time <- liftIO time
+    liftIO $ putStrLn $ showDuration time
+    return res
 
 showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale
