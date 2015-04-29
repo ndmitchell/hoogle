@@ -107,7 +107,7 @@ generate xs = do
 
     let consumer :: Conduit (Int, (String, UTF8.ByteString)) IO [Either String ItemEx]
         consumer = awaitForever $ \(i,(pkg, body)) -> do
-            timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg ++ "... ") $
+            timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                 yield $ parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body
 
     (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
