@@ -5,13 +5,14 @@ module General.Conduit(
     sourceList, sinkList,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     (|$|), (|>), (<|),
-    zipFromC, eitherC, countC, sumC, rightsC, awaitJust
+    zipFromC, eitherC, countC, sumC, rightsC, awaitJust, linesC
     ) where
 
 import Data.Conduit
 import Data.Conduit.List as C
 import Control.Applicative
 import Control.Monad.Extra
+import qualified Data.ByteString.Char8 as BS
 import Control.Monad.IO.Class
 import Prelude
 
@@ -55,3 +56,18 @@ sumC = foldC (+) 0
 
 sinkList :: Monad m => Consumer a m [a]
 sinkList = consume
+
+
+linesC :: Monad m => Conduit BS.ByteString m BS.ByteString
+linesC = loop []
+    where
+        loop acc = await >>= maybe (finish acc) (go acc)
+
+        finish acc =
+            let final = BS.concat $ reverse acc
+             in unless (BS.null final) (yield final)
+
+        go acc more = case BS.uncons second of
+            Just (_, second') -> yield (BS.concat $ reverse $ first:acc) >> go [] second'
+            Nothing -> loop $ more:acc
+            where (first, second) = BS.break (== '\n') more
