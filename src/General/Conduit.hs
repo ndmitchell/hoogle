@@ -2,7 +2,7 @@
 
 module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
-    sourceList, sinkList,
+    sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     (|$|), (|>), (<|),
     zipFromC, eitherC, countC, sumC, rightsC, awaitJust, linesC, linesCR
@@ -76,3 +76,6 @@ linesCR :: Monad m => Conduit Str m Str
 linesCR = linesC |> mapC f
     where f x | Just (x, '\r') <- BS.unsnoc x = x
               | otherwise = x
+
+sourceLStr :: Monad m => LStr -> Source m Str
+sourceLStr = sourceList . lstrToChunks
