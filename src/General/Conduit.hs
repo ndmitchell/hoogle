@@ -16,10 +16,7 @@ import Prelude
 
 
 (|>) = (=$=)
-
 (<|) = flip (|>)
-
-(|$|) = (|||)
 
 concatC = C.concat
 mapC = C.map
@@ -28,32 +25,32 @@ mapMaybeC = C.mapMaybe
 mapAccumC f = C.mapAccum (\a s -> f s a)
 filterC = C.filter
 
+awaitJust :: Monad m => (i -> Conduit i m o) -> Conduit i m o
 awaitJust act = do
     x <- await
     whenJust x act
 
-
-zipFromC :: Monad m => Int -> Conduit a m (Int, a)
+zipFromC :: (Monad m, Enum c) => c -> Conduit a m (c, a)
 zipFromC i = awaitJust $ \a -> do
     yield (i,a)
-    zipFromC (i+1)
+    zipFromC (succ i)
 
 eitherC :: Monad m => ConduitM i1 o m r1 -> ConduitM i2 o m r2 -> ConduitM (Either i1 i2) o m (r1,r2)
-eitherC left right = (mapMaybeC l =$= left) ||| (mapMaybeC r =$= right)
+eitherC left right = (mapMaybeC l |> left) |$| (mapMaybeC r |> right)
     where l = either Just (const Nothing)
           r = either (const Nothing) Just
 
 rightsC :: Monad m => ConduitM i2 o2 m () -> ConduitM (Either i1 i2) (Either i1 o2) m ()
-rightsC c = void $ eitherC (mapC Left) (c =$= mapC Right)
+rightsC c = void $ eitherC (mapC Left) (c |> mapC Right)
 
 countC :: (Monad m, Num c) => Sink a m c
-countC = mapC (const 1) =$= sumC
+countC = sumC <| mapC (const 1)
 
 sumC :: (Monad m, Num a) => Consumer a m a
 sumC = foldC (+) 0
 
-(|||) :: Monad m => ConduitM i o m r1 -> ConduitM i o m r2 -> ConduitM i o m (r1,r2)
-(|||) a b = getZipConduit $ (,) <$> ZipConduit a <*> ZipConduit b
+(|$|) :: Monad m => ConduitM i o m r1 -> ConduitM i o m r2 -> ConduitM i o m (r1,r2)
+(|$|) a b = getZipConduit $ (,) <$> ZipConduit a <*> ZipConduit b
 
 sinkList :: Monad m => Consumer a m [a]
 sinkList = consume
