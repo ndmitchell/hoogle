@@ -105,13 +105,12 @@ generate xs = do
                     [("set","stackage")] ++
                     Map.findWithDefault [] pkg cbl
 
-    files <- tarballReadFiles "input/hoogle.tar.gz"
     let consumer :: Conduit (Int, (String, UTF8.ByteString)) IO [Either String ItemEx]
         consumer = awaitForever $ \(i,(pkg, body)) -> do
             timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg ++ "... ") $
                 yield $ parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body
 
-    (seen, xs) <- runConduit $ sourceList files |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
+    (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
         ((fmap Set.fromList $ mapC fst |> sinkList) |$|  (zipFromC 1 |> consumer |> concatC |> sinkList))
 
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
