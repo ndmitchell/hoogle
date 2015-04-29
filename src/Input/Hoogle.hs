@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings #-}
 
 module Input.Hoogle(parseHoogle, parseHoogleC) where
 
@@ -130,7 +130,7 @@ fixLine (stripPrefix "instance [overlap ok] " -> Just x) = fixLine $ "instance "
 fixLine (stripPrefix "instance [overlapping] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "instance [safe] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "(#) " -> Just x) = "( # ) " ++ x
-fixLine ('[':x:xs) | isAlpha x || x `elem` "_(", (a,']':b) <- break (== ']') xs = x : a ++ b
+fixLine ('[':x:xs) | isAlpha x || x `elem` ("_(" :: String), (a,']':b) <- break (== ']') xs = x : a ++ b
 fixLine ('[':':':xs) | (a,']':b) <- break (== ']') xs = "(:" ++ a ++ ")" ++ b
 fixLine x | "class " `isPrefixOf` x = fst $ breakOn " where " x
 fixLine "(+, -, *) :: Num a => a -> a -> a" = "(+), (-), (*) :: Num a => a -> a -> a"
