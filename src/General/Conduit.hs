@@ -1,7 +1,7 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 module General.Conduit(
-    module Data.Conduit,
+    module Data.Conduit, MonadIO, liftIO,
     sourceList, sinkList,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     (|$|), (|>), (<|),
@@ -12,6 +12,7 @@ import Data.Conduit
 import Data.Conduit.List as C
 import Control.Applicative
 import Control.Monad.Extra
+import Control.Monad.IO.Class
 import Prelude
 
 

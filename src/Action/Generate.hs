@@ -30,7 +30,6 @@ import System.Mem
 import GHC.Stats
 import Action.CmdLine
 import General.Conduit
-import Control.Monad.IO.Class
 
 {-
 
