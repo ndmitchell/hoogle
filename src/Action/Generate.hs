@@ -108,8 +108,8 @@ generate xs = do
     files <- tarballReadFiles "input/hoogle.tar.gz"
     let consumer :: Conduit (Int, (String, UTF8.ByteString)) IO [Either String ItemEx]
         consumer = awaitForever $ \(i,(pkg, body)) -> do
-            liftIO $ putStrLn $ "[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg
-            yield $ parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body
+            timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg ++ "... ") $
+                yield $ parseHoogle pkg $ filter (/= '\r') $ UTF8.toString body
 
     (seen, xs) <- runConduit $ sourceList files |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
         ((fmap Set.fromList $ mapC fst |> sinkList) |$|  (zipFromC 1 |> consumer |> concatC |> sinkList))
