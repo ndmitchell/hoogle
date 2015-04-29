@@ -5,7 +5,7 @@ module General.Conduit(
     sourceList, sinkList,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     (|$|), (|>), (<|),
-    zipFromC, eitherC, countC, sumC, rightsC, awaitJust, linesC
+    zipFromC, eitherC, countC, sumC, rightsC, awaitJust, linesC, linesCR
     ) where
 
 import Data.Conduit
@@ -70,3 +70,8 @@ linesC = loop []
             Just (_, second') -> yield (BS.concat $ reverse $ first:acc) >> go [] second'
             Nothing -> loop $ more:acc
             where (first, second) = BS.break (== '\n') more
+
+linesCR :: Monad m => Conduit BS.ByteString m BS.ByteString
+linesCR = linesC |> mapC f
+    where f x | Just (x, '\r') <- BS.unsnoc x = x
+              | otherwise = x
