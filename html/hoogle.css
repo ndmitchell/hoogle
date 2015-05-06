@@ -299,6 +299,7 @@ docs may be in one of three states:
     font-size: 11px;
     background-repeat: no-repeat;
     background-position: 2px left;
+    margin-bottom: 1.0em;
 }
 .doc, .doc a {
     color: #888;
@@ -309,7 +310,7 @@ docs may be in one of three states:
 .shut {background-image: url(more_gray.png);}
 
 .doc, .shut {
-    max-height: 1.5em;
+    max-height: 2.0em;
     overflow: hidden;
 }
 .open {
