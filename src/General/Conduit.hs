@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE NoMonomorphismRestriction, PatternGuards #-}
 
 module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
