@@ -116,9 +116,13 @@ I have given several presentations on type searching all available from [my home
 The folders in the distribution, and their meaning are:
 
 data - tools to generate a hoogle data file
+
 docs - documentation on hoogle
+
 misc - presentations, icons, emacs scripts, logos
+
 src  - source code
+
 web  - additional resources for the web front end (css, jpg etc.)
 
 ## Similar Tools
