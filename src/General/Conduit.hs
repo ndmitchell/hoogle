@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction, PatternGuards #-}
+{-# LANGUAGE NoMonomorphismRestriction, PatternGuards, CPP #-}
 
 module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
@@ -74,8 +74,16 @@ linesC = loop []
 
 linesCR :: Monad m => Conduit Str m Str
 linesCR = linesC |> mapC f
-    where f x | Just (x, '\r') <- BS.unsnoc x = x
+    where f x | Just (x, '\r') <- bsUnsnoc x = x
               | otherwise = x
+
+bsUnsnoc :: BS.ByteString -> Maybe (BS.ByteString, Char)
+#if __GLASGOW_HASKELL__ < 708
+bsUnsnoc x | BS.null x = Nothing
+           | otherwise = Just (BS.init x, BS.last x)
+#else
+bsUnsnoc = BS.unsnoc
+#endif
 
 sourceLStr :: Monad m => LStr -> Source m Str
 sourceLStr = sourceList . lstrToChunks
