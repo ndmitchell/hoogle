@@ -149,7 +149,7 @@ executable hoogle
         resourcet,
         parsec >= 2.1,
         wai >= 1.1,
-        warp >= 1.1,
+        warp >= 2.1,
         Cabal >= 1.8,
         shake >= 0.14,
         QuickCheck,
