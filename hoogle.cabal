@@ -22,6 +22,8 @@ extra-source-files:
     misc/tag-rename.txt
     cbits/*.h
     cbits/*.c
+data-files:
+    misc/tag-rename.txt
 
 source-repository head
     type:     git

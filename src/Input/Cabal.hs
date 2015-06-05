@@ -12,6 +12,7 @@ import General.Str
 import Data.Tuple.Extra
 import qualified Data.Map as Map
 import General.Util
+import Paths_hoogle
 import Prelude
 
 
@@ -23,7 +24,8 @@ parseCabal :: (String -> Bool) -> IO (Map.Map String [(String, String)])
 -- QuickCheck/2.7.6/QuickCheck.cabal
 -- rely on the fact the highest version is last (using lastValues)
 parseCabal want = do
-    rename <- Map.fromList . map (both trim . second (drop 1) . break (== '=')) . lines <$> readFileUTF8 "misc/tag-rename.txt"
+    dataDir <- getDataDir
+    rename <- Map.fromList . map (both trim . second (drop 1) . break (== '=')) . lines <$> readFileUTF8 (dataDir </> "misc/tag-rename.txt")
     res <- foldl' (f rename) Map.empty . filter (want . fst) . lastValues . map (first takeBaseName) <$> tarballReadFiles "input/cabal.tar.gz"
     evaluate res
     where
