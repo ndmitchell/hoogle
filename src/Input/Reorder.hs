@@ -33,7 +33,7 @@ packageOrder = do
     return $ maybe 0 negate . flip Map.lookup mp
     where
         f (x:"</td>":y:xs)
-            | Just x <- stripPrefix "<tr><td><a href=\"http://packdeps.haskellers.com/reverse/" x
+            | Just x <- stripPrefix "<tr><td><a href=\"/reverse/" x
             , Just y <- stripPrefix "<td>" y
             = (takeWhile (/= '\"') x, read $ takeWhile isDigit y) : f xs
         f (x:xs) = f xs
