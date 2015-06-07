@@ -40,7 +40,7 @@ main = do
         echo system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
         echo system_ "cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
-        echo system_ $ exe ++ " generate +RTS -M1.5G"
+        echo system_ $ "hoogle_data=. " ++ exe ++ " generate +RTS -M1.5G"
         echo system_ $ exe ++ " test"
         ignore $ echo system_ "pkill hoogle"
         let cmd = "nohup " ++ exe ++ " server --port=8080 " ++
