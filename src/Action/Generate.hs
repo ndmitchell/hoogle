@@ -99,11 +99,11 @@ generate xs = do
     createDirectoryIfMissing True "output"
     let want = if null xs then Set.unions [setStackage, setPlatform, setGHC] else Set.fromList xs
 
-    cbl <- parseCabal (`Set.member` want)
+    cbl <- parseCabal
     let extra pkg = [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
                     [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
-                    [("set","stackage")] ++
-                    Map.findWithDefault [] pkg cbl
+                    [("set","stackage") | pkg `Set.member` setStackage] ++
+                    maybe [] cabalTags (Map.lookup pkg cbl)
 
     let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
         consumer = awaitForever $ \(i,(pkg, body)) -> do
