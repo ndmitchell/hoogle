@@ -2,7 +2,6 @@
 Before beta:
 
 * Implement type search
-* is:package search should search all packages
 
 After beta:
 
