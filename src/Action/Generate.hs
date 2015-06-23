@@ -114,8 +114,10 @@ generate args = do
         ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
 
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
+    let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ cabalSynopsis)
+                   | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
     storeWriteFile (out <.> "hoo") $ \store -> do
-        xs <- writeItems store out xs
+        xs <- writeItems store out $ xs ++ if args /= [] then [] else packages
         putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
         timed "Writing tags" $ writeTags store extra xs
