@@ -17,7 +17,6 @@ urls =
     ,("platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2014.hs")
     ,("cabal.tar.gz","https://hackage.haskell.org/packages/index.tar.gz")
     ,("hoogle.tar.gz","https://hackage.haskell.org/packages/hoogle.tar.gz")
-    ,("reverse.htm","http://packdeps.haskellers.com/reverse")
     ]
 
 -- | Download all the input files to input/
