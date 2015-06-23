@@ -92,12 +92,12 @@ actionGenerate Generate{..} = do
 
 
 generate :: [String] -> IO ()
-generate xs = do
+generate args = do
     setStackage <- setStackage
     setPlatform <- setPlatform
     setGHC <- setGHC
     createDirectoryIfMissing True "output"
-    let want = if null xs then Set.unions [setStackage, setPlatform, setGHC] else Set.fromList xs
+    let want = if null args then Set.unions [setStackage, setPlatform, setGHC] else Set.fromList args
 
     cbl <- parseCabal
     let extra pkg = [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
