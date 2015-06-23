@@ -25,6 +25,7 @@ data Tags = Tags
     ,categoryIds :: V.Vector (Id, Id)
     ,moduleNames :: BS.ByteString -- not sorted
     ,moduleIds :: V.Vector (Id, Id)
+    ,completionNames :: BS.ByteString -- things I want to complete to
     } deriving Typeable
 
 join0 :: [String] -> BS.ByteString
@@ -33,8 +34,8 @@ join0 = BS.pack . intercalate "\0"
 split0 :: BS.ByteString -> [BS.ByteString]
 split0 = BS.split '\0'
 
-writeTags :: StoreWrite -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
-writeTags store extra xs = storeWriteType store (undefined :: Tags) $ do
+writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
+writeTags store keep extra xs = storeWriteType store (undefined :: Tags) $ do
     let splitPkg = splitIPackage xs
     let packages = sortOn (lower . fst) $ addRange splitPkg
     let categories = map (first snd) $ Map.toList $ Map.fromListWith (++)
@@ -49,6 +50,11 @@ writeTags store extra xs = storeWriteType store (undefined :: Tags) $ do
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
     storeWriteBS store $ join0 $ map (lower . fst) modules
     storeWriteV store $ V.fromList $ map snd modules
+
+    storeWriteBS store $ join0 $
+        takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
+        sortOn lower (filter keep $ map fst packages) ++
+        map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p])
     where
         addRange :: [(String, [(Maybe Id,a)])] -> [(String, (Id, Id))]
         addRange xs = [(a, (minimum is, maximum is)) | (a,b) <- xs, let is = mapMaybe fst b, a /= "", is /= []]
@@ -61,13 +67,12 @@ writeTags store extra xs = storeWriteType store (undefined :: Tags) $ do
 
 
 readTags :: StoreRead -> Tags
-readTags store = Tags (storeReadBS x1) (storeReadBS x2) (storeReadV x3) (storeReadV x4) (storeReadV x5) (storeReadBS x6) (storeReadV x7)
-    where [x1,x2,x3,x4,x5,x6,x7] = storeReadList $ storeReadType (undefined :: Tags) store
+readTags store = Tags (storeReadBS x1) (storeReadBS x2) (storeReadV x3) (storeReadV x4) (storeReadV x5) (storeReadBS x6) (storeReadV x7) (storeReadBS x8)
+    where [x1,x2,x3,x4,x5,x6,x7,x8] = storeReadList $ storeReadType (undefined :: Tags) store
 
 
 listTags :: Tags -> [String]
-listTags Tags{..} = let (a,b) = span ("set:" `isPrefixOf`) (f categoryNames) in a ++ map ("package:"++) (f packageNames) ++ b
-    where f = map BS.unpack . split0
+listTags Tags{..} = map BS.unpack $ split0 completionNames
 
 lookupTag :: Tags -> (String, String) -> [(Id,Id)]
 lookupTag Tags{..} ("is",'p':xs) | xs `isPrefixOf` "ackage" = map (dupe . fst) $ V.toList packageIds

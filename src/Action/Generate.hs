@@ -120,7 +120,7 @@ generate args = do
         xs <- writeItems store out $ xs ++ if args /= [] then [] else packages
         putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
-        timed "Writing tags" $ writeTags store extra xs
+        timed "Writing tags" $ writeTags store (`Set.member` want) extra xs
         timed "Writing names" $ writeNames store xs
         timed "Writing types" $ writeTypes store xs
 
