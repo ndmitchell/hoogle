@@ -117,7 +117,7 @@ generate xs = do
     storeWriteFile (out <.> "hoo") $ \store -> do
         xs <- writeItems store out xs
         putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
-        xs <- timed "Reodering items" $ reorderItems xs
+        xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
         timed "Writing tags" $ writeTags store extra xs
         timed "Writing names" $ writeNames store xs
         timed "Writing types" $ writeTypes store xs
