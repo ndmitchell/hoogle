@@ -83,6 +83,8 @@ action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.
     "\8484" === hackage "base-unicode-symbols/docs/Prelude-Unicode.html#t:-8484-"
     "copilot" === hackage "copilot"
     "supero" === hackage "supero"
+    "set:stackage" === hackage "base"
+    "author:Neil-Mitchell" === hackage "filepath"
 
     let tags = listTags $ readTags store
     let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
