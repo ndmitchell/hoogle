@@ -83,3 +83,10 @@ action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.
     "\8484" === hackage "base-unicode-symbols/docs/Prelude-Unicode.html#t:-8484-"
     "copilot" === hackage "copilot"
     "supero" === hackage "supero"
+
+    let tags = listTags $ readTags store
+    let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
+    asserts ("set:haskell-platform" `elem` tags) "set:haskell-platform `elem` tags"
+    asserts ("author:Neil-Mitchell" `elem` tags) "author:Neil-Mitchell `elem` tags"
+    asserts ("package:uniplate" `elem` tags) "package:uniplate `elem` tags"
+    asserts ("package:supero" `notElem` tags) "package:supero `notElem` tags"
