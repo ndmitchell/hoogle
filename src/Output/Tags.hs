@@ -100,5 +100,5 @@ filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
           f (QueryScope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
 
 searchTags :: Tags -> [Query] -> [Id]
-searchTags ts qs = map fst $ if null xs then V.toList $ packageIds ts else xs
+searchTags ts qs = map fst $ if null xs then V.toList $ packageIds ts else nubOrd xs
     where xs = concat [lookupTag ts (cat,val) | QueryScope True cat val <- qs]
