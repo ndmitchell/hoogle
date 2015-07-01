@@ -53,7 +53,7 @@ writeTags store keep extra xs = storeWriteType store (undefined :: Tags) $ do
 
     storeWriteBS store $ join0 $
         takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
-        sortOn lower (filter keep $ map fst packages) ++
+        map ("package:"++) (sortOn lower $ filter keep $ map fst packages) ++
         map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p])
     where
         addRange :: [(String, [(Maybe Id,a)])] -> [(String, (Id, Id))]
