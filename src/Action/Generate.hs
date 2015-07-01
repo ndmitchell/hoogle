@@ -87,12 +87,12 @@ generate output metadata  = undefined
 actionGenerate :: CmdLine -> IO ()
 actionGenerate Generate{..} = do
     downloadInputs
-    (n,_) <- duration $ generate include
+    (n,_) <- duration $ generate debug include
     putStrLn $ "Took " ++ showDuration n
 
 
-generate :: [String] -> IO ()
-generate args = do
+generate :: Bool -> [String] -> IO ()
+generate debug args = do
     setStackage <- setStackage
     setPlatform <- setPlatform
     setGHC <- setGHC
@@ -122,7 +122,7 @@ generate args = do
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
         timed "Writing tags" $ writeTags store (`Set.member` want) extra xs
         timed "Writing names" $ writeNames store xs
-        timed "Writing types" $ writeTypes store xs
+        timed "Writing types" $ writeTypes store (if debug then Just out else Nothing) xs
 
         whenM getGCStatsEnabled $ do
             performGC

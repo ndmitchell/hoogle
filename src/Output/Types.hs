@@ -9,14 +9,17 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
-import Control.Monad
+import Control.Monad.Extra
 import Data.Maybe
 import Data.Word
+import Data.Function
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
 import Data.Typeable
 import Data.Functor.Identity
+import System.FilePath
+import System.IO.Extra
 
 import Input.Type
 import General.Util
@@ -37,8 +40,8 @@ data Types = Types deriving Typeable
 
 data Ctors = Ctors deriving Typeable
 
-writeTypes :: StoreWrite -> [(Maybe Id, Item)] -> IO ()
-writeTypes store xs = storeWriteType store Types $ do
+writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe Id, Item)] -> IO ()
+writeTypes store debug xs = storeWriteType store Types $ do
 
     when False $
         storeWriteType store Ctors $ do
@@ -55,6 +58,15 @@ writeTypes store xs = storeWriteType store Types $ do
     storeWriteBS store $ BS.pack $ unlines $ concat
         [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t, pretty t]
         | (t,i) <- sortOn (minimum . map fst . snd) ys]
+
+    let rare = createRarity $ map snd xs
+    whenJust debug $ \debug -> do
+        writeFileUTF8 (debug <.> "alias") $ unlines [unwords (a:b) ++ " = " ++ pretty c | (_, IDecl t) <- xs, Just (a,(b,c)) <- [unpackAlias t]]
+        writeFileUTF8 (debug <.> "instance") $ unlines [pretty t | (_, IDecl t@InstDecl{}) <- xs]
+        writeFileUTF8 (debug <.> "sig") $ unlines [pretty t | (t,_) <- ys]
+        writeFileUTF8 (debug <.> "rarest") $ unlines $ concatMap (\(k,vs) -> ("-- " ++ show k ++ " = " ++ show (length vs)) : map pretty vs) $
+            reverse $ Map.toList $ Map.fromListWith (++)
+            [(minimumBy (compare `on` fst) $ (maxBound,"") : ns, [t]) |  (t,_) <- ys, let ns = map ((Map.!) rare &&& id) $ typeNames t]
 
 
 
