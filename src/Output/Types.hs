@@ -71,7 +71,7 @@ writeTypes store debug xs = storeWriteType store Types $ do
 
 
 createRarity :: [Item] -> Map.Map String Int
-createRarity xs = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
+createRarity xs = Map.fromListWith (+) $ concat [map (,1) $ nubOrd $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
 
 
 createRewrite :: [Item] -> [(String, (Int, Sig))] -- (arity, type)
