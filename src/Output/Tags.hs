@@ -6,6 +6,7 @@ import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Maybe
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
 import Data.Word
@@ -100,5 +101,6 @@ filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
           f (QueryScope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
 
 searchTags :: Tags -> [Query] -> [Id]
-searchTags ts qs = map fst $ if null xs then V.toList $ packageIds ts else nubOrd xs
-    where xs = concat [lookupTag ts (cat,val) | QueryScope True cat val <- qs]
+searchTags ts [] = map fst $ V.toList $ packageIds ts
+searchTags ts qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
+    where x:xs = [map fst $ lookupTag ts (cat,val) | QueryScope True cat val <- qs]
