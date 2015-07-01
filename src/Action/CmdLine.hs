@@ -22,6 +22,7 @@ data CmdLine
         ,download :: Maybe Bool
         ,database :: FilePath
         ,include :: [String]
+        ,debug :: Bool
         }
     | Server
         {port :: Int
@@ -58,6 +59,7 @@ generate = Generate
     {hackage = "https://hackage.haskell.org/" &= typ "URL" &= help "Hackage instance to target"
     ,download = def &= help "Download all files from the web"
     ,include = def &= args &= typ "PACKAGE"
+    ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"
 
 server = Server
