@@ -37,9 +37,10 @@ split0 = BS.split '\0'
 writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe Id, Item)] -> IO ()
 writeTags store keep extra xs = storeWriteType store (undefined :: Tags) $ do
     let splitPkg = splitIPackage xs
-    let packages = sortOn (lower . fst) $ addRange splitPkg
-    let categories = map (first snd) $ Map.toList $ Map.fromListWith (++)
-            [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
+    let packagesRaw = addRange splitPkg
+    let packages = sortOn (lower . fst) packagesRaw
+    let categories = map (first snd . second reverse) $ Map.toList $ Map.fromListWith (++)
+            [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packagesRaw, ex <- extra p]
 
     storeWriteBS store $ join0 $ map fst packages
     storeWriteBS store $ join0 $ map fst categories
@@ -53,7 +54,7 @@ writeTags store keep extra xs = storeWriteType store (undefined :: Tags) $ do
 
     storeWriteBS store $ join0 $
         takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
-        map ("package:"++) (sortOn lower $ filter keep $ map fst packages) ++
+        map ("package:"++) (filter keep $ map fst packages) ++
         map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p])
     where
         addRange :: [(String, [(Maybe Id,a)])] -> [(String, (Id, Id))]
