@@ -86,6 +86,7 @@ action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.
     "set:stackage" === hackage "base"
     "author:Neil-Mitchell" === hackage "filepath"
     "set:-haskell-platform author:Neil-Mitchell" === hackage "cmdargs"
+    "author:Neil-Mitchell category:Development" === hackage "derive"
 
     let tags = listTags $ readTags store
     let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
