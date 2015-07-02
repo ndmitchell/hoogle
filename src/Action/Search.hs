@@ -70,6 +70,7 @@ action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.
     "String" === hackage "base/docs/Prelude.html#t:String"
     "Ord" === hackage "base/docs/Prelude.html#t:Ord"
     ">>=" === hackage "base/docs/Prelude.html#v:-62--62--61-"
+    "sequen" === hackage "base/docs/Prelude.html#v:sequence"
     "foldl'" === hackage "base/docs/Data-List.html#v:foldl-39-"
     "Action package:shake" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
     "Action package:shake set:stackage" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
