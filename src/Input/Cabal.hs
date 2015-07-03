@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards #-}
 
-module Input.Cabal(Cabal(..), parseCabal) where
+module Input.Cabal(Cabal(..), parseCabalTarball) where
 
 import Data.List.Extra
 import System.FilePath
@@ -31,16 +31,15 @@ instance NFData Cabal where
 
 
 -- | Given the Cabal files we care about, pull out the fields you care about
-parseCabal :: IO (Map.Map String Cabal)
+parseCabalTarball :: FilePath -> IO (Map.Map String Cabal)
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal
 -- rely on the fact the highest version is last (using lastValues)
-parseCabal = do
-    dataDir <- getDataDir
-    rename <- Map.fromList . map (both trim . second (drop 1) . break (== '=')) . lines <$> readFileUTF8 (dataDir </> "misc/tag-rename.txt")
+parseCabalTarball tarfile = do
+    rename <- loadRename
     let zero = Map.empty :: Map.Map String (Either (Int, String) Cabal)
-    res <- foldl' (f rename) zero . lastValues . map (first takeBaseName) <$> tarballReadFiles "input/cabal.tar.gz"
+    res <- foldl' (f rename) zero . lastValues . map (first takeBaseName) <$> tarballReadFiles tarfile
     let (bad, good) = mapPartitionEither res
     evaluate res
     putStrLn $ "Found unmatched dependencies: " ++ intercalate ", "
@@ -55,7 +54,7 @@ parseCabal = do
         incPopularity _ (Just (Right c)) = Right c{cabalPopularity = cabalPopularity c + 1}
 
         f rename mp (pkg,body) = rnf pkg `seq` rnf res `seq` foldl' (g pkg) (Map.alter (Just . setFields res) pkg mp) deps
-            where (res, deps) = readCabal (\x -> Map.findWithDefault x x rename) $ lstrUnpack body
+            where (res, deps) = readCabal rename $ lstrUnpack body
 
         g pkg mp dep = Map.alter (Just . incPopularity pkg) dep mp
 
@@ -68,6 +67,14 @@ lastValues :: Eq a => [(a,b)] -> [(a,b)]
 lastValues ((a1,_):(a2,x):xs) | a1 == a2 = lastValues $ (a2,x):xs
 lastValues (x:xs) = x : lastValues xs
 lastValues [] = []
+
+
+loadRename :: IO (String -> String)
+loadRename = do
+    dataDir <- getDataDir
+    src <- readFileUTF8 $ dataDir </> "misc/tag-rename.txt"
+    let mp = Map.fromList $ map (both trim . splitPair "=") $ lines src
+    return $ \x -> Map.findWithDefault x x mp
 
 
 -- | Cabal information, plus who I depend on

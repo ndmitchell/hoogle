@@ -93,13 +93,14 @@ actionGenerate Generate{..} = do
 
 generate :: Bool -> [String] -> IO ()
 generate debug args = do
+    createDirectoryIfMissing True "output"
+
     setStackage <- setStackage
     setPlatform <- setPlatform
     setGHC <- setGHC
-    createDirectoryIfMissing True "output"
-    let want = if null args then Set.unions [setStackage, setPlatform, setGHC] else Set.fromList args
+    let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
 
-    cbl <- parseCabal
+    cbl <- parseCabalTarball "input/cabal.tar.gz"
     let extra pkg = [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
                     [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
                     [("set","stackage") | pkg `Set.member` setStackage] ++
