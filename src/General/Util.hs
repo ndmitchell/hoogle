@@ -17,7 +17,7 @@ module General.Util(
     general_util_test
     ) where
 
-import General.Conduit
+import Control.Monad.IO.Class
 import Language.Haskell.Exts
 import Control.Applicative
 import Data.List.Extra
