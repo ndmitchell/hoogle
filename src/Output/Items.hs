@@ -45,7 +45,7 @@ writeItems store file xs = do
     warns <- newIORef 0
     pos <- newIORef 0
     res <- storeWriteType store Items $ storeWriteParts store $ do
-        withBinaryFile (file <.> "warn") WriteMode $ \herr -> do
+        withBinaryFile (file <.> "warn") AppendMode $ \herr -> do
             hSetEncoding herr utf8
             flip mapMaybeM xs $ \x -> case x of
                 Right item@ItemEx{..} | f itemItem -> do

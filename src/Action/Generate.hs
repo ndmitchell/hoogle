@@ -103,7 +103,7 @@ generate debug args = do
     let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
     -- peakMegabytesAllocated = 2
 
-    cbl <- parseCabalTarball "input/cabal.tar.gz"
+    (cblErrs,cbl) <- parseCabalTarball "input/cabal.tar.gz"
     let packageTags pkg =
             [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
             [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
@@ -123,6 +123,7 @@ generate debug args = do
     let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
                    | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
     storeWriteFile (out <.> "hoo") $ \store -> do
+        writeFile (out <.> "warn") $ unlines cblErrs
         xs <- writeItems store out $ xs ++ if args /= [] then [] else packages
         putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs

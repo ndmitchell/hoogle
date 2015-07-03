@@ -31,7 +31,7 @@ instance NFData Cabal where
 
 
 -- | Given the Cabal files we care about, pull out the fields you care about
-parseCabalTarball :: FilePath -> IO (Map.Map String Cabal)
+parseCabalTarball :: FilePath -> IO ([String], Map.Map String Cabal)
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal
@@ -41,10 +41,11 @@ parseCabalTarball tarfile = do
     let zero = Map.empty :: Map.Map String (Either (Int, String) Cabal)
     res <- foldl' (f rename) zero . lastValues . map (first takeBaseName) <$> tarballReadFiles tarfile
     let (bad, good) = mapPartitionEither res
-    evaluate res
-    putStrLn $ "Found unmatched dependencies: " ++ intercalate ", "
-        [a ++ " (by " ++ b ++ (if i > 1 then " + " ++ show (i-1) ++ " others)" else ")") | (a,(i,b)) <- Map.toList bad]
+    let err = [ b ++ ".cabal: Import of non-existant package " ++ a ++ (if i <= 1 then "" else ", also imported by " ++ show (i-1) ++ " others")
+              | (a,(i,b)) <- Map.toList bad]
     evaluate good
+    evaluate err
+    return (err, good)
     where
         setFields new Nothing = Right new
         setFields new (Just (Left (i, _))) = Right new{cabalPopularity = i}
