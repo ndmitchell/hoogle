@@ -95,11 +95,13 @@ actionGenerate Generate{..} = do
 generate :: Bool -> [String] -> IO ()
 generate debug args = do
     createDirectoryIfMissing True "output"
+    -- peakMegabytesAllocated = 2
 
     setStackage <- setStackage
     setPlatform <- setPlatform
     setGHC <- setGHC
     let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
+    -- peakMegabytesAllocated = 2
 
     cbl <- parseCabalTarball "input/cabal.tar.gz"
     let packageTags pkg =
@@ -107,6 +109,7 @@ generate debug args = do
             [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
             [("set","stackage") | pkg `Set.member` setStackage] ++
             maybe [] (map (both T.unpack) . cabalTags) (Map.lookup pkg cbl)
+    -- peakMegabytesAllocated = 21, currentBytesUsed = 6.5Mb
 
     let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
         consumer = awaitForever $ \(i,(pkg, body)) -> do
