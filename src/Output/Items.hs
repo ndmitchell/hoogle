@@ -4,7 +4,6 @@ module Output.Items(writeItems, lookupItem, listItems) where
 
 import Language.Haskell.Exts
 import Data.List.Extra
-import Control.Monad.Extra
 import Data.Maybe
 import Data.IORef
 import qualified Data.ByteString as BS
@@ -15,6 +14,7 @@ import Codec.Compression.GZip as GZip
 import Input.Type
 import General.Util
 import General.Store
+import General.Conduit
 
 
 outputItem :: (Id, ItemEx) -> [String]
@@ -38,25 +38,21 @@ data Items = Items deriving Typeable
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: StoreWrite -> (String -> IO ()) -> [Either String ItemEx] -> IO [(Maybe Id, Item)]
-writeItems store warning xs = do
-    warns <- newIORef 0
+writeItems :: StoreWrite -> (String -> IO ()) -> (Conduit (Either String ItemEx) IO (Maybe Id, Item) -> IO a) -> IO a
+writeItems store warning act = do
     pos <- newIORef 0
-    res <- storeWriteType store Items $ storeWriteParts store $ do
-        flip mapMaybeM xs $ \x -> case x of
+    storeWriteType store Items $ storeWriteParts store $ act $
+        awaitForever $ \x -> case x of
             Right item@ItemEx{..} | f itemItem -> do
-                i <- readIORef pos
+                i <- liftIO $ readIORef pos
                 let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, item)
-                storeWriteBS store $ intToBS $ BS.length bs
-                storeWriteBS store bs
-                writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
-                return $ Just (Just $ Id i, itemItem)
-            Right ItemEx{..} -> return $ Just (Nothing, itemItem)
-            Left err -> do modifyIORef warns (+1); warning err; return Nothing
-    warns <- readIORef warns
-    unless (warns == 0) $
-        putStrLn $ "Failed to parse " ++ show warns ++ " definitions"
-    return res
+                liftIO $ do
+                    storeWriteBS store $ intToBS $ BS.length bs
+                    storeWriteBS store bs
+                    writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
+                yield (Just $ Id i, itemItem)
+            Right ItemEx{..} -> yield (Nothing, itemItem)
+            Left err -> liftIO $ warning err
     where
         f :: Item -> Bool
         f (IDecl i@InstDecl{}) = False

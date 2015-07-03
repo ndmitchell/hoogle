@@ -125,19 +125,21 @@ generate debug args = do
                     timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         yield $ parseHoogle pkg body
 
-            (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
-                ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
-
-            let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
-                           | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
-
-            putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
             itemWarn <- newIORef 0
-            xs <- writeItems store (\msg -> do modifyIORef itemWarn succ; hPutStr warnings msg) $ xs ++ if args /= [] then [] else packages
-            itemWarn <- readIORef itemWarn
-            when (itemWarn > 0) $
-                putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
-            return xs
+            writeItems store (\msg -> do modifyIORef itemWarn succ; hPutStr warnings msg) $ \items -> do
+                let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
+                               | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
+
+                (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
+                    ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> (concatC >> when (null args) (sourceList packages)) |> items |> sinkList))
+
+                putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
+                -- itemWarn <- newIORef 0
+                -- xs <- writeItems store (\msg -> do modifyIORef itemWarn succ; hPutStr warnings msg) $ xs ++ if args /= [] then [] else packages
+                itemWarn <- readIORef itemWarn
+                when (itemWarn > 0) $
+                    putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
+                return xs
 
 
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
