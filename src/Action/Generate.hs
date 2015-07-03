@@ -8,6 +8,7 @@ import System.Directory.Extra
 import System.Time.Extra
 import Data.Tuple.Extra
 import Control.Exception.Extra
+import Data.IORef
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -117,6 +118,7 @@ generate debug args = do
         xs <- withBinaryFile (out <.> "warn") AppendMode $ \warnings -> do
             hSetEncoding warnings utf8
             hPutStr warnings $ unlines cblErrs
+            nCblErrs <- evaluate $ length cblErrs
 
             let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
                 consumer = awaitForever $ \(i,(pkg, body)) -> do
@@ -130,7 +132,13 @@ generate debug args = do
                            | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
             putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
-            writeItems store (hPutStr warnings) $ xs ++ if args /= [] then [] else packages
+            itemWarn <- newIORef 0
+            xs <- writeItems store (\msg -> do modifyIORef itemWarn succ; hPutStr warnings msg) $ xs ++ if args /= [] then [] else packages
+            itemWarn <- readIORef itemWarn
+            when (itemWarn > 0) $
+                putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
+            return xs
+
 
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
         timed "Writing tags" $ writeTags store (`Set.member` want) packageTags xs
