@@ -21,13 +21,12 @@ import Prelude
 data Cabal = Cabal
     {cabalTags :: [(String, String)]
     ,cabalSynopsis :: String
-    ,cabalDescription :: String
     ,cabalVersion :: String -- never empty
     ,cabalPopularity :: !Int
     }
 
 instance NFData Cabal where
-    rnf (Cabal a b c d e) = rnf (a,b,c,d,e)
+    rnf (Cabal a b c d) = rnf (a,b,c,d)
 
 
 -- | Given the Cabal files we care about, pull out the fields you care about
@@ -88,7 +87,6 @@ readCabal rename src = (Cabal{..}, nubOrd depends)
                   concatMap (split (== ',')) $ ask "build-depends"
         cabalVersion = head $ dropWhile null (ask "version") ++ ["0.0"]
         cabalSynopsis = unwords $ words $ unwords $ ask "synopsis"
-        cabalDescription = unwords $ words $ unwords $ ask "description"
         cabalPopularity = 0
 
         cabalTags = nubOrd $ concat
