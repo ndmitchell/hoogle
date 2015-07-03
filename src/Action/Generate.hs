@@ -28,6 +28,7 @@ import General.Util
 import General.Store
 import General.Str
 import System.Mem
+import System.IO
 import GHC.Stats
 import Action.CmdLine
 import General.Conduit
@@ -113,20 +114,23 @@ generate debug args = do
 
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
     storeWriteFile (out <.> "hoo") $ \store -> do
-        let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
-            consumer = awaitForever $ \(i,(pkg, body)) -> do
-                timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                    yield $ parseHoogle pkg body
+        xs <- withBinaryFile (out <.> "warn") AppendMode $ \warnings -> do
+            hSetEncoding warnings utf8
+            hPutStr warnings $ unlines cblErrs
 
-        (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
-            ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
+            let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
+                consumer = awaitForever $ \(i,(pkg, body)) -> do
+                    timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
+                        yield $ parseHoogle pkg body
 
-        let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
-                       | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
+            (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
+                ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
 
-        writeFile (out <.> "warn") $ unlines cblErrs
-        xs <- writeItems store out $ xs ++ if args /= [] then [] else packages
-        putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
+            let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
+                           | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
+
+            putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
+            writeItems store (hPutStr warnings) $ xs ++ if args /= [] then [] else packages
 
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
         timed "Writing tags" $ writeTags store (`Set.member` want) packageTags xs
@@ -143,3 +147,4 @@ tarballReadFilesC :: FilePath -> Source IO (FilePath, LStr)
 tarballReadFilesC file = do
     x <- liftIO $ tarballReadFiles file
     sourceList x
+

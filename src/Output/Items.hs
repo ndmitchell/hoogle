@@ -3,9 +3,7 @@
 module Output.Items(writeItems, lookupItem, listItems) where
 
 import Language.Haskell.Exts
-import System.IO.Extra
 import Data.List.Extra
-import System.FilePath
 import Control.Monad.Extra
 import Data.Maybe
 import Data.IORef
@@ -40,26 +38,24 @@ data Items = Items deriving Typeable
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: StoreWrite -> FilePath -> [Either String ItemEx] -> IO [(Maybe Id, Item)]
-writeItems store file xs = do
+writeItems :: StoreWrite -> (String -> IO ()) -> [Either String ItemEx] -> IO [(Maybe Id, Item)]
+writeItems store warning xs = do
     warns <- newIORef 0
     pos <- newIORef 0
     res <- storeWriteType store Items $ storeWriteParts store $ do
-        withBinaryFile (file <.> "warn") AppendMode $ \herr -> do
-            hSetEncoding herr utf8
-            flip mapMaybeM xs $ \x -> case x of
-                Right item@ItemEx{..} | f itemItem -> do
-                    i <- readIORef pos
-                    let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, item)
-                    storeWriteBS store $ intToBS $ BS.length bs
-                    storeWriteBS store bs
-                    writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
-                    return $ Just (Just $ Id i, itemItem)
-                Right ItemEx{..} -> return $ Just (Nothing, itemItem)
-                Left err -> do modifyIORef warns (+1); hPutStrLn herr err; return Nothing
+        flip mapMaybeM xs $ \x -> case x of
+            Right item@ItemEx{..} | f itemItem -> do
+                i <- readIORef pos
+                let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, item)
+                storeWriteBS store $ intToBS $ BS.length bs
+                storeWriteBS store bs
+                writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
+                return $ Just (Just $ Id i, itemItem)
+            Right ItemEx{..} -> return $ Just (Nothing, itemItem)
+            Left err -> do modifyIORef warns (+1); warning err; return Nothing
     warns <- readIORef warns
     unless (warns == 0) $
-        putStrLn $ "Failed to parse " ++ show warns ++ " definitions, see " ++ file <.> "warn"
+        putStrLn $ "Failed to parse " ++ show warns ++ " definitions"
     return res
     where
         f :: Item -> Bool
