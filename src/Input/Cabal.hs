@@ -12,6 +12,7 @@ import General.Str
 import Data.Either.Extra
 import Data.Char
 import Data.Tuple.Extra
+import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import General.Util
 import Paths_hoogle
@@ -19,9 +20,9 @@ import Prelude
 
 
 data Cabal = Cabal
-    {cabalTags :: [(String, String)]
-    ,cabalSynopsis :: String
-    ,cabalVersion :: String -- never empty
+    {cabalTags :: [(T.Text, T.Text)]
+    ,cabalSynopsis :: T.Text
+    ,cabalVersion :: T.Text -- never empty
     ,cabalPopularity :: !Int
     }
 
@@ -85,11 +86,11 @@ readCabal rename src = (Cabal{..}, nubOrd depends)
 
         depends = nubOrd $ filter (/= "") $ map (takeWhile $ \x -> isAlphaNum x || x `elem` "-") $
                   concatMap (split (== ',')) $ ask "build-depends"
-        cabalVersion = head $ dropWhile null (ask "version") ++ ["0.0"]
-        cabalSynopsis = unwords $ words $ unwords $ ask "synopsis"
+        cabalVersion = T.pack $ head $ dropWhile null (ask "version") ++ ["0.0"]
+        cabalSynopsis = T.pack $ unwords $ words $ unwords $ ask "synopsis"
         cabalPopularity = 0
 
-        cabalTags = nubOrd $ concat
+        cabalTags = map (both T.pack) $ nubOrd $ concat
             [ map (head xs,) $ concatMap cleanup $ concatMap ask xs
             | xs <- [["license"],["category"],["author","maintainer"]]]
 

@@ -10,6 +10,7 @@ import Data.Tuple.Extra
 import Control.Exception.Extra
 import qualified Data.Set as Set
 import qualified Data.Map as Map
+import qualified Data.Text as T
 import Control.Monad.Extra
 import Prelude
 
@@ -105,7 +106,7 @@ generate debug args = do
             [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
             [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
             [("set","stackage") | pkg `Set.member` setStackage] ++
-            maybe [] cabalTags (Map.lookup pkg cbl)
+            maybe [] (map (both T.unpack) . cabalTags) (Map.lookup pkg cbl)
 
     let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
         consumer = awaitForever $ \(i,(pkg, body)) -> do
@@ -116,7 +117,7 @@ generate debug args = do
         ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
 
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
-    let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ cabalSynopsis)
+    let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
                    | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
     storeWriteFile (out <.> "hoo") $ \store -> do
         xs <- writeItems store out $ xs ++ if args /= [] then [] else packages
