@@ -137,3 +137,9 @@ generate debug args = do
             performGC
             print =<< getGCStats
             void $ evaluate xs
+
+
+tarballReadFilesC :: FilePath -> Source IO (FilePath, LStr)
+tarballReadFilesC file = do
+    x <- liftIO $ tarballReadFiles file
+    sourceList x
