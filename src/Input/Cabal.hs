@@ -24,7 +24,7 @@ data Cabal = Cabal
     ,cabalSynopsis :: T.Text
     ,cabalVersion :: T.Text -- never empty
     ,cabalPopularity :: !Int
-    }
+    } deriving Show
 
 instance NFData Cabal where
     rnf (Cabal a b c d) = rnf (a,b,c,d)
