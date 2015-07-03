@@ -111,21 +111,23 @@ generate debug args = do
             maybe [] (map (both T.unpack) . cabalTags) (Map.lookup pkg cbl)
     -- peakMegabytesAllocated = 21, currentBytesUsed = 6.5Mb
 
-    let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
-        consumer = awaitForever $ \(i,(pkg, body)) -> do
-            timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                yield $ parseHoogle pkg body
-
-    (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
-        ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
-
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
-    let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
-                   | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
     storeWriteFile (out <.> "hoo") $ \store -> do
+        let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
+            consumer = awaitForever $ \(i,(pkg, body)) -> do
+                timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
+                    yield $ parseHoogle pkg body
+
+        (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
+            ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> concatC |> sinkList))
+
+        let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
+                       | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
+
         writeFile (out <.> "warn") $ unlines cblErrs
         xs <- writeItems store out $ xs ++ if args /= [] then [] else packages
         putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
+
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
         timed "Writing tags" $ writeTags store (`Set.member` want) packageTags xs
         timed "Writing names" $ writeNames store xs
