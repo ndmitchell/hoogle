@@ -106,7 +106,7 @@ generate debug args = do
     let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
     -- peakMegabytesAllocated = 2
 
-    (cblErrs,cbl) <- parseCabalTarball "input/cabal.tar.gz"
+    (cblErrs,cbl) <- timed "Reading Cabal" $ parseCabalTarball "input/cabal.tar.gz"
     let packageTags pkg =
             [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
             [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
