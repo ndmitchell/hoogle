@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction, PatternGuards, CPP #-}
+{-# LANGUAGE NoMonomorphismRestriction, PatternGuards, Rank2Types, CPP #-}
 
 module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
@@ -49,7 +49,7 @@ eitherC left right = (mapMaybeC l |> left) |$| (mapMaybeC r |> right)
 rightsC :: Monad m => ConduitM i2 o2 m () -> ConduitM (Either i1 i2) (Either i1 o2) m ()
 rightsC c = void $ eitherC (mapC Left) (c |> mapC Right)
 
-countC :: (Monad m, Num c) => Sink a m c
+countC :: (Monad m, Num c) => Consumer a m c
 countC = sumC <| mapC (const 1)
 
 sumC :: (Monad m, Num a) => Consumer a m a
@@ -88,11 +88,11 @@ bsUnsnoc x | BS.null x = Nothing
 bsUnsnoc = BS.unsnoc
 #endif
 
-sourceLStr :: Monad m => LStr -> Source m Str
+sourceLStr :: Monad m => LStr -> Producer m Str
 sourceLStr = sourceList . lstrToChunks
 
 
-pipeline :: Int -> Sink o IO r -> Sink o IO r
+pipeline :: Int -> Consumer o IO r -> Consumer o IO r
 pipeline buffer sink = do
     sem <- liftIO $ newQSem buffer
     chan <- liftIO newChan
