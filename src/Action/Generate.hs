@@ -9,7 +9,6 @@ import System.Time.Extra
 import Data.Tuple.Extra
 import Control.Exception.Extra
 import Data.IORef
-import Data.Functor.Identity
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -122,18 +121,23 @@ generate debug args = do
             hPutStr warnings $ unlines cblErrs
             nCblErrs <- evaluate $ length cblErrs
 
-            let consumer :: Conduit (Int, (String, LStr)) IO [Either String ItemEx]
-                consumer = awaitForever $ \(i,(pkg, body)) -> do
+            let consume :: Conduit (Int, (String, LStr)) IO (Either String ItemEx)
+                consume = awaitForever $ \(i, (pkg, body)) -> do
                     timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                        yield $ parseHoogle pkg body
+                        sourceLStr body |> linesCR |> parseHoogleC pkg
 
             itemWarn <- newIORef 0
             writeItems store (\msg -> do modifyIORef itemWarn succ; hPutStr warnings msg) $ \items -> do
                 let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
-                (seen, xs) <- runConduit $ tarballReadFilesC "input/hoogle.tar.gz" |> mapC (first takeBaseName) |> filterC (flip Set.member want . fst) |>
-                    ((fmap Set.fromList $ mapC fst |> sinkList) |$| (zipFromC 1 |> consumer |> (concatC >> when (null args) (sourceList packages)) |> items |> sinkList))
+                (seen, xs) <- runConduit $
+                    (sourceList =<< liftIO (tarballReadFiles "input/hoogle.tar.gz")) |>
+                    mapC (first takeBaseName) |>
+                    filterC (flip Set.member want . fst) |>
+                        ((fmap Set.fromList $ mapC fst |> sinkList) |$|
+                        (((zipFromC 1 |> consume) >> when (null args) (sourceList packages))
+                            |> items |> sinkList))
 
                 putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
                 -- itemWarn <- newIORef 0
@@ -153,14 +157,3 @@ generate debug args = do
             performGC
             print =<< getGCStats
             void $ evaluate xs
-
--- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
-parseHoogle :: FilePath -> LStr -> [Either String ItemEx]
-parseHoogle file body = list' $ runIdentity $ runConduit $ sourceLStr body |> linesCR |> parseHoogleC file |> sinkList
-
-
-tarballReadFilesC :: FilePath -> Source IO (FilePath, LStr)
-tarballReadFilesC file = do
-    x <- liftIO $ tarballReadFiles file
-    sourceList x
-
