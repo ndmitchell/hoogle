@@ -53,9 +53,10 @@ parserC file = f [] ""
                   | Just s <- strStripPrefix "--" s -> f (if null com then [] else strTrimStart s : com) url
                   | Just s <- strStripPrefix "@url " s -> f com (strUnpack s)
                   | strNull $ strTrimStart s -> f [] ""
-                  | Just s <- strStripSuffix " :: GLenum" s ->
+                  | Just s <- strStripSuffix " :: GLenum" s -> do
                         -- there are 38K instances of :: GLenum in the OpenGLRaw package, so speed them up (saves 16s + 100Mb)
                         yield $ Right $ ItemEx (glenum $ strUnpack s) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
+                        f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
                             Left y -> yield $ Left $ file ++ ":" ++ show i ++ ":" ++ y
