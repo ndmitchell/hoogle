@@ -49,6 +49,8 @@ parseHoogleC file = zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage)
 parserC :: Monad m => FilePath -> Conduit (Int, Str) m (Either String ItemEx)
 parserC file = f [] ""
     where
+        glenum x = IDecl $ TypeSig (SrcLoc "<unknown>.hs" 1 1) [Ident x] (TyCon (UnQual (Ident "GLenum")))
+
         f com url = do
             x <- await
             whenJust x $ \(i,s) -> case () of
@@ -56,6 +58,9 @@ parserC file = f [] ""
                   | Just s <- strStripPrefix "--" s -> f (if null com then [] else strTrimStart s : com) url
                   | Just s <- strStripPrefix "@url " s -> f com (strUnpack s)
                   | strNull $ strTrimStart s -> f [] ""
+                  | Just s <- strStripSuffix " :: GLenum" s ->
+                        -- there are 38K instances of :: GLenum in the OpenGLRaw package, so speed them up (saves 16s + 100Mb)
+                        yield $ Right $ ItemEx (glenum $ strUnpack s) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
                             Left y -> yield $ Left $ file ++ ":" ++ show i ++ ":" ++ y
