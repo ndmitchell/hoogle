@@ -16,9 +16,10 @@ description:
 homepage:           http://hoogle.haskell.org/
 bug-reports:        https://github.com/ndmitchell/hoogle/issues
 tested-with:        GHC==7.10.1, GHC==7.8.4, GHC==7.6.3
-extra-source-files:
+extra-doc-files:
     README.md
     CHANGES.txt
+extra-source-files:
     misc/tag-rename.txt
     cbits/*.h
     cbits/*.c
