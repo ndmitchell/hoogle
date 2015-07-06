@@ -8,6 +8,7 @@ import Data.List.Extra
 import Data.Maybe
 import Input.Type
 import General.Util
+import Control.DeepSeq
 import Data.IORef.Extra
 import System.IO.Unsafe
 import qualified Data.Map as Map
@@ -39,7 +40,7 @@ stringShare x = unsafePerformIO $ do
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogleC :: Monad m => FilePath -> Conduit Str m (Either String ItemEx)
-parseHoogleC file = zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage)
+parseHoogleC file = zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage) |> mapC (\x -> rnf x `seq` x)
 
 parserC :: Monad m => FilePath -> Conduit (Int, Str) m (Either String ItemEx)
 parserC file = f [] ""
