@@ -3,12 +3,12 @@
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe 
 module General.Str(
     Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strConcat, strStripPrefix, strStripSuffix, strTrimStart, strUnlines, strUnwords,
-    LStr, lstrPack, lstrUnpack, lstrToChunks, lstrFromChunks
+    LStr, lstrPack, lstrUnpack, lstrLines, lstrToChunks, lstrFromChunks, lstrToStr
     ) where
 
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.UTF8 as US
-import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as LUS
 import Data.Char
 
@@ -59,8 +59,14 @@ strUnlines = BS.unlines
 strUnwords :: [Str] -> Str
 strUnwords = BS.unwords
 
+lstrLines :: LStr -> [LStr]
+lstrLines = LBS.lines
+
 lstrToChunks :: LStr -> [Str]
 lstrToChunks = LBS.toChunks
+
+lstrToStr :: LStr -> Str
+lstrToStr = BS.concat . LBS.toChunks
 
 lstrFromChunks :: [Str] -> LStr
 lstrFromChunks = LBS.fromChunks
