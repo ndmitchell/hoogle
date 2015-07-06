@@ -9,6 +9,7 @@ import System.Time.Extra
 import Data.Tuple.Extra
 import Control.Exception.Extra
 import Data.IORef
+import Data.Functor.Identity
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -151,6 +152,10 @@ generate debug args = do
             performGC
             print =<< getGCStats
             void $ evaluate xs
+
+-- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
+parseHoogle :: FilePath -> LStr -> [Either String ItemEx]
+parseHoogle file body = list' $ runIdentity $ runConduit $ sourceLStr body |> linesCR |> parseHoogleC file |> sinkList
 
 
 tarballReadFilesC :: FilePath -> Source IO (FilePath, LStr)

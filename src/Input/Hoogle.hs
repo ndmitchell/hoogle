@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings #-}
 
-module Input.Hoogle(parseHoogle, parseHoogleC) where
+module Input.Hoogle(parseHoogleC) where
 
 import Language.Haskell.Exts as HSE
 import Data.Char
@@ -14,7 +14,6 @@ import qualified Data.Map as Map
 import Data.Generics.Uniplate.Data
 import General.Conduit
 import Control.Monad.Extra
-import Data.Functor.Identity
 import General.Str
 
 
@@ -37,10 +36,6 @@ stringShare x = unsafePerformIO $ do
             writeIORef' strings $ Map.insert x x mp
             return x
 
-
--- | Given a Hoogle database, grab the Item (Right), or things I failed to parse (Left)
-parseHoogle :: FilePath -> LStr -> [Either String ItemEx]
-parseHoogle file body = list' $ runIdentity $ runConduit $ sourceLStr body |> linesCR |> parseHoogleC file |> sinkList
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogleC :: Monad m => FilePath -> Conduit Str m (Either String ItemEx)
