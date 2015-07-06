@@ -137,7 +137,7 @@ generate debug args = do
                     filterC (flip Set.member want . fst) |>
                         ((fmap Set.fromList $ mapC fst |> sinkList) |$|
                         (((zipFromC 1 |> consume) >> when (null args) (sourceList packages))
-                            |> items |> sinkList))
+                            |> pipelineC 10 (items |> sinkList)))
 
                 putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
                 -- itemWarn <- newIORef 0
