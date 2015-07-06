@@ -4,7 +4,7 @@ module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
-    (|$|), (|>), (<|), pipeline,
+    (|$|), (|>), (<|), pipelineC,
     zipFromC, eitherC, countC, sumC, rightsC, awaitJust, linesC, linesCR
     ) where
 
@@ -92,8 +92,8 @@ sourceLStr :: Monad m => LStr -> Producer m Str
 sourceLStr = sourceList . lstrToChunks
 
 
-pipeline :: Int -> Consumer o IO r -> Consumer o IO r
-pipeline buffer sink = do
+pipelineC :: Int -> Consumer o IO r -> Consumer o IO r
+pipelineC buffer sink = do
     sem <- liftIO $ newQSem buffer
     chan <- liftIO newChan
     bar <- liftIO newBarrier
