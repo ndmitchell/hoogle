@@ -4,15 +4,18 @@ module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
-    (|$|), (|>), (<|),
+    (|$|), (|>), (<|), pipeline,
     zipFromC, eitherC, countC, sumC, rightsC, awaitJust, linesC, linesCR
     ) where
 
 import Data.Conduit
 import Data.Conduit.List as C
+import Data.Maybe
 import Control.Applicative
 import Control.Monad.Extra
+import Control.Exception
 import qualified Data.ByteString.Char8 as BS
+import Control.Concurrent.Extra hiding (yield)
 import Control.Monad.IO.Class
 import General.Str
 import Prelude
@@ -87,3 +90,29 @@ bsUnsnoc = BS.unsnoc
 
 sourceLStr :: Monad m => LStr -> Source m Str
 sourceLStr = sourceList . lstrToChunks
+
+
+pipeline :: Int -> Sink o IO r -> Sink o IO r
+pipeline buffer sink = do
+    sem <- liftIO $ newQSem buffer
+    chan <- liftIO newChan
+    bar <- liftIO newBarrier
+    liftIO $ flip forkFinally (signalBarrier bar) $ do
+        runConduit $
+            (whileM $ do
+                x <- liftIO $ readChan chan
+                liftIO $ signalQSem sem
+                case x of
+                    Nothing -> return False
+                    Just x -> do yield x; return True) |>
+            sink
+    whileM $ do
+        signaled <- liftIO $ isJust <$> waitBarrierMaybe bar
+        if signaled then
+            return False
+        else do
+            x <- await
+            liftIO $ writeChan chan x
+            liftIO $ waitQSem sem
+            return $ isJust x
+    liftIO $ either throwIO return =<< waitBarrier bar
