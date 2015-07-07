@@ -8,8 +8,8 @@
 :def opt \xs -> return $ unlines
         [":!mkdir obj"
         ,":!mkdir obj\\o2"
-        ,":!ghc -O2 -fno-state-hack -isrc --make src/Paths.hs Main -outputdir obj/o2 -o obj/o2/main -rtsopts cbits/text_search.o"
-        ,":!obj\\o2\\main +RTS -T -RTS " ++ xs]
+        ,":!ghc -O2 -fno-state-hack -isrc --make src/Paths.hs Main -threaded -outputdir obj/o2 -o obj/o2/main -rtsopts cbits/text_search.o"
+        ,":!obj\\o2\\main +RTS -T -N2 -RTS " ++ xs]
 :}
 :{
 :def time \xs -> return $ unlines
