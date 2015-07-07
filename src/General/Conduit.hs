@@ -110,7 +110,7 @@ pipelineC buffer sink = do
         signaled <- liftIO $ isJust <$> waitBarrierMaybe bar
         if signaled then
             return False
-        else do
+         else do
             x <- await
             liftIO $ writeChan chan x
             liftIO $ waitQSem sem
