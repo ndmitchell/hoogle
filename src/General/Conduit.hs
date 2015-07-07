@@ -1,4 +1,5 @@
 {-# LANGUAGE NoMonomorphismRestriction, PatternGuards, Rank2Types, CPP #-}
+{-# OPTIONS_GHC -fwarn-warnings-deprecations #-} -- QSem was deprecated in 7.6, but then undeprecated
 
 module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
