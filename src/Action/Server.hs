@@ -47,8 +47,9 @@ actionServer Server{..} = do
     log <- timed "Reading log" $ logCreate (if logs == "" then Left stdout else Right logs) $
         \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
     evaluate spawned
-    storeReadFile (pkg <.> "hoo") $ \store ->
+    flip finally (putStrLn "Finishing: at finally") $ storeReadFile (pkg <.> "hoo") $ \store ->
         server log port $ replyServer log store cdn
+    putStrLn "Finishing: after server"
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
