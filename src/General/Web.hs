@@ -58,7 +58,7 @@ server log port act = return ()
 #else
 server log port act = do
     logAddMessage log $ "Server started on port " ++ show port
-    runSettings (setOnException exception $ setPort port defaultSettings) $ \req reply -> do
+    runSettings ( {- setOnException exception $ -} setPort port defaultSettings) $ \req reply -> do
         let pay = Input (map Text.unpack $ pathInfo req)
                         [(strUnpack a, maybe "" strUnpack b) | (a,b) <- queryString req]
         (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ rnf s; return s
@@ -76,9 +76,11 @@ server log port act = do
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
 
+{-
 exception :: Maybe Request -> SomeException -> IO ()
 exception r e
     | Just (_ :: InvalidRequest) <- fromException e = return ()
     | otherwise = putStrLn $ "Error when processing " ++ maybe "Nothing" (show . rawPathInfo) r ++
                              "\n    " ++ show e
+-}
 #endif
