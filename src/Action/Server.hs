@@ -39,6 +39,9 @@ import Prelude
 
 actionServer :: CmdLine -> IO ()
 actionServer Server{..} = do
+    -- so I can get good error messages
+    hSetBuffering stdout LineBuffering
+    hSetBuffering stderr LineBuffering
     let pkg = "output" </> head ([database | database /= ""] ++ ["all"])
     putStrLn $ "Server started on port " ++ show port
     log <- timed "Reading log" $ logCreate (if logs == "" then Left stdout else Right logs) $
