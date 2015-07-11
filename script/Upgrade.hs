@@ -34,6 +34,7 @@ main = do
     withCurrentDirectory dir $ do
         putStrLn $ "Upgrading into " ++ dir
         echo system_ "git clone https://github.com/ndmitchell/hoogle.git ."
+        echo system_ "git checkout c7c9d974e1e9afb8e0ac206924f17419d0d8fa06"
         sha1 <- trim <$> echo systemOutput_ "git rev-parse HEAD"
         echo system_ "cabal update"
         echo system_ "cabal install --only-dependencies"
