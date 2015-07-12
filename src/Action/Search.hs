@@ -88,6 +88,8 @@ action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.
     "author:Neil-Mitchell" === hackage "filepath"
     "set:-haskell-platform author:Neil-Mitchell" === hackage "cmdargs"
     "author:Neil-Mitchell category:Development" === hackage "derive"
+    "( )" ==$ flip seq True -- used to segfault
+    "( -is:exact) package:base=" ==$ flip seq True
 
     let tags = listTags $ readTags store
     let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
