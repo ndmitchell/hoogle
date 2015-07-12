@@ -137,7 +137,7 @@ divide xs | all isAlpha1 ns = (ns, Nothing)
 
 -- | Ignore brackets around symbols, and try to deal with tuple names.
 names_ :: [String] -> [String]
-names_ ("(":x:")":xs) = x : names_ xs
+names_ ("(":x:")":xs) = [x | x /= " "] ++ names_ xs
 names_ ["(",x] = [x]
 names_ (x:xs) = [x | x /= " "] ++ names_ xs
 names_ [] = []
@@ -232,3 +232,4 @@ query_test = testing "Query.parseQuery" $ do
 --  FIXME: "author:Taylor-M.-Hedberg" === scope True "author" "Taylor-M.-Hedberg"
     "author:Bryan-O'Sullivan" === scope True "author" "Bryan-O'Sullivan"
     "\8801" === name "\8801"
+    "( )" === id -- FIXME: Should probably be ()
