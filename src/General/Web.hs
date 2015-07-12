@@ -59,6 +59,7 @@ server log port act = return ()
 server log port act = do
     logAddMessage log $ "Server started on port " ++ show port
     runSettings (setOnExceptionResponse exceptionResponseForDebug $ setPort port defaultSettings) $ \req reply -> do
+        putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
         let pay = Input (map Text.unpack $ pathInfo req)
                         [(strUnpack a, maybe "" strUnpack b) | (a,b) <- queryString req]
         (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ rnf s; return s
