@@ -44,7 +44,8 @@ toName (IModule x) = [last $ splitOn "." x]
 toName (IDecl x) = declNames x
 
 searchNames :: StoreRead -> Bool -> [String] -> [Id]
-searchNames store exact (filter (/= "") -> xs) = unsafePerformIO $ do
+-- very important to not search for [" "] or [] since the output buffer is too small
+searchNames store exact (filter (/= "") . map trim -> xs) = unsafePerformIO $ do
     let [n,v,bs] = storeReadList $ storeReadType Names store
     -- if there are no questions, we will match everything, which exceeds the result buffer
     if null xs then return $ V.toList $ storeReadV v else do
