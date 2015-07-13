@@ -127,7 +127,7 @@ generate debug args = do
             let consume :: Conduit (Int, (String, LStr)) IO (Either String ItemEx)
                 consume = awaitForever $ \(i, (pkg, body)) -> do
                     timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                        parseHoogle warning pkg body
+                        parseHoogle warning pkg body |> mapC Right
 
             writeItems store warning $ \items -> do
                 let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)

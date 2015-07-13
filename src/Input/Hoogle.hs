@@ -40,10 +40,10 @@ stringShare x = unsafePerformIO $ do
 
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m (Either String ItemEx)
-parseHoogle warning file body = sourceLStr body |> linesCR |> zipFromC 1 |> parserC warning file |> rightsC (hierarchyC hackage) |> mapC (\x -> rnf x `seq` x)
+parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m ItemEx
+parseHoogle warning file body = sourceLStr body |> linesCR |> zipFromC 1 |> parserC warning file |> hierarchyC hackage |> mapC (\x -> rnf x `seq` x)
 
-parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Either String ItemEx)
+parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m ItemEx
 parserC warning file = f [] ""
     where
         glenum x = IDecl $ TypeSig (SrcLoc "<unknown>.hs" 1 1) [Ident x] (TyCon (UnQual (Ident "GLenum")))
@@ -57,17 +57,17 @@ parserC warning file = f [] ""
                   | strNull $ strTrimStart s -> f [] ""
                   | Just s <- strStripSuffix " :: GLenum" s -> do
                         -- there are 38K instances of :: GLenum in the OpenGLRaw package, so speed them up (saves 16s + 100Mb)
-                        yield $ Right $ ItemEx (glenum $ strUnpack s) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
+                        yield $ ItemEx (glenum $ strUnpack s) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
                         f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
                             Left y -> lift $ warning $ file ++ ":" ++ show i ++ ":" ++ y
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
-                            Right xs -> forM_ xs $ \x -> yield $
+                            Right xs -> forM_ xs $ \x ->
                                 if isNothing $ readItem $ showItem x
-                                then Left $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine (strUnpack s)
-                                else Right $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
+                                then lift $ warning $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine (strUnpack s)
+                                else yield $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
                         f [] ""
 
 
