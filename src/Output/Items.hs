@@ -38,12 +38,12 @@ data Items = Items deriving Typeable
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: StoreWrite -> (String -> IO ()) -> (Conduit (Either String ItemEx) IO (Maybe Id, Item) -> IO a) -> IO a
-writeItems store warning act = do
+writeItems :: StoreWrite -> (Conduit ItemEx IO (Maybe Id, Item) -> IO a) -> IO a
+writeItems store act = do
     pos <- newIORef 0
     storeWriteType store Items $ storeWriteParts store $ act $
         awaitForever $ \x -> case x of
-            Right item@ItemEx{..} | f itemItem -> do
+            item@ItemEx{..} | f itemItem -> do
                 i <- liftIO $ readIORef pos
                 let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, item)
                 liftIO $ do
@@ -51,8 +51,7 @@ writeItems store warning act = do
                     storeWriteBS store bs
                     writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
                 yield (Just $ Id i, itemItem)
-            Right ItemEx{..} -> yield (Nothing, itemItem)
-            Left err -> liftIO $ warning err
+            ItemEx{..} -> yield (Nothing, itemItem)
     where
         f :: Item -> Bool
         f (IDecl i@InstDecl{}) = False

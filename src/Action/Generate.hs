@@ -124,13 +124,13 @@ generate debug args = do
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStr warnings msg
 
-            let consume :: Conduit (Int, (String, LStr)) IO (Either String ItemEx)
+            let consume :: Conduit (Int, (String, LStr)) IO ItemEx
                 consume = awaitForever $ \(i, (pkg, body)) -> do
                     timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                        parseHoogle warning pkg body |> mapC Right
+                        parseHoogle warning pkg body
 
-            writeItems store warning $ \items -> do
-                let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
+            writeItems store $ \items -> do
+                let packages = [ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
