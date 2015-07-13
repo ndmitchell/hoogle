@@ -42,8 +42,9 @@ writeItems :: StoreWrite -> (Conduit ItemEx IO (Maybe Id, Item) -> IO a) -> IO a
 writeItems store act = do
     pos <- newIORef 0
     storeWriteType store Items $ storeWriteParts store $ act $
-        awaitForever $ \x -> case x of
-            item@ItemEx{..} | f itemItem -> do
+        awaitForever $ \item@ItemEx{..} -> case itemItem of
+            IDecl InstDecl{} -> yield (Nothing, itemItem)
+            _ -> do
                 i <- liftIO $ readIORef pos
                 let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, item)
                 liftIO $ do
@@ -51,11 +52,7 @@ writeItems store act = do
                     storeWriteBS store bs
                     writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
                 yield (Just $ Id i, itemItem)
-            ItemEx{..} -> yield (Nothing, itemItem)
-    where
-        f :: Item -> Bool
-        f (IDecl i@InstDecl{}) = False
-        f x = True
+
 
 listItems :: StoreRead -> [ItemEx]
 listItems store = unfoldr f $ storeReadBS $ storeReadType Items store
