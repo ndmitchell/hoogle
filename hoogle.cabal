@@ -20,7 +20,6 @@ extra-doc-files:
     README.md
     CHANGES.txt
 extra-source-files:
-    misc/tag-rename.txt
     cbits/*.h
     cbits/*.c
 data-files:
