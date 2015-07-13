@@ -142,8 +142,6 @@ generate debug args = do
                             |> pipelineC 10 (items |> sinkList)))
 
                 putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
-                -- itemWarn <- newIORef 0
-                -- xs <- writeItems store (\msg -> do modifyIORef itemWarn succ; hPutStr warnings msg) $ xs ++ if args /= [] then [] else packages
                 itemWarn <- readIORef itemWarn
                 when (itemWarn > 0) $
                     putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
