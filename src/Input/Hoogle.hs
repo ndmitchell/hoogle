@@ -11,6 +11,7 @@ import General.Util
 import Control.DeepSeq
 import Data.IORef.Extra
 import System.IO.Unsafe
+import Control.Monad.Trans.Class
 import qualified Data.Map as Map
 import Data.Generics.Uniplate.Data
 import General.Conduit
@@ -39,11 +40,11 @@ stringShare x = unsafePerformIO $ do
 
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => FilePath -> LStr -> Producer m (Either String ItemEx)
-parseHoogle file body = sourceLStr body |> linesCR |> zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage) |> mapC (\x -> rnf x `seq` x)
+parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m (Either String ItemEx)
+parseHoogle warning file body = sourceLStr body |> linesCR |> zipFromC 1 |> parserC warning file |> rightsC (hierarchyC hackage) |> mapC (\x -> rnf x `seq` x)
 
-parserC :: Monad m => FilePath -> Conduit (Int, Str) m (Either String ItemEx)
-parserC file = f [] ""
+parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Either String ItemEx)
+parserC warning file = f [] ""
     where
         glenum x = IDecl $ TypeSig (SrcLoc "<unknown>.hs" 1 1) [Ident x] (TyCon (UnQual (Ident "GLenum")))
 
@@ -60,7 +61,7 @@ parserC file = f [] ""
                         f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
-                            Left y -> yield $ Left $ file ++ ":" ++ show i ++ ":" ++ y
+                            Left y -> lift $ warning $ file ++ ":" ++ show i ++ ":" ++ y
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
                             Right xs -> forM_ xs $ \x -> yield $

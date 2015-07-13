@@ -121,13 +121,15 @@ generate debug args = do
             hPutStr warnings $ unlines cblErrs
             nCblErrs <- evaluate $ length cblErrs
 
+            itemWarn <- newIORef 0
+            let warning msg = do modifyIORef itemWarn succ; hPutStr warnings msg
+
             let consume :: Conduit (Int, (String, LStr)) IO (Either String ItemEx)
                 consume = awaitForever $ \(i, (pkg, body)) -> do
                     timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                        parseHoogle pkg body
+                        parseHoogle warning pkg body
 
-            itemWarn <- newIORef 0
-            writeItems store (\msg -> do modifyIORef itemWarn succ; hPutStr warnings msg) $ \items -> do
+            writeItems store warning $ \items -> do
                 let packages = [ Right $ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
