@@ -116,13 +116,13 @@ generate debug args = do
 
     let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
     storeWriteFile (out <.> "hoo") $ \store -> do
-        xs <- withBinaryFile (out <.> "warn") AppendMode $ \warnings -> do
+        xs <- withBinaryFile (out <.> "warn") WriteMode $ \warnings -> do
             hSetEncoding warnings utf8
             hPutStr warnings $ unlines cblErrs
             nCblErrs <- evaluate $ length cblErrs
 
             itemWarn <- newIORef 0
-            let warning msg = do modifyIORef itemWarn succ; hPutStr warnings msg
+            let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
             let consume :: Conduit (Int, (String, LStr)) IO ItemEx
                 consume = awaitForever $ \(i, (pkg, body)) -> do
