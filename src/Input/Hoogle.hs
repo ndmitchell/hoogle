@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types #-}
 
 module Input.Hoogle(parseHoogle) where
 
@@ -39,8 +39,8 @@ stringShare x = unsafePerformIO $ do
 
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => FilePath -> Conduit Str m (Either String ItemEx)
-parseHoogle file = zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage) |> mapC (\x -> rnf x `seq` x)
+parseHoogle :: Monad m => FilePath -> LStr -> Producer m (Either String ItemEx)
+parseHoogle file body = sourceLStr body |> linesCR |> zipFromC 1 |> parserC file |> rightsC (hierarchyC hackage) |> mapC (\x -> rnf x `seq` x)
 
 parserC :: Monad m => FilePath -> Conduit (Int, Str) m (Either String ItemEx)
 parserC file = f [] ""

@@ -124,7 +124,7 @@ generate debug args = do
             let consume :: Conduit (Int, (String, LStr)) IO (Either String ItemEx)
                 consume = awaitForever $ \(i, (pkg, body)) -> do
                     timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                        sourceLStr body |> linesCR |> parseHoogle pkg
+                        parseHoogle pkg body
 
             itemWarn <- newIORef 0
             writeItems store (\msg -> do modifyIORef itemWarn succ; hPutStr warnings msg) $ \items -> do
