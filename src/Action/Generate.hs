@@ -100,13 +100,13 @@ generate debug args = do
     createDirectoryIfMissing True "output"
     -- peakMegabytesAllocated = 2
 
-    setStackage <- setStackage "input/stackage.txt"
-    setPlatform <- setPlatform "input/platform.txt"
-    setGHC <- setGHC "input/platform.txt"
+    setStackage <- setStackage "input/input-stackage.txt"
+    setPlatform <- setPlatform "input/input-platform.txt"
+    setGHC <- setGHC "input/input-platform.txt"
     let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
     -- peakMegabytesAllocated = 2
 
-    (cblErrs,cbl) <- timed "Reading Cabal" $ parseCabalTarball "input/cabal.tar.gz"
+    (cblErrs,cbl) <- timed "Reading Cabal" $ parseCabalTarball "input/input-cabal.tar.gz"
     let packageTags pkg =
             [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
             [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
@@ -134,7 +134,7 @@ generate debug args = do
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
-                    (sourceList =<< liftIO (tarballReadFiles "input/hoogle.tar.gz")) |>
+                    (sourceList =<< liftIO (tarballReadFiles "input/input-hoogle.tar.gz")) |>
                     mapC (first takeBaseName) |>
                     filterC (flip Set.member want . fst) |>
                         ((fmap Set.fromList $ mapC fst |> sinkList) |$|

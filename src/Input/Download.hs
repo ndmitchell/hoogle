@@ -24,7 +24,7 @@ downloadInputs :: IO ()
 downloadInputs = do
     createDirectoryIfMissing True "input"
     forM_ urls $ \(name, url) -> do
-        let file = "input" </> name
+        let file = "input" </> "input-" ++ name
         unlessM (doesFileExist file) $ do
             timed ("Downloading " ++ url) $ do
                 downloadFile (file <.> "part") url
