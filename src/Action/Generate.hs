@@ -90,23 +90,24 @@ generate output metadata  = undefined
 actionGenerate :: CmdLine -> IO ()
 actionGenerate Generate{..} = do
     putStrLn "Starting generate"
-    downloadInputs "input"
-    (n,_) <- duration $ generate debug include
+    createDirectoryIfMissing True $ takeDirectory database
+    downloadInputs $ takeDirectory database
+    (n,_) <- duration $ generate database debug include
     putStrLn $ "Took " ++ showDuration n
 
 
-generate :: Bool -> [String] -> IO ()
-generate debug args = do
-    createDirectoryIfMissing True "output"
+generate :: FilePath -> Bool -> [String] -> IO ()
+generate database debug args = do
     -- peakMegabytesAllocated = 2
+    let input x = takeDirectory database </> "input-" ++ x
 
-    setStackage <- setStackage "input/input-stackage.txt"
-    setPlatform <- setPlatform "input/input-platform.txt"
-    setGHC <- setGHC "input/input-platform.txt"
+    setStackage <- setStackage $ input "stackage.txt"
+    setPlatform <- setPlatform $ input "platform.txt"
+    setGHC <- setGHC $ input "platform.txt"
     let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
     -- peakMegabytesAllocated = 2
 
-    (cblErrs,cbl) <- timed "Reading Cabal" $ parseCabalTarball "input/input-cabal.tar.gz"
+    (cblErrs,cbl) <- timed "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
     let packageTags pkg =
             [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
             [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
@@ -114,9 +115,8 @@ generate debug args = do
             maybe [] (map (both T.unpack) . cabalTags) (Map.lookup pkg cbl)
     -- peakMegabytesAllocated = 21, currentBytesUsed = 6.5Mb
 
-    let out = "output" </> (if Set.size want == 1 then head $ Set.toList want else "all")
-    storeWriteFile (out <.> "hoo") $ \store -> do
-        xs <- withBinaryFile (out <.> "warn") WriteMode $ \warnings -> do
+    storeWriteFile database $ \store -> do
+        xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do
             hSetEncoding warnings utf8
             hPutStr warnings $ unlines cblErrs
             nCblErrs <- evaluate $ length cblErrs
@@ -134,7 +134,7 @@ generate debug args = do
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
-                    (sourceList =<< liftIO (tarballReadFiles "input/input-hoogle.tar.gz")) |>
+                    (sourceList =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")) |>
                     mapC (first takeBaseName) |>
                     filterC (flip Set.member want . fst) |>
                         ((fmap Set.fromList $ mapC fst |> sinkList) |$|
@@ -151,7 +151,7 @@ generate debug args = do
         xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
         timed "Writing tags" $ writeTags store (`Set.member` want) packageTags xs
         timed "Writing names" $ writeNames store xs
-        timed "Writing types" $ writeTypes store (if debug then Just out else Nothing) xs
+        timed "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 
         whenM getGCStatsEnabled $ do
             performGC

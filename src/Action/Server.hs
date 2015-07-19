@@ -42,14 +42,12 @@ actionServer Server{..} = do
     -- so I can get good error messages
     hSetBuffering stdout LineBuffering
     hSetBuffering stderr LineBuffering
-    let pkg = "output" </> head ([database | database /= ""] ++ ["all"])
     putStrLn $ "Server started on port " ++ show port
     log <- timed "Reading log" $ logCreate (if logs == "" then Left stdout else Right logs) $
         \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
     evaluate spawned
-    flip finally (putStrLn "Finishing: at finally") $ storeReadFile (pkg <.> "hoo") $ \store ->
+    storeReadFile database $ \store ->
         server log port $ replyServer log store cdn
-    putStrLn "Finishing: after server"
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do

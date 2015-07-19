@@ -23,7 +23,7 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ do
     general_util_test
     input_type_test
     query_test
-    action_search_test
+    action_search_test database
     action_server_test
     putStrLn ""
     when deep $ storeReadFile database $ \store -> do

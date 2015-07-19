@@ -22,7 +22,6 @@ urls =
 -- | Download all the input files to input/
 downloadInputs :: FilePath -> IO ()
 downloadInputs dir = do
-    createDirectoryIfMissing True dir
     forM_ urls $ \(name, url) -> do
         let file = dir </> "input-" ++ name
         unlessM (doesFileExist file) $ do

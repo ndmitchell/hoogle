@@ -2,7 +2,6 @@
 
 module Action.Search(actionSearch, search, action_search_test) where
 
-import System.FilePath
 import Control.Monad.Extra
 import qualified Data.Set as Set
 import Data.List.Extra
@@ -25,16 +24,13 @@ import General.Util
 -- filter -- search all
 
 actionSearch :: CmdLine -> IO ()
-actionSearch Search{..} = do
-    let pkg = [database | database /= ""]
-    let rest = query
-    forM_ (if null pkg then ["all"] else pkg) $ \pkg ->
-        storeReadFile ("output" </> pkg <.> "hoo") $ \store -> do
-            res <- return $ search store $ parseQuery $ unwords rest
-            let (shown, hidden) = splitAt count $ nubOrd $ map (prettyItem . itemItem) res
-            putStr $ unlines shown
-            when (hidden /= []) $ do
-                putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+actionSearch Search{..} =
+    storeReadFile database $ \store -> do
+        res <- return $ search store $ parseQuery $ unwords query
+        let (shown, hidden) = splitAt count $ nubOrd $ map (prettyItem . itemItem) res
+        putStr $ unlines shown
+        when (hidden /= []) $ do
+            putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
 
 
 search :: StoreRead -> [Query] -> [ItemEx]
@@ -52,8 +48,8 @@ search store qs = runIdentity $ do
     return $ map look $ filter (filterTags tags qs) is
 
 
-action_search_test :: IO ()
-action_search_test = testing "Action.Search.search" $ storeReadFile "output/all.hoo" $ \store -> do
+action_search_test :: FilePath -> IO ()
+action_search_test database = testing "Action.Search.search" $ storeReadFile database $ \store -> do
     let a ==$ f = do
             res <- return $ search store (parseQuery a)
             case res of
