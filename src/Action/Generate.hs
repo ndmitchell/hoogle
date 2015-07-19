@@ -98,6 +98,11 @@ actionGenerate Generate{..} = do
 
 generate :: FilePath -> Bool -> [String] -> IO ()
 generate database debug args = do
+    -- fix up people using Hoogle 4 instructions
+    args <- if "all" `notElem` args then return args else do
+        putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
+        return $ delete "all" args
+
     -- peakMegabytesAllocated = 2
     let input x = takeDirectory database </> "input-" ++ x
 
