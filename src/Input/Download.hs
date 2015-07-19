@@ -14,7 +14,7 @@ import Network
 
 urls =
     [("stackage.txt","https://www.stackage.org/lts/cabal.config")
-    ,("platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2014.hs")
+    ,("platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs")
     ,("cabal.tar.gz","https://hackage.haskell.org/packages/index.tar.gz")
     ,("hoogle.tar.gz","https://hackage.haskell.org/packages/hoogle.tar.gz")
     ]
