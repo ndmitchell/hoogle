@@ -20,11 +20,11 @@ urls =
     ]
 
 -- | Download all the input files to input/
-downloadInputs :: IO ()
-downloadInputs = do
-    createDirectoryIfMissing True "input"
+downloadInputs :: FilePath -> IO ()
+downloadInputs dir = do
+    createDirectoryIfMissing True dir
     forM_ urls $ \(name, url) -> do
-        let file = "input" </> "input-" ++ name
+        let file = dir </> "input-" ++ name
         unlessM (doesFileExist file) $ do
             timed ("Downloading " ++ url) $ do
                 downloadFile (file <.> "part") url

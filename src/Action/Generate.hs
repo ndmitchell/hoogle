@@ -90,7 +90,7 @@ generate output metadata  = undefined
 actionGenerate :: CmdLine -> IO ()
 actionGenerate Generate{..} = do
     putStrLn "Starting generate"
-    downloadInputs
+    downloadInputs "input"
     (n,_) <- duration $ generate debug include
     putStrLn $ "Took " ++ showDuration n
 
