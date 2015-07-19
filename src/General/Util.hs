@@ -14,6 +14,7 @@ module General.Util(
     Average, toAverage, fromAverage,
     inRanges,
     readMaybe,
+    exitFail,
     general_util_test
     ) where
 
@@ -36,12 +37,18 @@ import Control.Exception.Extra
 import Test.QuickCheck
 import Data.Int
 import System.IO
+import System.Exit
 import System.Time.Extra
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
 import Prelude
 
+
+exitFail :: String -> IO ()
+exitFail msg = do
+    hPutStrLn stderr msg
+    exitFailure
 
 pretty :: Pretty a => a -> String
 pretty = trim . unwords . words . prettyPrint

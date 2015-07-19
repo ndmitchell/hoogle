@@ -7,8 +7,6 @@ import Control.DeepSeq
 import qualified Data.Set as Set
 import Data.List.Extra
 import Data.Functor.Identity
-import System.IO
-import System.Exit
 import System.Directory
 
 import Output.Items
@@ -40,9 +38,8 @@ actionSearch Search{..} =
 withSearch :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
 withSearch database act = do
     unlessM (doesFileExist database) $ do
-        hPutStrLn stderr $ "Error, database does not exist (run 'hoogle generate' first)\n" ++
-                           "    Filename: " ++ database
-        exitFailure
+        exitFail $ "Error, database does not exist (run 'hoogle generate' first)\n" ++
+                   "    Filename: " ++ database
     storeReadFile database act
 
 
