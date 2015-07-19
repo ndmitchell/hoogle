@@ -4,6 +4,8 @@
 module Action.CmdLine(CmdLine(..), getCmdLine) where
 
 import System.Console.CmdArgs
+import System.Directory
+import System.FilePath
 import Data.Version
 import Paths_hoogle(version)
 
@@ -41,7 +43,11 @@ data CmdLine
       deriving (Data,Typeable,Show)
 
 getCmdLine :: IO CmdLine
-getCmdLine = cmdArgsRun cmdLineMode
+getCmdLine = do
+    args <- cmdArgsRun cmdLineMode
+    if database args /= "" then return args else do
+        dir <- getAppUserDataDirectory "hoogle"
+        return $ args{database=dir </> "default.hoo"}
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
     &= verbosity &= program "hoogle"
@@ -51,7 +57,7 @@ search_ = Search
     {color = def &= name "colour" &= help "Use colored output (requires ANSI terminal)"
     ,link = def &= help "Give URL's for each result"
     ,info = def &= help "Give extended information about the first result"
-    ,database = "output/all.hoo" &= typFile &= help "Name of database to use (use .hoo extension)"
+    ,database = def &= typFile &= help "Name of database to use (use .hoo extension)"
     ,count = 10 &= name "n" &= help "Maximum number of results to return"
     ,query = def &= args &= typ "QUERY"
     } &= help "Perform a search"
