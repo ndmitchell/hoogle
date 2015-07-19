@@ -40,14 +40,14 @@ main = do
         echo system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
         echo system_ "cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
-        echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate +RTS -M1.5G"
-        echo system_ $ exe ++ " test"
+        echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=default.hoo +RTS -M1.5G"
+        echo system_ $ exe ++ " test --database=default.hoo"
         ignore $ echo system_ "pkill hoogle"
-        let cmd = "nohup " ++ exe ++ " server --port=8080 " ++
+        let cmd = "nohup " ++ exe ++ " server --database=default.hoo --port=8080 " ++
                   "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
                   "--log=../../log.txt +RTS -T >> ../../out.txt 2>&1 &"
         echo system_ cmd
-        writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --port=8080 --log=../../log.txt >> ../../out.txt &\n"
+        writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=default.hoo --port=8080 --log=../../log.txt >> ../../out.txt &\n"
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
     putStrLn "Successfully upgraded"
 
