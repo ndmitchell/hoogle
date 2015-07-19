@@ -10,8 +10,8 @@ import Prelude
 
 
 -- | Return information about which items are in a particular set.
-setStackage :: IO (Set.Set String)
-setStackage = Set.fromList . f . lines <$> readFile' "input/stackage.txt"
+setStackage :: FilePath -> IO (Set.Set String)
+setStackage file = Set.fromList . f . lines <$> readFile' file
     where
         f (x:xs) | Just x <- stripPrefix "constraints:" x =
                     map (fst . word1) $ takeWhile (" " `isPrefixOf`) $ (' ':x) : xs
@@ -19,13 +19,13 @@ setStackage = Set.fromList . f . lines <$> readFile' "input/stackage.txt"
         f [] = []
 
 
-setPlatform :: IO (Set.Set String)
-setPlatform = setPlatformWith ["incGHCLib","incLib"]
+setPlatform :: FilePath -> IO (Set.Set String)
+setPlatform file = setPlatformWith file ["incGHCLib","incLib"]
 
-setPlatformWith :: [String] -> IO (Set.Set String)
-setPlatformWith names = do
-    src <- lines <$> readFile' "input/platform.txt"
+setPlatformWith :: FilePath -> [String] -> IO (Set.Set String)
+setPlatformWith file names = do
+    src <- lines <$> readFile' file
     return $ Set.fromList [read lib | ",":name:lib:_ <- map words src, name `elem` names]
 
-setGHC :: IO (Set.Set String)
-setGHC = setPlatformWith ["incGHCLib"]
+setGHC :: FilePath -> IO (Set.Set String)
+setGHC file = setPlatformWith file ["incGHCLib"]

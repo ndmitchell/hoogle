@@ -100,9 +100,9 @@ generate debug args = do
     createDirectoryIfMissing True "output"
     -- peakMegabytesAllocated = 2
 
-    setStackage <- setStackage
-    setPlatform <- setPlatform
-    setGHC <- setGHC
+    setStackage <- setStackage "input/stackage.txt"
+    setPlatform <- setPlatform "input/platform.txt"
+    setGHC <- setGHC "input/platform.txt"
     let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
     -- peakMegabytesAllocated = 2
 
