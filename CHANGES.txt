@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #116, store data files in getAppUserDataDirectory by default
     G472, be robust to corrupt Hoogle files
     G521, make sure it works with inverted color preferences
     Rewrite from scratch
