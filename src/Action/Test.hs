@@ -26,7 +26,7 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ do
     action_search_test
     action_server_test
     putStrLn ""
-    when deep $ storeReadFile "output/all.hoo" $ \store -> do
+    when deep $ storeReadFile database $ \store -> do
         putStrLn "Deep tests"
         let xs = map itemItem $ listItems store
         evaluate $ rnf xs

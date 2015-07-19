@@ -55,7 +55,7 @@ actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
-    (t,_) <- duration $ storeReadFile "output/all.hoo" $ \store -> do
+    (t,_) <- duration $ storeReadFile database $ \store -> do
         log <- logNone
         let op = replyServer log store ""
         forM_ qs $ \x -> do

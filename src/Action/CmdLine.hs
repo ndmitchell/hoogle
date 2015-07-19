@@ -32,9 +32,11 @@ data CmdLine
         }
     | Replay
         {logs :: FilePath
+        ,database :: FilePath
         }
     | Test
         {deep :: Bool
+        ,database :: FilePath
         }
       deriving (Data,Typeable,Show)
 
@@ -49,7 +51,7 @@ search_ = Search
     {color = def &= name "colour" &= help "Use colored output (requires ANSI terminal)"
     ,link = def &= help "Give URL's for each result"
     ,info = def &= help "Give extended information about the first result"
-    ,database = def &= typFile &= help "Location of database to use"
+    ,database = "output/all.hoo" &= typFile &= help "Name of database to use (use .hoo extension)"
     ,count = 10 &= name "n" &= help "Maximum number of results to return"
     ,query = def &= args &= typ "QUERY"
     } &= help "Perform a search"
