@@ -12,7 +12,6 @@ import System.IO.Extra
 
 import Control.Monad
 import Output.Items
-import General.Store
 import Control.DeepSeq
 import Control.Exception
 
@@ -26,7 +25,7 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ do
     action_search_test database
     action_server_test
     putStrLn ""
-    when deep $ storeReadFile database $ \store -> do
+    when deep $ withSearch database $ \store -> do
         putStrLn "Deep tests"
         let xs = map itemItem $ listItems store
         evaluate $ rnf xs

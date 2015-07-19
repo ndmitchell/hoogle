@@ -1,8 +1,9 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 
-module Action.Search(actionSearch, search, action_search_test) where
+module Action.Search(actionSearch, withSearch, search, action_search_test) where
 
 import Control.Monad.Extra
+import Control.DeepSeq
 import qualified Data.Set as Set
 import Data.List.Extra
 import Data.Functor.Identity
@@ -25,12 +26,16 @@ import General.Util
 
 actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} =
-    storeReadFile database $ \store -> do
+    withSearch database $ \store -> do
         res <- return $ search store $ parseQuery $ unwords query
         let (shown, hidden) = splitAt count $ nubOrd $ map (prettyItem . itemItem) res
         putStr $ unlines shown
         when (hidden /= []) $ do
             putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+
+
+withSearch :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
+withSearch = storeReadFile
 
 
 search :: StoreRead -> [Query] -> [ItemEx]
@@ -49,7 +54,7 @@ search store qs = runIdentity $ do
 
 
 action_search_test :: FilePath -> IO ()
-action_search_test database = testing "Action.Search.search" $ storeReadFile database $ \store -> do
+action_search_test database = testing "Action.Search.search" $ withSearch database $ \store -> do
     let a ==$ f = do
             res <- return $ search store (parseQuery a)
             case res of

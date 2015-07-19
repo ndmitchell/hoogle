@@ -46,14 +46,14 @@ actionServer Server{..} = do
     log <- timed "Reading log" $ logCreate (if logs == "" then Left stdout else Right logs) $
         \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
     evaluate spawned
-    storeReadFile database $ \store ->
+    withSearch database $ \store ->
         server log port $ replyServer log store cdn
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
-    (t,_) <- duration $ storeReadFile database $ \store -> do
+    (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
         let op = replyServer log store ""
         forM_ qs $ \x -> do
