@@ -147,6 +147,9 @@ generate database debug args = do
                             |> pipelineC 10 (items |> sinkList)))
 
                 putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
+                when (Set.null seen) $
+                    exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
+
                 itemWarn <- readIORef itemWarn
                 when (itemWarn > 0) $
                     putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
