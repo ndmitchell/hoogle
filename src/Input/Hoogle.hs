@@ -41,7 +41,7 @@ stringShare x = unsafePerformIO $ do
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m ItemEx
-parseHoogle warning file body = sourceLStr body |> linesCR |> zipFromC 1 |> parserC warning file |> hierarchyC hackage |> mapC (\x -> rnf x `seq` x)
+parseHoogle warning file body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning file =$= hierarchyC hackage =$= mapC (\x -> rnf x `seq` x)
 
 parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m ItemEx
 parserC warning file = f [] ""
@@ -77,7 +77,7 @@ reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy 
 
 
 hierarchyC :: Monad m => String -> Conduit ItemEx m ItemEx
-hierarchyC hackage = mapC packages |> with (isIPackage . itemItem) |> mapC modules |> with (isIModule . itemItem) |> mapC other
+hierarchyC hackage = mapC packages =$= with (isIPackage . itemItem) =$= mapC modules =$= with (isIModule . itemItem) =$= mapC other
     where
         with :: Monad m => (b -> Bool) -> Conduit b m (Maybe b, b)
         with p = void $ mapAccumC f Nothing

@@ -5,7 +5,7 @@ module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
-    (|$|), (|>), pipelineC,
+    (|$|), pipelineC,
     zipFromC, countC, sumC, linesC, linesCR
     ) where
 
@@ -22,8 +22,6 @@ import General.Str
 import Prelude
 
 
-(|>) = (=$=)
-
 concatC = C.concat
 mapC = C.map
 foldC = C.fold
@@ -35,7 +33,7 @@ zipFromC :: (Monad m, Enum i) => i -> Conduit a m (i, a)
 zipFromC = void . mapAccumC (\i x -> (succ i, (i,x)))
 
 countC :: (Monad m, Num c) => Consumer a m c
-countC = mapC (const 1) |> sumC
+countC = mapC (const 1) =$= sumC
 
 sumC :: (Monad m, Num a) => Consumer a m a
 sumC = foldC (+) 0
@@ -63,7 +61,7 @@ linesC = loop []
             where (first, second) = BS.break (== '\n') more
 
 linesCR :: Monad m => Conduit Str m Str
-linesCR = linesC |> mapC f
+linesCR = linesC =$= mapC f
     where f x | Just (x, '\r') <- bsUnsnoc x = x
               | otherwise = x
 
@@ -91,7 +89,7 @@ pipelineC buffer sink = do
                 liftIO $ signalQSem sem
                 case x of
                     Nothing -> return False
-                    Just x -> do yield x; return True) |>
+                    Just x -> do yield x; return True) =$=
             sink
     whileM $ do
         signaled <- liftIO $ isJust <$> waitBarrierMaybe bar

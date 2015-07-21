@@ -139,12 +139,12 @@ generate database debug args = do
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
-                    (sourceList =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")) |>
-                    mapC (first takeBaseName) |>
-                    filterC (flip Set.member want . fst) |>
-                        ((fmap Set.fromList $ mapC fst |> sinkList) |$|
-                        (((zipFromC 1 |> consume) >> when (null args) (sourceList packages))
-                            |> pipelineC 10 (items |> sinkList)))
+                    (sourceList =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")) =$=
+                    mapC (first takeBaseName) =$=
+                    filterC (flip Set.member want . fst) =$=
+                        ((fmap Set.fromList $ mapC fst =$= sinkList) |$|
+                        (((zipFromC 1 =$= consume) >> when (null args) (sourceList packages))
+                            =$= pipelineC 10 (items =$= sinkList)))
 
                 putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
                 when (Set.null seen) $
