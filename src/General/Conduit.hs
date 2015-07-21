@@ -47,6 +47,8 @@ sinkList :: Monad m => Consumer a m [a]
 sinkList = consume
 
 
+-- | I use this version as in older versions of Conduit the equivalent is O(n^2).
+--   https://github.com/snoyberg/conduit/pull/209
 linesC :: Monad m => Conduit Str m Str
 linesC = loop []
     where
