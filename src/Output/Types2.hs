@@ -137,7 +137,7 @@ writeSigs store (Ctors ctors) xs =
     storeWriteBS store $ BS.pack $ unlines
         [show (r1, r2, i)
             | (Just i, IDecl (TypeSig _ _ t)) <- xs
-            , let rs = reverse $ sort $ map (ctors Map.!) $ nubOrd $ typeNames t
+            , let rs = sort $ map (ctors Map.!) $ nubOrd $ typeNames t
             , let r1:r2:_ = rs ++ [Nam 0, Nam 0]
             ]
 
