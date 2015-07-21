@@ -5,7 +5,7 @@ module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
-    (|$|), (|>), (<|), pipelineC,
+    (|$|), (|>), pipelineC,
     zipFromC, eitherC, countC, sumC, linesC, linesCR
     ) where
 
@@ -23,7 +23,6 @@ import Prelude
 
 
 (|>) = (=$=)
-(<|) = flip (|>)
 
 concatC = C.concat
 mapC = C.map
@@ -41,7 +40,7 @@ eitherC left right = (mapMaybeC l |> left) |$| (mapMaybeC r |> right)
           r = either (const Nothing) Just
 
 countC :: (Monad m, Num c) => Consumer a m c
-countC = sumC <| mapC (const 1)
+countC = mapC (const 1) |> sumC
 
 sumC :: (Monad m, Num a) => Consumer a m a
 sumC = foldC (+) 0
