@@ -6,7 +6,7 @@ module General.Conduit(
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     (|$|), (|>), pipelineC,
-    zipFromC, eitherC, countC, sumC, linesC, linesCR
+    zipFromC, countC, sumC, linesC, linesCR
     ) where
 
 import Data.Conduit
@@ -33,11 +33,6 @@ filterC = C.filter
 
 zipFromC :: (Monad m, Enum i) => i -> Conduit a m (i, a)
 zipFromC = void . mapAccumC (\i x -> (succ i, (i,x)))
-
-eitherC :: Monad m => ConduitM i1 o m r1 -> ConduitM i2 o m r2 -> ConduitM (Either i1 i2) o m (r1,r2)
-eitherC left right = (mapMaybeC l |> left) |$| (mapMaybeC r |> right)
-    where l = either Just (const Nothing)
-          r = either (const Nothing) Just
 
 countC :: (Monad m, Num c) => Consumer a m c
 countC = mapC (const 1) |> sumC
