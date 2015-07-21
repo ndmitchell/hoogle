@@ -29,7 +29,7 @@ concatC = C.concat
 mapC = C.map
 foldC = C.fold
 mapMaybeC = C.mapMaybe
-mapAccumC f = C.mapAccum (\a s -> f s a)
+mapAccumC f = C.mapAccum (flip f)
 filterC = C.filter
 
 awaitJust :: Monad m => (i -> Conduit i m o) -> Conduit i m o
