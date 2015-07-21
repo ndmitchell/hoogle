@@ -20,7 +20,6 @@ import Data.Maybe
 import Data.Ix
 import Foreign.Storable
 import Data.Word
-import Control.Monad
 import Control.DeepSeq
 import Data.Data
 
@@ -30,12 +29,6 @@ import Data.Data
 
 type URL = String
 newtype Id = Id Word32 deriving (Eq,Ord,Storable,NFData,Ix)
-
-instance Storable (Id, Id) where
-    sizeOf _ = sizeOf (Id 0) * 2
-    alignment _ = alignment (Id 0)
-    peekByteOff ptr i = liftM2 (,) (peekByteOff ptr i) (peekByteOff ptr $ i + sizeOf (Id 0))
-    pokeByteOff ptr i (x,y) = pokeByteOff ptr i x >> pokeByteOff ptr (i + sizeOf (Id 0)) y
 
 instance Show Id where
     show (Id x) = showHex x ""
