@@ -3,6 +3,13 @@
 
 module Output.Types2(writeTypes, searchTypes) where
 
+{-
+Approach:
+Each signature is stored, along with a fingerprint
+A quick search finds the most promising 100 fingerprints
+A slow search ranks the 100 items, excluding some
+-}
+
 
 import Language.Haskell.Exts
 import Language.Haskell.Exts.SrcLoc
@@ -128,6 +135,15 @@ readInstance store = Instances $ map (fromParseResult . parseDecl) $ lines src
 
 ---------------------------------------------------------------------
 -- SIGNATURES
+
+data Fingerprint = Fingerprint
+    {fpRare1 :: {-# UNPACK #-} !Nam -- Most rare ctor, or 0 if no rare stuff
+    ,fpRare2 :: {-# UNPACK #-} !Nam -- 2nd rare ctor
+    ,fpRare3 :: {-# UNPACK #-} !Nam -- 3rd rare ctor
+    ,fpArity :: {-# UNPACK #-} !Word8 -- Artiy, where 0 = CAF
+    ,fpTerms :: {-# UNPACK #-} !Word8 -- Number of terms (where 255 = 255 and above)
+    }
+
 
 -- rarest name, second rarest name, signature
 newtype Sigs = Sigs [(Nam, Nam, Id)] -- should store the Sig itself
