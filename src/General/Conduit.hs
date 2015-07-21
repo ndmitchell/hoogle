@@ -6,7 +6,7 @@ module General.Conduit(
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     (|$|), (|>), (<|), pipelineC,
-    zipFromC, eitherC, countC, sumC, awaitJust, linesC, linesCR
+    zipFromC, eitherC, countC, sumC, linesC, linesCR
     ) where
 
 import Data.Conduit
@@ -31,11 +31,6 @@ foldC = C.fold
 mapMaybeC = C.mapMaybe
 mapAccumC f = C.mapAccum (flip f)
 filterC = C.filter
-
-awaitJust :: Monad m => (i -> Conduit i m o) -> Conduit i m o
-awaitJust act = do
-    x <- await
-    whenJust x act
 
 zipFromC :: (Monad m, Enum i) => i -> Conduit a m (i, a)
 zipFromC = void . mapAccumC (\ !i x -> (succ i, (i,x)))
