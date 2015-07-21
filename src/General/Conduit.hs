@@ -37,10 +37,8 @@ awaitJust act = do
     x <- await
     whenJust x act
 
-zipFromC :: (Monad m, Enum c) => c -> Conduit a m (c, a)
-zipFromC !i = awaitJust $ \a -> do
-    yield (i,a)
-    zipFromC (succ i)
+zipFromC :: (Monad m, Enum i) => i -> Conduit a m (i, a)
+zipFromC = void . mapAccumC (\ !i x -> (succ i, (i,x)))
 
 eitherC :: Monad m => ConduitM i1 o m r1 -> ConduitM i2 o m r2 -> ConduitM (Either i1 i2) o m (r1,r2)
 eitherC left right = (mapMaybeC l |> left) |$| (mapMaybeC r |> right)
