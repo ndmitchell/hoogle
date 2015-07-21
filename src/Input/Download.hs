@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-} -- withManager was deprecated, see https://github.com/snoyberg/http-client/issues/137
 
 module Input.Download(downloadInputs) where
 
