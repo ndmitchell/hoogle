@@ -1,5 +1,5 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-} -- withManager was deprecated, see https://github.com/snoyberg/http-client/issues/137
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-} -- Use conduitManagerSettings to work with http-conduit-2.1.6 and below
 
 module Input.Download(downloadInputs) where
 
@@ -11,6 +11,7 @@ import Data.Conduit.Binary (sinkFile)
 import qualified Network.HTTP.Conduit as C
 import qualified Data.Conduit as C
 import Network
+import Control.Monad.Trans.Resource
 
 
 urls =
@@ -33,6 +34,7 @@ downloadInputs dir = do
 downloadFile :: FilePath -> String -> IO ()
 downloadFile file url = withSocketsDo $ do
     request <- C.parseUrl url
-    C.withManager $ \manager -> do
+    manager <- C.newManager C.conduitManagerSettings
+    runResourceT $ do
         response <- C.http request manager
         C.responseBody response C.$$+- sinkFile file
