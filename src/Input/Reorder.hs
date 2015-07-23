@@ -2,7 +2,7 @@
 
 module Input.Reorder(reorderItems) where
 
-import Input.Type
+import Input.Item
 import Data.List.Extra
 import Data.Maybe
 import Data.Tuple.Extra

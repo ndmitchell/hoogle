@@ -11,7 +11,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import Codec.Compression.GZip as GZip
 
-import Input.Type
+import Input.Item
 import General.Util
 import General.Store
 import General.Conduit

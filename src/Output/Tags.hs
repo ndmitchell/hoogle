@@ -11,7 +11,7 @@ import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
 import Data.Word
 
-import Input.Type
+import Input.Item
 import Query
 import General.Util
 import General.Store

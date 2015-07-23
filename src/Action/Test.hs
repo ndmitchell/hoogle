@@ -7,7 +7,7 @@ import Action.CmdLine
 import Action.Search
 import Action.Server
 import General.Util
-import Input.Type
+import Input.Item
 import System.IO.Extra
 
 import Control.Monad

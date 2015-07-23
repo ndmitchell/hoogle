@@ -25,7 +25,7 @@ import GHC.Stats
 
 import Output.Tags
 import Query hiding (test)
-import Input.Type hiding (test)
+import Input.Item hiding (test)
 import General.Util
 import General.Web
 import General.Store

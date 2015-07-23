@@ -62,7 +62,7 @@ executable hoogle
         Input.Hoogle
         Input.Reorder
         Input.Set
-        Input.Type
+        Input.Item
         Output.Items
         Output.Names
         Output.Tags

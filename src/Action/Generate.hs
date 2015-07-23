@@ -24,7 +24,7 @@ import Input.Hoogle
 import Input.Download
 import Input.Reorder
 import Input.Set
-import Input.Type
+import Input.Item
 import General.Util
 import General.Store
 import General.Str

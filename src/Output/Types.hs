@@ -21,7 +21,7 @@ import Data.Functor.Identity
 import System.FilePath
 import System.IO.Extra
 
-import Input.Type
+import Input.Item
 import General.Util
 import General.Store
 

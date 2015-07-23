@@ -15,7 +15,7 @@ import Output.Names
 import Output.Types
 import General.Store
 import Query
-import Input.Type
+import Input.Item
 import Action.CmdLine
 import General.Util
 

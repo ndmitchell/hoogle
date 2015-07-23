@@ -15,7 +15,7 @@ import Foreign.C.Types
 import Control.Exception
 import System.IO.Unsafe
 
-import Input.Type
+import Input.Item
 import General.Util
 import General.Store
 

@@ -6,7 +6,7 @@ import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
 import Data.Maybe
-import Input.Type
+import Input.Item
 import General.Util
 import Control.DeepSeq
 import Data.IORef.Extra
