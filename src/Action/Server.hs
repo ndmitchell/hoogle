@@ -26,6 +26,7 @@ import GHC.Stats
 import Output.Tags
 import Query
 import Input.Item
+import Input.Hoogle(renderItem) -- only for testing
 import General.Util
 import General.Web
 import General.Store
@@ -137,7 +138,7 @@ showResults args query results = unlines $
     ["</ul>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
-     "<div class=ans><a href=\"" ++ targetURL ++ "\">" ++ displayItem query item ++ "</a></div>" ++
+     "<div class=ans><a href=\"" ++ targetURL ++ "\">" ++ displayItem query targetItem ++ "</a></div>" ++
      "<div class=from>" ++ showFroms is  ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
      "</div>"
@@ -170,29 +171,6 @@ showFroms xs = intercalate ", " $ for pkgs $ \p ->
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
 
-renderItem :: Item -> String
-renderItem = keyword . focus
-    where
-        keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ dropWhile (== '@') a ++ "</b> " ++ b
-                  | otherwise = x
-            where kws = words "class data type newtype"
-
-        name x = "<span class=name>" ++ x ++ "</span>"
-
-        focus (IModule (breakEnd (== '.') -> (pre,post))) =
-            "<b>module</b> " ++ escapeHTML pre ++ name (highlight post)
-        focus (IPackage x) = "<b>package</b> " ++ name (highlight x)
-        focus (IKeyword x) = "<b>keyword</b> " ++ name (highlight x)
-        focus (IDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
-            if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
-                init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tail post)
-            else
-                escapeHTML pre ++ name (highlight now) ++ escapeHTML post
-
-        highlight :: String -> String
-        highlight x = "<0>" ++ x ++ "</0>"
-
-
 highlightItem :: [Query] -> String -> String
 highlightItem qs x
     | Just (pre,x) <- stripInfix "<0>" x, Just (name,post) <- stripInfix "</0>" x = pre ++ highlight name ++ post
@@ -206,16 +184,16 @@ highlightItem qs x
               f (x:xs) = False : f xs
               f [] = []
 
-displayItem :: [Query] -> Item -> String
-displayItem qs = highlightItem qs . renderItem
+displayItem :: [Query] -> String -> String
+displayItem qs = highlightItem qs
 
 
 action_server_test :: IO ()
 action_server_test = testing "Action.Server.displayItem" $ do
     let expand = replace "{|" "<span class=name>" . replace "|}" "</span>" . replace "{*" "<b>" . replace "*}" "</b>"
         collapse = replace "{|" "" . replace "|}" "" . replace "{*" "" . replace "*}" ""
-    let q === s | Just i <- readItem $ collapse s, displayItem (parseQuery q) i == expand (escapeHTML s) = putChar '.'
-                | otherwise = error $ show (q,s,displayItem (parseQuery q) (fromJust $ readItem $ collapse s))
+    let q === s | Just i <- readItem $ collapse s, displayItem (parseQuery q) (renderItem i) == expand (escapeHTML s) = putChar '.'
+                | otherwise = error $ show (q,s,displayItem (parseQuery q) (renderItem $ fromJust $ readItem $ collapse s))
     "test" === "{|my{*Test*}|} :: Int -> test"
     "new west" === "{|{*newest*}_{*new*}|} :: Int"
     "+*" === "{|({*+**}&)|} :: Int"

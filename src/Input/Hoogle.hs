@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types #-}
 
-module Input.Hoogle(parseHoogle) where
+module Input.Hoogle(parseHoogle, renderItem) where
 
 import Language.Haskell.Exts as HSE
 import Data.Char
@@ -57,7 +57,7 @@ parserC warning file = f [] ""
                   | strNull $ strTrimStart s -> f [] ""
                   | Just s <- strStripSuffix " :: GLenum" s -> do
                         -- there are 38K instances of :: GLenum in the OpenGLRaw package, so speed them up (saves 16s + 100Mb)
-                        yield (Target url Nothing Nothing $ reformat $ reverse $ map strUnpack com, glenum $ strUnpack s)
+                        yield (Target url Nothing Nothing (renderItem $ glenum $ strUnpack s) $ reformat $ reverse $ map strUnpack com, glenum $ strUnpack s)
                         f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
@@ -67,7 +67,7 @@ parserC warning file = f [] ""
                             Right xs -> forM_ xs $ \x ->
                                 if isNothing $ readItem $ showItem x
                                 then lift $ warning $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine (strUnpack s)
-                                else yield (Target url Nothing Nothing $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
+                                else yield (Target url Nothing Nothing (renderItem x) $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
                         f [] ""
 
 
@@ -105,6 +105,30 @@ hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
                 isLegal '_' = True
                 isLegal '.' = True
                 isLegal c = isAscii c && isAlphaNum c
+
+
+renderItem :: Item -> String
+renderItem = keyword . focus
+    where
+        keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ dropWhile (== '@') a ++ "</b> " ++ b
+                  | otherwise = x
+            where kws = words "class data type newtype"
+
+        name x = "<span class=name>" ++ x ++ "</span>"
+
+        focus (IModule (breakEnd (== '.') -> (pre,post))) =
+            "<b>module</b> " ++ escapeHTML pre ++ name (highlight post)
+        focus (IPackage x) = "<b>package</b> " ++ name (highlight x)
+        focus (IKeyword x) = "<b>keyword</b> " ++ name (highlight x)
+        focus (IDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
+            if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
+                init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tail post)
+            else
+                escapeHTML pre ++ name (highlight now) ++ escapeHTML post
+        focus (IDecl x) = pretty x
+
+        highlight :: String -> String
+        highlight x = "<0>" ++ x ++ "</0>"
 
 
 parseLine :: String -> Either String [Item]
