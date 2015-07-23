@@ -57,7 +57,7 @@ parserC warning file = f [] ""
                   | strNull $ strTrimStart s -> f [] ""
                   | Just s <- strStripSuffix " :: GLenum" s -> do
                         -- there are 38K instances of :: GLenum in the OpenGLRaw package, so speed them up (saves 16s + 100Mb)
-                        yield (Target url Nothing Nothing (renderItem $ glenum $ strUnpack s) $ reformat $ reverse $ map strUnpack com, glenum $ strUnpack s)
+                        yield (Target url Nothing Nothing "" (renderItem $ glenum $ strUnpack s) $ reformat $ reverse $ map strUnpack com, glenum $ strUnpack s)
                         f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
@@ -67,8 +67,12 @@ parserC warning file = f [] ""
                             Right xs -> forM_ xs $ \x ->
                                 if isNothing $ readItem $ showItem x
                                 then lift $ warning $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine (strUnpack s)
-                                else yield (Target url Nothing Nothing (renderItem x) $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
+                                else yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
                         f [] ""
+
+typeItem (IPackage x) = "package"
+typeItem (IModule x) = "module"
+typeItem _ = ""
 
 
 -- FIXME: used to be in two different modules, now does and then undoes lots of stuff

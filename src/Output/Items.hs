@@ -23,13 +23,14 @@ outputItem (i, (Target{..}, item)) =
     ,if null targetURL then "." else targetURL
     ,maybe "." (joinPair " ") targetPackage
     ,maybe "." (joinPair " ") targetModule
+    ,if null targetType then "." else targetType
     ,targetItem] ++
     replace [""] ["."] (lines targetDocs)
 
 inputItem :: [String] -> (Id, (Target, Item))
-inputItem ((word1 -> (i,name)):url:pkg:modu:self:docs) =
+inputItem ((word1 -> (i,name)):url:pkg:modu:typ:self:docs) =
     (read i
-    ,(Target (if url == "." then "" else url) (f pkg) (f modu) self (unlines docs)
+    ,(Target (if url == "." then "" else url) (f pkg) (f modu) (if typ == "." then "" else typ) self (unlines docs)
      ,fromMaybe (error $ "Failed to reparse: " ++ name) $ readItem name))
     where
         f "." = Nothing

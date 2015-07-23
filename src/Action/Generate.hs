@@ -135,7 +135,7 @@ generate database debug args = do
                         parseHoogle warning pkg body
 
             writeItems store $ \items -> do
-                let packages = [ (Target ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing (renderItem $ IPackage name) ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis), IPackage name)
+                let packages = [ (Target ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing "package" (renderItem $ IPackage name) ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis), IPackage name)
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
