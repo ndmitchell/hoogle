@@ -75,7 +75,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = concatMap parseQuery qSource
         let results = search store q
-        let body = showResults inputArgs q $ map (map fst) $ dedupeTake 25 (\(t,i) -> (t{targetURL="",targetPackage=Nothing, targetModule=Nothing},i)) results
+        let body = showResults inputArgs q $ dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) $ map fst results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions $ grab "scope")
