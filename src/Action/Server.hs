@@ -139,7 +139,7 @@ showResults args query results = unlines $
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
      "<div class=ans><a href=\"" ++ targetURL ++ "\">" ++ displayItem query targetItem ++ "</a></div>" ++
-     "<div class=from>" ++ showFroms is  ++ "</div>" ++
+     "<div class=from>" ++ showFroms (map fst is)  ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
      "</div>"
     | is@((Target{..}, item):_) <- results]
@@ -160,13 +160,13 @@ itemCategories xs =
     [("is","package") | any (isIPackage . snd) xs] ++ [("is","module") | any (isIModule . snd) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map (targetPackage . fst) xs]
 
-showFroms :: [(Target, Item)] -> String
+showFroms :: [Target] -> String
 showFroms xs = intercalate ", " $ for pkgs $ \p ->
-    let ms = filter ((==) p . targetPackage . fst) xs
+    let ms = filter ((==) p . targetPackage) xs
     in unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
     where
-        remod (Target{..}, _) = do (a,_) <- targetModule; return (a,targetURL)
-        pkgs = nubOrd $ map (targetPackage . fst) xs
+        remod Target{..} = do (a,_) <- targetModule; return (a,targetURL)
+        pkgs = nubOrd $ map targetPackage xs
 
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
