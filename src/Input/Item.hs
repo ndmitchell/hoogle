@@ -7,7 +7,7 @@ module Input.Item(
     isIPackage, isIModule, splitIPackage, splitIModule,
     URL,
     Id(..),
-    input_type_test
+    input_item_test
     ) where
 
 import Numeric
@@ -116,8 +116,8 @@ unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
 unGADT x = x
 
 
-input_type_test :: IO ()
-input_type_test = testing "Input.Type.readItem" $ do
+input_item_test :: IO ()
+input_item_test = testing "Input.Type.readItem" $ do
     let a === b | fmap prettyItem (readItem a) == Just b = putChar '.'
                 | otherwise = error $ show (a,b,readItem a, fmap prettyItem $ readItem a)
     let test a = a === a

@@ -20,7 +20,7 @@ actionTest :: CmdLine -> IO ()
 actionTest Test{..} = withBuffering stdout NoBuffering $ do
     putStrLn "Quick tests"
     general_util_test
-    input_type_test
+    input_item_test
     query_test
     action_search_test database
     action_server_test
