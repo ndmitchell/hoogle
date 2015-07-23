@@ -170,8 +170,8 @@ showFroms xs = intercalate ", " $ for pkgs $ \p ->
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
 
-displayItem :: [Query] -> Item -> String
-displayItem qs = keyword . focus
+renderItem :: Item -> String
+renderItem = keyword . focus
     where
         keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ dropWhile (== '@') a ++ "</b> " ++ b
                   | otherwise = x
@@ -190,6 +190,14 @@ displayItem qs = keyword . focus
                 escapeHTML pre ++ name (highlight now) ++ escapeHTML post
 
         highlight :: String -> String
+        highlight x = "<0>" ++ x ++ "</0>"
+
+
+highlightItem :: [Query] -> String -> String
+highlightItem qs x
+    | Just (pre,x) <- stripInfix "<0>" x, Just (name,post) <- stripInfix "</0>" x = pre ++ highlight name ++ post
+    | otherwise = x
+    where
         highlight = concatMap (\xs@((b,_):_) -> let s = escapeHTML $ map snd xs in if b then "<b>" ++ s ++ "</b>" else s) .
                     groupOn fst . (\x -> zip (f x) x)
             where
@@ -197,6 +205,9 @@ displayItem qs = keyword . focus
                   where m = maximum $ 0 : [length y | QueryName y <- qs, lower y `isPrefixOf` lower (x:xs)]
               f (x:xs) = False : f xs
               f [] = []
+
+displayItem :: [Query] -> Item -> String
+displayItem qs = highlightItem qs . renderItem
 
 
 action_server_test :: IO ()
