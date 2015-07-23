@@ -157,7 +157,8 @@ showResults args query results = unlines $
 itemCategories :: [(Target, Item)] -> [(String,String)]
 itemCategories xs =
     [("is","exact")] ++
-    [("is","package") | any (isIPackage . snd) xs] ++ [("is","module") | any (isIModule . snd) xs] ++
+    [("is","package") | any ((==) "package" . targetType . fst) xs] ++
+    [("is","module")  | any ((==) "module"  . targetType . fst) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map (targetPackage . fst) xs]
 
 showFroms :: [Target] -> String
