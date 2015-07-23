@@ -5,7 +5,6 @@ module Input.Hoogle(parseHoogle, renderItem) where
 import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
-import Data.Maybe
 import Input.Item
 import General.Util
 import Control.DeepSeq
@@ -65,9 +64,7 @@ parserC warning file = f [] ""
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
                             Right xs -> forM_ xs $ \x ->
-                                if isNothing $ readItem $ showItem x
-                                then lift $ warning $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine (strUnpack s)
-                                else yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
+                                yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
                         f [] ""
 
 typeItem (IPackage x) = "package"
