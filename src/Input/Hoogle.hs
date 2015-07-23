@@ -114,7 +114,7 @@ renderItem = keyword . focus
                   | otherwise = x
             where kws = words "class data type newtype"
 
-        name x = "<span class=name>" ++ x ++ "</span>"
+        name x = "<span class=name>" ++ x ++ "</span>" :: String
 
         focus (IModule (breakEnd (== '.') -> (pre,post))) =
             "<b>module</b> " ++ escapeHTML pre ++ name (highlight post)
