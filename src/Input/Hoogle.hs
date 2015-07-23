@@ -71,7 +71,9 @@ parserC warning file = f [] ""
                         f [] ""
 
 
-reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy (== "")
+-- FIXME: used to be in two different modules, now does and then undoes lots of stuff
+reformat = trimStart . replace "<p>" "" . replace "</p>" "\n" . unwords . lines .
+           unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy (== "")
     where f xs@(x:_) | x `elem` ["<pre>","<ul>"] = xs
           f xs = ["<p>",unwords xs,"</p>"]
 

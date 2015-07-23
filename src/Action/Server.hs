@@ -139,7 +139,7 @@ showResults args query results = unlines $
     ["<div class=result>" ++
      "<div class=ans><a href=\"" ++ targetURL ++ "\">" ++ displayItem query item ++ "</a></div>" ++
      "<div class=from>" ++ showFroms is  ++ "</div>" ++
-     "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords $ lines targetDocs) ++ "</div>" ++
+     "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
      "</div>"
     | is@((Target{..}, item):_) <- results]
     where
