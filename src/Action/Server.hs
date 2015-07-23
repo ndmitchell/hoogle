@@ -24,8 +24,8 @@ import Numeric.Extra
 import GHC.Stats
 
 import Output.Tags
-import Query hiding (test)
-import Input.Item hiding (test)
+import Query
+import Input.Item
 import General.Util
 import General.Web
 import General.Store
