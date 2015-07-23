@@ -75,7 +75,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = concatMap parseQuery qSource
         let results = search store q
-        let body = showResults inputArgs q $ dedupeTake 25 (\(t,i) -> (t{targetURL="",targetPackage=Nothing, targetModule=Nothing},i)) results
+        let body = showResults inputArgs q $ map (map fst) $ dedupeTake 25 (\(t,i) -> (t{targetURL="",targetPackage=Nothing, targetModule=Nothing},i)) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions $ grab "scope")
@@ -129,20 +129,20 @@ dedupeTake n key = f [] Map.empty
             where k = key x 
 
 
-showResults :: [(String, String)] -> [Query] -> [[(Target, Item)]] -> String
+showResults :: [(String, String)] -> [Query] -> [[Target]] -> String
 showResults args query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"
     ,"<ul id=left>"
     ,"<li><b>Packages</b></li>"] ++
-    [tag_ "li" $ f cat val | (cat,val) <- itemCategories $ map fst $ concat results, QueryScope True cat val `notElem` query] ++
+    [tag_ "li" $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query] ++
     ["</ul>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
      "<div class=ans><a href=\"" ++ targetURL ++ "\">" ++ displayItem query targetItem ++ "</a></div>" ++
-     "<div class=from>" ++ showFroms (map fst is)  ++ "</div>" ++
+     "<div class=from>" ++ showFroms is  ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
      "</div>"
-    | is@((Target{..}, item):_) <- results]
+    | is@(Target{..}:_) <- results]
     where
         add x = escapeHTML $ ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
