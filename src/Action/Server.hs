@@ -26,7 +26,6 @@ import GHC.Stats
 import Output.Tags
 import Query
 import Input.Item
-import Input.Hoogle(renderItem) -- only for testing
 import General.Util
 import General.Web
 import General.Store
@@ -174,7 +173,7 @@ showFroms xs = intercalate ", " $ for pkgs $ \p ->
 
 highlightItem :: [Query] -> String -> String
 highlightItem qs x
-    | Just (pre,x) <- stripInfix "<0>" x, Just (name,post) <- stripInfix "</0>" x = pre ++ highlight name ++ post
+    | Just (pre,x) <- stripInfix "<0>" x, Just (name,post) <- stripInfix "</0>" x = pre ++ highlight (unescapeHTML name) ++ post
     | otherwise = x
     where
         highlight = concatMap (\xs@((b,_):_) -> let s = escapeHTML $ map snd xs in if b then "<b>" ++ s ++ "</b>" else s) .
@@ -191,16 +190,17 @@ displayItem qs = highlightItem qs
 
 action_server_test :: IO ()
 action_server_test = testing "Action.Server.displayItem" $ do
-    let expand = replace "{|" "<span class=name>" . replace "|}" "</span>" . replace "{*" "<b>" . replace "*}" "</b>"
-        collapse = replace "{|" "" . replace "|}" "" . replace "{*" "" . replace "*}" ""
-    let q === s | Just i <- readItem $ collapse s, displayItem (parseQuery q) (renderItem i) == expand (escapeHTML s) = putChar '.'
-                | otherwise = error $ show (q,s,displayItem (parseQuery q) (renderItem $ fromJust $ readItem $ collapse s))
-    "test" === "{|my{*Test*}|} :: Int -> test"
-    "new west" === "{|{*newest*}_{*new*}|} :: Int"
-    "+*" === "{|({*+**}&)|} :: Int"
-    "foo" === "{*data*} {|{*Foo*}d|}"
-    "foo" === "{*module*} Foo.Bar.{|F{*Foo*}|}"
-    "foo" === "{*module*} {|{*Foo*}o|}"
+    let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<0>" "" . replace "</0>" ""
+        contract = replace "{" "" . replace "}" ""
+    let q === s | displayItem (parseQuery q) (contract s) == expand s = putChar '.'
+                | otherwise = error $ show (q,s,displayItem (parseQuery q) (contract s))
+    "test" === "<0>my{Test}</0> :: Int -&gt; test"
+    "new west" === "<0>{newest}_{new}</0> :: Int"
+    "+*" === "(<0>{+*}&amp;</0>) :: Int"
+    "+<" === "(<0>&gt;{+&lt;}</0>) :: Int"
+    "foo" === "<i>data</i> <0>{Foo}d</0>"
+    "foo" === "<i>module</i> Foo.Bar.<0>F{Foo}</0>"
+    "foo" === "<i>module</i> <0>{Foo}o</0>"
 
 
 -------------------------------------------------------------

@@ -129,7 +129,7 @@ renderItem = keyword . focus
         focus (IDecl x) = pretty x
 
         highlight :: String -> String
-        highlight x = "<0>" ++ x ++ "</0>"
+        highlight x = "<0>" ++ escapeHTML x ++ "</0>"
 
 
 parseLine :: String -> Either String [Item]
