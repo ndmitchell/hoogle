@@ -9,7 +9,7 @@ module General.Util(
     showUTCTime,
     list', strict,
     withs,
-    escapeHTML, tag, tag_,
+    escapeHTML, unescapeHTML, tag, tag_,
     noinline,
     Average, toAverage, fromAverage,
     inRanges,
@@ -112,6 +112,15 @@ escapeHTML = concatMap f
         f '&' = "&amp;"
         f '\"' = "&quot;"
         f  x  = [x]
+
+unescapeHTML :: String -> String
+unescapeHTML ('&':xs)
+    | Just xs <- stripPrefix "lt;" xs = '<' : unescapeHTML xs
+    | Just xs <- stripPrefix "gt;" xs = '>' : unescapeHTML xs
+    | Just xs <- stripPrefix "amp;" xs = '&' : unescapeHTML xs
+    | Just xs <- stripPrefix "quot;" xs = '\"' : unescapeHTML xs
+unescapeHTML (x:xs) = x : unescapeHTML xs
+unescapeHTML [] = []
 
 isUpper1 (x:xs) = isUpper x
 isUpper1 _ = False
