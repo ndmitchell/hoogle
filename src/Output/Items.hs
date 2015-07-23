@@ -22,7 +22,8 @@ outputItem (i, Target{..}) =
     ,if null targetURL then "." else targetURL
     ,maybe "." (joinPair " ") targetPackage
     ,maybe "." (joinPair " ") targetModule
-    ,if null targetType then "." else targetType] ++
+    ,if null targetType then "." else targetType
+    ,targetItem] ++
     replace [""] ["."] (lines targetDocs)
 
 inputItem :: [String] -> (Id, Target)
