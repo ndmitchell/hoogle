@@ -134,7 +134,7 @@ showResults args query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"
     ,"<ul id=left>"
     ,"<li><b>Packages</b></li>"] ++
-    [tag_ "li" $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query] ++
+    [tag_ "li" $ f cat val | (cat,val) <- itemCategories $ map fst $ concat results, QueryScope True cat val `notElem` query] ++
     ["</ul>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
@@ -154,12 +154,12 @@ showResults args query results = unlines $
                     (if cat == "package" then "" else cat ++ ":") ++ val ++ "</a>"
 
 
-itemCategories :: [(Target, Item)] -> [(String,String)]
+itemCategories :: [Target] -> [(String,String)]
 itemCategories xs =
     [("is","exact")] ++
-    [("is","package") | any ((==) "package" . targetType . fst) xs] ++
-    [("is","module")  | any ((==) "module"  . targetType . fst) xs] ++
-    nubOrd [("package",p) | Just (p,_) <- map (targetPackage . fst) xs]
+    [("is","package") | any ((==) "package" . targetType) xs] ++
+    [("is","module")  | any ((==) "module"  . targetType) xs] ++
+    nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
 showFroms :: [Target] -> String
 showFroms xs = intercalate ", " $ for pkgs $ \p ->
