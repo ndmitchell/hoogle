@@ -37,10 +37,10 @@ instance Read Id where
     readsPrec _ = map (first Id) . readHex
 
 data Target = Target
-    {targetURL :: URL
-    ,targetPackage :: Maybe (String, URL)
-    ,targetModule :: Maybe (String, URL)
-    ,targetDocs :: String
+    {targetURL :: URL -- URL where this thing is located
+    ,targetPackage :: Maybe (String, URL) -- name and URL of the package it is in (Nothing if it is a package)
+    ,targetModule :: Maybe (String, URL) -- name and URL of the module it is in (Nothing if it is a package or module)
+    ,targetDocs :: String -- HTML documentation to show, a sequence of block level elements
     } deriving (Show,Eq,Ord)
 
 instance NFData Target where
