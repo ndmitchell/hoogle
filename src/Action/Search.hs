@@ -29,7 +29,7 @@ actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} =
     withSearch database $ \store -> do
         res <- return $ search store $ parseQuery $ unwords query
-        let (shown, hidden) = splitAt count $ nubOrd $ map (prettyItem . snd) res
+        let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
         putStr $ unlines shown
         when (hidden /= []) $ do
             putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
@@ -43,7 +43,7 @@ withSearch database act = do
     storeReadFile database act
 
 
-search :: StoreRead -> [Query] -> [(Target, Item)]
+search :: StoreRead -> [Query] -> [Target]
 search store qs = runIdentity $ do
     let tags = readTags store
     let exact = QueryScope True "is" "exact" `elem` qs
@@ -55,7 +55,7 @@ search store qs = runIdentity $ do
             nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
             return $ filter (`Set.member` nam) $ searchTypes store $ fromQueryType t
     let look = lookupItem store
-    return $ map look $ filter (filterTags tags qs) is
+    return $ map (fst . look) $ filter (filterTags tags qs) is
 
 
 action_search_test :: FilePath -> IO ()
@@ -63,7 +63,7 @@ action_search_test database = testing "Action.Search.search" $ withSearch databa
     let a ==$ f = do
             res <- return $ search store (parseQuery a)
             case res of
-                (Target{..},_):_ | f targetURL -> putChar '.'
+                Target{..}:_ | f targetURL -> putChar '.'
                 _ -> error $ show (a, take 1 res)
     let a === b = a ==$ (== b)
     let hackage x = "https://hackage.haskell.org/package/" ++ x
