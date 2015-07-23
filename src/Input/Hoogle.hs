@@ -40,10 +40,10 @@ stringShare x = unsafePerformIO $ do
 
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m ItemEx
+parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m (Target, Item)
 parseHoogle warning file body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning file =$= hierarchyC hackage =$= mapC (\x -> rnf x `seq` x)
 
-parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m ItemEx
+parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Target, Item)
 parserC warning file = f [] ""
     where
         glenum x = IDecl $ TypeSig (SrcLoc "<unknown>.hs" 1 1) [Ident x] (TyCon (UnQual (Ident "GLenum")))
@@ -57,7 +57,7 @@ parserC warning file = f [] ""
                   | strNull $ strTrimStart s -> f [] ""
                   | Just s <- strStripSuffix " :: GLenum" s -> do
                         -- there are 38K instances of :: GLenum in the OpenGLRaw package, so speed them up (saves 16s + 100Mb)
-                        yield $ ItemEx (glenum $ strUnpack s) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
+                        yield (Target url Nothing Nothing $ reformat $ reverse $ map strUnpack com, glenum $ strUnpack s)
                         f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
@@ -67,7 +67,7 @@ parserC warning file = f [] ""
                             Right xs -> forM_ xs $ \x ->
                                 if isNothing $ readItem $ showItem x
                                 then lift $ warning $ file ++ ":" ++ show i ++ ":failed to roundtrip: " ++ fixLine (strUnpack s)
-                                else yield $ ItemEx (descendBi stringShare x) url Nothing Nothing (reformat $ reverse $ map strUnpack com)
+                                else yield (Target url Nothing Nothing $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
                         f [] ""
 
 
@@ -76,30 +76,21 @@ reformat = unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy 
           f xs = ["<p>",unwords xs,"</p>"]
 
 
-hierarchyC :: Monad m => String -> Conduit ItemEx m ItemEx
-hierarchyC hackage = mapC packages =$= with (isIPackage . itemItem) =$= mapC modules =$= with (isIModule . itemItem) =$= mapC other
+hierarchyC :: Monad m => String -> Conduit (Target, Item) m (Target, Item)
+hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
     where
-        with :: Monad m => (b -> Bool) -> Conduit b m (Maybe b, b)
-        with p = void $ mapAccumC f Nothing
-            where f s x = let s2 = if p x then Just x else s in (s2,(s2,x))
+        f (pkg, mod) (t, IPackage x) = ((Just (x, url), Nothing), (t{targetURL=url}, IPackage x))
+            where url = targetURL t `orIfNull` hackage ++ "package/" ++ x
+        f (pkg, mod) (t, IModule x) = ((pkg, Just (x, url)), (t{targetPackage=pkg, targetURL=url}, IModule x))
+            where url = targetURL t `orIfNull` maybe "" snd pkg ++ "/docs/" ++ replace "." "-" x ++ ".html" 
+        f (pkg, mod) (t, IDecl x) = ((pkg, mod), (t{targetPackage=pkg, targetModule=mod, targetURL=url}, IDecl x))
+            where url = targetURL t `orIfNull` maybe "" snd mod ++ "#" ++ declURL x
 
-        packages i@ItemEx{itemItem=IPackage x, itemURL=""} = i{itemURL = hackage ++ "package/" ++ x}
-        packages i = i
+        orIfNull x y = if null x then y else x
 
-        modules (Just ItemEx{itemItem=IPackage pname, itemURL=purl}, i@ItemEx{itemItem=IModule x}) = i
-            {itemURL = if null $ itemURL i then purl ++ "/docs/" ++ replace "." "-" x ++ ".html" else itemURL i
-            ,itemPackage = Just (pname, purl)}
-        modules (_, i) = i
-
-        other (Just ItemEx{itemItem=IModule mname, itemURL=murl, itemPackage=pkg}, i@ItemEx{itemItem=IDecl x}) = i
-            {itemURL = if null $ itemURL i then murl ++ "#" ++ url x else itemURL i
-            ,itemPackage = pkg
-            ,itemModule = Just (mname, murl)}
-        other (_, i) = i
-
-        url (TypeSig _ [name] _) = "v:" ++ esc (fromName name)
-        url x | [x] <- declNames x = "t:" ++ esc x
-        url x = ""
+        declURL (TypeSig _ [name] _) = "v:" ++ esc (fromName name)
+        declURL x | [x] <- declNames x = "t:" ++ esc x
+        declURL x = ""
 
         esc = concatMap f
             where

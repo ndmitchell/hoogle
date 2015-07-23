@@ -27,7 +27,7 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ do
     putStrLn ""
     when deep $ withSearch database $ \store -> do
         putStrLn "Deep tests"
-        let xs = map itemItem $ listItems store
+        let xs = map snd $ listItems store
         evaluate $ rnf xs
         putStrLn $ "Loaded " ++ show (length xs) ++ " items"
 

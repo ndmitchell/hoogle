@@ -17,19 +17,19 @@ import General.Store
 import General.Conduit
 
 
-outputItem :: (Id, ItemEx) -> [String]
-outputItem (i, ItemEx{..}) =
-    [show i ++ " " ++ showItem itemItem
-    ,if null itemURL then "." else itemURL
-    ,maybe "." (joinPair " ") itemPackage
-    ,maybe "." (joinPair " ") itemModule] ++
-    replace [""] ["."] (lines itemDocs)
+outputItem :: (Id, (Target, Item)) -> [String]
+outputItem (i, (Target{..}, item)) =
+    [show i ++ " " ++ showItem item
+    ,if null targetURL then "." else targetURL
+    ,maybe "." (joinPair " ") targetPackage
+    ,maybe "." (joinPair " ") targetModule] ++
+    replace [""] ["."] (lines targetDocs)
 
-inputItem :: [String] -> (Id, ItemEx)
-inputItem ((word1 -> (i,name)):url:pkg:modu:docs) = (,) (read i) $ ItemEx
-    (fromMaybe (error $ "Failed to reparse: " ++ name) $ readItem name)
-    (if url == "." then "" else url)
-    (f pkg) (f modu) (unlines docs)
+inputItem :: [String] -> (Id, (Target, Item))
+inputItem ((word1 -> (i,name)):url:pkg:modu:docs) =
+    (read i
+    ,(Target (if url == "." then "" else url) (f pkg) (f modu) (unlines docs)
+     ,fromMaybe (error $ "Failed to reparse: " ++ name) $ readItem name))
     where
         f "." = Nothing
         f x = Just (word1 x)
@@ -38,23 +38,23 @@ data Items = Items deriving Typeable
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: StoreWrite -> (Conduit ItemEx IO (Maybe Id, Item) -> IO a) -> IO a
+writeItems :: StoreWrite -> (Conduit (Target, Item) IO (Maybe Id, Item) -> IO a) -> IO a
 writeItems store act = do
     pos <- newIORef 0
     storeWriteType store Items $ storeWriteParts store $ act $
-        awaitForever $ \item@ItemEx{..} -> case itemItem of
-            IDecl InstDecl{} -> yield (Nothing, itemItem)
+        awaitForever $ \(target, item) -> case item of
+            IDecl InstDecl{} -> yield (Nothing, item)
             _ -> do
                 i <- liftIO $ readIORef pos
-                let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, item)
+                let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, (target, item))
                 liftIO $ do
                     storeWriteBS store $ intToBS $ BS.length bs
                     storeWriteBS store bs
                     writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
-                yield (Just $ Id i, itemItem)
+                yield (Just $ Id i, item)
 
 
-listItems :: StoreRead -> [ItemEx]
+listItems :: StoreRead -> [(Target, Item)]
 listItems store = unfoldr f $ storeReadBS $ storeReadType Items store
     where
         f x | BS.null x = Nothing
@@ -64,7 +64,7 @@ listItems store = unfoldr f $ storeReadBS $ storeReadType Items store
             = Just (snd $ inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks [this], x)
 
 
-lookupItem :: StoreRead -> (Id -> ItemEx)
+lookupItem :: StoreRead -> (Id -> (Target, Item))
 lookupItem store =
     let x = storeReadBS $ storeReadType Items store
     in \(Id i) ->

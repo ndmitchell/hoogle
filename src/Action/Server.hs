@@ -74,7 +74,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = concatMap parseQuery qSource
         let results = search store q
-        let body = showResults inputArgs q $ dedupeTake 25 (\i -> i{itemURL="",itemPackage=Nothing, itemModule=Nothing}) results
+        let body = showResults inputArgs q $ dedupeTake 25 (\(t,i) -> (t{targetURL="",targetPackage=Nothing, targetModule=Nothing},i)) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions $ grab "scope")
@@ -128,7 +128,7 @@ dedupeTake n key = f [] Map.empty
             where k = key x 
 
 
-showResults :: [(String, String)] -> [Query] -> [[ItemEx]] -> String
+showResults :: [(String, String)] -> [Query] -> [[(Target, Item)]] -> String
 showResults args query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"
     ,"<ul id=left>"
@@ -137,11 +137,11 @@ showResults args query results = unlines $
     ["</ul>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
-     "<div class=ans><a href=\"" ++ itemURL ++ "\">" ++ displayItem query itemItem ++ "</a></div>" ++
+     "<div class=ans><a href=\"" ++ targetURL ++ "\">" ++ displayItem query item ++ "</a></div>" ++
      "<div class=from>" ++ showFroms is  ++ "</div>" ++
-     "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords $ lines itemDocs) ++ "</div>" ++
+     "<div class=\"doc newline shut\">" ++ trimStart (replace "<p>" "" $ replace "</p>" "\n" $ unwords $ lines targetDocs) ++ "</div>" ++
      "</div>"
-    | is@(ItemEx{..}:_) <- results]
+    | is@((Target{..}, item):_) <- results]
     where
         add x = escapeHTML $ ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
@@ -153,19 +153,19 @@ showResults args query results = unlines $
                     (if cat == "package" then "" else cat ++ ":") ++ val ++ "</a>"
 
 
-itemCategories :: [ItemEx] -> [(String,String)]
+itemCategories :: [(Target, Item)] -> [(String,String)]
 itemCategories xs =
     [("is","exact")] ++
-    [("is","package") | any (isIPackage . itemItem) xs] ++ [("is","module") | any (isIModule . itemItem) xs] ++
-    nubOrd [("package",p) | Just (p,_) <- map itemPackage xs]
+    [("is","package") | any (isIPackage . snd) xs] ++ [("is","module") | any (isIModule . snd) xs] ++
+    nubOrd [("package",p) | Just (p,_) <- map (targetPackage . fst) xs]
 
-showFroms :: [ItemEx] -> String
+showFroms :: [(Target, Item)] -> String
 showFroms xs = intercalate ", " $ for pkgs $ \p ->
-    let ms = filter ((==) p . itemPackage) xs
+    let ms = filter ((==) p . targetPackage . fst) xs
     in unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
     where
-        remod ItemEx{..} = do (a,_) <- itemModule; return (a,itemURL)
-        pkgs = nubOrd $ map itemPackage xs
+        remod (Target{..}, _) = do (a,_) <- targetModule; return (a,targetURL)
+        pkgs = nubOrd $ map (targetPackage . fst) xs
 
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)

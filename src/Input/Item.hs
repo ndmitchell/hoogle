@@ -2,7 +2,7 @@
 
 -- | Types used to generate the input.
 module Input.Item(
-    ItemEx(..), Item(..),
+    Target(..), Item(..),
     showItem, prettyItem, readItem,
     isIPackage, isIModule, splitIPackage, splitIModule,
     URL,
@@ -36,16 +36,15 @@ instance Show Id where
 instance Read Id where
     readsPrec _ = map (first Id) . readHex
 
-data ItemEx = ItemEx
-    {itemItem :: Item
-    ,itemURL :: URL
-    ,itemPackage :: Maybe (String, URL)
-    ,itemModule :: Maybe (String, URL)
-    ,itemDocs :: String
+data Target = Target
+    {targetURL :: URL
+    ,targetPackage :: Maybe (String, URL)
+    ,targetModule :: Maybe (String, URL)
+    ,targetDocs :: String
     } deriving (Show,Eq,Ord)
 
-instance NFData ItemEx where
-    rnf (ItemEx a b c d e) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e
+instance NFData Target where
+    rnf (Target a b c d) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d
 
 data Item
     = IDecl {fromIDecl :: Decl}

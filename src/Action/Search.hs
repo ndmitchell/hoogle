@@ -29,7 +29,7 @@ actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} =
     withSearch database $ \store -> do
         res <- return $ search store $ parseQuery $ unwords query
-        let (shown, hidden) = splitAt count $ nubOrd $ map (prettyItem . itemItem) res
+        let (shown, hidden) = splitAt count $ nubOrd $ map (prettyItem . snd) res
         putStr $ unlines shown
         when (hidden /= []) $ do
             putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
@@ -43,7 +43,7 @@ withSearch database act = do
     storeReadFile database act
 
 
-search :: StoreRead -> [Query] -> [ItemEx]
+search :: StoreRead -> [Query] -> [(Target, Item)]
 search store qs = runIdentity $ do
     let tags = readTags store
     let exact = QueryScope True "is" "exact" `elem` qs
@@ -63,7 +63,7 @@ action_search_test database = testing "Action.Search.search" $ withSearch databa
     let a ==$ f = do
             res <- return $ search store (parseQuery a)
             case res of
-                ItemEx{..}:_ | f itemURL -> putChar '.'
+                (Target{..},_):_ | f targetURL -> putChar '.'
                 _ -> error $ show (a, take 1 res)
     let a === b = a ==$ (== b)
     let hackage x = "https://hackage.haskell.org/package/" ++ x

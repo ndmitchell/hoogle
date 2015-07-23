@@ -129,13 +129,13 @@ generate database debug args = do
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
-            let consume :: Conduit (Int, (String, LStr)) IO ItemEx
+            let consume :: Conduit (Int, (String, LStr)) IO (Target, Item)
                 consume = awaitForever $ \(i, (pkg, body)) -> do
                     timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle warning pkg body
 
             writeItems store $ \items -> do
-                let packages = [ ItemEx (IPackage name) ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis)
+                let packages = [ (Target ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing ("Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis), IPackage name)
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
