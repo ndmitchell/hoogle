@@ -189,19 +189,20 @@ displayItem qs = highlightItem qs
 
 
 action_server_test :: IO ()
-action_server_test = testing "Action.Server.displayItem" $ do
-    let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<0>" "" . replace "</0>" ""
-        contract = replace "{" "" . replace "}" ""
-    let q === s | displayItem (parseQuery q) (contract s) == expand s = putChar '.'
-                | otherwise = error $ show (q,s,displayItem (parseQuery q) (contract s))
-    "test" === "<0>my{Test}</0> :: Int -&gt; test"
-    "new west" === "<0>{newest}_{new}</0> :: Int"
-    "+*" === "(<0>{+*}&amp;</0>) :: Int"
-    "+<" === "(<0>&gt;{+&lt;}</0>) :: Int"
-    "foo" === "<i>data</i> <0>{Foo}d</0>"
-    "foo" === "<i>module</i> Foo.Bar.<0>F{Foo}</0>"
-    "foo" === "<i>module</i> <0>{Foo}o</0>"
 
+action_server_test = do
+    testing "Action.Server.displayItem" $ do
+        let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<0>" "" . replace "</0>" ""
+            contract = replace "{" "" . replace "}" ""
+        let q === s | displayItem (parseQuery q) (contract s) == expand s = putChar '.'
+                    | otherwise = error $ show (q,s,displayItem (parseQuery q) (contract s))
+        "test" === "<0>my{Test}</0> :: Int -&gt; test"
+        "new west" === "<0>{newest}_{new}</0> :: Int"
+        "+*" === "(<0>{+*}&amp;</0>) :: Int"
+        "+<" === "(<0>&gt;{+&lt;}</0>) :: Int"
+        "foo" === "<i>data</i> <0>{Foo}d</0>"
+        "foo" === "<i>module</i> Foo.Bar.<0>F{Foo}</0>"
+        "foo" === "<i>module</i> <0>{Foo}o</0>"
 
 -------------------------------------------------------------
 -- ANALYSE THE LOG
