@@ -7,6 +7,7 @@ module General.IString(
 
 import Data.Data
 import Data.IORef
+import Data.String
 import qualified Data.Map as Map
 import System.IO.Unsafe
 
@@ -24,7 +25,7 @@ instance Ord IString where
 
 instance Show IString where show = fromIString
 instance Read IString where readsPrec _ x = [(toIString x,"")]
-
+instance IsString IString where fromString = toIString
 
 {-# NOINLINE istrings #-}
 istrings :: IORef (Map.Map String IString)
