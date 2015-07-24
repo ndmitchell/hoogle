@@ -2,7 +2,7 @@
 
 -- | Types used to generate the input.
 module Input.Item(
-    Target(..), Item(..),
+    Target(..), Item(..), Sig(..), Ctx(..), Ty(..),
     isIPackage, isIModule, splitIPackage, splitIModule,
     URL,
     Id(..)
@@ -43,6 +43,12 @@ data Target = Target
 
 instance NFData Target where
     rnf (Target a b c d e f) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e `seq` rnf f
+
+
+-- FIXME: Delete the Read instances
+data Sig n = Sig [Ctx n] [Ty n] deriving (Show,Eq,Ord,Typeable,Data,Read) -- list of -> types
+data Ctx n = Ctx n n deriving (Show,Eq,Ord,Typeable,Data,Read) -- context, second will usually be a free variable
+data Ty n = Ty n [Ty n] deriving (Show,Eq,Ord,Typeable,Data,Read) -- type application, vectorised, all symbols may occur at multiple kinds
 
 data Item
     = IDecl {fromIDecl :: Decl}
