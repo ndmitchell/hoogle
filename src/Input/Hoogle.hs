@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types #-}
 
-module Input.Hoogle(parseHoogle, renderItem, input_hoogle_test) where
+module Input.Hoogle(parseHoogle, fakePackage, input_hoogle_test) where
 
 import Language.Haskell.Exts as HSE
 import Data.Char
@@ -37,6 +37,8 @@ stringShare x = unsafePerformIO $ do
             writeIORef' strings $ Map.insert x x mp
             return x
 
+fakePackage :: String -> String -> (Target, Item)
+fakePackage name desc = (Target (hackage ++ "package/" ++ name) Nothing Nothing "package" (renderItem $ IPackage name) desc, IPackage name)
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m (Target, Item)
