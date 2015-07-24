@@ -92,6 +92,8 @@ action_search_test database = testing "Action.Search.search" $ withSearch databa
     "supero" === hackage "supero"
     "set:stackage" === hackage "base"
     "author:Neil-Mitchell" === hackage "filepath"
+    -- FIXME: "author:Neil-M" === hackage "filepath"
+    -- FIXME: "Data.Se.insert" === hackage "containers/docs/Data-Set.html#v:insert"
     "set:-haskell-platform author:Neil-Mitchell" === hackage "cmdargs"
     "author:Neil-Mitchell category:Development" === hackage "derive"
     "( )" ==$ flip seq True -- used to segfault
