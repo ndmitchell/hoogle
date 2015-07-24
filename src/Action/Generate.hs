@@ -13,6 +13,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Control.Monad.Extra
+import System.Console.CmdArgs.Verbosity
 import Prelude
 
 import Output.Items
@@ -163,5 +164,13 @@ generate database debug args = do
 
         whenM getGCStatsEnabled $ do
             performGC
-            print =<< getGCStats
+            stats@GCStats{..} <- getGCStats
+            x <- getVerbosity
+            if x >= Loud then
+                print stats
+             else if x >= Normal then
+                putStrLn $ "Required " ++ show peakMegabytesAllocated ++ "Mb, " ++ show (currentBytesUsed `div` 1024) ++ "Mb currently used"
+             else
+                return ()
+
             void $ evaluate xs
