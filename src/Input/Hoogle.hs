@@ -38,7 +38,7 @@ stringShare x = unsafePerformIO $ do
             return x
 
 fakePackage :: String -> String -> (Target, Item)
-fakePackage name desc = (Target (hackage ++ "package/" ++ name) Nothing Nothing "package" (renderItem $ IPackage name) desc, IPackage name)
+fakePackage name desc = (Target (hackage ++ "package/" ++ name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m (Target, Item)
