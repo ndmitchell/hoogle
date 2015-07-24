@@ -165,8 +165,6 @@ fixLine x = x
 
 
 readItem :: String -> Maybe Item
-readItem (stripPrefix "@keyword " -> Just x) = Just $ IKeyword x
-readItem (stripPrefix "@package " -> Just x) = Just $ IPackage x
 readItem (stripPrefix "module " -> Just x) = Just $ IModule x
 readItem x | ParseOk y <- myParseDecl x = Just $ IDecl $ unGADT y
 readItem x -- newtype
