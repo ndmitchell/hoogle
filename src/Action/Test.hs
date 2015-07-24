@@ -8,6 +8,7 @@ import Action.Search
 import Action.Server
 import General.Util
 import Input.Item
+import Input.Hoogle
 import System.IO.Extra
 
 import Control.Monad
@@ -20,7 +21,7 @@ actionTest :: CmdLine -> IO ()
 actionTest Test{..} = withBuffering stdout NoBuffering $ do
     putStrLn "Quick tests"
     general_util_test
-    input_item_test
+    input_hoogle_test
     query_test
     action_search_test database
     action_server_test database
@@ -30,4 +31,3 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ do
         let xs = map targetItem $ listItems store
         evaluate $ rnf xs
         putStrLn $ "Loaded " ++ show (length xs) ++ " items"
-

@@ -3,18 +3,14 @@
 -- | Types used to generate the input.
 module Input.Item(
     Target(..), Item(..),
-    showItem, prettyItem, readItem,
     isIPackage, isIModule, splitIPackage, splitIModule,
     URL,
-    Id(..),
-    input_item_test
+    Id(..)
     ) where
 
 import Numeric
 import Data.Tuple.Extra
 import Language.Haskell.Exts
-import Data.List
-import General.Util
 import Data.List.Extra
 import Data.Maybe
 import Data.Ix
@@ -72,70 +68,3 @@ splitUsing :: (a -> Maybe String) -> [a] -> [(String, [a])]
 splitUsing f = repeatedly $ \(x:xs) ->
     let (a,b) = break (isJust . f) xs
     in ((fromMaybe "" $ f x, x:a), b)
-
-
----------------------------------------------------------------------
--- ITEM AS STRING
-
-showItem :: Item -> String
-showItem (IKeyword x) = "@keyword " ++ x
-showItem (IPackage x) = "@package " ++ x
-showItem (IModule x) = "module " ++ x
-showItem (IDecl x) = pretty x
-
-prettyItem :: Item -> String
-prettyItem (IKeyword x) = "keyword " ++ x
-prettyItem (IPackage x) = "package " ++ x
-prettyItem x = showItem x
-
-readItem :: String -> Maybe Item
-readItem (stripPrefix "@keyword " -> Just x) = Just $ IKeyword x
-readItem (stripPrefix "@package " -> Just x) = Just $ IPackage x
-readItem (stripPrefix "module " -> Just x) = Just $ IModule x
-readItem x | ParseOk y <- myParseDecl x = Just $ IDecl $ unGADT y
-readItem x -- newtype
-    | Just x <- stripPrefix "newtype " x
-    , ParseOk (DataDecl a _ c d e f g) <- fmap unGADT $ myParseDecl $ "data " ++ x
-    = Just $ IDecl $ DataDecl a NewType c d e f g
-readItem x -- constructors
-    | ParseOk (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) <- myParseDecl $ "data Data where " ++ x
-    = Just $ IDecl $ TypeSig s [name] ty
-readItem ('(':xs) -- tuple constructors
-    | (com,')':rest) <- span (== ',') xs
-    , ParseOk (TypeSig s [Ident _] ty) <- myParseDecl $ replicate (length com + 2) 'a' ++ rest
-    = Just $ IDecl $ TypeSig s [Ident $ '(':com++")"] ty
-readItem (stripPrefix "data (" -> Just xs)  -- tuple data type
-    | (com,')':rest) <- span (== ',') xs
-    , ParseOk (DataDecl a b c _ e f g) <- fmap unGADT $ myParseDecl $
-        "data " ++ replicate (length com + 2) 'A' ++ rest
-    = Just $ IDecl $ DataDecl a b c (Ident $ '(':com++")") e f g
-readItem _ = Nothing
-
-myParseDecl = parseDeclWithMode parseMode -- partial application, to share the initialisation cost
-
-unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
-unGADT x = x
-
-
-input_item_test :: IO ()
-input_item_test = testing "Input.Type.readItem" $ do
-    let a === b | fmap prettyItem (readItem a) == Just b = putChar '.'
-                | otherwise = error $ show (a,b,readItem a, fmap prettyItem $ readItem a)
-    let test a = a === a
-    test "type FilePath = [Char]"
-    test "data Maybe a"
-    test "Nothing :: Maybe a"
-    test "Just :: a -> Maybe a"
-    test "newtype Identity a"
-    test "foo :: Int# -> b"
-    test "(,,) :: a -> b -> c -> (a, b, c)"
-    test "data (,,) a b"
-    test "reverse :: [a] -> [a]"
-    test "reverse :: [:a:] -> [:a:]"
-    test "module Foo.Bar"
-    test "data Char"
-    "data Char :: *" === "data Char"
-    "newtype ModuleName :: *" === "newtype ModuleName"
-    -- Broken in the last HSE release, fixed in HSE HEAD
-    -- test "quotRemInt# :: Int# -> Int# -> (# Int#, Int# #)"
-    test "( # ) :: Int"
