@@ -51,10 +51,10 @@ data Ctx n = Ctx n n deriving (Show,Eq,Ord,Typeable,Data,Read) -- context, secon
 data Ty n = Ty n [Ty n] deriving (Show,Eq,Ord,Typeable,Data,Read) -- type application, vectorised, all symbols may occur at multiple kinds
 
 data Item
-    = IDecl {fromIDecl :: Decl}
-    | IKeyword {fromIKeyword :: String}
-    | IPackage {fromIPackage :: String}
-    | IModule {fromIModule :: String}
+    = IDecl Decl
+    | IKeyword String
+    | IPackage String
+    | IModule String
       deriving (Show,Eq,Ord,Typeable,Data)
 
 instance NFData Item where
