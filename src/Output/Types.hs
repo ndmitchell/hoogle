@@ -74,15 +74,15 @@ createRarity :: [Item] -> Map.Map String Int
 createRarity xs = Map.fromListWith (+) $ concat [map (,1) $ nubOrd $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
 
 
-createRewrite :: [Item] -> [(String, (Int, Sig))] -- (arity, type)
-createRewrite = mapMaybe $ \x -> case x of
+createRewrite :: [Item] -> [(String, (Int, String))] -- (arity, type)
+createRewrite _ = [] {- = mapMaybe $ \x -> case x of
     IDecl (TypeDecl _ name (map fromTyVarBind -> bind) exp) -> Just (fromName name, (length bind, toSig $ transformBi f exp))
         where f x = maybe x (Ident . show) $ elemIndex x bind
     IDecl (InstDecl _ _ _ ctxt name [ty] _) -> Nothing -- FIXME! Should reduce here
-    _ -> Nothing
+    _ -> Nothing -}
 
 
-encodeSig :: Map.Map String Word16 -> Sig -> [Word16]
+encodeSig :: Map.Map String Word16 -> String -> [Word16]
 encodeSig = undefined
 
 
@@ -285,6 +285,7 @@ data Term = Con String
 ---------------------------------------------------------------------
 -- SIMPLIFIED TYPES
 
+{-
 data Sig = Sig [Ctx] [Ty] -- list of -> types
 data Ctx = Ctx String String -- context, second will usually be a free variable
 data Ty = Ty String [Ty] -- type application, vectorised, all symbols may occur at multiple kinds
@@ -321,3 +322,4 @@ toCtx = mapMaybe f
         f (ParenA x) = f x
         f (ClassA con [TyVar var]) = Just $ Ctx (fromQName con) (fromName var)
         f _ = Nothing
+-}
