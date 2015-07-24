@@ -109,6 +109,10 @@ hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
                 isLegal '.' = True
                 isLegal c = isAscii c && isAlphaNum c
 
+renderPackage x = "package <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
+renderModule (breakEnd (== '.') -> (pre,post)) = "module " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
+renderKeyword x = "keyword <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
+
 
 renderItem :: Item -> String
 renderItem = keyword . focus
@@ -119,10 +123,9 @@ renderItem = keyword . focus
 
         name x = "<span class=name>" ++ x ++ "</span>" :: String
 
-        focus (IModule (breakEnd (== '.') -> (pre,post))) =
-            "<b>module</b> " ++ escapeHTML pre ++ name (highlight post)
-        focus (IPackage x) = "<b>package</b> " ++ name (highlight x)
-        focus (IKeyword x) = "<b>keyword</b> " ++ name (highlight x)
+        focus (IModule x) = renderModule x
+        focus (IPackage x) = renderPackage x
+        focus (IKeyword x) = renderKeyword x
         focus (IDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
             if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
                 init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tail post)
