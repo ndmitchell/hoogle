@@ -200,9 +200,9 @@ prettyItem (IDecl x) = pretty x
 
 
 input_hoogle_test :: IO ()
-input_hoogle_test = testing "Input.Hoogle.readItem" $ do
-    let a === b | fmap prettyItem (readItem a) == Just b = putChar '.'
-                | otherwise = error $ show (a,b,readItem a, fmap prettyItem $ readItem a)
+input_hoogle_test = testing "Input.Hoogle.parseLine" $ do
+    let a === b | fmap (map prettyItem) (parseLine a) == Right [b] = putChar '.'
+                | otherwise = error $ show (a,b,parseLine a, fmap (map prettyItem) $ parseLine a)
     let test a = a === a
     test "type FilePath = [Char]"
     test "data Maybe a"
