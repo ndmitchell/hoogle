@@ -144,6 +144,7 @@ parseLine x@('@':str) = case a of
         "version" -> Right []
         _ -> Left $ "unknown attribute: " ++ x
     where (a,b) = word1 str
+parseLine (stripPrefix "module " -> Just x) = Right [IModule x]
 parseLine x | Just x <- readItem x = case x of
     IDecl (TypeSig a bs c) -> Right [IDecl (TypeSig a [b] c) | b <- bs]
     x -> Right [x]
@@ -165,7 +166,6 @@ fixLine x = x
 
 
 readItem :: String -> Maybe Item
-readItem (stripPrefix "module " -> Just x) = Just $ IModule x
 readItem x | ParseOk y <- myParseDecl x = Just $ IDecl $ unGADT y
 readItem x -- newtype
     | Just x <- stripPrefix "newtype " x
