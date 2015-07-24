@@ -187,16 +187,11 @@ myParseDecl = parseDeclWithMode parseMode -- partial application, to share the i
 unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
 unGADT x = x
 
-showItem :: Item -> String
-showItem (IKeyword x) = "@keyword " ++ x
-showItem (IPackage x) = "@package " ++ x
-showItem (IModule x) = "module " ++ x
-showItem (IDecl x) = pretty x
-
 prettyItem :: Item -> String
 prettyItem (IKeyword x) = "keyword " ++ x
 prettyItem (IPackage x) = "package " ++ x
-prettyItem x = showItem x
+prettyItem (IModule x) = "module " ++ x
+prettyItem (IDecl x) = pretty x
 
 
 input_hoogle_test :: IO ()
