@@ -38,7 +38,6 @@ writeNames store xs = do
         storeWriteBS store b
 
 toName :: Item -> [String]
-toName (IKeyword x) = [x]
 toName (IPackage x) = [x]
 toName (IModule x) = [last $ splitOn "." x]
 toName (IDecl x) = declNames x

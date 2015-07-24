@@ -20,7 +20,6 @@ reorderItems packageOrder xs = do
 
 itemName :: Item -> String
 itemName (IDecl x) = head $ declNames x ++ [""]
-itemName (IKeyword x) = x
 itemName (IPackage x) = x
 itemName (IModule x) = x
 

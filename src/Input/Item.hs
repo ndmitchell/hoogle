@@ -52,14 +52,12 @@ data Ty n = Ty n [Ty n] deriving (Show,Eq,Ord,Typeable,Data,Read) -- type applic
 
 data Item
     = IDecl Decl
-    | IKeyword String
     | IPackage String
     | IModule String
       deriving (Show,Eq,Ord,Typeable,Data)
 
 instance NFData Item where
     rnf (IDecl x) = rnf $ show x
-    rnf (IKeyword x) = rnf x
     rnf (IPackage x) = rnf x
     rnf (IModule x) = rnf x
 

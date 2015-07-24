@@ -111,7 +111,6 @@ hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
 
 renderPackage x = "package <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
 renderModule (breakEnd (== '.') -> (pre,post)) = "module " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
-renderKeyword x = "keyword <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
 
 
 renderItem :: Item -> String
@@ -125,7 +124,6 @@ renderItem = keyword . focus
 
         focus (IModule x) = renderModule x
         focus (IPackage x) = renderPackage x
-        focus (IKeyword x) = renderKeyword x
         focus (IDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
             if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
                 init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tail post)
@@ -139,7 +137,6 @@ renderItem = keyword . focus
 
 parseLine :: String -> Either String [Item]
 parseLine x@('@':str) = case a of
-        "keyword" | b <- words b, b /= [] -> Right [IKeyword $ unwords b]
         "package" | [b] <- words b, b /= "" -> Right [IPackage b]
         "version" -> Right []
         _ -> Left $ "unknown attribute: " ++ x
@@ -191,7 +188,6 @@ unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
 unGADT x = x
 
 prettyItem :: Item -> String
-prettyItem (IKeyword x) = "keyword " ++ x
 prettyItem (IPackage x) = "package " ++ x
 prettyItem (IModule x) = "module " ++ x
 prettyItem (IDecl x) = pretty x
