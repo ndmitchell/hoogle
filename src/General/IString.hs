@@ -1,15 +1,18 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 -- | Interned strings
 module General.IString(
     IString, fromIString, toIString
     ) where
 
+import Data.Data
 import Data.IORef
 import qualified Data.Map as Map
 import System.IO.Unsafe
 
 
 data IString = IString {-# UNPACK #-} !Int !String
+    deriving (Data,Typeable)
 
 instance Eq IString where
     IString x _ == IString y _ = x == y
