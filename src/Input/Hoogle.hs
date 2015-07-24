@@ -1,10 +1,11 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types, DeriveDataTypeable #-}
 
 module Input.Hoogle(parseHoogle, fakePackage, input_hoogle_test) where
 
 import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
+import Data.Data
 import Input.Item
 import General.Util
 import Control.DeepSeq
@@ -19,6 +20,12 @@ import General.Str
 
 
 hackage = "https://hackage.haskell.org/"
+
+-- | An entry in the Hoogle DB
+data Entry = EPackage String
+           | EModule String
+           | EDecl Decl
+             deriving (Data,Typeable,Show)
 
 
 {-# NOINLINE strings #-}
@@ -44,10 +51,10 @@ fakePackage name desc = (Target (hackage ++ "package/" ++ name) Nothing Nothing 
 parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m (Target, Item)
 parseHoogle warning file body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning file =$= hierarchyC hackage =$= mapC (\x -> rnf x `seq` x)
 
-parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Target, Item)
+parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Target, Entry)
 parserC warning file = f [] ""
     where
-        glenum x = IDecl $ TypeSig (SrcLoc "<unknown>.hs" 1 1) [Ident x] (TyCon (UnQual (Ident "GLenum")))
+        glenum x = EDecl $ TypeSig (SrcLoc "<unknown>.hs" 1 1) [Ident x] (TyCon (UnQual (Ident "GLenum")))
 
         f com url = do
             x <- await
@@ -69,8 +76,8 @@ parserC warning file = f [] ""
                                 yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
                         f [] ""
 
-typeItem (IPackage x) = "package"
-typeItem (IModule x) = "module"
+typeItem (EPackage x) = "package"
+typeItem (EModule x) = "module"
 typeItem _ = ""
 
 
@@ -81,14 +88,14 @@ reformat = trimStart . replace "<p>" "" . replace "</p>" "\n" . unwords . lines 
           f xs = ["<p>",unwords xs,"</p>"]
 
 
-hierarchyC :: Monad m => String -> Conduit (Target, Item) m (Target, Item)
+hierarchyC :: Monad m => String -> Conduit (Target, Entry) m (Target, Item)
 hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
     where
-        f (pkg, mod) (t, IPackage x) = ((Just (x, url), Nothing), (t{targetURL=url}, IPackage x))
+        f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (t{targetURL=url}, IPackage x))
             where url = targetURL t `orIfNull` hackage ++ "package/" ++ x
-        f (pkg, mod) (t, IModule x) = ((pkg, Just (x, url)), (t{targetPackage=pkg, targetURL=url}, IModule x))
+        f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (t{targetPackage=pkg, targetURL=url}, IModule x))
             where url = targetURL t `orIfNull` maybe "" snd pkg ++ "/docs/" ++ replace "." "-" x ++ ".html" 
-        f (pkg, mod) (t, IDecl x) = ((pkg, mod), (t{targetPackage=pkg, targetModule=mod, targetURL=url}, IDecl x))
+        f (pkg, mod) (t, EDecl x) = ((pkg, mod), (t{targetPackage=pkg, targetModule=mod, targetURL=url}, IDecl x))
             where url = targetURL t `orIfNull` maybe "" snd mod ++ "#" ++ declURL x
 
         orIfNull x y = if null x then y else x
@@ -113,7 +120,7 @@ renderPackage x = "package <span class=name><0>" ++ escapeHTML x ++ "</0></span>
 renderModule (breakEnd (== '.') -> (pre,post)) = "module " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
 
 
-renderItem :: Item -> String
+renderItem :: Entry -> String
 renderItem = keyword . focus
     where
         keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ dropWhile (== '@') a ++ "</b> " ++ b
@@ -122,29 +129,29 @@ renderItem = keyword . focus
 
         name x = "<span class=name>" ++ x ++ "</span>" :: String
 
-        focus (IModule x) = renderModule x
-        focus (IPackage x) = renderPackage x
-        focus (IDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
+        focus (EModule x) = renderModule x
+        focus (EPackage x) = renderPackage x
+        focus (EDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
             if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
                 init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tail post)
             else
                 escapeHTML pre ++ name (highlight now) ++ escapeHTML post
-        focus (IDecl x) = pretty x
+        focus (EDecl x) = pretty x
 
         highlight :: String -> String
         highlight x = "<0>" ++ escapeHTML x ++ "</0>"
 
 
-parseLine :: String -> Either String [Item]
+parseLine :: String -> Either String [Entry]
 parseLine x@('@':str) = case a of
-        "package" | [b] <- words b, b /= "" -> Right [IPackage b]
+        "package" | [b] <- words b, b /= "" -> Right [EPackage b]
         "version" -> Right []
         _ -> Left $ "unknown attribute: " ++ x
     where (a,b) = word1 str
-parseLine (stripPrefix "module " -> Just x) = Right [IModule x]
+parseLine (stripPrefix "module " -> Just x) = Right [EModule x]
 parseLine x | Just x <- readItem x = case x of
-    TypeSig a bs c -> Right [IDecl (TypeSig a [b] c) | b <- bs]
-    x -> Right [IDecl x]
+    TypeSig a bs c -> Right [EDecl (TypeSig a [b] c) | b <- bs]
+    x -> Right [EDecl x]
 parseLine x = Left $ "failed to parse: " ++ x
 
 
@@ -187,10 +194,10 @@ myParseDecl = parseDeclWithMode parseMode -- partial application, to share the i
 unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
 unGADT x = x
 
-prettyItem :: Item -> String
-prettyItem (IPackage x) = "package " ++ x
-prettyItem (IModule x) = "module " ++ x
-prettyItem (IDecl x) = pretty x
+prettyItem :: Entry -> String
+prettyItem (EPackage x) = "package " ++ x
+prettyItem (EModule x) = "module " ++ x
+prettyItem (EDecl x) = pretty x
 
 
 input_hoogle_test :: IO ()
