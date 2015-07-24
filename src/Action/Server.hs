@@ -188,9 +188,8 @@ displayItem :: [Query] -> String -> String
 displayItem qs = highlightItem qs
 
 
-action_server_test :: IO ()
-
-action_server_test = do
+action_server_test :: FilePath -> IO ()
+action_server_test database = do
     testing "Action.Server.displayItem" $ do
         let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<0>" "" . replace "</0>" ""
             contract = replace "{" "" . replace "}" ""
@@ -203,6 +202,14 @@ action_server_test = do
         "foo" === "<i>data</i> <0>{Foo}d</0>"
         "foo" === "<i>module</i> Foo.Bar.<0>F{Foo}</0>"
         "foo" === "<i>module</i> <0>{Foo}o</0>"
+
+    testing "Action.Server.replyServer" $ withSearch database $ \store -> do
+        log <- logNone
+        let q === want = do
+                OutputString (lstrUnpack -> res) <- replyServer log store "" (Input [] [("hoogle",q)])
+                if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
+        "<>" === "<span class=name>(<b>&lt;&gt;</b>)</span>"
+        "filt" === "<span class=name><b>filt</b>er</span>"
 
 -------------------------------------------------------------
 -- ANALYSE THE LOG

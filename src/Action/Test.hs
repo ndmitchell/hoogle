@@ -23,7 +23,7 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ do
     input_item_test
     query_test
     action_search_test database
-    action_server_test
+    action_server_test database
     putStrLn ""
     when deep $ withSearch database $ \store -> do
         putStrLn "Deep tests"
