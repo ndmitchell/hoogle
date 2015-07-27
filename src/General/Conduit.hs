@@ -5,6 +5,7 @@ module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
+    mapAccumMC,
     (|$|), pipelineC,
     zipFromC, countC, sumC, linesC, linesCR
     ) where
@@ -27,6 +28,7 @@ mapC = C.map
 foldC = C.fold
 mapMaybeC = C.mapMaybe
 mapAccumC f = C.mapAccum (flip f)
+mapAccumMC f = C.mapAccumM (flip f)
 filterC = C.filter
 
 zipFromC :: (Monad m, Enum i) => i -> Conduit a m (i, a)
