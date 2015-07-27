@@ -13,6 +13,8 @@ import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
 import Data.Typeable
 import Data.Functor.Identity
+import Control.Applicative
+import Prelude
 
 import Input.Item
 import General.Store
