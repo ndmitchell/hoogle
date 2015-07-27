@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types, DeriveDataTypeable #-}
 
-module Input.Hoogle(parseHoogle, fakePackage, input_hoogle_test) where
+module Input.Haddock(parseHoogle, fakePackage, input_hoogle_test) where
 
 import Language.Haskell.Exts as HSE
 import Data.Char

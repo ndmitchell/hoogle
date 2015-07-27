@@ -21,7 +21,7 @@ import Output.Tags
 import Output.Names
 import Output.Types
 import Input.Cabal
-import Input.Hoogle
+import Input.Haddock
 import Input.Download
 import Input.Reorder
 import Input.Set

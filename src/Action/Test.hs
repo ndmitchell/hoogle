@@ -8,7 +8,7 @@ import Action.Search
 import Action.Server
 import General.Util
 import Input.Item
-import Input.Hoogle
+import Input.Haddock
 import System.IO.Extra
 
 import Control.Monad

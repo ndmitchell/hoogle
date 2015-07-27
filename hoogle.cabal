@@ -59,7 +59,7 @@ executable hoogle
         Action.Test
         Input.Cabal
         Input.Download
-        Input.Hoogle
+        Input.Haddock
         Input.Item
         Input.Reorder
         Input.Set
