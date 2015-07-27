@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable #-}
 
 -- | Interned strings
 module General.IString(
