@@ -10,6 +10,7 @@ module Input.Item(
     ) where
 
 import Numeric
+import Control.Applicative
 import Data.Tuple.Extra
 import Language.Haskell.Exts
 import Data.List.Extra
@@ -21,6 +22,7 @@ import Control.DeepSeq
 import Data.Data
 import General.Util
 import General.IString
+import Prelude
 
 
 ---------------------------------------------------------------------
