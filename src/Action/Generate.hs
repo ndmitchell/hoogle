@@ -169,7 +169,7 @@ generate database debug args = do
             if x >= Loud then
                 print stats
              else if x >= Normal then
-                putStrLn $ "Required " ++ show peakMegabytesAllocated ++ "Mb, " ++ show (currentBytesUsed `div` 1024) ++ "Mb currently used"
+                putStrLn $ "Required " ++ show peakMegabytesAllocated ++ "Mb, " ++ show (currentBytesUsed `div` (1024*1024)) ++ "Mb currently used"
              else
                 return ()
 
