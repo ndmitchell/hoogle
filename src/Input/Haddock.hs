@@ -118,15 +118,6 @@ hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
                 isLegal c = isAscii c && isAlphaNum c
 
 
-{-
-iDecl :: Decl -> Item
-iDecl (TypeSig _ [name] ty) = ISignature (fromName name) (toSig ty)
-iDecl (TypeDecl _ name bind rhs) = IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toSig rhs)
-iDecl (InstDecl _ _ _ ctx name args _) = IInstance $ Sig (toCtx ctx) [TCon (toIString $ fromQName name) $ map toTy args]
-iDecl (declNames -> [x]) = IName x
-iDecl x = error $ "Can't convert Decl to Item, " ++ pretty x
--}
-
 renderPackage x = "package <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
 renderModule (breakEnd (== '.') -> (pre,post)) = "module " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
 
