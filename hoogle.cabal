@@ -60,9 +60,9 @@ executable hoogle
         Input.Cabal
         Input.Download
         Input.Hoogle
+        Input.Item
         Input.Reorder
         Input.Set
-        Input.Item
         Output.Items
         Output.Names
         Output.Tags
