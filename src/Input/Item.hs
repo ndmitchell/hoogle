@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, FlexibleInstances, OverloadedStrings #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, OverloadedStrings #-}
 
 -- | Types used to generate the input.
 module Input.Item(
