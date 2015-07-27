@@ -220,14 +220,14 @@ aliasWords (Aliases mp) t = g Set.empty $ f t
 
 newtype Instances = Instances [Decl]
 
-writeInstance :: StoreWrite -> [Item] -> IO ()
+writeInstance :: StoreWrite -> [a] -> IO ()
 writeInstance store xs =
-    storeWriteBS store $ BS.pack $ unlines
-        [pretty t | IDecl t@InstDecl{} <- xs]
+    storeWriteBS store BS.empty {- $ BS.pack $ unlines
+        [pretty t | IDecl t@InstDecl{} <- xs] -}
 
 readInstance :: StoreRead -> Instances
-readInstance store = Instances $ map (fromParseResult . parseDecl) $ lines src
-    where src = BS.unpack $ storeReadBS store
+readInstance store = Instances [] {- $ map (fromParseResult . parseDecl) $ lines src
+    where src = BS.unpack $ storeReadBS store -}
 
 
 ---------------------------------------------------------------------
