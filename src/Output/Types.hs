@@ -7,19 +7,13 @@ import Language.Haskell.Exts
 import Language.Haskell.Exts.SrcLoc
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
-import Control.Monad.Extra
 import Data.Maybe
-import Data.Word
-import Data.Function
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
 import Data.Typeable
 import Data.Functor.Identity
-import System.FilePath
-import System.IO.Extra
 
 import Input.Item
 import General.Util
@@ -38,17 +32,19 @@ main: fromList [(0,6260),(1,21265),(2,12188),(3,4557),(4,1681),(5,732),(6,363),(
 
 data Types = Types deriving Typeable
 
-data Ctors = Ctors deriving Typeable
+-- data Ctors = Ctors deriving Typeable
 
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
 
+    {-
     when False $
         storeWriteType store Ctors $ do
             let rare = createRarity $ map snd xs
             let rew = map (second $ second $ encodeSig undefined) $ createRewrite $ map snd xs
             storeWriteBS store $ BS.pack $ intercalate "\0" (Map.keys rare) ++ "\0\0"
             storeWriteV store $ V.fromList $ concatMap (snd . snd) rew
+    -}
 
     rare <- writeRarity store $ map snd xs
     writeAlias store $ map snd xs
@@ -59,6 +55,7 @@ writeTypes store debug xs = storeWriteType store Types $ do
         [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t, pretty t]
         | (t,i) <- sortOn (minimum . map fst . snd) ys]
 
+    {-
     let rare = createRarity $ map snd xs
     whenJust debug $ \debug -> do
         writeFileUTF8 (debug <.> "alias") $ unlines [unwords (a:b) ++ " = " ++ pretty c | (_, IDecl t) <- xs, Just (a,(b,c)) <- [unpackAlias t]]
@@ -67,9 +64,10 @@ writeTypes store debug xs = storeWriteType store Types $ do
         writeFileUTF8 (debug <.> "rarest") $ unlines $ concatMap (\(k,vs) -> ("-- " ++ show k ++ " = " ++ show (length vs)) : map pretty vs) $
             reverse $ Map.toList $ Map.fromListWith (++)
             [(minimumBy (compare `on` fst) $ (maxBound,"") : ns, [t]) |  (t,_) <- ys, let ns = map ((Map.!) rare &&& id) $ typeNames t]
+    -}
 
 
-
+{-
 createRarity :: [Item] -> Map.Map String Int
 createRarity xs = Map.fromListWith (+) $ concat [map (,1) $ nubOrd $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
 
@@ -84,7 +82,7 @@ createRewrite _ = [] {- = mapMaybe $ \x -> case x of
 
 encodeSig :: Map.Map String Word16 -> String -> [Word16]
 encodeSig = undefined
-
+-}
 
 {-
 --    error $ show $ Map.fromListWith (+) [(arity t, 1) | t <- Set.toList $ Set.fromList [t | (Just i, IDecl (TypeSig _ _ t)) <- xs]]
