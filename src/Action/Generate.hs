@@ -130,7 +130,7 @@ generate database debug args = do
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
-            let consume :: Conduit (Int, (String, LStr)) IO (Target, Item)
+            let consume :: Conduit (Int, (String, LStr)) IO (Maybe Target, Item)
                 consume = awaitForever $ \(i, (pkg, body)) -> do
                     timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle warning pkg body

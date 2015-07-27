@@ -2,7 +2,6 @@
 
 module Output.Items(writeItems, lookupItem, listItems) where
 
-import Language.Haskell.Exts
 import Control.Monad
 import Data.List.Extra
 import qualified Data.ByteString as BS
@@ -38,12 +37,12 @@ data Items = Items deriving Typeable
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: StoreWrite -> (Conduit (Target, Item) IO (Maybe Id, Item) -> IO a) -> IO a
+writeItems :: StoreWrite -> (Conduit (Maybe Target, Item) IO (Maybe Id, Item) -> IO a) -> IO a
 writeItems store act = do
     storeWriteType store Items $ storeWriteParts store $ act $
-        void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case item of
-            IDecl InstDecl{} -> return (pos, (Nothing, item))
-            _ -> do
+        void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case target of
+            Nothing -> return (pos, (Nothing, item))
+            Just target -> do
                 let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id pos, target)
                 liftIO $ do
                     storeWriteBS store $ intToBS $ BS.length bs
