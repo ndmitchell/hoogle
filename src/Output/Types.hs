@@ -19,6 +19,17 @@ import General.Util
 import General.Store
 
 
+data Dec = ISignature String (Sig String)
+         | IAlias String [String] (Sig String)
+         | IInstance (Sig String)
+
+toDec :: Decl -> Maybe Dec
+toDec (TypeSig _ [name] ty) = Just $ ISignature (fromName name) (hseToSig ty)
+toDec (TypeDecl _ name bind rhs) = Just $ IAlias (fromName name) (map (fromName . fromTyVarBind) bind) (hseToSig rhs)
+toDec (InstDecl _ _ _ ctx name args _) = Just $ IInstance $ hseToSig $ TyForall Nothing ctx $ tyApps (TyCon name) args
+toDec _ = Nothing
+
+
 {-
 44K in total
 main: fromList [(0,6260),(1,21265),(2,12188),(3,4557),(4,1681),(5,732),(6,363),(
@@ -35,6 +46,7 @@ data Types = Types deriving Typeable
 
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
+    xs <- return [(a,d) | (a,IDecl b) <- xs, Just d <- [toDec b]]
 
     {-
     when False $
@@ -49,9 +61,9 @@ writeTypes store debug xs = storeWriteType store Types $ do
     writeAlias store $ map snd xs
     writeInstance store $ map snd xs
 
-    let ys = Map.toList $ Map.fromListWith (++) [(t, [(j,i)]) | (j, (Just i, IDecl (TypeSig _ _ t))) <- zip [1..] xs]
+    let ys = Map.toList $ Map.fromListWith (++) [(t, [(j,i)]) | (j, (Just i, ISignature _ t)) <- zip [1..] xs]
     storeWriteBS store $ BS.pack $ unlines $ concat
-        [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t, pretty t]
+        [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t {- , pretty t -}]
         | (t,i) <- sortOn (minimum . map fst . snd) ys]
 
     {-
@@ -94,7 +106,7 @@ encodeSig = undefined
 -}
 
 searchTypes :: StoreRead -> Type -> [TargetId]
-searchTypes store q = runIdentity $ do
+searchTypes store (hseToSig -> q) = runIdentity $ do
     let [x1,x2,x3,x4] = storeReadList $ storeReadType Types store
     dbRare <- return $ readRarity x1
     dbAlias <- return $ readAlias x2
@@ -102,14 +114,14 @@ searchTypes store q = runIdentity $ do
     let chkArity = checkArity q
         chkRare = checkRarity dbRare q
         chkNames = checkNames dbAlias dbInst q
-        match = matchType dbAlias dbInst q
+        -- match = matchType dbAlias dbInst q
 
-    let f (ids:arity:rarity:names:typ:xs)
+    let f (ids:arity:rarity:names:xs)
             | chkArity $ fst $ fromJust $ BS.readInt arity
             , chkRare $ fst $ fromJust $ BS.readInt rarity
             , chkNames $ map BS.unpack $ BS.words names
-            , Just c <- match $ fromParseResult $ parseType $ BS.unpack typ
-            = (c, map read $ words $ BS.unpack ids) : f xs
+            -- , Just c <- match $ fromParseResult $ parseType $ BS.unpack typ
+            = (1, map read $ words $ BS.unpack ids) : f xs
             | otherwise = f xs
         f _ = []
     return $ concatMap snd $ sortOn fst $ f $ BS.lines $ storeReadBS x4
@@ -126,28 +138,8 @@ and a full search mechanism
 -}
 
 -- all contexts are prefixed with ~
-typeNames :: Type -> [String]
-typeNames = typ
-    where
-        typ (TyForall _ cs t) = concatMap ctx cs ++ typ t
-        typ (TyVar _) = []
-        typ (TyCon c) = qnm c
-        typ (TyInfix a b c) = typ a ++ qnm b ++ typ c
-        typ (TyTuple _ xs) = ("(" ++ replicate (length xs - 1) ',' ++ ")") : concatMap typ xs
-        typ (TyList x) = "[]" : typ x
-        typ x = concatMap typ $ children x
-
-        ctx (ClassA x _) = map ("~"++) $ qnm x
-        ctx (InfixA a b c) = ctx $ ClassA b [a,c]
-        ctx (ParenA x) = ctx x
-        ctx _ = []
-
-        qnm (Qual _ x) = [fromName x]
-        qnm (UnQual x) = [fromName x]
-        qnm (Special UnitCon) = ["()"]
-        qnm (Special ListCon) = ["[]"]
-        qnm (Special (TupleCon _ i)) = ["(" ++ replicate i ',' ++ ")"]
-        qnm _ = []
+typeNames :: Sig String -> [String]
+typeNames (Sig ctx ty) = ['~':c | Ctx c _ <- ctx] ++ [x | TCon x _ <- universeBi ty]
 
 
 ---------------------------------------------------------------------
@@ -155,10 +147,10 @@ typeNames = typ
 
 data Rarity = Rarity Int (Map.Map String Int)
 
-writeRarity :: StoreWrite -> [Item] -> IO Rarity
+writeRarity :: StoreWrite -> [Dec] -> IO Rarity
 writeRarity store xs = do
     let n = length xs
-    let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
+    let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | ISignature _ t <- xs]
     storeWriteBS store $ BS.pack $ unlines $
         show n :
         [x ++ " " ++ show i | (x,i) <- Map.toList r]
@@ -170,7 +162,7 @@ readRarity store = Rarity (read count) $ Map.fromList $ map (second read . word1
     where count:rares = lines $ BS.unpack $ storeReadBS store
 
 
-askRarity :: Rarity -> Type -> Int
+askRarity :: Rarity -> Sig String -> Int
 askRarity (Rarity count mp) t = minimum $ count : map (\x -> Map.findWithDefault count x mp) (typeNames t)
 
 
@@ -233,40 +225,40 @@ readInstance store = Instances [] {- $ map (fromParseResult . parseDecl) $ lines
 ---------------------------------------------------------------------
 -- PRECOMPUTE ARITY
 
-preArity :: Type -> Int
-preArity (TyForall _ _ x) = preArity x
-preArity (TyFun _ x) = 1 + preArity x
-preArity x = 0
+preArity :: Sig a -> Int
+preArity (Sig _ xs) = length xs - 1
 
-checkArity :: Type -> (Int -> Bool)
+checkArity :: Sig a -> (Int -> Bool)
 checkArity (preArity -> q) = \a -> if q == 0 || a == 0 then q == a else abs (q - a) <= 1
 
 
 ---------------------------------------------------------------------
 -- PRECOMPUTE RARITY
 
-preRarity :: Rarity -> Type -> Int
+preRarity :: Rarity -> Sig String -> Int
 preRarity = askRarity
 
-checkRarity :: Rarity -> Type -> (Int -> Bool)
+checkRarity :: Rarity -> Sig String -> (Int -> Bool)
 checkRarity r (askRarity r -> q) = \a -> q <= a * 5
 
 
 ---------------------------------------------------------------------
 -- PRECOMPUTE RARITY
 
-preNames :: Type -> [String]
+preNames :: Sig String -> [String]
 preNames = nubOrd . typeNames
 
-checkNames :: Aliases -> Instances -> Type -> ([String] -> Bool)
+checkNames :: Aliases -> Instances -> Sig String -> ([String] -> Bool)
 checkNames alias inst (typeNames -> q) = \a -> all (`elem` a) q
 
 
 ---------------------------------------------------------------------
 -- REWRITE ENGINE
 
-matchType :: Aliases -> Instances -> Type -> (Type -> Maybe Double)
+{-
+matchType :: Aliases -> Instances -> Sig String -> (Sig String -> Maybe Double)
 matchType _ _ _ _ = Just 1
+-}
 
 {-
 data Term = Con String
