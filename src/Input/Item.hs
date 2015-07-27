@@ -20,7 +20,6 @@ import Data.Word
 import Control.DeepSeq
 import Data.Data
 import General.Util
-import General.IString
 
 
 ---------------------------------------------------------------------
