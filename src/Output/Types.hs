@@ -4,7 +4,6 @@ module Output.Types(writeTypes, searchTypes) where
 
 
 import Language.Haskell.Exts
-import Language.Haskell.Exts.SrcLoc
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.ByteString.Char8 as BS
@@ -181,23 +180,29 @@ askRarity (Rarity count mp) t = minimum $ count : map (\x -> Map.findWithDefault
 -- about 10% of aliases are duplicates
 newtype Aliases = Aliases (Map.Map String [([String], Type)])
 
+{-
 unpackAlias :: Decl -> Maybe (String, ([String], Type))
 unpackAlias (TypeDecl _ name bind rhs) = Just (fromName name, (map (fromName . fromTyVarBind) bind, rhs))
 unpackAlias _ = Nothing
 
 packAlias :: String -> ([String], Type) -> Decl
 packAlias name (bind, rhs) = TypeDecl noLoc (Ident name) (map (UnkindedVar . Ident) bind) rhs
+-}
 
 writeAlias :: StoreWrite -> [Item] -> IO Aliases
 writeAlias store xs = do
+    storeWriteBS store BS.empty
+    return $ Aliases Map.empty
+    {-
     let a = Map.fromListWith (++) [(a, [b]) | IDecl t <- xs, Just (a,b) <- [unpackAlias t]]
     storeWriteBS store $ BS.pack $ unlines
         [pretty $ packAlias name body | (name, xs) <- Map.toList a, body <- xs]
-    return $ Aliases a
+    return $ Aliases a -}
 
 readAlias :: StoreRead -> Aliases
-readAlias store = Aliases $ Map.fromListWith (++) [second return $ fromJust $ unpackAlias $ fromParseResult $ parseDecl x | x <- lines src]
-    where src = BS.unpack $ storeReadBS store
+readAlias store = Aliases Map.empty {- $ Map.fromListWith (++) [second return $ fromJust $ unpackAlias $ fromParseResult $ parseDecl x | x <- lines src]
+    where src = BS.unpack $ storeReadBS store -}
+
 
 {-
 aliasWords :: Aliases -> Type -> [String]
