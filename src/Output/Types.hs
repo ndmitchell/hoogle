@@ -1,17 +1,25 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving #-}
 
 module Output.Types(writeTypes, searchTypes) where
 
+{-
+Approach:
+Each signature is stored, along with a fingerprint
+A quick search finds the most promising 100 fingerprints
+A slow search ranks the 100 items, excluding some
+-}
 
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.Vector.Storable as V
 import Data.Maybe
+import Data.Word
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
-import Data.Typeable
-import Data.Functor.Identity
+import Data.Data
+import Foreign.Storable
 import Control.Applicative
 import Prelude
 
@@ -20,246 +28,116 @@ import General.Store
 import General.IString
 
 
-{-
-44K in total
-main: fromList [(0,6260),(1,21265),(2,12188),(3,4557),(4,1681),(5,732),(6,363),(
-7,220),(8,107),(9,80),(10,78),(11,35),(12,33),(13,17),(14,16),(15,16),(16,9),(17
-,6),(18,7),(19,8),(20,5),(21,8),(22,2),(23,2),(24,3),(25,4),(26,2),(27,2),(28,3)
-,(29,2),(30,2),(31,2),(32,1),(33,1),(34,1),(35,2),(36,1),(37,1),(38,2),(39,1),(4
-0,2),(41,1),(42,1),(43,2),(44,1),(45,1),(46,1),(47,2),(48,1),(49,1),(50,1),(51,1
-),(52,1),(53,1),(54,1),(55,1),(56,1),(57,1),(58,1),(59,1),(60,1),(61,1),(62,1),(
-75,1)] -}
-
 data Types = Types deriving Typeable
-
--- data Ctors = Ctors deriving Typeable
 
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
-    {-
-    when False $
-        storeWriteType store Ctors $ do
-            let rare = createRarity $ map snd xs
-            let rew = map (second $ second $ encodeSig undefined) $ createRewrite $ map snd xs
-            storeWriteBS store $ BS.pack $ intercalate "\0" (Map.keys rare) ++ "\0\0"
-            storeWriteV store $ V.fromList $ concatMap (snd . snd) rew
-    -}
+    xs <- return [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
+    names <- writeNames store $ map snd xs
+    xs <- writeDuplicates store $ map (second $ lookupNames names) xs
+    writeFingerprints store $ map toFingerprint xs
 
-    rare <- writeRarity store $ map snd xs
-    writeAlias store $ map snd xs
-    writeInstance store $ map snd xs
-
-    let ys = Map.toList $ Map.fromListWith (++) [(t, [(j,i)]) | (j, (Just i, ISignature _ t)) <- zip [1..] xs]
-    storeWriteBS store $ BS.pack $ unlines $ concat
-        [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare $ fromIString <$> t, unwords $ preNames $ fromIString <$> t {- , pretty t -}]
-        | (t,i) <- sortOn (minimum . map fst . snd) ys]
-
-    {-
-    let rare = createRarity $ map snd xs
-    whenJust debug $ \debug -> do
-        writeFileUTF8 (debug <.> "alias") $ unlines [unwords (a:b) ++ " = " ++ pretty c | (_, IDecl t) <- xs, Just (a,(b,c)) <- [unpackAlias t]]
-        writeFileUTF8 (debug <.> "instance") $ unlines [pretty t | (_, IDecl t@InstDecl{}) <- xs]
-        writeFileUTF8 (debug <.> "sig") $ unlines [pretty t | (t,_) <- ys]
-        writeFileUTF8 (debug <.> "rarest") $ unlines $ concatMap (\(k,vs) -> ("-- " ++ show k ++ " = " ++ show (length vs)) : map pretty vs) $
-            reverse $ Map.toList $ Map.fromListWith (++)
-            [(minimumBy (compare `on` fst) $ (maxBound,"") : ns, [t]) |  (t,_) <- ys, let ns = map ((Map.!) rare &&& id) $ typeNames t]
-    -}
-
-
-{-
-createRarity :: [Item] -> Map.Map String Int
-createRarity xs = Map.fromListWith (+) $ concat [map (,1) $ nubOrd $ typeNames t | IDecl (TypeSig _ _ t) <- xs]
-
-
-createRewrite :: [Item] -> [(String, (Int, String))] -- (arity, type)
-createRewrite _ = [] {- = mapMaybe $ \x -> case x of
-    IDecl (TypeDecl _ name (map fromTyVarBind -> bind) exp) -> Just (fromName name, (length bind, toSig $ transformBi f exp))
-        where f x = maybe x (Ident . show) $ elemIndex x bind
-    IDecl (InstDecl _ _ _ ctxt name [ty] _) -> Nothing -- FIXME! Should reduce here
-    _ -> Nothing -}
-
-
-encodeSig :: Map.Map String Word16 -> String -> [Word16]
-encodeSig = undefined
--}
-
-{-
---    error $ show $ Map.fromListWith (+) [(arity t, 1) | t <- Set.toList $ Set.fromList [t | (Just i, IDecl (TypeSig _ _ t)) <- xs]]
-
-    let ys = Map.toAscList $ Map.fromListWith (++) [((arity t, t), [i]) | (Just i, IDecl (TypeSig _ _ t)) <- xs]
-    writeFileBinary (file <.> "types") $ unlines
-        [unwords $ map show i ++ [pretty t] | ((_,t),i) <- ys]
-    writeFileBinary (file <.> "alias") $ unlines
-        [pretty t | (_, IDecl t@TypeDecl{}) <- xs]
--}
 
 searchTypes :: StoreRead -> Sig String -> [TargetId]
-searchTypes store q = runIdentity $ do
-    let [x1,x2,x3,x4] = storeReadList $ storeReadType Types store
-    dbRare <- return $ readRarity x1
-    dbAlias <- return $ readAlias x2
-    dbInst <- return $ readInstance x3
-    let chkArity = checkArity q
-        chkRare = checkRarity dbRare q
-        chkNames = checkNames dbAlias dbInst q
-        -- match = matchType dbAlias dbInst q
-
-    let f (ids:arity:rarity:names:xs)
-            | chkArity $ fst $ fromJust $ BS.readInt arity
-            , chkRare $ fst $ fromJust $ BS.readInt rarity
-            , chkNames $ map BS.unpack $ BS.words names
-            -- , Just c <- match $ fromParseResult $ parseType $ BS.unpack typ
-            = (1, map read $ words $ BS.unpack ids) : f xs
-            | otherwise = f xs
-        f _ = []
-    return $ concatMap snd $ sortOn fst $ f $ BS.lines $ storeReadBS x4
-
-
-{-
-NEED TO ADD:
-
-.arities file which lists the extent of each group of arities
-.approx file, which gives the approximate matching sets
-
-and a full search mechanism
-
--}
-
--- all contexts are prefixed with ~
-typeNames :: Sig String -> [String]
-typeNames (Sig ctx ty) = ['~':c | Ctx c _ <- ctx] ++ [x | TCon x _ <- universeBi ty]
-
-
----------------------------------------------------------------------
--- RARITY INFORMATION
-
-data Rarity = Rarity Int (Map.Map String Int)
-
-writeRarity :: StoreWrite -> [Item] -> IO Rarity
-writeRarity store xs = do
-    let n = length xs
-    let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames $ fromIString <$> t | ISignature _ t <- xs]
-    storeWriteBS store $ BS.pack $ unlines $
-        show n :
-        [x ++ " " ++ show i | (x,i) <- Map.toList r]
-    return $ Rarity n r
-
-
-readRarity :: StoreRead -> Rarity
-readRarity store = Rarity (read count) $ Map.fromList $ map (second read . word1) rares
-    where count:rares = lines $ BS.unpack $ storeReadBS store
-
-
-askRarity :: Rarity -> Sig String -> Int
-askRarity (Rarity count mp) t = minimum $ count : map (\x -> Map.findWithDefault count x mp) (typeNames t)
-
-
----------------------------------------------------------------------
--- ALIAS INFORMATION
-
--- about 10% of aliases are duplicates
-newtype Aliases = Aliases (Map.Map String String)
-
-{-
-unpackAlias :: Decl -> Maybe (String, ([String], Type))
-unpackAlias (TypeDecl _ name bind rhs) = Just (fromName name, (map (fromName . fromTyVarBind) bind, rhs))
-unpackAlias _ = Nothing
-
-packAlias :: String -> ([String], Type) -> Decl
-packAlias name (bind, rhs) = TypeDecl noLoc (Ident name) (map (UnkindedVar . Ident) bind) rhs
--}
-
-writeAlias :: StoreWrite -> [a] -> IO Aliases
-writeAlias store xs = do
-    storeWriteBS store BS.empty
-    return $ Aliases Map.empty
-    {-
-    let a = Map.fromListWith (++) [(a, [b]) | IDecl t <- xs, Just (a,b) <- [unpackAlias t]]
-    storeWriteBS store $ BS.pack $ unlines
-        [pretty $ packAlias name body | (name, xs) <- Map.toList a, body <- xs]
-    return $ Aliases a -}
-
-readAlias :: StoreRead -> Aliases
-readAlias store = Aliases Map.empty {- $ Map.fromListWith (++) [second return $ fromJust $ unpackAlias $ fromParseResult $ parseDecl x | x <- lines src]
-    where src = BS.unpack $ storeReadBS store -}
-
-
-{-
-aliasWords :: Aliases -> Type -> [String]
-aliasWords (Aliases mp) t = g Set.empty $ f t
+searchTypes store q =
+        concatMap (expandDuplicates $ readDuplicates dupe1 dupe2) $
+        searchFingerprints fingerprints 100 $ toFingerprint $
+        lookupNames (readNames names) q
     where
-        f t = [x | x@(c:cs) <- map fromName $ universeBi t, not $ isLower c]
-
-        g seen (t:odo) | t `Set.member` seen = g seen odo
-        g seen (t:odo) = let ys = Map.findWithDefault [] t mp in g (Set.insert t seen) (concatMap f ys ++ odo)
-        g seen [] = Set.toList seen
--}
-
----------------------------------------------------------------------
--- INSTANCE INFORMATION
-
-newtype Instances = Instances [String]
-
-writeInstance :: StoreWrite -> [a] -> IO ()
-writeInstance store xs =
-    storeWriteBS store BS.empty {- $ BS.pack $ unlines
-        [pretty t | IDecl t@InstDecl{} <- xs] -}
-
-readInstance :: StoreRead -> Instances
-readInstance store = Instances [] {- $ map (fromParseResult . parseDecl) $ lines src
-    where src = BS.unpack $ storeReadBS store -}
+        [names, dupe1, dupe2, fingerprints] = storeReadList $ storeReadType Types store
 
 
 ---------------------------------------------------------------------
--- PRECOMPUTE ARITY
+-- NAME/CTOR INFORMATION
 
-preArity :: Sig a -> Int
-preArity (Sig _ xs) = length xs - 1
+-- Must be a unique Name per String.
+-- First 0-99 are variables, rest are constructors.
+-- More popular type constructors have higher numbers.
+newtype Name = Name Word16 deriving (Eq,Ord,Show,Data,Typeable,Storable)
 
-checkArity :: Sig a -> (Int -> Bool)
-checkArity (preArity -> q) = \a -> if q == 0 || a == 0 then q == a else abs (q - a) <= 1
+name0 = Name 0
+
+isCon, isVar :: Name -> Bool
+isVar (Name x) = x < 100
+isCon = not . isVar
+
+
+newtype Names = Names {lookupName :: String -> Name}
+
+lookupNames :: Names -> Sig String -> Sig Name
+lookupNames Names{lookupName=con} (Sig ctx typ) = Sig (map f ctx) (map g typ)
+    where
+        vars = nubOrd $ [x | Ctx _ x <- ctx] ++ [x | TVar x _ <- universeBi typ]
+        var x = Name $ min 99 $ fromIntegral $ fromMaybe (error "lookupNames") $ elemIndex x vars
+
+        f (Ctx a b) = Ctx (con $ '~':a) (var b)
+        g (TCon x xs) = TCon (con x) $ map g xs
+        g (TVar x xs) = TVar (var x) $ map g xs
+
+
+writeNames :: StoreWrite -> [Sig String] -> IO Names
+writeNames store xs = do
+    let names (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
+    let mp = Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
+    let ns = map fst $ sortOn snd $ Map.toList mp
+    storeWriteBS store $ BS.pack $ intercalate "\0" ns
+    let mp2 = Map.fromList $ zip ns $ map Name [100..]
+    return $ Names $ \x -> fromMaybe (error $ "Internal error, missing name: " ++ x) $ Map.lookup x mp2
+
+readNames :: StoreRead -> Names
+readNames store = Names $ \x -> fromMaybe (error $ "Internal error, missing name: " ++ x) $ Map.lookup (BS.pack x) mp
+    where mp = Map.fromList $ zip (BS.split '\0' $ storeReadBS store) $ map Name [100..]
 
 
 ---------------------------------------------------------------------
--- PRECOMPUTE RARITY
+-- DUPLICATION INFORMATION
 
-preRarity :: Rarity -> Sig String -> Int
-preRarity = askRarity
+newtype Duplicates = Duplicates {expandDuplicates :: Int -> [TargetId]}
 
-checkRarity :: Rarity -> Sig String -> (Int -> Bool)
-checkRarity r (askRarity r -> q) = \a -> q <= a * 5
+writeDuplicates :: StoreWrite -> [(TargetId, Sig Name)] -> IO [Sig Name]
+writeDuplicates store xs = do
+    xs <- return $ Map.toList $ Map.fromListWith (++) [(s,[t]) | (t,s) <- xs]
+    let (is,ts) = unzip [(i::Word32, t) | (i,(_,ts)) <- zip [0..] xs, t <- ts]
+    storeWriteV store $ V.fromList is
+    storeWriteV store $ V.fromList ts
+    return $ map fst xs
 
-
----------------------------------------------------------------------
--- PRECOMPUTE RARITY
-
-preNames :: Sig String -> [String]
-preNames = nubOrd . typeNames
-
-checkNames :: Aliases -> Instances -> Sig String -> ([String] -> Bool)
-checkNames alias inst (typeNames -> q) = \a -> all (`elem` a) q
+readDuplicates :: StoreRead -> StoreRead -> Duplicates
+readDuplicates (storeReadV -> is) (storeReadV -> ts) = Duplicates $ \i -> map snd $ filter ((==) (fromIntegral i) . fst) xs
+    where xs = zip (V.toList is :: [Word32]) (V.toList ts :: [TargetId])
 
 
 ---------------------------------------------------------------------
--- REWRITE ENGINE
+-- FINGERPRINT INFORMATION
 
-{-
-matchType :: Aliases -> Instances -> Sig String -> (Sig String -> Maybe Double)
-matchType _ _ _ _ = Just 1
--}
+data Fingerprint = Fingerprint
+    {fpRare1 :: {-# UNPACK #-} !Name -- Most rare ctor, or 0 if no rare stuff
+    ,fpRare2 :: {-# UNPACK #-} !Name -- 2nd rare ctor
+    ,fpRare3 :: {-# UNPACK #-} !Name -- 3rd rare ctor
+    ,fpArity :: {-# UNPACK #-} !Word8 -- Artiy, where 0 = CAF
+    ,fpTerms :: {-# UNPACK #-} !Word8 -- Number of terms (where 255 = 255 and above)
+    } deriving Eq
 
-{-
-data Term = Con String
-          | Var String
-          | App Term Term
--}
+instance Storable Fingerprint where
+    sizeOf _ = 64
+    alignment _ = 4
+    peekByteOff ptr i = Fingerprint
+        <$> peekByteOff ptr (i+0) <*> peekByteOff ptr (i+2) <*> peekByteOff ptr (i+4)
+        <*> peekByteOff ptr (i+6) <*> peekByteOff ptr (i+7)
+    pokeByteOff ptr i Fingerprint{..} = do
+        pokeByteOff ptr (i+0) fpRare1 >> pokeByteOff ptr (i+2) fpRare2 >> pokeByteOff ptr (i+4) fpRare3
+        pokeByteOff ptr (i+6) fpArity >> pokeByteOff ptr (i+7) fpTerms
 
--- Either Int a ==> App (App (Con Either) (Con Int)) (Var a)
+toFingerprint :: Sig Name -> Fingerprint
+toFingerprint sig@(Sig _ args) = Fingerprint{..}
+    where fpRare1:fpRare2:fpRare3:_ = reverse (sort $ filter isCon $ universeBi sig) ++ [name0,name0,name0]
+          fpArity = fromIntegral $ length args
+          fpTerms = fromIntegral $ min 255 $ length (universeBi sig :: [Name])
+
+writeFingerprints :: StoreWrite -> [Fingerprint] -> IO ()
+writeFingerprints store xs = storeWriteV store $ V.fromList xs
 
 
--- instance Eq Int
--- * C Eq a ==> a, missing context
--- * C Eq Int ==> Int, instantiate
--- * Int ==> C Eq a, abstract
-
--- rewrite :: [((Term,Term),Cost)] -> ([Term],Term) -> ([Term],Term) -> Maybe Cost
+searchFingerprints :: StoreRead -> Int -> Fingerprint -> [Int]
+searchFingerprints store n = flip elemIndices fs
+    where fs = V.toList $ storeReadV store :: [Fingerprint]
