@@ -14,6 +14,7 @@ import Foreign.C.String
 import Foreign.C.Types
 import Control.Exception
 import System.IO.Unsafe
+import Data.Maybe
 
 import Input.Item
 import General.Util
@@ -29,7 +30,7 @@ data Names = Names deriving Typeable
 
 writeNames :: StoreWrite -> [(Maybe Id, Item)] -> IO ()
 writeNames store xs = do
-    let (ids, strs) = unzip [(i, [' ' | isUpper1 name] ++ lower name) | (Just i, x) <- xs, name <- toName x]
+    let (ids, strs) = unzip [(i, [' ' | isUpper1 name] ++ lower name) | (Just i, x) <- xs, name <- itemNamePart x]
     let b = BS.intercalate (BS.pack "\0") (map strPack strs) `BS.append` BS.pack "\0\0"
     bound <- BS.unsafeUseAsCString b $ \ptr -> text_search_bound ptr
     storeWriteType store Names $ do
@@ -37,10 +38,9 @@ writeNames store xs = do
         storeWriteV store $ V.fromList ids
         storeWriteBS store b
 
-toName :: Item -> [String]
-toName (IPackage x) = [x]
-toName (IModule x) = [last $ splitOn "." x]
-toName (IDecl x) = declNames x
+itemNamePart :: Item -> [String]
+itemNamePart (IModule x) = [last $ splitOn "." x]
+itemNamePart x = maybeToList $ itemName x
 
 searchNames :: StoreRead -> Bool -> [String] -> [Id]
 -- very important to not search for [" "] or [] since the output buffer is too small

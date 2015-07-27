@@ -3,6 +3,7 @@
 -- | Types used to generate the input.
 module Input.Item(
     Target(..), Item(..), Sig(..), Ctx(..), Ty(..),
+    itemName,
     isIPackage, isIModule, splitIPackage, splitIModule,
     URL,
     Id(..)
@@ -19,6 +20,7 @@ import Data.Word
 import Control.DeepSeq
 import Data.Data
 import Input.Type
+import General.Util
 
 
 ---------------------------------------------------------------------
@@ -56,6 +58,12 @@ instance NFData Item where
     rnf (IDecl x) = rnf $ show x
     rnf (IPackage x) = rnf x
     rnf (IModule x) = rnf x
+
+itemName :: Item -> Maybe String
+itemName (IDecl x) = listToMaybe $ declNames x
+itemName (IPackage x) = Just x
+itemName (IModule x) = Just x
+
 
 isIModule IModule{} = True; isIModule _ = False
 isIPackage IPackage{} = True; isIPackage _ = False

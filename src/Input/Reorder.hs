@@ -6,7 +6,6 @@ import Input.Item
 import Data.List.Extra
 import Data.Maybe
 import Data.Tuple.Extra
-import General.Util
 
 
 -- | Reorder items so the most popular ones are first, using reverse dependencies
@@ -17,11 +16,6 @@ reorderItems packageOrder xs = do
                        = (x, concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ refunc $ splitIModule xs)
         rebase (x, xs) = (x, concatMap snd $ sortOn fst $ refunc $ splitIModule xs)
     return $ concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitIPackage xs
-
-itemName :: Item -> String
-itemName (IDecl x) = head $ declNames x ++ [""]
-itemName (IPackage x) = x
-itemName (IModule x) = x
 
 baseModuleOrder :: String -> Int
 baseModuleOrder x
