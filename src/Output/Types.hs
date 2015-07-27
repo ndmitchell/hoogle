@@ -189,7 +189,7 @@ packAlias :: String -> ([String], Type) -> Decl
 packAlias name (bind, rhs) = TypeDecl noLoc (Ident name) (map (UnkindedVar . Ident) bind) rhs
 -}
 
-writeAlias :: StoreWrite -> [Item] -> IO Aliases
+writeAlias :: StoreWrite -> [a] -> IO Aliases
 writeAlias store xs = do
     storeWriteBS store BS.empty
     return $ Aliases Map.empty
