@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
 
 module General.Util(
+    URL,
     pretty, parseMode, fromName, fromQName, fromTyVarBind, declNames,
     tarballReadFiles,
     isUpper1, isAlpha1,
@@ -45,6 +46,9 @@ import System.Time.Extra
 import System.Locale
 #endif
 import Prelude
+
+
+type URL = String
 
 
 exitFail :: String -> IO ()

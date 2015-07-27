@@ -5,8 +5,7 @@ module Input.Item(
     Sig(..), Ctx(..), Ty(..),
     Target(..), TargetId(..), Item(..),
     itemName,
-    splitIPackage, splitIModule,
-    URL,
+    splitIPackage, splitIModule
     ) where
 
 import Numeric
@@ -26,7 +25,6 @@ import General.Util
 ---------------------------------------------------------------------
 -- DATABASE
 
-type URL = String
 newtype TargetId = TargetId Word32 deriving (Eq,Ord,Storable,NFData,Ix)
 
 instance Show TargetId where
