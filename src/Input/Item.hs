@@ -3,8 +3,8 @@
 -- | Types used to generate the input.
 module Input.Item(
     Sig(..), Ctx(..), Ty(..),
-    Target(..), TargetId(..), Item(..),
-    itemName,
+    Item(..), itemName,
+    Target(..), TargetId(..),
     splitIPackage, splitIModule
     ) where
 
@@ -20,6 +20,26 @@ import Control.DeepSeq
 import Data.Data
 import Input.Type
 import General.Util
+
+
+---------------------------------------------------------------------
+-- ITEMS
+
+data Item
+    = IDecl Decl
+    | IPackage String
+    | IModule String
+      deriving (Show,Eq,Ord,Typeable,Data)
+
+instance NFData Item where
+    rnf (IDecl x) = rnf $ show x
+    rnf (IPackage x) = rnf x
+    rnf (IModule x) = rnf x
+
+itemName :: Item -> Maybe String
+itemName (IDecl x) = listToMaybe $ declNames x
+itemName (IPackage x) = Just x
+itemName (IModule x) = Just x
 
 
 ---------------------------------------------------------------------
@@ -44,23 +64,6 @@ data Target = Target
 
 instance NFData Target where
     rnf (Target a b c d e f) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e `seq` rnf f
-
-
-data Item
-    = IDecl Decl
-    | IPackage String
-    | IModule String
-      deriving (Show,Eq,Ord,Typeable,Data)
-
-instance NFData Item where
-    rnf (IDecl x) = rnf $ show x
-    rnf (IPackage x) = rnf x
-    rnf (IModule x) = rnf x
-
-itemName :: Item -> Maybe String
-itemName (IDecl x) = listToMaybe $ declNames x
-itemName (IPackage x) = Just x
-itemName (IModule x) = Just x
 
 
 splitIPackage, splitIModule :: [(a, Item)] -> [(String, [(a, Item)])]
