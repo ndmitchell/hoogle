@@ -3,8 +3,8 @@
 module Output.Items(writeItems, lookupItem, listItems) where
 
 import Language.Haskell.Exts
+import Control.Monad
 import Data.List.Extra
-import Data.IORef
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
@@ -40,18 +40,16 @@ data Items = Items deriving Typeable
 -- and replace each with an identifier (index in the space) - big reduction in memory
 writeItems :: StoreWrite -> (Conduit (Target, Item) IO (Maybe Id, Item) -> IO a) -> IO a
 writeItems store act = do
-    pos <- newIORef 0
     storeWriteType store Items $ storeWriteParts store $ act $
-        awaitForever $ \(target, item) -> case item of
-            IDecl InstDecl{} -> yield (Nothing, item)
+        void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case item of
+            IDecl InstDecl{} -> return (pos, (Nothing, item))
             _ -> do
-                i <- liftIO $ readIORef pos
-                let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id i, target)
+                let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id pos, target)
                 liftIO $ do
                     storeWriteBS store $ intToBS $ BS.length bs
                     storeWriteBS store bs
-                    writeIORef pos $ i + fromIntegral (intSize + BS.length bs)
-                yield (Just $ Id i, item)
+                let pos2 = pos + fromIntegral (intSize + BS.length bs)
+                return (pos2, (Just $ Id pos, item))
 
 
 listItems :: StoreRead -> [Target]
