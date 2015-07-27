@@ -10,11 +10,7 @@ import Data.Maybe
 import Input.Item
 import General.Util
 import Control.DeepSeq
-import Data.IORef.Extra
-import System.IO.Unsafe
 import Control.Monad.Trans.Class
-import qualified Data.Map as Map
-import Data.Generics.Uniplate.Data
 import General.Conduit
 import Control.Monad.Extra
 import General.Str
@@ -28,22 +24,6 @@ data Entry = EPackage String
            | EDecl Decl
              deriving (Data,Typeable,Show)
 
-
-{-# NOINLINE strings #-}
-strings :: IORef (Map.Map Name Name)
-strings = unsafePerformIO $ newIORef Map.empty
-
--- Increases creation time from 27s to 28s
--- Reduces peak memory from 767Mb to 625Mb, and maximum resident with profiling from 100Mb to 45Mb
--- Using Name over String is about 20% better
-stringShare :: Name -> Name
-stringShare x = unsafePerformIO $ do
-    mp <- readIORef strings
-    case Map.lookup x mp of
-        Just x -> return x
-        Nothing -> do
-            writeIORef' strings $ Map.insert x x mp
-            return x
 
 fakePackage :: String -> String -> (Maybe Target, Item)
 fakePackage name desc = (Just $ Target (hackage ++ "package/" ++ name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
@@ -74,7 +54,7 @@ parserC warning file = f [] ""
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
                             Right xs -> forM_ xs $ \x ->
-                                yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse $ map strUnpack com, descendBi stringShare x)
+                                yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse $ map strUnpack com, x) -- descendBi stringShare x)
                         f [] ""
 
 typeItem (EPackage x) = "package"
