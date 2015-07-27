@@ -6,6 +6,7 @@ import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
 import Data.Data
+import Data.Maybe
 import Input.Item
 import General.Util
 import Control.DeepSeq
@@ -95,10 +96,11 @@ hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
             where url = targetURL t `orIfNull` hackage ++ "package/" ++ x
         f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, IModule x))
             where url = targetURL t `orIfNull` maybe "" snd pkg ++ "/docs/" ++ replace "." "-" x ++ ".html"
-        f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, IDecl i))
-        f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, IDecl x))
+        f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
+        f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
             where url = targetURL t `orIfNull` maybe "" snd mod ++ "#" ++ declURL x
 
+        hseToItem_ x = fromMaybe (error $ "hseToItem failed, " ++ pretty x) $ hseToItem x
         orIfNull x y = if null x then y else x
 
         declURL (TypeSig _ [name] _) = "v:" ++ esc (fromName name)

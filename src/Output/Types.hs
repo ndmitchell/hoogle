@@ -15,19 +15,8 @@ import Data.Typeable
 import Data.Functor.Identity
 
 import Input.Item
-import General.Util
 import General.Store
-
-
-data Dec = ISignature String (Sig String)
-         | IAlias String [String] (Sig String)
-         | IInstance (Sig String)
-
-toDec :: Decl -> Maybe Dec
-toDec (TypeSig _ [name] ty) = Just $ ISignature (fromName name) (hseToSig ty)
-toDec (TypeDecl _ name bind rhs) = Just $ IAlias (fromName name) (map (fromName . fromTyVarBind) bind) (hseToSig rhs)
-toDec (InstDecl _ _ _ ctx name args _) = Just $ IInstance $ hseToSig $ TyForall Nothing ctx $ tyApps (TyCon name) args
-toDec _ = Nothing
+import General.IString
 
 
 {-
@@ -46,8 +35,6 @@ data Types = Types deriving Typeable
 
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
-    xs <- return [(a,d) | (a,IDecl b) <- xs, Just d <- [toDec b]]
-
     {-
     when False $
         storeWriteType store Ctors $ do
@@ -63,7 +50,7 @@ writeTypes store debug xs = storeWriteType store Types $ do
 
     let ys = Map.toList $ Map.fromListWith (++) [(t, [(j,i)]) | (j, (Just i, ISignature _ t)) <- zip [1..] xs]
     storeWriteBS store $ BS.pack $ unlines $ concat
-        [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare t, unwords $ preNames t {- , pretty t -}]
+        [ [unwords $ reverse $ map (show . snd) i, show $ preArity t, show $ preRarity rare $ fromIString <$> t, unwords $ preNames $ fromIString <$> t {- , pretty t -}]
         | (t,i) <- sortOn (minimum . map fst . snd) ys]
 
     {-
@@ -147,10 +134,10 @@ typeNames (Sig ctx ty) = ['~':c | Ctx c _ <- ctx] ++ [x | TCon x _ <- universeBi
 
 data Rarity = Rarity Int (Map.Map String Int)
 
-writeRarity :: StoreWrite -> [Dec] -> IO Rarity
+writeRarity :: StoreWrite -> [Item] -> IO Rarity
 writeRarity store xs = do
     let n = length xs
-    let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames t | ISignature _ t <- xs]
+    let r = Map.fromListWith (+) $ concat [map (,1) $ Set.toList $ Set.fromList $ typeNames $ fromIString <$> t | ISignature _ t <- xs]
     storeWriteBS store $ BS.pack $ unlines $
         show n :
         [x ++ " " ++ show i | (x,i) <- Map.toList r]

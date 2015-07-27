@@ -6,7 +6,7 @@ module Input.Item(
     Item(..), itemName,
     Target(..), TargetId(..),
     splitIPackage, splitIModule,
-    hseToSig
+    hseToSig, hseToItem
     ) where
 
 import Numeric
@@ -20,6 +20,7 @@ import Data.Word
 import Control.DeepSeq
 import Data.Data
 import General.Util
+import General.IString
 
 
 ---------------------------------------------------------------------
@@ -41,20 +42,29 @@ instance NFData n => NFData (Ty  n) where
 -- ITEMS
 
 data Item
-    = IDecl Decl
-    | IPackage String
+    = IPackage String
     | IModule String
+    | IName String -- class or newtype
+    | ISignature String (Sig IString)
+    | IAlias String [IString] (Sig IString)
+    | IInstance (Sig IString)
       deriving (Show,Eq,Ord,Typeable,Data)
 
 instance NFData Item where
-    rnf (IDecl x) = rnf $ show x
     rnf (IPackage x) = rnf x
     rnf (IModule x) = rnf x
+    rnf (IName x) = rnf x
+    rnf (ISignature a b) = rnf (a,b)
+    rnf (IAlias a b c) = rnf (a,b,c)
+    rnf (IInstance a) = rnf a
 
 itemName :: Item -> Maybe String
-itemName (IDecl x) = listToMaybe $ declNames x
 itemName (IPackage x) = Just x
 itemName (IModule x) = Just x
+itemName (IName x) = Just x
+itemName (ISignature x _) = Just x
+itemName (IAlias x _ _) = Just x
+itemName (IInstance _) = Nothing
 
 
 ---------------------------------------------------------------------
@@ -125,3 +135,11 @@ hseToSig = tyForall
         ctx (InfixA a con b) = ctx $ ClassA con [a,b]
         ctx (ClassA con (TyVar var:_)) = [Ctx (fromQName con) (fromName var)]
         ctx _ = []
+
+
+hseToItem :: Decl -> Maybe Item
+hseToItem (TypeSig _ [name] ty) = Just $ ISignature (fromName name) (toIString <$> hseToSig ty)
+hseToItem (TypeDecl _ name bind rhs) = Just $ IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)
+hseToItem (InstDecl _ _ _ ctx name args _) = Just $ IInstance $ fmap toIString $ hseToSig $ TyForall Nothing ctx $ tyApps (TyCon name) args
+hseToItem x | [x] <- declNames x = Just $ IName x
+hseToItem x = Nothing
