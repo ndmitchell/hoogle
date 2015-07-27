@@ -2,11 +2,11 @@
 
 -- | Types used to generate the input.
 module Input.Item(
-    Target(..), Item(..), Sig(..), Ctx(..), Ty(..),
+    Sig(..), Ctx(..), Ty(..),
+    Target(..), TargetId(..), Item(..),
     itemName,
     splitIPackage, splitIModule,
     URL,
-    TargetId(..)
     ) where
 
 import Numeric
