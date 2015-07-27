@@ -4,7 +4,7 @@
 module Input.Item(
     Target(..), Item(..), Sig(..), Ctx(..), Ty(..),
     itemName,
-    isIPackage, isIModule, splitIPackage, splitIModule,
+    splitIPackage, splitIModule,
     URL,
     Id(..)
     ) where
@@ -64,9 +64,6 @@ itemName (IDecl x) = listToMaybe $ declNames x
 itemName (IPackage x) = Just x
 itemName (IModule x) = Just x
 
-
-isIModule IModule{} = True; isIModule _ = False
-isIPackage IPackage{} = True; isIPackage _ = False
 
 splitIPackage, splitIModule :: [(a, Item)] -> [(String, [(a, Item)])]
 splitIPackage = splitUsing $ \x -> case snd x of IPackage x -> Just x; _ -> Nothing
