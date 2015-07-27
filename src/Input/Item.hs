@@ -95,12 +95,12 @@ splitUsing f = repeatedly $ \(x:xs) ->
 ---------------------------------------------------------------------
 -- HSE CONVERSION
 
-hseToSig :: Type -> Sig IString
+hseToSig :: Type -> Sig String
 hseToSig = tyForall
     where
         -- forall at the top is different
         tyForall (TyParen x) = tyForall x
-        tyForall (TyForall _ c t) | Sig cs ts <- tyForall t = Sig (toCtx c ++ cs) ts
+        tyForall (TyForall _ c t) | Sig cs ts <- tyForall t = Sig (concatMap ctx c ++ cs) ts
         tyForall x = Sig [] $ tyFun x
 
         tyFun (TyParen x) = tyFun x
@@ -109,23 +109,20 @@ hseToSig = tyForall
 
         ty (TyForall _ _ x) = TCon "\\/" [ty x]
         ty x@TyFun{} = TCon "->" $ tyFun x
-        ty (TyTuple box ts) = TCon (toIString $ fromQName $ Special $ TupleCon box $ length ts) (map ty ts)
+        ty (TyTuple box ts) = TCon (fromQName $ Special $ TupleCon box $ length ts) (map ty ts)
         ty (TyList x) = TCon "[]" [ty x]
         ty (TyParArray x) = TCon "[::]" [ty x]
         ty (TyApp x y) = case ty x of
             TCon a b -> TCon a (b ++ [ty y])
             TVar a b -> TVar a (b ++ [ty y])
-        ty (TyVar x) = TVar (toIString $ fromName x) []
-        ty (TyCon x) = TCon (toIString $ fromQName x) []
+        ty (TyVar x) = TVar (fromName x) []
+        ty (TyCon x) = TCon (fromQName x) []
         ty (TyInfix a b c) = ty $ TyCon b `TyApp` a `TyApp` c
         ty (TyKind x _) = ty x
         ty (TyBang _ x) = ty x
         ty _ = TVar "_" []
 
-toCtx :: Context -> [Ctx IString]
-toCtx = mapMaybe f
-    where
-        f (ParenA x) = f x
-        f (InfixA a con b) = f $ ClassA con [a,b]
-        f (ClassA con (TyVar var:_)) = Just $ Ctx (toIString $ fromQName con) (toIString $ fromName var)
-        f _ = Nothing
+        ctx (ParenA x) = ctx x
+        ctx (InfixA a con b) = ctx $ ClassA con [a,b]
+        ctx (ClassA con (TyVar var:_)) = [Ctx (fromQName con) (fromName var)]
+        ctx _ = []
