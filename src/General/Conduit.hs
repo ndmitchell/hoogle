@@ -81,25 +81,20 @@ sourceLStr = sourceList . lstrToChunks
 
 pipelineC :: Int -> Consumer o IO r -> Consumer o IO r
 pipelineC buffer sink = do
-    sem <- liftIO $ newQSem buffer
-    chan <- liftIO newChan
-    bar <- liftIO newBarrier
-    liftIO $ flip forkFinally (signalBarrier bar) $ do
+    sem <- liftIO $ newQSem buffer  -- how many are in flow, to avoid memory leaks
+    chan <- liftIO newChan          -- the items in flow (type o)
+    bar <- liftIO newBarrier        -- the result type (type r)
+    me <- liftIO myThreadId
+    liftIO $ flip forkFinally (either (throwTo me) (signalBarrier bar)) $ do
         runConduit $
             (whileM $ do
                 x <- liftIO $ readChan chan
                 liftIO $ signalQSem sem
-                case x of
-                    Nothing -> return False
-                    Just x -> do yield x; return True) =$=
+                whenJust x yield
+                return $ isJust x) =$=
             sink
-    whileM $ do
-        signaled <- liftIO $ isJust <$> waitBarrierMaybe bar
-        if signaled then
-            return False
-         else do
-            x <- await
-            liftIO $ writeChan chan x
-            liftIO $ waitQSem sem
-            return $ isJust x
-    liftIO $ either throwIO return =<< waitBarrier bar
+    awaitForever $ \x -> liftIO $ do
+        waitQSem sem
+        writeChan chan $ Just x
+    liftIO $ writeChan chan Nothing
+    liftIO $ waitBarrier bar
