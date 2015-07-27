@@ -3,7 +3,6 @@
 module Output.Types(writeTypes, searchTypes) where
 
 
-import Language.Haskell.Exts
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.ByteString.Char8 as BS
@@ -159,7 +158,7 @@ askRarity (Rarity count mp) t = minimum $ count : map (\x -> Map.findWithDefault
 -- ALIAS INFORMATION
 
 -- about 10% of aliases are duplicates
-newtype Aliases = Aliases (Map.Map String [([String], Type)])
+newtype Aliases = Aliases (Map.Map String String)
 
 {-
 unpackAlias :: Decl -> Maybe (String, ([String], Type))
@@ -199,7 +198,7 @@ aliasWords (Aliases mp) t = g Set.empty $ f t
 ---------------------------------------------------------------------
 -- INSTANCE INFORMATION
 
-newtype Instances = Instances [Decl]
+newtype Instances = Instances [String]
 
 writeInstance :: StoreWrite -> [a] -> IO ()
 writeInstance store xs =
