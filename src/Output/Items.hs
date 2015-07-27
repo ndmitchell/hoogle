@@ -15,7 +15,7 @@ import General.Store
 import General.Conduit
 
 
-outputItem :: (Id, Target) -> [String]
+outputItem :: (TargetId, Target) -> [String]
 outputItem (i, Target{..}) =
     [show i
     ,if null targetURL then "." else targetURL
@@ -25,7 +25,7 @@ outputItem (i, Target{..}) =
     ,targetItem] ++
     replace [""] ["."] (lines targetDocs)
 
-inputItem :: [String] -> (Id, Target)
+inputItem :: [String] -> (TargetId, Target)
 inputItem (i:url:pkg:modu:typ:self:docs) =
     (read i
     ,Target (if url == "." then "" else url) (f pkg) (f modu) (if typ == "." then "" else typ) self (unlines docs))
@@ -37,18 +37,18 @@ data Items = Items deriving Typeable
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: StoreWrite -> (Conduit (Maybe Target, Item) IO (Maybe Id, Item) -> IO a) -> IO a
+writeItems :: StoreWrite -> (Conduit (Maybe Target, Item) IO (Maybe TargetId, Item) -> IO a) -> IO a
 writeItems store act = do
     storeWriteType store Items $ storeWriteParts store $ act $
         void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case target of
             Nothing -> return (pos, (Nothing, item))
             Just target -> do
-                let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (Id pos, target)
+                let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem (TargetId pos, target)
                 liftIO $ do
                     storeWriteBS store $ intToBS $ BS.length bs
                     storeWriteBS store bs
                 let pos2 = pos + fromIntegral (intSize + BS.length bs)
-                return (pos2, (Just $ Id pos, item))
+                return (pos2, (Just $ TargetId pos, item))
 
 
 listItems :: StoreRead -> [Target]
@@ -61,10 +61,10 @@ listItems store = unfoldr f $ storeReadBS $ storeReadType Items store
             = Just (snd $ inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks [this], x)
 
 
-lookupItem :: StoreRead -> (Id -> Target)
+lookupItem :: StoreRead -> (TargetId -> Target)
 lookupItem store =
     let x = storeReadBS $ storeReadType Items store
-    in \(Id i) ->
+    in \(TargetId i) ->
         let i2 = fromIntegral i
             n = intFromBS $ BS.take intSize $ BS.drop i2 x
         in snd $ inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i2 + intSize) x

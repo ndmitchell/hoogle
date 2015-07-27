@@ -6,7 +6,7 @@ module Input.Item(
     itemName,
     splitIPackage, splitIModule,
     URL,
-    Id(..)
+    TargetId(..)
     ) where
 
 import Numeric
@@ -27,13 +27,13 @@ import General.Util
 -- DATABASE
 
 type URL = String
-newtype Id = Id Word32 deriving (Eq,Ord,Storable,NFData,Ix)
+newtype TargetId = TargetId Word32 deriving (Eq,Ord,Storable,NFData,Ix)
 
-instance Show Id where
-    show (Id x) = showHex x ""
+instance Show TargetId where
+    show (TargetId x) = showHex x ""
 
-instance Read Id where
-    readsPrec _ = map (first Id) . readHex
+instance Read TargetId where
+    readsPrec _ = map (first TargetId) . readHex
 
 data Target = Target
     {targetURL :: URL -- URL where this thing is located

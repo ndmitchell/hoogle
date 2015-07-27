@@ -28,7 +28,7 @@ foreign import ccall text_search :: CString -> Ptr CString -> CInt -> Ptr CInt -
 data Names = Names deriving Typeable
 
 
-writeNames :: StoreWrite -> [(Maybe Id, Item)] -> IO ()
+writeNames :: StoreWrite -> [(Maybe TargetId, Item)] -> IO ()
 writeNames store xs = do
     let (ids, strs) = unzip [(i, [' ' | isUpper1 name] ++ lower name) | (Just i, x) <- xs, name <- itemNamePart x]
     let b = BS.intercalate (BS.pack "\0") (map strPack strs) `BS.append` BS.pack "\0\0"
@@ -42,7 +42,7 @@ itemNamePart :: Item -> [String]
 itemNamePart (IModule x) = [last $ splitOn "." x]
 itemNamePart x = maybeToList $ itemName x
 
-searchNames :: StoreRead -> Bool -> [String] -> [Id]
+searchNames :: StoreRead -> Bool -> [String] -> [TargetId]
 -- very important to not search for [" "] or [] since the output buffer is too small
 searchNames store exact (filter (/= "") . map trim -> xs) = unsafePerformIO $ do
     let [n,v,bs] = storeReadList $ storeReadType Names store

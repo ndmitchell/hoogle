@@ -40,7 +40,7 @@ data Types = Types deriving Typeable
 
 data Ctors = Ctors deriving Typeable
 
-writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe Id, Item)] -> IO ()
+writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
 
     when False $
@@ -96,7 +96,7 @@ encodeSig = undefined
         [pretty t | (_, IDecl t@TypeDecl{}) <- xs]
 -}
 
-searchTypes :: StoreRead -> Type -> [Id]
+searchTypes :: StoreRead -> Type -> [TargetId]
 searchTypes store q = runIdentity $ do
     let [x1,x2,x3,x4] = storeReadList $ storeReadType Types store
     dbRare <- return $ readRarity x1
