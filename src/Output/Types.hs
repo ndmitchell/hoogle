@@ -94,8 +94,8 @@ encodeSig = undefined
         [pretty t | (_, IDecl t@TypeDecl{}) <- xs]
 -}
 
-searchTypes :: StoreRead -> Type -> [TargetId]
-searchTypes store (hseToSig -> q) = runIdentity $ do
+searchTypes :: StoreRead -> Sig String -> [TargetId]
+searchTypes store q = runIdentity $ do
     let [x1,x2,x3,x4] = storeReadList $ storeReadType Types store
     dbRare <- return $ readRarity x1
     dbAlias <- return $ readAlias x2

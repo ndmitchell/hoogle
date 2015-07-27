@@ -49,11 +49,11 @@ search store qs = runIdentity $ do
     let exact = QueryScope True "is" "exact" `elem` qs
     is <- case (filter isQueryName qs, filter isQueryType qs) of
         ([], [] ) -> return $ searchTags tags qs
-        ([], t:_) -> return $ searchTypes store $ fromQueryType t
+        ([], t:_) -> return $ searchTypes store $ hseToSig $ fromQueryType t
         (xs, [] ) -> return $ searchNames store exact $ map fromQueryName xs
         (xs, t:_) -> do
             nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
-            return $ filter (`Set.member` nam) $ searchTypes store $ fromQueryType t
+            return $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
     let look = lookupItem store
     return $ map look $ filter (filterTags tags qs) is
 
