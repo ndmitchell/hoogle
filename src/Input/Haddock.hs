@@ -100,8 +100,8 @@ hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
                 isLegal c = isAscii c && isAlphaNum c
 
 
-renderPackage x = "package <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
-renderModule (breakEnd (== '.') -> (pre,post)) = "module " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
+renderPackage x = "<b>package</b> <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
+renderModule (breakEnd (== '.') -> (pre,post)) = "<b>module</b> " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
 
 
 renderItem :: Entry -> String
