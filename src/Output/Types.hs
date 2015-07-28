@@ -97,7 +97,7 @@ newtype Duplicates = Duplicates {expandDuplicates :: Int -> [TargetId]}
 writeDuplicates :: StoreWrite -> [(TargetId, Sig Name)] -> IO [Sig Name]
 writeDuplicates store xs = do
     xs <- return $ Map.toList $ Map.fromListWith (++) [(s,[t]) | (t,s) <- xs]
-    let (is,ts) = unzip [(i::Word32, t) | (i,(_,ts)) <- zip [0..] xs, t <- ts]
+    let (is,ts) = unzip [(i::Word32, t) | (i,(_,ts)) <- zip [0..] xs, t <- reverse ts]
     storeWriteV store $ V.fromList is
     storeWriteV store $ V.fromList ts
     return $ map fst xs
