@@ -130,7 +130,7 @@ instance Storable Fingerprint where
 
 toFingerprint :: Sig Name -> Fingerprint
 toFingerprint sig@(Sig _ args) = Fingerprint{..}
-    where fpRare1:fpRare2:fpRare3:_ = reverse (sort $ filter isCon $ universeBi sig) ++ [name0,name0,name0]
+    where fpRare1:fpRare2:fpRare3:_ = reverse (sort $ nubOrd $ filter isCon $ universeBi sig) ++ [name0,name0,name0]
           fpArity = fromIntegral $ length args
           fpTerms = fromIntegral $ min 255 $ length (universeBi sig :: [Name])
 
