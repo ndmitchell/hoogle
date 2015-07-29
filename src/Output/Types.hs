@@ -116,7 +116,7 @@ data Fingerprint = Fingerprint
     ,fpRare3 :: {-# UNPACK #-} !Name -- 3rd rare ctor
     ,fpArity :: {-# UNPACK #-} !Word8 -- Artiy, where 0 = CAF
     ,fpTerms :: {-# UNPACK #-} !Word8 -- Number of terms (where 255 = 255 and above)
-    } deriving Eq
+    } deriving (Eq,Show)
 
 instance Storable Fingerprint where
     sizeOf _ = 64
