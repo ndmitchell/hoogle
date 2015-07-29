@@ -34,7 +34,7 @@ writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
     xs <- return [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
     names <- writeNames store $ map snd xs
-    xs <- writeDuplicates store $ map (second $ lookupNames names) xs
+    xs <- writeDuplicates store $ map (second $ lookupNames names (error "Unknown name in writeTypes")) xs
     writeFingerprints store $ map toFingerprint xs
 
 
@@ -42,7 +42,8 @@ searchTypes :: StoreRead -> Sig String -> [TargetId]
 searchTypes store q =
         concatMap (expandDuplicates $ readDuplicates dupe1 dupe2) $
         searchFingerprints fingerprints 100 $ toFingerprint $
-        lookupNames (readNames names) q
+        lookupNames (readNames names) name0 q
+        -- map unknown fields to name0, i.e. _
     where
         [names, dupe1, dupe2, fingerprints] = storeReadList $ storeReadType Types store
 
@@ -55,20 +56,21 @@ searchTypes store q =
 -- More popular type constructors have higher numbers.
 newtype Name = Name Word16 deriving (Eq,Ord,Show,Data,Typeable,Storable)
 
-name0 = Name 0
+name0 = Name 0 -- use to represent _
 
 isCon, isVar :: Name -> Bool
 isVar (Name x) = x < 100
 isCon = not . isVar
 
 
-newtype Names = Names {lookupName :: String -> Name}
+newtype Names = Names {lookupName :: String -> Maybe Name}
 
-lookupNames :: Names -> Sig String -> Sig Name
-lookupNames Names{lookupName=con} (Sig ctx typ) = Sig (map f ctx) (map g typ)
+lookupNames :: Names -> Name -> Sig String -> Sig Name
+lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
     where
         vars = nubOrd $ [x | Ctx _ x <- ctx] ++ [x | TVar x _ <- universeBi typ]
-        var x = Name $ min 99 $ fromIntegral $ fromMaybe (error "lookupNames") $ elemIndex x vars
+        var x = Name $ min 99 $ succ $ fromIntegral $ fromMaybe (error "lookupNames") $ elemIndex x vars
+        con = fromMaybe def . lookupName
 
         f (Ctx a b) = Ctx (con $ '~':a) (var b)
         g (TCon x xs) = TCon (con x) $ map g xs
@@ -82,10 +84,10 @@ writeNames store xs = do
     let ns = map fst $ sortOn snd $ Map.toList mp
     storeWriteBS store $ BS.pack $ intercalate "\0" ns
     let mp2 = Map.fromList $ zip ns $ map Name [100..]
-    return $ Names $ \x -> fromMaybe (error $ "Internal error, missing name: " ++ x) $ Map.lookup x mp2
+    return $ Names $ \x -> Map.lookup x mp2
 
 readNames :: StoreRead -> Names
-readNames store = Names $ \x -> fromMaybe (error $ "Internal error, missing name: " ++ x) $ Map.lookup (BS.pack x) mp
+readNames store = Names $ \x -> Map.lookup (BS.pack x) mp
     where mp = Map.fromList $ zip (BS.split '\0' $ storeReadBS store) $ map Name [100..]
 
 
