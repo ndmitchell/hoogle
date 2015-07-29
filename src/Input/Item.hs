@@ -131,6 +131,7 @@ hseToSig = tyForall
         ty (TyInfix a b c) = ty $ TyCon b `TyApp` a `TyApp` c
         ty (TyKind x _) = ty x
         ty (TyBang _ x) = ty x
+        ty (TyParen x) = ty x
         ty _ = TVar "_" []
 
         ctx (ParenA x) = ctx x
