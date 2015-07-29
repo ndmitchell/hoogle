@@ -96,7 +96,9 @@ newtype Duplicates = Duplicates {expandDuplicates :: Int -> [TargetId]}
 
 writeDuplicates :: StoreWrite -> [(TargetId, Sig Name)] -> IO [Sig Name]
 writeDuplicates store xs = do
-    xs <- return $ Map.toList $ Map.fromListWith (++) [(s,[t]) | (t,s) <- xs]
+    -- s=signature, t=targetid, p=popularity (incoing index), i=index (outgoing index)
+    xs <- return $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
+        Map.fromListWith (\(x1,x2) (y1,y2) -> (min x1 y1, x2 ++ y2)) [(s,(p,[t])) | (p,(t,s)) <- zip [0::Int ..] xs]
     let (is,ts) = unzip [(i::Word32, t) | (i,(_,ts)) <- zip [0..] xs, t <- reverse ts]
     storeWriteV store $ V.fromList is
     storeWriteV store $ V.fromList ts
