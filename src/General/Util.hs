@@ -120,6 +120,7 @@ escapeHTML = concatMap f
         f '\"' = "&quot;"
         f  x  = [x]
 
+-- | Only guarantees to be the inverse of escapeHTML
 unescapeHTML :: String -> String
 unescapeHTML ('&':xs)
     | Just xs <- stripPrefix "lt;" xs = '<' : unescapeHTML xs
