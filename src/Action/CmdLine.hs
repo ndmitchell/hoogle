@@ -47,7 +47,7 @@ getCmdLine = do
     args <- cmdArgsRun cmdLineMode
     if database args /= "" then return args else do
         dir <- getAppUserDataDirectory "hoogle"
-        return $ args{database=dir </> "default.hoo"}
+        return $ args{database=dir </> "default-" ++ showVersion version ++ ".hoo"}
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
     &= verbosity &= program "hoogle"
