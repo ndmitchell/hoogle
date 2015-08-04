@@ -10,7 +10,7 @@ module General.Util(
     showUTCTime,
     list', strict,
     withs,
-    escapeHTML, unescapeHTML, tag, tag_,
+    escapeHTML, unescapeHTML, innerTextHTML, tag, tag_,
     noinline,
     Average, toAverage, fromAverage,
     inRanges,
@@ -128,6 +128,11 @@ unescapeHTML ('&':xs)
     | Just xs <- stripPrefix "quot;" xs = '\"' : unescapeHTML xs
 unescapeHTML (x:xs) = x : unescapeHTML xs
 unescapeHTML [] = []
+
+innerTextHTML :: String -> String
+innerTextHTML ('<':xs) = innerTextHTML $ drop 1 $ dropWhile (/= '>') xs
+innerTextHTML (x:xs) = x : innerTextHTML xs
+innerTextHTML [] = []
 
 isUpper1 (x:xs) = isUpper x
 isUpper1 _ = False
