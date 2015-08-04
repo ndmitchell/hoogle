@@ -30,7 +30,7 @@ actionSearch Search{..} =
     withSearch database $ \store -> do
         res <- return $ search store $ parseQuery $ unwords query
         let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
-        putStr $ unlines shown
+        putStr $ unlines $ map (unescapeHTML . innerTextHTML) shown
         when (hidden /= []) $ do
             putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
 
