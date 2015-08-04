@@ -26,6 +26,7 @@ import Prelude
 import Input.Item
 import General.Store
 import General.IString
+import General.Util
 
 
 data Types = Types deriving Typeable
@@ -41,7 +42,7 @@ writeTypes store debug xs = storeWriteType store Types $ do
 searchTypes :: StoreRead -> Sig String -> [TargetId]
 searchTypes store q =
         concatMap (expandDuplicates $ readDuplicates dupe1 dupe2) $
-        searchFingerprints fingerprints 100 $ toFingerprint $
+        searchFingerprints fingerprints 100 $
         lookupNames (readNames names) name0 q
         -- map unknown fields to name0, i.e. _
     where
@@ -141,7 +142,11 @@ toFingerprint sig@(Sig _ args) = Fingerprint{..}
 writeFingerprints :: StoreWrite -> [Fingerprint] -> IO ()
 writeFingerprints store xs = storeWriteV store $ V.fromList xs
 
+matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
+matchFingerprint sig = \x -> if x == fp then Just 0 else Nothing
+    where fp = toFingerprint sig
 
-searchFingerprints :: StoreRead -> Int -> Fingerprint -> [Int]
-searchFingerprints store n = flip elemIndices fs
+searchFingerprints :: StoreRead -> Int -> Sig Name -> [Int]
+searchFingerprints store n sig = map snd $ takeSortOn fst n [(v, i) | (i,f) <- zip [0..] fs, Just v <- [test f]]
     where fs = V.toList $ storeReadV store :: [Fingerprint]
+          test = matchFingerprint sig
