@@ -12,6 +12,7 @@ module General.Util(
     withs,
     escapeHTML, unescapeHTML, innerTextHTML, tag, tag_,
     noinline,
+    takeSortOn,
     Average, toAverage, fromAverage,
     inRanges,
     readMaybe,
@@ -226,6 +227,24 @@ instance Num a => Monoid (Average a) where
 readMaybe :: Read a => String -> Maybe a
 readMaybe s | [x] <- [x | (x,t) <- reads s, ("","") <- lex t] = Just x
             | otherwise = Nothing
+
+
+data TakeSort k v = More !Int !(Map.Map k [v])
+                  | Full !k !(Map.Map k [v])
+
+-- | @takeSortOn n op == take n . sortOn op@
+takeSortOn :: Ord k => (a -> k) -> Int -> [a] -> [a]
+takeSortOn op n xs
+    | n <= 0 = []
+    | otherwise = concatMap reverse $ Map.elems $ getMap $ foldl' add (More n Map.empty) xs
+    where
+        getMap (More _ mp) = mp
+        getMap (Full _ mp) = mp
+
+        add (More n mp) x = (if n <= 1 then full else More (n-1)) $ Map.insertWith (++) (op x) [x] mp
+        add o@(Full mx mp) x = let k = op x in if k >= mx then o else full $ Map.insertWith (++) k [x] $ delMax mp
+        full mp = Full (fst $ Map.findMax mp) mp
+        delMax mp | Just ((k,_:vs), mp) <- Map.maxViewWithKey mp = if null vs then mp else Map.insert k vs mp
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient
