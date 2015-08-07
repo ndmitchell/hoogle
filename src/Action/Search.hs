@@ -8,6 +8,7 @@ import qualified Data.Set as Set
 import Data.List.Extra
 import Data.Functor.Identity
 import System.Directory
+import System.IO
 
 import Output.Items
 import Output.Tags
@@ -30,6 +31,7 @@ actionSearch Search{..} =
     withSearch database $ \store -> do
         res <- return $ search store $ parseQuery $ unwords query
         let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
+        hSetEncoding stdout utf8
         putStr $ unlines $ map (unescapeHTML . innerTextHTML) shown
         when (hidden /= []) $ do
             putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
