@@ -19,6 +19,7 @@ import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
 import Data.Data
+import Control.Monad
 import Foreign.Storable
 import Control.Applicative
 import Prelude
@@ -143,8 +144,18 @@ writeFingerprints :: StoreWrite -> [Fingerprint] -> IO ()
 writeFingerprints store xs = storeWriteV store $ V.fromList xs
 
 matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
-matchFingerprint sig = \x -> if x == fp then Just 0 else Nothing
-    where fp = toFingerprint sig
+matchFingerprint sig@(toFingerprint -> target) = \candidate ->
+    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity target
+    where
+        (+$+) = liftM2 (+)
+
+        arity a = if a == fpArity target then Just 0 else Nothing
+
+        terms t = if t == fpTerms target then Just 0 else Nothing
+
+        rarity c = if f target == f c then Just 0 else Nothing
+            where f Fingerprint{..} = (fpRare1, fpRare2, fpRare3)
+
 
 searchFingerprints :: StoreRead -> Int -> Sig Name -> [Int]
 searchFingerprints store n sig = map snd $ takeSortOn fst n [(v, i) | (i,f) <- zip [0..] fs, Just v <- [test f]]
