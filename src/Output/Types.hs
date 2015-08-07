@@ -65,7 +65,13 @@ isVar (Name x) = x < 100
 isCon = not . isVar
 
 
+-- | Giving "" to lookupName should always return the highest name
 newtype Names = Names {lookupName :: String -> Maybe Name}
+
+-- | Give a name a popularity, where 0 is least popular, 1 is most popular
+popularityName :: Names -> Name -> Double
+popularityName Names{..} = \(Name n) -> if isVar (Name n) then error "Can't call popularityName on a Var" else fromIntegral (n - 100) / fromIntegral (mx - 100)
+    where Just (Name mx) = lookupName ""
 
 lookupNames :: Names -> Name -> Sig String -> Sig Name
 lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
@@ -83,7 +89,7 @@ writeNames :: StoreWrite -> [Sig String] -> IO Names
 writeNames store xs = do
     let names (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
     let mp = Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
-    let ns = map fst $ sortOn snd $ Map.toList mp
+    let ns = (++ [""]) $ map fst $ sortOn snd $ Map.toList $ Map.delete "" mp
     storeWriteBS store $ BS.pack $ intercalate "\0" ns
     let mp2 = Map.fromList $ zip ns $ map Name [100..]
     return $ Names $ \x -> Map.lookup x mp2
