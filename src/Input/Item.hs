@@ -28,7 +28,7 @@ import Prelude
 ---------------------------------------------------------------------
 -- TYPES
 
-data Sig n = Sig [Ctx n] [Ty n] deriving (Show,Eq,Ord,Typeable,Data,Functor) -- list of -> types
+data Sig n = Sig {sigCtx :: [Ctx n], sigTy :: [Ty n]} deriving (Show,Eq,Ord,Typeable,Data,Functor) -- list of -> types
 data Ctx n = Ctx n n deriving (Show,Eq,Ord,Typeable,Data,Functor) -- context, second will usually be a free variable
 data Ty n = TCon n [Ty n] | TVar n [Ty n] deriving (Show,Eq,Ord,Typeable,Data,Functor) -- type application, vectorised, all symbols may occur at multiple kinds
 
