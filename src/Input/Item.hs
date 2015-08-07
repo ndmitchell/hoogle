@@ -76,9 +76,6 @@ newtype TargetId = TargetId Word32 deriving (Eq,Ord,Storable,NFData,Ix)
 instance Show TargetId where
     show (TargetId x) = showHex x ""
 
-instance Read TargetId where
-    readsPrec _ = map (first TargetId) . readHex
-
 data Target = Target
     {targetURL :: URL -- URL where this thing is located
     ,targetPackage :: Maybe (String, URL) -- name and URL of the package it is in (Nothing if it is a package)
