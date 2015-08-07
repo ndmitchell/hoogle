@@ -89,7 +89,10 @@ lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
 writeNames :: StoreWrite -> Map.Map String Int -> [Sig String] -> IO Names
 writeNames store inst xs = do
     let names (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
-    let mp = Map.unionWith (+) (Map.mapKeysMonotonic ('~':) inst) $
+
+    -- want to rank highly instances that have a lot of types, and a lot of definitions
+    -- eg Eq is used and defined a lot. Constructor is used in 3 places but defined a lot.
+    let mp = Map.unionWith (\typ sig -> sig + min sig typ) (Map.mapKeysMonotonic ('~':) inst) $
              Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
     let ns = (++ [""]) $ map fst $ sortOn snd $ Map.toList $ Map.delete "" mp
     storeWriteBS store $ BS.pack $ intercalate "\0" ns
