@@ -145,7 +145,7 @@ writeFingerprints store xs = storeWriteV store $ V.fromList xs
 
 matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
 matchFingerprint sig@(toFingerprint -> target) = \candidate ->
-    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity target
+    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity candidate
     where
         (+$+) = liftM2 (+)
 
