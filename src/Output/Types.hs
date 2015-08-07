@@ -130,6 +130,9 @@ data Fingerprint = Fingerprint
     ,fpTerms :: {-# UNPACK #-} !Word8 -- Number of terms (where 255 = 255 and above)
     } deriving (Eq,Show)
 
+fpRares :: Fingerprint -> [Name]
+fpRares Fingerprint{..} = [fpRare1, fpRare2, fpRare3]
+
 instance Storable Fingerprint where
     sizeOf _ = 64
     alignment _ = 4
