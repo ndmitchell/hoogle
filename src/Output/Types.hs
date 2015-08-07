@@ -163,7 +163,13 @@ matchFingerprint sig@(toFingerprint -> target) = \candidate ->
                 ta = fpArity target
                 allowMore = TVar name0 [] `elem` sigTy sig
 
-        terms t = if t == fpTerms target then Just 0 else Nothing
+        -- missing terms are a bit worse than invented terms, but it's fairly balanced, clip at large numbers
+        terms = \ct -> case fromIntegral $ ct - tt of
+                n | abs n > 20 -> Nothing -- too different
+                  | n > 0 -> Just $ n * 10 -- candidate has more terms
+                  | otherwise -> Just $ n * 12 -- candidate has less terms
+            where
+                tt = fpTerms target
 
         rarity c = if f target == f c then Just 0 else Nothing
             where f Fingerprint{..} = (fpRare1, fpRare2, fpRare3)
