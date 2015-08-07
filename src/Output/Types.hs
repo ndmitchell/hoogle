@@ -19,7 +19,9 @@ import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
 import Data.Data
-import Control.Monad
+import System.FilePath
+import System.IO.Extra
+import Control.Monad.Extra
 import Foreign.Storable
 import Control.Applicative
 import Prelude
@@ -34,9 +36,10 @@ data Types = Types deriving Typeable
 
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
+    let debugger ext body = whenJust debug $ \file -> writeFileUTF8 (file <.> ext) body
     inst <- return $ Map.fromListWith (+) [(fromIString x,1) | (_, IInstance (Sig _ [TCon x _])) <- xs]
     xs <- writeDuplicates store [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
-    names <- writeNames store inst xs
+    names <- writeNames store (debugger "types.popularity") inst xs
     xs <- return $ map (lookupNames names (error "Unknown name in writeTypes")) xs
     writeFingerprints store $ map toFingerprint xs
 
@@ -86,15 +89,17 @@ lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
         g (TVar x xs) = TVar (var x) $ map g xs
 
 
-writeNames :: StoreWrite -> Map.Map String Int -> [Sig String] -> IO Names
-writeNames store inst xs = do
+writeNames :: StoreWrite -> (String -> IO ()) -> Map.Map String Int -> [Sig String] -> IO Names
+writeNames store debug inst xs = do
     let names (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
 
     -- want to rank highly instances that have a lot of types, and a lot of definitions
     -- eg Eq is used and defined a lot. Constructor is used in 3 places but defined a lot.
     let mp = Map.unionWith (\typ sig -> sig + min sig typ) (Map.mapKeysMonotonic ('~':) inst) $
              Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
-    let ns = (++ [""]) $ map fst $ sortOn snd $ Map.toList $ Map.delete "" mp
+    let ns = sortOn snd $ Map.toList $ Map.delete "" mp
+    debug $ unlines [n ++ " = " ++ show i ++ " (" ++ show c ++ " uses)" | ((n,c),i) <- zip ns $ map Name [100..]]
+    ns <- return $ (++ [""]) $ map fst ns
     storeWriteBS store $ BS.pack $ intercalate "\0" ns
     let mp2 = Map.fromList $ zip ns $ map Name [100..]
     return $ Names $ \x -> Map.lookup x mp2
