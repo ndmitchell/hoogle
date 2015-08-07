@@ -35,9 +35,9 @@ data Types = Types deriving Typeable
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
     inst <- return $ Map.fromListWith (+) [(fromIString x,1) | (_, IInstance (Sig _ [TCon x _])) <- xs]
-    xs <- return [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
-    names <- writeNames store inst $ map snd xs
-    xs <- writeDuplicates store $ map (second $ lookupNames names (error "Unknown name in writeTypes")) xs
+    xs <- writeDuplicates store [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
+    names <- writeNames store inst xs
+    xs <- return $ map (lookupNames names (error "Unknown name in writeTypes")) xs
     writeFingerprints store $ map toFingerprint xs
 
 
@@ -48,7 +48,7 @@ searchTypes store q =
         lookupNames names name0 q
         -- map unknown fields to name0, i.e. _
     where
-        [readNames -> names, dupe1, dupe2, fingerprints] = storeReadList $ storeReadType Types store
+        [dupe1, dupe2, readNames -> names, fingerprints] = storeReadList $ storeReadType Types store
 
 
 ---------------------------------------------------------------------
