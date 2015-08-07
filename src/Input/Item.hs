@@ -116,7 +116,7 @@ hseToSig = tyForall
 
         ty (TyForall _ _ x) = TCon "\\/" [ty x]
         ty x@TyFun{} = TCon "->" $ tyFun x
-        ty (TyTuple box ts) = TCon (fromQName $ Special $ TupleCon box $ length ts) (map ty ts)
+        ty (TyTuple box ts) = TCon (fromQName $ Special $ TupleCon box $ length ts - 1) (map ty ts)
         ty (TyList x) = TCon "[]" [ty x]
         ty (TyParArray x) = TCon "[::]" [ty x]
         ty (TyApp x y) = case ty x of
