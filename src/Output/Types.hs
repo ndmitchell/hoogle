@@ -43,7 +43,7 @@ writeTypes store debug xs = storeWriteType store Types $ do
 searchTypes :: StoreRead -> Sig String -> [TargetId]
 searchTypes store q =
         concatMap (expandDuplicates $ readDuplicates dupe1 dupe2) $
-        searchFingerprints fingerprints 100 $
+        searchFingerprints fingerprints names 100 $
         lookupNames names name0 q
         -- map unknown fields to name0, i.e. _
     where
@@ -152,9 +152,9 @@ toFingerprint sig = Fingerprint{..}
 writeFingerprints :: StoreWrite -> [Fingerprint] -> IO ()
 writeFingerprints store xs = storeWriteV store $ V.fromList xs
 
-matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
-matchFingerprint sig@(toFingerprint -> target) = \candidate ->
-    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity candidate
+matchFingerprint :: (Name -> Double) -> Sig Name -> Fingerprint -> Maybe Int -- lower is better
+matchFingerprint popularity sig@(toFingerprint -> target) = \candidate ->
+    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity (fpRares candidate)
     where
         (+$+) = liftM2 (+)
 
@@ -180,11 +180,17 @@ matchFingerprint sig@(toFingerprint -> target) = \candidate ->
             where
                 tt = fpTerms target
 
-        rarity c = if f target == f c then Just 0 else Nothing
-            where f Fingerprint{..} = (fpRare1, fpRare2, fpRare3)
+        rarity = \cr -> Just $
+                f 1000 400 tr cr + -- searched for T but its not in the candidate, bad if rare, not great if common
+                f 1000  50 cr tr   -- T is in the candidate but I didn't search for it, bad if rare, OK if common
+            where
+                -- penalty is somewhere between mn and mx, using a linear interpolation
+                f rare common want have = sum [floor $ avg (p * common) ((1-p) * rare) | x <- want, x `notElem` have, let p = if x == name0 then 0 else popularity x]
+                avg x y = (x + y) / 2
+                tr = fpRares target
 
 
-searchFingerprints :: StoreRead -> Int -> Sig Name -> [Int]
-searchFingerprints store n sig = map snd $ takeSortOn fst n [(v, i) | (i,f) <- zip [0..] fs, Just v <- [test f]]
+searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]
+searchFingerprints store names n sig = map snd $ takeSortOn fst n [(v, i) | (i,f) <- zip [0..] fs, Just v <- [test f]]
     where fs = V.toList $ storeReadV store :: [Fingerprint]
-          test = matchFingerprint sig
+          test = matchFingerprint (popularityName names) sig
