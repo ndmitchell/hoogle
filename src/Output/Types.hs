@@ -149,7 +149,19 @@ matchFingerprint sig@(toFingerprint -> target) = \candidate ->
     where
         (+$+) = liftM2 (+)
 
-        arity a = if a == fpArity target then Just 0 else Nothing
+        -- CAFs must match perfectly, otherwise too many is better than too few
+        arity | ta == 0 = \ca -> if ca == 0 then Just 0 else Nothing -- searching for a CAF
+              | otherwise = \ca -> case fromIntegral $ ca - ta of
+                    _ | ca == 0 -> Nothing -- searching for a CAF
+                    0  -> Just 0 -- perfect match
+                    -1 -> Just 1000 -- not using something the user carefully wrote
+                    n | n > 0 && allowMore -> Just $ 300 * n -- user will have to make up a lot, but they said _ in their search
+                    1  -> Just 300  -- user will have to make up an extra param
+                    2  -> Just 900  -- user will have to make up two params
+                    _ -> Nothing
+            where
+                ta = fpArity target
+                allowMore = TVar name0 [] `elem` sigTy sig
 
         terms t = if t == fpTerms target then Just 0 else Nothing
 
