@@ -134,9 +134,9 @@ instance Storable Fingerprint where
         pokeByteOff ptr (i+6) fpArity >> pokeByteOff ptr (i+7) fpTerms
 
 toFingerprint :: Sig Name -> Fingerprint
-toFingerprint sig@(Sig _ args) = Fingerprint{..}
+toFingerprint sig = Fingerprint{..}
     where fpRare1:fpRare2:fpRare3:_ = reverse (sort $ nubOrd $ filter isCon $ universeBi sig) ++ [name0,name0,name0]
-          fpArity = fromIntegral $ length args
+          fpArity = fromIntegral $ length $ sigTy sig
           fpTerms = fromIntegral $ min 255 $ length (universeBi sig :: [Name])
 
 writeFingerprints :: StoreWrite -> [Fingerprint] -> IO ()
