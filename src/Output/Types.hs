@@ -44,10 +44,10 @@ searchTypes :: StoreRead -> Sig String -> [TargetId]
 searchTypes store q =
         concatMap (expandDuplicates $ readDuplicates dupe1 dupe2) $
         searchFingerprints fingerprints 100 $
-        lookupNames (readNames names) name0 q
+        lookupNames names name0 q
         -- map unknown fields to name0, i.e. _
     where
-        [names, dupe1, dupe2, fingerprints] = storeReadList $ storeReadType Types store
+        [readNames -> names, dupe1, dupe2, fingerprints] = storeReadList $ storeReadType Types store
 
 
 ---------------------------------------------------------------------
