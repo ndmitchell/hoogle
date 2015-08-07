@@ -98,7 +98,7 @@ readNames store = Names $ \x -> Map.lookup (BS.pack x) mp
 
 newtype Duplicates = Duplicates {expandDuplicates :: Int -> [TargetId]}
 
-writeDuplicates :: StoreWrite -> [(TargetId, Sig Name)] -> IO [Sig Name]
+writeDuplicates :: Ord a => StoreWrite -> [(TargetId, Sig a)] -> IO [Sig a]
 writeDuplicates store xs = do
     -- s=signature, t=targetid, p=popularity (incoing index), i=index (outgoing index)
     xs <- return $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
