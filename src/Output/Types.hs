@@ -69,8 +69,8 @@ newtype Names = Names {lookupName :: String -> Maybe Name}
 lookupNames :: Names -> Name -> Sig String -> Sig Name
 lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
     where
-        vars = nubOrd $ [x | Ctx _ x <- ctx] ++ [x | TVar x _ <- universeBi typ]
-        var x = Name $ min 99 $ succ $ fromIntegral $ fromMaybe (error "lookupNames") $ elemIndex x vars
+        vars = nubOrd $ [x | Ctx _ x <- ctx] ++ [x | TVar x _ <- universeBi typ, x /= "_"]
+        var x = if x == "_" then name0 else Name $ min 99 $ succ $ fromIntegral $ fromMaybe (error "lookupNames") $ elemIndex x vars
         con = fromMaybe def . lookupName
 
         f (Ctx a b) = Ctx (con $ '~':a) (var b)
