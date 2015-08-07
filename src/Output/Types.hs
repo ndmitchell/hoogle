@@ -34,8 +34,9 @@ data Types = Types deriving Typeable
 
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = storeWriteType store Types $ do
+    inst <- return $ Map.fromListWith (+) [(fromIString x,1) | (_, IInstance (Sig _ [TCon x _])) <- xs]
     xs <- return [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
-    names <- writeNames store $ map snd xs
+    names <- writeNames store inst $ map snd xs
     xs <- writeDuplicates store $ map (second $ lookupNames names (error "Unknown name in writeTypes")) xs
     writeFingerprints store $ map toFingerprint xs
 
@@ -85,10 +86,11 @@ lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
         g (TVar x xs) = TVar (var x) $ map g xs
 
 
-writeNames :: StoreWrite -> [Sig String] -> IO Names
-writeNames store xs = do
+writeNames :: StoreWrite -> Map.Map String Int -> [Sig String] -> IO Names
+writeNames store inst xs = do
     let names (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
-    let mp = Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
+    let mp = Map.unionWith (+) (Map.mapKeysMonotonic ('~':) inst) $
+             Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
     let ns = (++ [""]) $ map fst $ sortOn snd $ Map.toList $ Map.delete "" mp
     storeWriteBS store $ BS.pack $ intercalate "\0" ns
     let mp2 = Map.fromList $ zip ns $ map Name [100..]
