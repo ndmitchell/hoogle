@@ -49,7 +49,7 @@ executable hoogle
     install-includes: include.h
     cc-options:       -std=c99
 
-    ghc-options:      -fno-state-hack
+    ghc-options:      -fno-state-hack -threaded
 
     other-modules:
         Action.CmdLine
