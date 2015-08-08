@@ -37,7 +37,7 @@ main = do
         sha1 <- trim <$> echo systemOutput_ "git rev-parse HEAD"
         echo system_ "cabal update"
         echo system_ "cabal install --only-dependencies"
-        echo system_ "cabal configure"
+        echo system_ "cabal configure \"--ghc-options=-rtsopts -O2 -fno-state-hack -threaded\""
         echo system_ "cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=default.hoo +RTS -M1.5G -T"
