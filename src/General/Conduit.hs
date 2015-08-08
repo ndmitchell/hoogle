@@ -27,8 +27,8 @@ concatC = C.concat
 mapC = C.map
 foldC = C.fold
 mapMaybeC = C.mapMaybe
-mapAccumC f = C.mapAccum (flip f)
-mapAccumMC f = C.mapAccumM (flip f)
+mapAccumC f = C.mapAccum (\x a -> a `seq` f a x)
+mapAccumMC f = C.mapAccumM (\x a -> a `seq` f a x)
 filterC = C.filter
 
 zipFromC :: (Monad m, Enum i) => i -> Conduit a m (i, a)
