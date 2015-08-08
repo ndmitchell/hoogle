@@ -45,7 +45,7 @@ main = do
         ignore $ echo system_ "pkill hoogle"
         let cmd = "nohup " ++ exe ++ " server --database=default.hoo --port=8080 " ++
                   "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
-                  "--log=../../log.txt +RTS -T >> ../../out.txt 2>&1 &"
+                  "--log=../../log.txt +RTS -T -N4 >> ../../out.txt 2>&1 &"
         echo system_ cmd
         writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=default.hoo --port=8080 --log=../../log.txt >> ../../out.txt &\n"
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
