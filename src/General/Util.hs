@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables, RecordWildCards #-}
 
 module General.Util(
     URL,
@@ -27,7 +27,7 @@ import Data.List.Extra
 import Data.Char
 import Data.Either.Extra
 import Data.Monoid
-import Control.Monad
+import Control.Monad.Extra
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
 import Data.Ix
@@ -43,6 +43,7 @@ import Data.Int
 import System.IO
 import System.Exit
 import System.Time.Extra
+import GHC.Stats
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
@@ -159,7 +160,11 @@ timed msg act = do
     time <- liftIO offsetTime
     res <- act
     time <- liftIO time
-    liftIO $ putStrLn $ showDuration time
+    liftIO $ putStr $ showDuration time
+    liftIO $ whenM getGCStatsEnabled $ do
+        stats@GCStats{..} <- getGCStats
+        putStr $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
+    liftIO $ putStrLn ""
     return res
 
 showUTCTime :: String -> UTCTime -> String
