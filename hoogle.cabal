@@ -40,7 +40,7 @@ executable hoogle
         deepseq, utf8-string, time, old-locale, vector, binary, QuickCheck,
         extra >= 1.4, js-jquery, js-flot, uniplate, cmdargs,
         tar, zlib, mmap,
-        network, conduit, conduit-extra, resourcet, http-conduit, wai, http-types, warp, wai-logger,
+        network, network-uri, conduit, conduit-extra, resourcet, http-conduit, wai, http-types, warp, wai-logger,
         haskell-src-exts >= 1.16 && < 1.17
 
     c-sources:        cbits/text_search.c

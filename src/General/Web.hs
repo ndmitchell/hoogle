@@ -27,6 +27,7 @@ import System.FilePath
 import Control.Exception.Extra
 import System.Time.Extra
 import General.Log
+import Network.URI
 
 
 data Input = Input
@@ -36,7 +37,7 @@ data Input = Input
 
 readInput :: String -> Input
 readInput (breakOn "?" -> (a,b)) = Input (dropWhile null $ splitOn "/" a) $
-    map (second drop1 . breakOn "=") $ splitOn "&" $ drop1 b
+    map (second (unEscapeString . drop1) . breakOn "=") $ splitOn "&" $ drop1 b
 
 data Output
     = OutputString LBS.ByteString
