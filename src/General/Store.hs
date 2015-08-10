@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards #-}
 
 module General.Store(
-    Typeable, intSize, intFromBS, intToBS, encodeBS, decodeBS,
+    Typeable, intSize, intFromBS, intToBS,
     StoreWrite, storeWriteFile, storeWriteType, storeWriteParts, storeWriteBS, storeWriteV,
     StoreRead, storeReadFile, storeReadType, storeReadList, storeReadBS, storeReadV
     ) where
