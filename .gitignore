@@ -3,3 +3,4 @@
 log.txt
 *.o
 *.prof
+/.stack-work/
