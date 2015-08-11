@@ -114,6 +114,11 @@ readNames store = Names $ \x -> Map.lookup (BS.pack x) mp
 
 newtype Duplicates = Duplicates {expandDuplicates :: Int -> [TargetId]}
 
+-- writeDuplicates xs == nub (map snd xs)
+    -- all duplicates are removed, order of first element is preserved
+-- (i,x) <- zip [0..] (writeDuplicates xs); expandDuplicates i == map fst (filter ((==) x . snd) xs)
+    -- given the result at position i, expandDuplicates gives the TargetId's related to it
+
 writeDuplicates :: Ord a => StoreWrite -> [(TargetId, Sig a)] -> IO [Sig a]
 writeDuplicates store xs = do
     -- s=signature, t=targetid, p=popularity (incoing index), i=index (outgoing index)
