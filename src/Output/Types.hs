@@ -1,5 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
-{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, BangPatterns #-}
 
 module Output.Types(writeTypes, searchTypes) where
 
@@ -140,8 +140,9 @@ data Fingerprint = Fingerprint
     ,fpTerms :: {-# UNPACK #-} !Word8 -- Number of terms (where 255 = 255 and above)
     } deriving (Eq,Show)
 
-fpRares :: Fingerprint -> [Name]
-fpRares Fingerprint{..} = [fpRare1, fpRare2, fpRare3]
+{-# INLINE fpRaresFold #-}
+fpRaresFold :: (b -> b -> b) -> (Name -> b) -> Fingerprint -> b
+fpRaresFold g f Fingerprint{..} = f fpRare1 `g` f fpRare2 `g` f fpRare3
 
 instance Storable Fingerprint where
     sizeOf _ = 64
@@ -164,7 +165,7 @@ writeFingerprints store xs = storeWriteV store $ V.fromList xs
 
 matchFingerprint :: (Name -> Double) -> Sig Name -> Fingerprint -> Maybe Int -- lower is better
 matchFingerprint popularity sig@(toFingerprint -> target) = \candidate ->
-    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity (fpRares candidate)
+    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity candidate
     where
         (+$+) = liftM2 (+)
 
@@ -190,14 +191,18 @@ matchFingerprint popularity sig@(toFingerprint -> target) = \candidate ->
             where
                 tt = fpTerms target
 
-        rarity = \cr -> Just $
-                f 1000 400 tr cr + -- searched for T but its not in the candidate, bad if rare, not great if common
-                f 1000  50 cr tr   -- T is in the candidate but I didn't search for it, bad if rare, OK if common
+        rarity = \cr -> let tr = target in Just $ floor $
+                differences 1000 400 tr cr + -- searched for T but its not in the candidate, bad if rare, not great if common
+                differences 1000  50 cr tr   -- T is in the candidate but I didn't search for it, bad if rare, OK if common
             where
-                -- penalty is somewhere between mn and mx, using a linear interpolation
-                f rare common want have = sum [floor $ avg (p * common) ((1-p) * rare) | x <- want, x `notElem` have, let p = if x == name0 then 0 else popularity x]
-                avg x y = (x + y) / 2
-                tr = fpRares target
+                fpRaresElem :: Name -> Fingerprint -> Bool
+                fpRaresElem !x = fpRaresFold (||) (== x)
+
+                differences :: Double -> Double -> Fingerprint -> Fingerprint -> Double
+                differences !rare !common !want !have = fpRaresFold (+) f want
+                    where f n | fpRaresElem n have = 0
+                              | n == name0 = rare -- should this be common?
+                              | otherwise = let p = popularity n in ((p*common) + ((1-p)*rare)) / 2
 
 
 searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]
