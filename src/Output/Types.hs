@@ -46,12 +46,12 @@ writeTypes store debug xs = storeWriteType store Types $ do
 
 searchTypes :: StoreRead -> Sig String -> [TargetId]
 searchTypes store q =
-        concatMap (expandDuplicates $ readDuplicates dupe1 dupe2) $
+        concatMap (expandDuplicates $ readDuplicates dupe) $
         searchFingerprints fingerprints names 100 $
         lookupNames names name0 q
         -- map unknown fields to name0, i.e. _
     where
-        [dupe1, dupe2, readNames -> names, fingerprints] = storeReadList $ storeReadType Types store
+        [dupe, readNames -> names, fingerprints] = storeReadList $ storeReadType Types store
 
 
 ---------------------------------------------------------------------
@@ -124,14 +124,12 @@ writeDuplicates store xs = do
     -- s=signature, t=targetid, p=popularity (incoing index), i=index (outgoing index)
     xs <- return $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
         Map.fromListWith (\(x1,x2) (y1,y2) -> (min x1 y1, x2 ++ y2)) [(s,(p,[t])) | (p,(t,s)) <- zip [0::Int ..] xs]
-    let (is,ts) = unzip [(i::Word32, t) | (i,(_,ts)) <- zip [0..] xs, t <- reverse ts]
-    storeWriteV store $ V.fromList is
-    storeWriteV store $ V.fromList ts
+    storeWriteV store $ V.fromList [(i::Word32, t) | (i,(_,ts)) <- zip [0..] xs, t <- reverse ts]
     return $ map fst xs
 
-readDuplicates :: StoreRead -> StoreRead -> Duplicates
-readDuplicates (storeReadV -> is) (storeReadV -> ts) = Duplicates $ \i -> map snd $ filter ((==) (fromIntegral i) . fst) xs
-    where xs = zip (V.toList is :: [Word32]) (V.toList ts :: [TargetId])
+readDuplicates :: StoreRead -> Duplicates
+readDuplicates (storeReadV -> is :: V.Vector (Word32, TargetId)) =
+    Duplicates $ \i -> [] -- V.toList $ V.map snd $ V.filter ((== fromIntegral i) . fst) is
 
 
 ---------------------------------------------------------------------
