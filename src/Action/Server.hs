@@ -60,7 +60,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
             res <- op x
             evaluate $ rnf res
             putChar '.'
-    putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / genericLength qs) ++ ")"
+    putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / intToDouble (repeat_ * length qs)) ++ ")"
 
 {-# NOINLINE spawned #-}
 spawned :: UTCTime
