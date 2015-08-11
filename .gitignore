@@ -1,8 +1,5 @@
-/input/
 /obj/
-/output/
 /dist/
-/dead/
 log.txt
 *.o
 *.prof
