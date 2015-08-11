@@ -56,7 +56,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
         let op = replyServer log store ""
-        forM_ qs $ \x -> do
+        replicateM_ repeat_ $ forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
             putChar '.'

@@ -18,6 +18,7 @@ data CmdLine
         ,database :: FilePath
         ,count :: Int
         ,query :: [String]
+        ,repeat_ :: Int
         }
     | Generate
         {hackage :: String
@@ -35,6 +36,7 @@ data CmdLine
     | Replay
         {logs :: FilePath
         ,database :: FilePath
+        ,repeat_ :: Int
         }
     | Test
         {deep :: Bool
@@ -60,6 +62,7 @@ search_ = Search
     ,database = def &= typFile &= help "Name of database to use (use .hoo extension)"
     ,count = 10 &= name "n" &= help "Maximum number of results to return"
     ,query = def &= args &= typ "QUERY"
+    ,repeat_ = 1 &= help "Number of times to repeat (for benchmarking)"
     } &= help "Perform a search"
 
 generate = Generate

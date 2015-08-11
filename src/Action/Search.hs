@@ -27,7 +27,7 @@ import General.Util
 -- filter -- search all
 
 actionSearch :: CmdLine -> IO ()
-actionSearch Search{..} =
+actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store -> do
         res <- return $ search store $ parseQuery $ unwords query
         let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
