@@ -153,7 +153,7 @@ data Fingerprint = Fingerprint
     ,fpRare3 :: {-# UNPACK #-} !Name -- 3rd rare ctor
     ,fpArity :: {-# UNPACK #-} !Word8 -- Artiy, where 0 = CAF
     ,fpTerms :: {-# UNPACK #-} !Word8 -- Number of terms (where 255 = 255 and above)
-    } deriving (Eq,Show)
+    } deriving (Eq,Show,Typeable)
 
 {-# INLINE fpRaresFold #-}
 fpRaresFold :: (b -> b -> b) -> (Name -> b) -> Fingerprint -> b
