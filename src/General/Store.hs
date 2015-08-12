@@ -137,9 +137,9 @@ storeWritePart StoreWrite{..} k v = do
         let atom2 = upd $ atoms Map.! key
         evaluate atom2
         writeIORef swAtoms $ Map.insert key atom2 atoms
-    else if key `Map.member` atoms then
+     else if key `Map.member` atoms then
         error "Duplicate key name in storeWritePart"
-    else do
+     else do
         writeIORef swAtoms $ Map.insert key (Atom val start len) atoms
         writeIORef swPart $ Just key
 
