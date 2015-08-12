@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards #-}
+{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards, ViewPatterns #-}
 
 module General.Store(
     Typeable, Stored,
@@ -115,18 +115,18 @@ storeWriteFile file act = do
         BS.hPut h verString
         return res
 
-storeWrite :: (Typeable t, Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
+storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
 storeWrite store@StoreWrite{..} k v = do
     writeIORef swPart Nothing
     storeWritePart store k v
     writeIORef swPart Nothing
 
-storeWritePart :: (Typeable t, Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
-storeWritePart StoreWrite{..} k v = do
+storeWritePart :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
+storeWritePart StoreWrite{..} (typeOf -> k) v = do
     start <- fromIntegral <$> hTell swHandle
     len <- storedWrite v $ \(ptr, len) -> do hPutBuf swHandle ptr len >> return len
 
-    let key = show $ typeOf k
+    let key = show k
     let val = show $ typeOf v
     atoms <- readIORef swAtoms
     part <- readIORef swPart
@@ -178,9 +178,9 @@ storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> 
     act $ StoreRead file len ptr atoms
 
 
-storeRead :: forall a t . (Typeable t, Typeable a, Stored a) => StoreRead -> t a -> a
-storeRead StoreRead{..} k = unsafePerformIO $ do
-    let key = show $ typeOf k
+storeRead :: forall a t . (Typeable (t a), Typeable a, Stored a) => StoreRead -> t a -> a
+storeRead StoreRead{..} (typeOf -> k) = unsafePerformIO $ do
+    let key = show k
     let val = show $ typeOf (undefined :: a)
     let corrupt msg = error $ "The Hoogle file " ++ srFile ++ " is corrupt, " ++ key ++ " " ++ msg ++ "."
     case Map.lookup key srAtoms of
