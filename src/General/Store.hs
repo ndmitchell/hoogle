@@ -86,7 +86,7 @@ storeWriteFile file act = do
         -- put the version string at the start and end, so we can tell truncation vs wrong version
         BS.hPut h verString
         res <- act $ StoreWrite prefix atoms parts h
-        -- write the atoms out, probably using binary, then put the size at the end
+        -- write the atoms out, then put the size at the end
         atoms <- readIORef atoms
         let bs = encodeBS $ reverse atoms
         BS.hPut h bs
