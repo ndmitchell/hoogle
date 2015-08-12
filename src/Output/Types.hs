@@ -60,6 +60,7 @@ searchTypes store q =
 -- Must be a unique Name per String.
 -- First 0-99 are variables, rest are constructors.
 -- More popular type constructors have higher numbers.
+-- There are currently about 14K names, so about 25% of the bit patterns are taken
 newtype Name = Name Word16 deriving (Eq,Ord,Show,Data,Typeable,Storable)
 
 name0 = Name 0 -- use to represent _
