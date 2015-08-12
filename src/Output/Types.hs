@@ -74,7 +74,6 @@ popularityName :: Name -> Double
 popularityName (Name n) | isVar $ Name n = error "Can't call popularityName on a Var"
                         | otherwise = fromIntegral (n - 100) / fromIntegral (maxBound - 100 :: Word16)
 
--- | Giving "" to lookupName should always return the highest name
 newtype Names = Names {lookupName :: String -> Maybe Name}
 
 lookupNames :: Names -> Name -> Sig String -> Sig Name
@@ -99,7 +98,7 @@ writeNames store debug inst xs = do
              Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
     let ns = sortOn snd $ Map.toList $ Map.delete "" mp
     debug $ unlines [n ++ " = " ++ show i ++ " (" ++ show c ++ " uses)" | ((n,c),i) <- zip ns $ map Name [100..]]
-    ns <- return $ (++ [""]) $ map fst ns
+    ns <- return $ map fst ns
     storeWriteBS store $ BS.pack $ intercalate "\0" ns
     let mp2 = Map.fromList $ zip ns $ map Name [100..]
     return $ Names $ \x -> Map.lookup x mp2
