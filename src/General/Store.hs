@@ -1,22 +1,26 @@
 {-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards #-}
 
 module General.Store(
-    Typeable, intSize, intFromBS, intToBS,
-    StoreWrite, storeWriteFile, storeWriteType, storeWriteParts, storeWriteBS, storeWriteV,
-    StoreRead, storeReadFile, storeReadType, storeReadList, storeReadBS, storeReadV
+    Typeable, Stored,
+    intSize, intFromBS, intToBS,
+    StoreWrite, storeWriteFile, storeWrite, storeWritePart,
+    StoreRead, storeReadFile, storeRead
     ) where
 
 import Data.IORef
 import System.IO.Extra
 import Data.Typeable
+import qualified Data.Map as Map
 import qualified Data.Vector.Storable as Vector
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.Lazy as LBS
+import Foreign.C.String
 import Foreign.Storable
 import Foreign.Ptr
 import Foreign.ForeignPtr
 import Control.Monad.Extra
+import Control.Exception
 import Data.Binary
 import Data.List.Extra
 import System.IO.MMap
@@ -56,89 +60,88 @@ decodeBS = decode . LBS.fromChunks . return
 
 -- each atom name is either unique (a scope) or "" (a list entry)
 data Atom = Atom
-    {atomName :: [String]
-    ,atomPosition :: !Int
-    ,atomCount :: !Int
-    ,atomSize :: !Int
+    {atomType :: String -- Type that the atom contains (for sanity checking)
+    ,atomPosition :: !Int -- Position at which the atom starts in the file
+    ,atomSize :: !Int -- Number of bytes the value takes up
     } deriving Show
 
 instance Binary Atom where
-    put (Atom a b c d) = put a >> put b >> put c >> put d
-    get = liftM4 Atom get get get get
+    put (Atom a b c) = put a >> put b >> put c
+    get = liftM3 Atom get get get
+
+---------------------------------------------------------------------
+-- TYPE CLASS
+
+class Stored a where
+    -- Convert between a value and a size/memory-block
+    -- storedWrite must keep hold of the memory while writing
+    -- storedRead has its memory kept externally
+    storedWrite :: a -> (CStringLen -> IO b) -> IO b
+    storedRead :: CStringLen -> IO a
+
+instance Stored BS.ByteString where
+    storedWrite bs op = BS.unsafeUseAsCStringLen bs op
+    storedRead = BS.unsafePackCStringLen
+
+instance forall a . Storable a => Stored (Vector.Vector a) where
+    storedWrite v op = Vector.unsafeWith v $ \ptr -> op (castPtr ptr, Vector.length v * sizeOf (undefined :: a))
+    storedRead (ptr, len) = do
+        ptr <- newForeignPtr_ $ castPtr ptr
+        return $ Vector.unsafeFromForeignPtr0 ptr (len `div` sizeOf (undefined :: a))
 
 
 ---------------------------------------------------------------------
 -- WRITE OUT
 
 data StoreWrite = StoreWrite
-    {swPrefix :: IORef [String] -- the current prefix
-    ,swAtoms :: IORef [Atom] -- the atoms that have been stored
-    ,swParts :: IORef Bool -- am I currently storing a part (part is first in swAtoms)
+    {swAtoms :: IORef (Map.Map String Atom) -- the atoms that have been stored
+    ,swPart :: IORef (Maybe String) -- am I currently storing a part
     ,swHandle :: Handle
     }
 
 storeWriteFile :: FilePath -> (StoreWrite -> IO a) -> IO a
 storeWriteFile file act = do
-    prefix <- newIORef []
-    atoms <- newIORef []
-    parts <- newIORef False
+    atoms <- newIORef Map.empty
+    parts <- newIORef Nothing
     withBinaryFile file WriteMode $ \h -> do
         -- put the version string at the start and end, so we can tell truncation vs wrong version
         BS.hPut h verString
-        res <- act $ StoreWrite prefix atoms parts h
+        res <- act $ StoreWrite atoms parts h
         -- write the atoms out, then put the size at the end
         atoms <- readIORef atoms
-        let bs = encodeBS $ reverse atoms
+        let bs = encodeBS atoms
         BS.hPut h bs
         BS.hPut h $ intToBS $ BS.length bs
         BS.hPut h verString
         return res
 
-notParts :: IORef Bool -> IO a -> IO a
-notParts ref act = do
-    whenM (readIORef ref) $ error "Not allowed to be storing parts"
-    act
+storeWrite :: (Typeable t, Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
+storeWrite store@StoreWrite{..} k v = do
+    writeIORef swPart Nothing
+    storeWritePart store k v
+    writeIORef swPart Nothing
 
-storeWritePtr :: forall a . Storable a => StoreWrite -> Ptr a -> Int -> IO ()
-storeWritePtr StoreWrite{..} ptr len = do
-    parts <- readIORef swParts
-    let size = sizeOf (undefined :: a)
-    if parts then do
-        a:as <- readIORef swAtoms
-        when (atomSize a `notElem` [0, size]) $ error "Writing parts, but atom size has changed"
-        writeIORef swAtoms $ a{atomSize=size, atomCount=atomCount a + len} : as
-     else do
-        tell <- hTell swHandle
-        prefix <- readIORef swPrefix
-        modifyIORef swAtoms (Atom prefix (fromInteger tell) len size:)
-    hPutBuf swHandle ptr $ len * size
+storeWritePart :: (Typeable t, Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
+storeWritePart StoreWrite{..} k v = do
+    start <- fromIntegral <$> hTell swHandle
+    len <- storedWrite v $ \(ptr, len) -> do hPutBuf swHandle ptr len >> return len
 
-storeWriteBS :: StoreWrite -> BS.ByteString -> IO ()
-storeWriteBS s bs = BS.unsafeUseAsCStringLen bs $ \(ptr,len) -> storeWritePtr s ptr len
-
-storeWriteV :: Storable a => StoreWrite -> Vector.Vector a -> IO ()
-storeWriteV s v = Vector.unsafeWith v $ \ptr -> storeWritePtr s ptr $ Vector.length v
-
-storeWriteParts :: StoreWrite -> IO a -> IO a
-storeWriteParts StoreWrite{..} act = notParts swParts $ do
-    prefix <- readIORef swPrefix
-    tell <- hTell swHandle
-    modifyIORef swAtoms (Atom prefix (fromIntegral tell) 0 0 :)
-    writeIORef swParts True
-    res <- act
-    writeIORef swParts False
-    return res
-
-storeWriteType :: Typeable t => StoreWrite -> t -> IO a -> IO a
-storeWriteType StoreWrite{..} t act = notParts swParts $ do
-    prefix <- readIORef swPrefix
-    let name = prefix ++ [show $ typeOf t]
+    let key = show $ typeOf k
+    let val = show $ typeOf v
     atoms <- readIORef swAtoms
-    when (name `elem` map atomName atoms) $ error $ "Duplicate atom name, " ++ show name
-    writeIORef swPrefix name
-    res <- act
-    modifyIORef swPrefix init
-    return res
+    part <- readIORef swPart
+    if part == Just key then do
+        let upd a | start /= atomPosition a + atomSize a = error "Internal error, inconsistent storeWritePart"
+                  | atomType a /= val = error "Different type when doing subsequent storeWritePart"
+                  | otherwise = a{atomSize = atomSize a + len}
+        let atom2 = upd $ atoms Map.! key
+        evaluate atom2
+        writeIORef swAtoms $ Map.insert key atom2 atoms
+    else if key `Map.member` atoms then
+        error "Duplicate key name in storeWritePart"
+    else do
+        writeIORef swAtoms $ Map.insert key (Atom val start len) atoms
+        writeIORef swPart $ Just key
 
 
 ---------------------------------------------------------------------
@@ -148,8 +151,7 @@ data StoreRead = StoreRead
     {srFile :: FilePath
     ,srLen :: Int
     ,srPtr :: Ptr ()
-    ,srAtoms :: [Atom] -- filtered and name prefix stripped list of atoms
-    ,srPrefix :: [String] -- grows as we descend
+    ,srAtoms :: Map.Map String Atom
     }
 
 storeReadFile :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
@@ -173,38 +175,17 @@ storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> 
     when (len < verN + intSize + atomSize) $
         error $ "The Hoogle file " ++ file ++ " is corrupt, couldn't read atom table."
     atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize - atomSize, atomSize)
-    act $ StoreRead file len ptr atoms []
+    act $ StoreRead file len ptr atoms
 
-storeReadList :: StoreRead -> [StoreRead]
-storeReadList sr@StoreRead{..} =
-    [sr{srAtoms=[a], srPrefix=srPrefix++["@" ++ show i]} | (i,a) <- zip [0..] $ filter (null . atomName) srAtoms]
 
-storeReadType :: Typeable t => t -> StoreRead -> StoreRead
-storeReadType t sr@StoreRead{..}
-    | null found = error $ "The Hoogle file " ++ srFile ++ " is corrupt, no atoms named " ++ concatMap (++".") (srPrefix++[name])
-    | otherwise = sr{srAtoms=found, srPrefix=srPrefix++[name]}
-    where
-        name = show $ typeOf t
-        found = [a{atomName=xs} | a@Atom{atomName=x:xs} <- srAtoms, x == name]
-
-storeReadAtom :: StoreRead -> Int -> (Ptr a, Int)
-storeReadAtom StoreRead{..} size = case filter (null . atomName) srAtoms of
-    [Atom{..}] ->
-        if atomSize /= size then
-            error $ "The Hoogle file " ++ srFile ++ " is corrupt, incorrect atom size for " ++ name ++ "."
-        else if atomPosition < 0 || atomPosition + (atomSize * atomCount) > srLen then
-            error $ "The hoogle file " ++ srFile ++ " is corrupt, incorrect bounds for " ++ name ++ "."
-        else
-            (plusPtr srPtr atomPosition, atomCount)
-    [] -> error $ "The Hoogle file " ++ srFile ++ " is corrupt, no atom named " ++ name ++ "."
-    xs -> error $ "The Hoogle file " ++ srFile ++ " is corrupt, " ++ show (length xs) ++ " atoms named " ++ name ++ ", expected 1."
-    where name = intercalate "." srPrefix
-
-storeReadBS :: StoreRead -> BS.ByteString
-storeReadBS sr = unsafePerformIO $ BS.unsafePackCStringLen $ storeReadAtom sr 1
-
-storeReadV :: forall a . Storable a => StoreRead -> Vector.Vector a
-storeReadV sr = unsafePerformIO $ do
-    let (ptr, len) = storeReadAtom sr $ sizeOf (undefined :: a)
-    ptr <- newForeignPtr_ ptr
-    return $ Vector.unsafeFromForeignPtr0 ptr len
+storeRead :: forall a t . (Typeable t, Typeable a, Stored a) => StoreRead -> t a -> a
+storeRead StoreRead{..} k = unsafePerformIO $ do
+    let key = show $ typeOf k
+    let val = show $ typeOf (undefined :: a)
+    let corrupt msg = error $ "The Hoogle file " ++ srFile ++ " is corrupt, " ++ key ++ " " ++ msg ++ "."
+    case Map.lookup key srAtoms of
+        Nothing -> corrupt "is missing"
+        Just Atom{..}
+            | atomType /= val -> corrupt $ "has type " ++ atomType ++ ", expected " ++ val
+            | atomPosition < 0 || atomPosition + atomSize > srLen -> corrupt "has incorrect bounds"
+            | otherwise -> storedRead (plusPtr srPtr atomPosition, atomSize)

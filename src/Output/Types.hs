@@ -1,5 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
-{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, BangPatterns #-}
+{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, BangPatterns, GADTs #-}
 
 module Output.Types(writeTypes, searchTypes) where
 
@@ -32,10 +32,8 @@ import General.IString
 import General.Util
 
 
-data Types = Types deriving Typeable
-
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
-writeTypes store debug xs = storeWriteType store Types $ do
+writeTypes store debug xs = do
     let debugger ext body = whenJust debug $ \file -> writeFileUTF8 (file <.> ext) body
     inst <- return $ Map.fromListWith (+) [(fromIString x,1) | (_, IInstance (Sig _ [TCon x _])) <- xs]
     xs <- writeDuplicates store [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
@@ -46,16 +44,18 @@ writeTypes store debug xs = storeWriteType store Types $ do
 
 searchTypes :: StoreRead -> Sig String -> [TargetId]
 searchTypes store q =
-        concatMap (expandDuplicates $ readDuplicates dupe1 dupe2) $
-        searchFingerprints fingerprints names 100 $
+        concatMap (expandDuplicates $ readDuplicates store) $
+        searchFingerprints store names 100 $
         lookupNames names name0 q
         -- map unknown fields to name0, i.e. _
     where
-        [dupe1, dupe2, readNames -> names, fingerprints] = storeReadList $ storeReadType Types store
+        names = readNames store
 
 
 ---------------------------------------------------------------------
 -- NAME/CTOR INFORMATION
+
+data TypesNames a where TypesNames :: TypesNames BS.ByteString deriving Typeable
 
 -- Must be a unique Name per String.
 -- First 0-99 are variables, rest are constructors.
@@ -100,17 +100,20 @@ writeNames store debug inst xs = do
     let ns = sortOn snd $ Map.toList $ Map.delete "" mp
     debug $ unlines [n ++ " = " ++ show i ++ " (" ++ show c ++ " uses)" | ((n,c),i) <- zip ns $ map Name [100..]]
     ns <- return $ map fst ns
-    storeWriteBS store $ BS.pack $ intercalate "\0" ns
+    storeWrite store TypesNames $ BS.pack $ intercalate "\0" ns
     let mp2 = Map.fromList $ zip ns $ map Name [100..]
     return $ Names $ \x -> Map.lookup x mp2
 
 readNames :: StoreRead -> Names
 readNames store = Names $ \x -> Map.lookup (BS.pack x) mp
-    where mp = Map.fromList $ zip (BS.split '\0' $ storeReadBS store) $ map Name [100..]
+    where mp = Map.fromList $ zip (BS.split '\0' $ storeRead store TypesNames) $ map Name [100..]
 
 
 ---------------------------------------------------------------------
 -- DUPLICATION INFORMATION
+
+data TypesDupesIndex a where TypesDupesIndex :: TypesDupesIndex (V.Vector Word32) deriving Typeable
+data TypesDupesTargets a where TypesDupesTargets :: TypesDupesTargets (V.Vector TargetId) deriving Typeable
 
 newtype Duplicates = Duplicates {expandDuplicates :: Int -> [TargetId]}
 
@@ -126,12 +129,13 @@ writeDuplicates store xs = do
         Map.fromListWith (\(x1,x2) (y1,y2) -> (min x1 y1, x2 ++ y2)) [(s,(p,[t])) | (p,(t,s)) <- zip [0::Int ..] xs]
     -- give a list of TargetId's at each index
     let ts :: [[TargetId]] = map (reverse . snd) xs
-    storeWriteV store $ V.fromList $ scanl (+) 0 $ map (\x -> fromIntegral $ length x :: Word32) ts
-    storeWriteV store $ V.fromList $ concat ts
+    storeWrite store TypesDupesIndex $ V.fromList $ scanl (+) 0 $ map (\x -> fromIntegral $ length x :: Word32) ts
+    storeWrite store TypesDupesTargets $ V.fromList $ concat ts
     return $ map fst xs
 
-readDuplicates :: StoreRead -> StoreRead -> Duplicates
-readDuplicates (storeReadV -> is :: V.Vector Word32) (storeReadV -> ts :: V.Vector TargetId) =
+readDuplicates :: StoreRead -> Duplicates
+readDuplicates store =
+    let is = storeRead store TypesDupesIndex; ts = storeRead store TypesDupesTargets in
     Duplicates $ \i ->
         let start = fromIntegral $ is V.! i
             end   = fromIntegral $ is V.! succ i
@@ -140,6 +144,8 @@ readDuplicates (storeReadV -> is :: V.Vector Word32) (storeReadV -> ts :: V.Vect
 
 ---------------------------------------------------------------------
 -- FINGERPRINT INFORMATION
+
+data TypesFingerprints a where TypesFingerprints :: TypesFingerprints (V.Vector Fingerprint) deriving Typeable
 
 data Fingerprint = Fingerprint
     {fpRare1 :: {-# UNPACK #-} !Name -- Most rare ctor, or 0 if no rare stuff
@@ -170,7 +176,7 @@ toFingerprint sig = Fingerprint{..}
           fpTerms = fromIntegral $ min 255 $ length (universeBi sig :: [Name])
 
 writeFingerprints :: StoreWrite -> [Fingerprint] -> IO ()
-writeFingerprints store xs = storeWriteV store $ V.fromList xs
+writeFingerprints store xs = storeWrite store TypesFingerprints $ V.fromList xs
 
 matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
 matchFingerprint sig@(toFingerprint -> target) = \candidate ->
@@ -216,5 +222,5 @@ matchFingerprint sig@(toFingerprint -> target) = \candidate ->
 
 searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]
 searchFingerprints store names n sig = map snd $ takeSortOn fst n [(v, i) | (i,f) <- zip [0..] fs, Just v <- [test f]]
-    where fs = V.toList $ storeReadV store :: [Fingerprint]
+    where fs = V.toList $ storeRead store TypesFingerprints :: [Fingerprint]
           test = matchFingerprint sig

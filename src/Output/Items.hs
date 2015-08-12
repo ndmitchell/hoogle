@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable, GADTs #-}
 
 module Output.Items(writeItems, lookupItem, listItems) where
 
@@ -13,6 +13,9 @@ import Input.Item
 import General.Util
 import General.Store
 import General.Conduit
+
+
+data Items a where Items :: Items BS.ByteString deriving Typeable
 
 
 outputItem :: Target -> [String]
@@ -31,26 +34,23 @@ inputItem (url:pkg:modu:typ:self:docs) =
         f "." = Nothing
         f x = Just (word1 x)
 
-data Items = Items deriving Typeable
-
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
 writeItems :: StoreWrite -> (Conduit (Maybe Target, Item) IO (Maybe TargetId, Item) -> IO a) -> IO a
-writeItems store act = do
-    storeWriteType store Items $ storeWriteParts store $ act $
-        void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case target of
-            Nothing -> return (pos, (Nothing, item))
-            Just target -> do
-                let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem target
-                liftIO $ do
-                    storeWriteBS store $ intToBS $ BS.length bs
-                    storeWriteBS store bs
-                let pos2 = pos + fromIntegral (intSize + BS.length bs)
-                return (pos2, (Just $ TargetId pos, item))
+writeItems store act = act $ do
+    void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case target of
+        Nothing -> return (pos, (Nothing, item))
+        Just target -> do
+            let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem target
+            liftIO $ do
+                storeWritePart store Items $ intToBS $ BS.length bs
+                storeWritePart store Items bs
+            let pos2 = pos + fromIntegral (intSize + BS.length bs)
+            return (pos2, (Just $ TargetId pos, item))
 
 
 listItems :: StoreRead -> [Target]
-listItems store = unfoldr f $ storeReadBS $ storeReadType Items store
+listItems store = unfoldr f $ storeRead store Items
     where
         f x | BS.null x = Nothing
             | (n,x) <- BS.splitAt intSize x
@@ -61,7 +61,7 @@ listItems store = unfoldr f $ storeReadBS $ storeReadType Items store
 
 lookupItem :: StoreRead -> (TargetId -> Target)
 lookupItem store =
-    let x = storeReadBS $ storeReadType Items store
+    let x = storeRead store Items
     in \(TargetId i) ->
         let i2 = fromIntegral i
             n = intFromBS $ BS.take intSize $ BS.drop i2 x

@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, PatternGuards #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, PatternGuards, GADTs #-}
 
 module Output.Tags(Tags, writeTags, readTags, listTags, filterTags, searchTags) where
 
@@ -18,6 +18,32 @@ import General.Store
 
 -- matches (a,b) if i >= a && i <= b
 
+data PackageNames a where PackageNames :: PackageNames BS.ByteString deriving Typeable
+    -- list of packages, sorted by name, lowercase, interspersed with \0
+-- FIXME: PackageIds should be sorted by popularity
+
+data PackageIds a where PackageIds :: PackageIds (V.Vector (TargetId, TargetId)) deriving Typeable
+    -- for each index in PackageNames, the first is the module item, any in the bounds are in that package
+
+data ModuleNames a where ModuleNames :: ModuleNames BS.ByteString deriving Typeable
+    -- list of modules, sorted by popularity, not unique, lowercase, interspersed with \0
+
+data ModuleIds a where ModuleIds :: ModuleIds (V.Vector (TargetId, TargetId)) deriving Typeable
+    -- for each index in ModuleNames, the first is the module item, any in the bounds are in that module
+
+data CategoryNames a where CategoryNames :: CategoryNames BS.ByteString deriving Typeable
+    -- list of categories, sorted by name, interspersed with \0
+
+data CategoryOffsets a where CategoryOffsets :: CategoryOffsets (V.Vector Word32) deriving Typeable
+    -- for each index in CategoryNames, the first is the position I start, use +1 to find one after I end
+
+data CategoryIds a where CategoryIds :: CategoryIds (V.Vector (TargetId, TargetId)) deriving Typeable
+    -- a range of items containing a category, first item is a package
+
+data CompletionNames a where CompletionNames :: CompletionNames BS.ByteString deriving Typeable
+    -- a list of things to complete to, interspersed with \0
+
+
 data Tags = Tags
     {packageNames :: BS.ByteString -- sorted
     ,categoryNames :: BS.ByteString -- sorted
@@ -36,24 +62,24 @@ split0 :: BS.ByteString -> [BS.ByteString]
 split0 = BS.split '\0'
 
 writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe TargetId, Item)] -> IO ()
-writeTags store keep extra xs = storeWriteType store (undefined :: Tags) $ do
+writeTags store keep extra xs = do
     let splitPkg = splitIPackage xs
     let packagesRaw = addRange splitPkg
     let packages = sortOn (lower . fst) packagesRaw
     let categories = map (first snd . second reverse) $ Map.toList $ Map.fromListWith (++)
             [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packagesRaw, ex <- extra p]
 
-    storeWriteBS store $ join0 $ map fst packages
-    storeWriteBS store $ join0 $ map fst categories
-    storeWriteV store $ V.fromList $ map snd packages
-    storeWriteV store $ V.fromList $ scanl (+) (0 :: Word32) $ map (genericLength . snd) categories
-    storeWriteV store $ V.fromList $ concatMap snd categories
+    storeWrite store PackageNames $ join0 $ map fst packages
+    storeWrite store CategoryNames $ join0 $ map fst categories
+    storeWrite store PackageIds $ V.fromList $ map snd packages
+    storeWrite store CategoryOffsets $ V.fromList $ scanl (+) (0 :: Word32) $ map (genericLength . snd) categories
+    storeWrite store CategoryIds $ V.fromList $ concatMap snd categories
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
-    storeWriteBS store $ join0 $ map (lower . fst) modules
-    storeWriteV store $ V.fromList $ map snd modules
+    storeWrite store ModuleNames $ join0 $ map (lower . fst) modules
+    storeWrite store ModuleIds $ V.fromList $ map snd modules
 
-    storeWriteBS store $ join0 $
+    storeWrite store CompletionNames $ join0 $
         takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
         map ("package:"++) (filter keep $ map fst packages) ++
         map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p])
@@ -69,8 +95,10 @@ writeTags store keep extra xs = storeWriteType store (undefined :: Tags) $ do
 
 
 readTags :: StoreRead -> Tags
-readTags store = Tags (storeReadBS x1) (storeReadBS x2) (storeReadV x3) (storeReadV x4) (storeReadV x5) (storeReadBS x6) (storeReadV x7) (storeReadBS x8)
-    where [x1,x2,x3,x4,x5,x6,x7,x8] = storeReadList $ storeReadType (undefined :: Tags) store
+readTags store = Tags
+    (storeRead store PackageNames) (storeRead store CategoryNames) (storeRead store PackageIds)
+    (storeRead store CategoryOffsets) (storeRead store CategoryIds) (storeRead store ModuleNames) (storeRead store ModuleIds)
+    (storeRead store CompletionNames)
 
 
 listTags :: Tags -> [String]
