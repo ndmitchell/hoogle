@@ -69,14 +69,13 @@ isCon, isVar :: Name -> Bool
 isVar (Name x) = x < 100
 isCon = not . isVar
 
+-- | Give a name a popularity, where 0 is least popular, 1 is most popular
+popularityName :: Name -> Double
+popularityName (Name n) | isVar $ Name n = error "Can't call popularityName on a Var"
+                        | otherwise = fromIntegral (n - 100) / fromIntegral (maxBound - 100 :: Word16)
 
 -- | Giving "" to lookupName should always return the highest name
 newtype Names = Names {lookupName :: String -> Maybe Name}
-
--- | Give a name a popularity, where 0 is least popular, 1 is most popular
-popularityName :: Names -> Name -> Double
-popularityName Names{..} = \(Name n) -> if isVar (Name n) then error "Can't call popularityName on a Var" else fromIntegral (n - 100) / fromIntegral (mx - 100)
-    where Just (Name mx) = lookupName ""
 
 lookupNames :: Names -> Name -> Sig String -> Sig Name
 lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
@@ -173,8 +172,8 @@ toFingerprint sig = Fingerprint{..}
 writeFingerprints :: StoreWrite -> [Fingerprint] -> IO ()
 writeFingerprints store xs = storeWriteV store $ V.fromList xs
 
-matchFingerprint :: (Name -> Double) -> Sig Name -> Fingerprint -> Maybe Int -- lower is better
-matchFingerprint popularity sig@(toFingerprint -> target) = \candidate ->
+matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
+matchFingerprint sig@(toFingerprint -> target) = \candidate ->
     arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity candidate
     where
         (+$+) = liftM2 (+)
@@ -212,10 +211,10 @@ matchFingerprint popularity sig@(toFingerprint -> target) = \candidate ->
                 differences !rare !common !want !have = fpRaresFold (+) f want
                     where f n | fpRaresElem n have = 0
                               | n == name0 = rare -- should this be common?
-                              | otherwise = let p = popularity n in ((p*common) + ((1-p)*rare)) / 2
+                              | otherwise = let p = popularityName n in ((p*common) + ((1-p)*rare)) / 2
 
 
 searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]
 searchFingerprints store names n sig = map snd $ takeSortOn fst n [(v, i) | (i,f) <- zip [0..] fs, Just v <- [test f]]
     where fs = V.toList $ storeReadV store :: [Fingerprint]
-          test = matchFingerprint (popularityName names) sig
+          test = matchFingerprint sig
