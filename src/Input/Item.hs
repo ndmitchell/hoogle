@@ -71,7 +71,7 @@ itemName (IInstance _) = Nothing
 ---------------------------------------------------------------------
 -- DATABASE
 
-newtype TargetId = TargetId Word32 deriving (Eq,Ord,Storable,NFData,Ix)
+newtype TargetId = TargetId Word32 deriving (Eq,Ord,Storable,NFData,Ix,Typeable)
 
 instance Show TargetId where
     show (TargetId x) = showHex x ""
