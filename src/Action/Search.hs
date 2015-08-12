@@ -103,6 +103,7 @@ action_search_test database = testing "Action.Search.search" $ withSearch databa
     "(a -> b) -> [a] -> [b]" === hackage "base/docs/Prelude.html#v:map"
     "Ord a => [a] -> [a]" === hackage "base/docs/Data-List.html#v:sort"
     "ShakeOptions -> Int" === hackage "shake/docs/Development-Shake.html#v:shakeThreads"
+    "is:module" === hackage "base/docs/Prelude.html"
 
     let tags = listTags $ readTags store
     let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
