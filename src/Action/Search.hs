@@ -100,6 +100,9 @@ action_search_test database = testing "Action.Search.search" $ withSearch databa
     "author:Neil-Mitchell category:Development" === hackage "derive"
     "( )" ==$ flip seq True -- used to segfault
     "( -is:exact) package:base=" ==$ flip seq True
+    "(a -> b) -> [a] -> [b]" === hackage "base/docs/Prelude.html#v:map"
+    "Ord a => [a] -> [a]" === hackage "base/docs/Data-List.html#v:sort"
+    "ShakeOptions -> Int" === hackage "shake/docs/Development-Shake.html#v:shakeThreads"
 
     let tags = listTags $ readTags store
     let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
