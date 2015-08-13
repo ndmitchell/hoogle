@@ -115,7 +115,14 @@ storeWriteFile file act = do
         BS.hPut h bs
         BS.hPut h $ intToBS $ BS.length bs
         BS.hPut h verString
-        return ([], res)
+
+        final <- hTell h
+        let stats =
+                [name ++ " (:: " ++ atomType ++ ") = " ++ show atomSize ++ " bytes" |
+                    (name, Atom{..}) <- reverse $ sortOn (atomSize . snd) $ Map.toList atoms] ++
+                ["Total atom size = " ++ show (sum $ map atomSize $ Map.elems atoms)
+                ,"Total file size = " ++ show final]
+        return (stats, res)
 
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
 storeWrite store@StoreWrite{..} k v = do
