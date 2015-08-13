@@ -11,7 +11,6 @@ module General.Util(
     strict,
     withs,
     escapeHTML, unescapeHTML, innerTextHTML, tag, tag_,
-    noinline,
     takeSortOn,
     Average, toAverage, fromAverage,
     inRanges,
@@ -183,10 +182,6 @@ tag name attr inner = "<" ++ unwords (name : map f attr) ++ ">" ++ inner ++ "</"
 
 tag_ :: String -> String -> String
 tag_ name inner = tag name [] inner
-
-{-# NOINLINE noinline #-}
-noinline :: a -> a
-noinline a = a
 
 
 -- ensure that no value escapes in a thunk from the value
