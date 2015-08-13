@@ -112,8 +112,7 @@ readNames store = Names $ \x -> Map.lookup (BS.pack x) mp
 ---------------------------------------------------------------------
 -- DUPLICATION INFORMATION
 
-data TypesDupesIndex a where TypesDupesIndex :: TypesDupesIndex (V.Vector Word32) deriving Typeable
-data TypesDupesTargets a where TypesDupesTargets :: TypesDupesTargets (V.Vector TargetId) deriving Typeable
+data TypesDuplicates a where TypesDuplicates :: TypesDuplicates (Jagged TargetId) deriving Typeable
 
 newtype Duplicates = Duplicates {expandDuplicates :: Int -> [TargetId]}
 
@@ -128,18 +127,12 @@ writeDuplicates store xs = do
     xs <- return $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
         Map.fromListWith (\(x1,x2) (y1,y2) -> (min x1 y1, x2 ++ y2)) [(s,(p,[t])) | (p,(t,s)) <- zip [0::Int ..] xs]
     -- give a list of TargetId's at each index
-    let ts :: [[TargetId]] = map (reverse . snd) xs
-    storeWrite store TypesDupesIndex $ V.fromList $ scanl (+) 0 $ map (\x -> fromIntegral $ length x :: Word32) ts
-    storeWrite store TypesDupesTargets $ V.fromList $ concat ts
+    storeWriteJagged store TypesDuplicates $ map (reverse . snd) xs
     return $ map fst xs
 
 readDuplicates :: StoreRead -> Duplicates
-readDuplicates store =
-    let is = storeRead store TypesDupesIndex; ts = storeRead store TypesDupesTargets in
-    Duplicates $ \i ->
-        let start = fromIntegral $ is V.! i
-            end   = fromIntegral $ is V.! succ i
-        in  V.toList $ V.slice start (end - start) ts
+readDuplicates store = Duplicates $ V.toList . ask
+    where ask = storeReadJagged store TypesDuplicates
 
 
 ---------------------------------------------------------------------
