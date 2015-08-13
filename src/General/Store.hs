@@ -101,7 +101,7 @@ data StoreWrite = StoreWrite
     ,swHandle :: Handle
     }
 
-storeWriteFile :: FilePath -> (StoreWrite -> IO a) -> IO a
+storeWriteFile :: FilePath -> (StoreWrite -> IO a) -> IO ([String], a)
 storeWriteFile file act = do
     atoms <- newIORef Map.empty
     parts <- newIORef Nothing
@@ -115,7 +115,7 @@ storeWriteFile file act = do
         BS.hPut h bs
         BS.hPut h $ intToBS $ BS.length bs
         BS.hPut h verString
-        return res
+        return ([], res)
 
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
 storeWrite store@StoreWrite{..} k v = do

@@ -121,7 +121,7 @@ generate database debug args = do
             maybe [] (map (both T.unpack) . cabalTags) (Map.lookup pkg cbl)
     -- peakMegabytesAllocated = 21, currentBytesUsed = 6.5Mb
 
-    storeWriteFile database $ \store -> do
+    (stats, _) <- storeWriteFile database $ \store -> do
         xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do
             hSetEncoding warnings utf8
             hPutStr warnings $ unlines cblErrs
@@ -174,3 +174,6 @@ generate database debug args = do
                 return ()
 
             void $ evaluate xs
+
+    when debug $
+        writeFile (database `replaceExtension` "store") $ unlines stats
