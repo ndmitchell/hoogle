@@ -9,7 +9,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
-import Data.Word
 
 import Input.Item
 import Query
@@ -34,11 +33,8 @@ data ModuleIds a where ModuleIds :: ModuleIds (V.Vector (TargetId, TargetId)) de
 data CategoryNames a where CategoryNames :: CategoryNames BS.ByteString deriving Typeable
     -- list of categories, sorted by name, interspersed with \0
 
-data CategoryOffsets a where CategoryOffsets :: CategoryOffsets (V.Vector Word32) deriving Typeable
-    -- for each index in CategoryNames, the first is the position I start, use +1 to find one after I end
-
-data CategoryIds a where CategoryIds :: CategoryIds (V.Vector (TargetId, TargetId)) deriving Typeable
-    -- a range of items containing a category, first item is a package
+data CategoryIds a where CategoryIds :: CategoryIds (Jagged (TargetId, TargetId)) deriving Typeable
+    -- for each index in CategoryNames, a range of items containing a category, first item is a package
 
 data CompletionNames a where CompletionNames :: CompletionNames BS.ByteString deriving Typeable
     -- a list of things to complete to, interspersed with \0
@@ -48,8 +44,7 @@ data Tags = Tags
     {packageNames :: BS.ByteString -- sorted
     ,categoryNames :: BS.ByteString -- sorted
     ,packageIds :: V.Vector (TargetId, TargetId)
-    ,categoryOffsets :: V.Vector Word32 -- position I start, use +1 to find one after I end
-    ,categoryIds :: V.Vector (TargetId, TargetId)
+    ,categoryIds :: Int -> V.Vector (TargetId, TargetId)
     ,moduleNames :: BS.ByteString -- not sorted
     ,moduleIds :: V.Vector (TargetId, TargetId)
     ,completionNames :: BS.ByteString -- things I want to complete to
@@ -72,8 +67,7 @@ writeTags store keep extra xs = do
     storeWrite store PackageNames $ join0 $ map fst packages
     storeWrite store CategoryNames $ join0 $ map fst categories
     storeWrite store PackageIds $ V.fromList $ map snd packages
-    storeWrite store CategoryOffsets $ V.fromList $ scanl (+) (0 :: Word32) $ map (genericLength . snd) categories
-    storeWrite store CategoryIds $ V.fromList $ concatMap snd categories
+    storeWriteJagged store CategoryIds $ map snd categories
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
     storeWrite store ModuleNames $ join0 $ map (lower . fst) modules
@@ -97,7 +91,7 @@ writeTags store keep extra xs = do
 readTags :: StoreRead -> Tags
 readTags store = Tags
     (storeRead store PackageNames) (storeRead store CategoryNames) (storeRead store PackageIds)
-    (storeRead store CategoryOffsets) (storeRead store CategoryIds) (storeRead store ModuleNames) (storeRead store ModuleIds)
+    (storeReadJagged store CategoryIds) (storeRead store ModuleNames) (storeRead store ModuleIds)
     (storeRead store CompletionNames)
 
 
@@ -115,9 +109,8 @@ lookupTag Tags{..} ("module",lower -> x) = map (moduleIds V.!) $ findIndices f $
           | otherwise = let y = BS.pack x; y2 = BS.pack $ ('.':x)
                         in \v -> y `BS.isPrefixOf` v || y2 `BS.isInfixOf` v
 lookupTag Tags{..} x = concat
-    [ V.toList $ V.take (fromIntegral $ end - start) $ V.drop (fromIntegral start) categoryIds
+    [ V.toList $ categoryIds i
     | i <- findIndices (== BS.pack (joinPair ":" x)) $ split0 categoryNames
-    , let start = categoryOffsets V.! i, let end = categoryOffsets V.! (i + 1)
     ]
 
 filterTags :: Tags -> [Query] -> (TargetId -> Bool)
