@@ -37,7 +37,7 @@ writeTypes store debug xs = do
     let debugger ext body = whenJust debug $ \file -> writeFileUTF8 (file <.> ext) body
     inst <- return $ Map.fromListWith (+) [(fromIString x,1) | (_, IInstance (Sig _ [TCon x _])) <- xs]
     xs <- writeDuplicates store [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
-    names <- writeNames store (debugger "types.popularity") inst xs
+    names <- writeNames store debugger inst xs
     xs <- return $ map (lookupNames names (error "Unknown name in writeTypes")) xs
     writeFingerprints store $ map toFingerprint xs
 
@@ -89,7 +89,7 @@ lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
         g (TVar x xs) = TVar (var x) $ map g xs
 
 
-writeNames :: StoreWrite -> (String -> IO ()) -> Map.Map String Int -> [Sig String] -> IO Names
+writeNames :: StoreWrite -> (String -> String -> IO ()) -> Map.Map String Int -> [Sig String] -> IO Names
 writeNames store debug inst xs = do
     let names (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
 
@@ -98,7 +98,7 @@ writeNames store debug inst xs = do
     let mp = Map.unionWith (\typ sig -> sig + min sig typ) (Map.mapKeysMonotonic ('~':) inst) $
              Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
     let ns = sortOn snd $ Map.toList $ Map.delete "" mp
-    debug $ unlines [n ++ " = " ++ show i ++ " (" ++ show c ++ " uses)" | ((n,c),i) <- zip ns $ map Name [100..]]
+    debug "names" $ unlines [n ++ " = " ++ show i ++ " (" ++ show c ++ " uses)" | ((n,c),i) <- zip ns $ map Name [100..]]
     ns <- return $ map fst ns
     storeWrite store TypesNames $ BS.pack $ intercalate "\0" ns
     let mp2 = Map.fromList $ zip ns $ map Name [100..]
