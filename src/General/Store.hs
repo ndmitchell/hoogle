@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards, ViewPatterns, GADTs #-}
+{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards, ViewPatterns, DeriveDataTypeable, GADTs #-}
 
 module General.Store(
     Typeable, Stored,
