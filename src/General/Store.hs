@@ -11,7 +11,7 @@ import Data.IORef
 import System.IO.Extra
 import Data.Typeable
 import qualified Data.Map as Map
-import qualified Data.Vector.Storable as Vector
+import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.Lazy as LBS
@@ -83,11 +83,11 @@ instance Stored BS.ByteString where
     storedWrite bs op = BS.unsafeUseAsCStringLen bs op
     storedRead = BS.unsafePackCStringLen
 
-instance forall a . Storable a => Stored (Vector.Vector a) where
-    storedWrite v op = Vector.unsafeWith v $ \ptr -> op (castPtr ptr, Vector.length v * sizeOf (undefined :: a))
+instance forall a . Storable a => Stored (V.Vector a) where
+    storedWrite v op = V.unsafeWith v $ \ptr -> op (castPtr ptr, V.length v * sizeOf (undefined :: a))
     storedRead (ptr, len) = do
         ptr <- newForeignPtr_ $ castPtr ptr
-        return $ Vector.unsafeFromForeignPtr0 ptr (len `div` sizeOf (undefined :: a))
+        return $ V.unsafeFromForeignPtr0 ptr (len `div` sizeOf (undefined :: a))
 
 
 ---------------------------------------------------------------------
