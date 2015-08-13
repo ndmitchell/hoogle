@@ -215,8 +215,7 @@ instance (Typeable a, Typeable b, Stored a, Stored b) => Stored (a,b) where
 -- JAGGED ARRAYS
 
 data Jagged a = Jagged (V.Vector Word32) (V.Vector a) deriving Typeable
-data JaggedK k v where JaggedK :: k -> JaggedK k (V.Vector Word32) deriving Typeable
-data JaggedV k v where JaggedV :: k -> JaggedV k (V.Vector v) deriving Typeable
+data JaggedStore k v where JaggedStore :: k -> JaggedStore k (V.Vector Word32, V.Vector a) deriving Typeable
 
 jaggedFromList :: Storable a => [[a]] -> Jagged a
 jaggedFromList xs = Jagged is vs
@@ -229,5 +228,5 @@ jaggedAsk (Jagged is vs) i = V.slice start (end - start) vs
           end   = fromIntegral $ is V.! succ i
 
 instance (Typeable a, Storable a) => Stored (Jagged a) where
-    storedWrite store k (Jagged is vs) = storedWrite store (JaggedK k) is >> storedWrite store (JaggedV k) vs
-    storedRead store k = Jagged (storeRead store $ JaggedK k) (storeRead store $ JaggedV k)
+    storedWrite store k (Jagged is vs) = storeWrite store (JaggedStore k) (is, vs)
+    storedRead store k = uncurry Jagged $ storeRead store $ JaggedStore k
