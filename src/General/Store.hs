@@ -1,10 +1,11 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards, ViewPatterns #-}
+{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards, ViewPatterns, GADTs #-}
 
 module General.Store(
     Typeable, Stored,
     intSize, intFromBS, intToBS,
     StoreWrite, storeWriteFile, storeWrite, storeWritePart,
-    StoreRead, storeReadFile, storeRead
+    StoreRead, storeReadFile, storeRead,
+    Jagged, storeWriteJagged, storeReadJagged
     ) where
 
 import Data.IORef
@@ -189,3 +190,24 @@ storeRead StoreRead{..} (typeOf -> k) = unsafePerformIO $ do
             | atomType /= val -> corrupt $ "has type " ++ atomType ++ ", expected " ++ val
             | atomPosition < 0 || atomPosition + atomSize > srLen -> corrupt "has incorrect bounds"
             | otherwise -> storedRead (plusPtr srPtr atomPosition, atomSize)
+
+
+---------------------------------------------------------------------
+-- JAGGED ARRAYS
+
+data Jagged a deriving Typeable
+data JaggedK k v where JaggedK :: k -> JaggedK k (V.Vector Word32)
+data JaggedV k v where JaggedV :: k -> JaggedV k (V.Vector v)
+
+storeWriteJagged :: forall k a . (Typeable (k (Jagged a)), Typeable a, Storable a) => StoreWrite -> k (Jagged a) -> [[a]] -> IO ()
+storeWriteJagged store k vs = do
+    storeWrite store (JaggedK k) $ V.fromList $ scanl (+) 0 $ map (\v -> fromIntegral $ length v :: Word32) vs
+    storeWrite store (JaggedV k) $ V.fromList $ concat vs
+
+storeReadJagged :: forall k a . (Typeable (k (Jagged a)), Typeable a, Storable a) => StoreRead -> k (Jagged a) -> (Int -> V.Vector a)
+storeReadJagged store k = \i ->
+        let start = fromIntegral $ is V.! i
+            end   = fromIntegral $ is V.! succ i
+        in  V.slice start (end - start) vs
+    where is = storeRead store (JaggedK k)
+          vs = storeRead store (JaggedV k)
