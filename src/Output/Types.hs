@@ -55,13 +55,12 @@ searchTypes store q =
 ---------------------------------------------------------------------
 -- NAME/CTOR INFORMATION
 
-data TypesNames a where TypesNames :: TypesNames BS.ByteString deriving Typeable
+data TypesNames a where TypesNames :: TypesNames (BS.ByteString, V.Vector Name) deriving Typeable
 
 -- Must be a unique Name per String.
 -- First 0-99 are variables, rest are constructors.
 -- More popular type constructors have higher numbers.
 -- There are currently about 14K names, so about 25% of the bit patterns are taken
--- FIXME: Spread the names out over the full space, so not continuous, to get better popularity
 newtype Name = Name Word16 deriving (Eq,Ord,Show,Data,Typeable,Storable)
 
 name0 = Name 0 -- use to represent _
@@ -91,22 +90,47 @@ lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
 
 writeNames :: StoreWrite -> (String -> String -> IO ()) -> Map.Map String Int -> [Sig String] -> IO Names
 writeNames store debug inst xs = do
-    let names (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
+    let sigNames (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
 
     -- want to rank highly instances that have a lot of types, and a lot of definitions
     -- eg Eq is used and defined a lot. Constructor is used in 3 places but defined a lot.
-    let mp = Map.unionWith (\typ sig -> sig + min sig typ) (Map.mapKeysMonotonic ('~':) inst) $
-             Map.fromListWith (+) $ map (,1::Int) $ concatMap names xs
-    let ns = sortOn snd $ Map.toList $ Map.delete "" mp
-    debug "names" $ unlines [n ++ " = " ++ show i ++ " (" ++ show c ++ " uses)" | ((n,c),i) <- zip ns $ map Name [100..]]
-    ns <- return $ map fst ns
-    storeWrite store TypesNames $ BS.pack $ intercalate "\0" ns
-    let mp2 = Map.fromList $ zip ns $ map Name [100..]
+    let freq :: Map.Map String Int = -- how many times each identifier occurs
+            Map.unionWith (\typ sig -> sig + min sig typ) (Map.mapKeysMonotonic ('~':) inst) $
+            Map.fromListWith (+) $ map (,1::Int) $ concatMap sigNames xs
+    let names = spreadNames $ Map.toList freq
+    debug "names" $ unlines [s ++ " = " ++ show n ++ " (" ++ show (freq Map.! s) ++ " uses)" | (s,n) <- names]
+    names <- return $ sortOn fst names
+    storeWrite store TypesNames (BS.pack $ intercalate "\0" $ map fst names, V.fromList $ map snd names)
+    let mp2 = Map.fromAscList names
     return $ Names $ \x -> Map.lookup x mp2
+
+
+-- | Given a list of names, spread them out uniquely over the range [Name 100 .. Name maxBound]
+--   Aim for something with a count of p to be at position (p / pmax) linear interp over the range
+spreadNames :: [(a, Int)] -> [(a, Name)]
+spreadNames [] = []
+spreadNames (reverse . sortOn snd -> xs@((_,limit):_)) = check $ f (99 + genericLength xs) maxBound xs
+    where
+        check xs | all (isCon . snd) xs && length (nubOrd $ map snd xs) == length xs = xs
+                 | otherwise = error "Invalid spreadNames"
+
+        -- I can only assign values between mn and mx inclusive
+        f :: Word16 -> Word16 -> [(a, Int)] -> [(a, Name)]
+        f !mn !mx [] = []
+        f mn mx ((a,i):xs) = (a, Name real) : f (mn-1) (real-1) xs
+            where real = fromIntegral $ max mn $ min mx ideal
+                  ideal = mn + floor (fromIntegral (min commonNameThreshold i) * fromIntegral (mx - mn) / fromIntegral (min commonNameThreshold limit))
+
+-- WARNING: Magic constant.
+-- Beyond this count names don't accumulate extra points for being common.
+-- Ensures that things like Bool (4523 uses) ranks much higher than ShakeOptions (24 uses) by not having
+-- [] (10237 uses) skew the curve too much and use up all the available bits of discrimination.
+commonNameThreshold = 1024
 
 readNames :: StoreRead -> Names
 readNames store = Names $ \x -> Map.lookup (BS.pack x) mp
-    where mp = Map.fromList $ zip (BS.split '\0' $ storeRead store TypesNames) $ map Name [100..]
+    where mp = Map.fromAscList $ zip (BS.split '\0' s) $ V.toList n
+          (s, n) = storeRead store TypesNames
 
 
 ---------------------------------------------------------------------
