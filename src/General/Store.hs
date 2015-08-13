@@ -200,6 +200,16 @@ storeReadAtom StoreRead{..} (typeOf -> k) unpack = unsafePerformIO $ do
             | atomPosition < 0 || atomPosition + atomSize > srLen -> corrupt "has incorrect bounds"
             | otherwise -> unpack (plusPtr srPtr atomPosition, atomSize)
 
+---------------------------------------------------------------------
+-- PAIRS
+
+data Fst k v where Fst :: k -> Fst k a deriving Typeable
+data Snd k v where Snd :: k -> Snd k b deriving Typeable
+
+instance (Typeable a, Typeable b, Stored a, Stored b) => Stored (a,b) where
+    storedWrite store k (a,b) = storeWrite store (Fst k) a >> storeWrite store (Snd k) b
+    storedRead store k = (storeRead store $ Fst k, storeRead store $ Snd k)
+
 
 ---------------------------------------------------------------------
 -- JAGGED ARRAYS
