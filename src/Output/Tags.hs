@@ -44,7 +44,7 @@ data Tags = Tags
     {packageNames :: BS.ByteString -- sorted
     ,categoryNames :: BS.ByteString -- sorted
     ,packageIds :: V.Vector (TargetId, TargetId)
-    ,categoryIds :: Int -> V.Vector (TargetId, TargetId)
+    ,categoryIds :: Jagged (TargetId, TargetId)
     ,moduleNames :: BS.ByteString -- not sorted
     ,moduleIds :: V.Vector (TargetId, TargetId)
     ,completionNames :: BS.ByteString -- things I want to complete to
@@ -67,7 +67,7 @@ writeTags store keep extra xs = do
     storeWrite store PackageNames $ join0 $ map fst packages
     storeWrite store CategoryNames $ join0 $ map fst categories
     storeWrite store PackageIds $ V.fromList $ map snd packages
-    storeWriteJagged store CategoryIds $ map snd categories
+    storeWrite store CategoryIds $ jaggedFromList $ map snd categories
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
     storeWrite store ModuleNames $ join0 $ map (lower . fst) modules
@@ -91,7 +91,7 @@ writeTags store keep extra xs = do
 readTags :: StoreRead -> Tags
 readTags store = Tags
     (storeRead store PackageNames) (storeRead store CategoryNames) (storeRead store PackageIds)
-    (storeReadJagged store CategoryIds) (storeRead store ModuleNames) (storeRead store ModuleIds)
+    (storeRead store CategoryIds) (storeRead store ModuleNames) (storeRead store ModuleIds)
     (storeRead store CompletionNames)
 
 
@@ -109,7 +109,7 @@ lookupTag Tags{..} ("module",lower -> x) = map (moduleIds V.!) $ findIndices f $
           | otherwise = let y = BS.pack x; y2 = BS.pack $ ('.':x)
                         in \v -> y `BS.isPrefixOf` v || y2 `BS.isInfixOf` v
 lookupTag Tags{..} x = concat
-    [ V.toList $ categoryIds i
+    [ V.toList $ jaggedAsk categoryIds i
     | i <- findIndices (== BS.pack (joinPair ":" x)) $ split0 categoryNames
     ]
 

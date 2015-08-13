@@ -5,7 +5,7 @@ module General.Store(
     intSize, intFromBS, intToBS,
     StoreWrite, storeWriteFile, storeWrite, storeWritePart,
     StoreRead, storeReadFile, storeRead,
-    Jagged, storeWriteJagged, storeReadJagged,
+    Jagged, jaggedFromList, jaggedAsk,
     ) where
 
 import Data.IORef
@@ -204,19 +204,20 @@ storeReadAtom StoreRead{..} (typeOf -> k) unpack = unsafePerformIO $ do
 ---------------------------------------------------------------------
 -- JAGGED ARRAYS
 
-data Jagged a deriving Typeable
-data JaggedK k v where JaggedK :: k -> JaggedK k (V.Vector Word32)
-data JaggedV k v where JaggedV :: k -> JaggedV k (V.Vector v)
+data Jagged a = Jagged (V.Vector Word32) (V.Vector a) deriving Typeable
+data JaggedK k v where JaggedK :: k -> JaggedK k (V.Vector Word32) deriving Typeable
+data JaggedV k v where JaggedV :: k -> JaggedV k (V.Vector v) deriving Typeable
 
-storeWriteJagged :: forall k a . (Typeable (k (Jagged a)), Typeable a, Storable a) => StoreWrite -> k (Jagged a) -> [[a]] -> IO ()
-storeWriteJagged store k vs = do
-    storeWrite store (JaggedK k) $ V.fromList $ scanl (+) 0 $ map (\v -> fromIntegral $ length v :: Word32) vs
-    storeWrite store (JaggedV k) $ V.fromList $ concat vs
+jaggedFromList :: Storable a => [[a]] -> Jagged a
+jaggedFromList xs = Jagged is vs
+    where is = V.fromList $ scanl (+) 0 $ map (\x -> fromIntegral $ length x :: Word32) xs
+          vs = V.fromList $ concat xs
 
-storeReadJagged :: forall k a . (Typeable (k (Jagged a)), Typeable a, Storable a) => StoreRead -> k (Jagged a) -> (Int -> V.Vector a)
-storeReadJagged store k = \i ->
-        let start = fromIntegral $ is V.! i
-            end   = fromIntegral $ is V.! succ i
-        in  V.slice start (end - start) vs
-    where is = storeRead store (JaggedK k)
-          vs = storeRead store (JaggedV k)
+jaggedAsk :: Storable a => Jagged a -> Int -> V.Vector a
+jaggedAsk (Jagged is vs) i = V.slice start (end - start) vs
+    where start = fromIntegral $ is V.! i
+          end   = fromIntegral $ is V.! succ i
+
+instance (Typeable a, Storable a) => Stored (Jagged a) where
+    storedWrite store k (Jagged is vs) = storedWrite store (JaggedK k) is >> storedWrite store (JaggedV k) vs
+    storedRead store k = Jagged (storeRead store $ JaggedK k) (storeRead store $ JaggedV k)

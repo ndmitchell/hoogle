@@ -127,12 +127,12 @@ writeDuplicates store xs = do
     xs <- return $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
         Map.fromListWith (\(x1,x2) (y1,y2) -> (min x1 y1, x2 ++ y2)) [(s,(p,[t])) | (p,(t,s)) <- zip [0::Int ..] xs]
     -- give a list of TargetId's at each index
-    storeWriteJagged store TypesDuplicates $ map (reverse . snd) xs
+    storeWrite store TypesDuplicates $ jaggedFromList $ map (reverse . snd) xs
     return $ map fst xs
 
 readDuplicates :: StoreRead -> Duplicates
 readDuplicates store = Duplicates $ V.toList . ask
-    where ask = storeReadJagged store TypesDuplicates
+    where ask = jaggedAsk $ storeRead store TypesDuplicates
 
 
 ---------------------------------------------------------------------
