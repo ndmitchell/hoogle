@@ -5,7 +5,7 @@ module General.Store(
     intSize, intFromBS, intToBS,
     StoreWrite, storeWriteFile, storeWrite, storeWritePart,
     StoreRead, storeReadFile, storeRead,
-    Jagged, storeWriteJagged, storeReadJagged
+    Jagged, storeWriteJagged, storeReadJagged,
     ) where
 
 import Data.IORef
@@ -73,20 +73,21 @@ instance Binary Atom where
 ---------------------------------------------------------------------
 -- TYPE CLASS
 
-class Stored a where
-    -- Convert between a value and a size/memory-block
-    -- storedWrite must keep hold of the memory while writing
-    -- storedRead has its memory kept externally
-    storedWrite :: a -> (CStringLen -> IO b) -> IO b
-    storedRead :: CStringLen -> IO a
+class Typeable a => Stored a where
+    allowParts :: a -> Bool
+    allowParts _ = False
+    storedWrite :: Typeable (t a) => StoreWrite -> t a -> a -> IO ()
+    storedRead :: Typeable (t a) => StoreRead -> t a -> a
 
 instance Stored BS.ByteString where
-    storedWrite bs op = BS.unsafeUseAsCStringLen bs op
-    storedRead = BS.unsafePackCStringLen
+    allowParts _ = True
+    storedWrite store k v = BS.unsafeUseAsCStringLen v $ \x -> storeWriteAtom store k x
+    storedRead store k = storeReadAtom store k BS.unsafePackCStringLen
 
-instance forall a . Storable a => Stored (V.Vector a) where
-    storedWrite v op = V.unsafeWith v $ \ptr -> op (castPtr ptr, V.length v * sizeOf (undefined :: a))
-    storedRead (ptr, len) = do
+instance forall a . (Typeable a, Storable a) => Stored (V.Vector a) where
+    allowParts _ = True
+    storedWrite store k v = V.unsafeWith v $ \ptr -> storeWriteAtom store k (castPtr ptr, V.length v * sizeOf (undefined :: a))
+    storedRead store k = storeReadAtom store k $ \(ptr, len) -> do
         ptr <- newForeignPtr_ $ castPtr ptr
         return $ V.unsafeFromForeignPtr0 ptr (len `div` sizeOf (undefined :: a))
 
@@ -119,16 +120,21 @@ storeWriteFile file act = do
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
 storeWrite store@StoreWrite{..} k v = do
     writeIORef swPart Nothing
-    storeWritePart store k v
+    storedWrite store k v
     writeIORef swPart Nothing
 
-storeWritePart :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
-storeWritePart StoreWrite{..} (typeOf -> k) v = do
+storeWritePart :: forall t a . (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
+storeWritePart store k v = do
+    unless (allowParts (undefined :: a)) $ error "Can't call storeWritePart on a type that doesn't support parts"
+    storedWrite store k v
+
+storeWriteAtom :: forall t a . (Typeable (t a), Typeable a) => StoreWrite -> t a -> CStringLen -> IO ()
+storeWriteAtom StoreWrite{..} (typeOf -> k) (ptr, len) = do
     start <- fromIntegral <$> hTell swHandle
-    len <- storedWrite v $ \(ptr, len) -> do hPutBuf swHandle ptr len >> return len
+    hPutBuf swHandle ptr len
 
     let key = show k
-    let val = show $ typeOf v
+    let val = show $ typeOf (undefined :: a)
     atoms <- readIORef swAtoms
     part <- readIORef swPart
     if part == Just key then do
@@ -178,9 +184,12 @@ storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> 
     atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize - atomSize, atomSize)
     act $ StoreRead file len ptr atoms
 
+storeRead :: (Typeable (t a), Typeable a, Stored a) => StoreRead -> t a -> a
+storeRead = storedRead
 
-storeRead :: forall a t . (Typeable (t a), Typeable a, Stored a) => StoreRead -> t a -> a
-storeRead StoreRead{..} (typeOf -> k) = unsafePerformIO $ do
+
+storeReadAtom :: forall a t . (Typeable (t a), Typeable a) => StoreRead -> t a -> (CStringLen -> IO a) -> a
+storeReadAtom StoreRead{..} (typeOf -> k) unpack = unsafePerformIO $ do
     let key = show k
     let val = show $ typeOf (undefined :: a)
     let corrupt msg = error $ "The Hoogle file " ++ srFile ++ " is corrupt, " ++ key ++ " " ++ msg ++ "."
@@ -189,7 +198,7 @@ storeRead StoreRead{..} (typeOf -> k) = unsafePerformIO $ do
         Just Atom{..}
             | atomType /= val -> corrupt $ "has type " ++ atomType ++ ", expected " ++ val
             | atomPosition < 0 || atomPosition + atomSize > srLen -> corrupt "has incorrect bounds"
-            | otherwise -> storedRead (plusPtr srPtr atomPosition, atomSize)
+            | otherwise -> unpack (plusPtr srPtr atomPosition, atomSize)
 
 
 ---------------------------------------------------------------------
