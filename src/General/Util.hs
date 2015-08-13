@@ -8,7 +8,7 @@ module General.Util(
     splitPair, joinPair,
     testing, timed,
     showUTCTime,
-    list', strict,
+    strict,
     withs,
     escapeHTML, unescapeHTML, innerTextHTML, tag, tag_,
     noinline,
@@ -169,11 +169,6 @@ timed msg act = do
 
 showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale
-
-
-list' :: NFData a => [a] -> [a]
-list' (x:xs) = rnf x `seq` (x : list' xs)
-list' [] = []
 
 
 withs :: [(a -> r) -> r] -> ([a] -> r) -> r
