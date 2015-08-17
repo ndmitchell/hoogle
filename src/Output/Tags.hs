@@ -119,6 +119,8 @@ readTags store = Tags{..}
         (moduleNames, moduleIds) = storeRead store Modules
 
 
+
+
 lookupTag :: Tags -> Tag -> [(TargetId,TargetId)]
 lookupTag Tags{..} IsExact = []
 lookupTag Tags{..} IsPackage = map (dupe . fst) $ V.toList packageIds
@@ -136,8 +138,11 @@ lookupTag Tags{..} (EqCategory cat val) = concat
     ]
 
 
-filterTags :: Tags -> [Query] -> ([Query], Bool, TargetId -> Bool)
-filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
+---------------------------------------------------------------------
+-- TAG QUERIES
+
+filterTags :: StoreRead -> [Query] -> ([Query], Bool, TargetId -> Bool)
+filterTags (readTags -> ts) qs = (map redo qs, exact, \i -> all ($ i) fs)
     where fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs
           exact = Just IsExact `elem` [parseTag a b | QueryScope True a b <- qs]
           redo (QueryScope sense cat val)
@@ -152,7 +157,7 @@ filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
           f (QueryScope sense cat val) = map (sense,) $ maybe [] (lookupTag ts) $ parseTag cat val
 
 
-searchTags :: Tags -> [Query] -> [TargetId]
-searchTags ts [] = map fst $ lookupTag ts IsPackage 
-searchTags ts qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
+searchTags :: StoreRead -> [Query] -> [TargetId]
+searchTags (readTags -> ts) [] = map fst $ lookupTag ts IsPackage
+searchTags (readTags -> ts) qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
     where x:xs = [map fst $ maybe [] (lookupTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
