@@ -104,15 +104,15 @@ showTag (EqCategory k v) = (k,v)
 
 -- | Given a tag, find the ranges of identifiers it covers
 resolveTag :: StoreRead -> Tag -> (Maybe Tag, [(TargetId,TargetId)])
-resolveTag store x = (Just x,) $ case x of
-    IsExact -> []
-    IsPackage -> map (dupe . fst) $ V.toList packageIds
-    IsModule -> map (dupe . fst) $ V.toList moduleIds
-    EqPackage x -> map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
-    EqModule x -> map (moduleIds V.!) $ findIndices (eqModule x) $ split0 moduleNames
-    EqCategory cat val -> concat
+resolveTag store x = case x of
+    IsExact -> (Just IsExact, [])
+    IsPackage -> (Just IsPackage, map (dupe . fst) $ V.toList packageIds)
+    IsModule -> (Just IsModule, map (dupe . fst) $ V.toList moduleIds)
+    EqPackage x -> (Just $ EqPackage x, map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames)
+    EqModule x -> (Just $ EqModule x, map (moduleIds V.!) $ findIndices (eqModule x) $ split0 moduleNames)
+    EqCategory cat val -> (Just $ EqCategory cat val, concat
         [ V.toList $ jaggedAsk categoryIds i
-        | i <- findIndices (== BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames]
+        | i <- findIndices (== BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames])
     where
         eqModule x | Just x <- stripPrefix "." x, Just x <- stripSuffix "." x = (==) (BS.pack x)
                    | Just x <- stripPrefix "." x = BS.isPrefixOf $ BS.pack x
