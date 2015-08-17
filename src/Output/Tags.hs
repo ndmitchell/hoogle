@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, PatternGuards, GADTs #-}
 
-module Output.Tags(writeTags, completionTags, filterTags, searchTags) where
+module Output.Tags(writeTags, completionTags, applyTags) where
 
 import Data.List.Extra
 import Data.Tuple.Extra
@@ -126,6 +126,12 @@ resolveTag store x = case x of
 
 ---------------------------------------------------------------------
 -- TAG QUERIES
+
+-- | Given a query produce: (refined query, is:exact, filter, enumeration)
+--   You should apply the filter to other peoples results, or if you have nothing else, use the enumeration.
+applyTags :: StoreRead -> [Query] -> ([Query], Bool, TargetId -> Bool, [TargetId])
+applyTags store qs = (qs2, exact, filt, searchTags store qs)
+    where (qs2, exact, filt) = filterTags store qs
 
 filterTags :: StoreRead -> [Query] -> ([Query], Bool, TargetId -> Bool)
 filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)

@@ -47,9 +47,9 @@ withSearch database act = do
 
 search :: StoreRead -> [Query] -> ([Query], [Target])
 search store qs = runIdentity $ do
-    (qs, exact, filt) <- return $ filterTags store $ filter isQueryScope qs
+    (qs, exact, filt, list) <- return $ applyTags store $ filter isQueryScope qs
     is <- case (filter isQueryName qs, filter isQueryType qs) of
-        ([], [] ) -> return $ searchTags store qs
+        ([], [] ) -> return list
         ([], t:_) -> return $ searchTypes store $ hseToSig $ fromQueryType t
         (xs, [] ) -> return $ searchNames store exact $ map fromQueryName xs
         (xs, t:_) -> do
