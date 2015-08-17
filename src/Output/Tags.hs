@@ -84,33 +84,64 @@ readTags store = Tags{..}
 listTags :: Tags -> [String]
 listTags Tags{..} = map BS.unpack $ split0 completionNames
 
-lookupTag :: Tags -> (String, String) -> [(TargetId,TargetId)]
-lookupTag Tags{..} ("is",'p':xs) | xs `isPrefixOf` "ackage" = map (dupe . fst) $ V.toList packageIds
-lookupTag Tags{..} ("is",'m':xs) | xs `isPrefixOf` "odule" = map (dupe . fst) $ V.toList moduleIds
-lookupTag Tags{..} ("package",x) = map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
-lookupTag Tags{..} ("module",lower -> x) = map (moduleIds V.!) $ findIndices f $ split0 moduleNames
+data Tag = IsExact | IsPackage | IsModule | EqPackage String | EqModule String | EqCategory String String deriving Eq
+
+parseTag :: String -> String -> Maybe Tag
+parseTag k v
+    | k ~~ "is", v ~~ "exact" = Just IsExact
+    | k ~~ "is", v ~~ "package" = Just IsPackage
+    | k ~~ "is", v ~~ "module" = Just IsModule
+    | k ~~ "package", v /= "" = Just $ EqPackage v
+    | k ~~ "module", v /= "" = Just $ EqModule v
+    | v /= "" = Just $ EqCategory k v
+    | otherwise = Nothing
+    where
+        -- make the assumption the first letter always disambiguates
+        x ~~ lit = x /= "" && lower x `isPrefixOf` lit
+
+showTag :: Tag -> (String, String)
+showTag IsExact = ("is","exact")
+showTag IsPackage = ("is","package")
+showTag IsModule = ("is","module")
+showTag (EqPackage x) = ("package",x)
+showTag (EqModule x) = ("module",x)
+showTag (EqCategory k v) = (k,v)
+
+
+lookupTag :: Tags -> Tag -> [(TargetId,TargetId)]
+lookupTag Tags{..} IsExact = []
+lookupTag Tags{..} IsPackage = map (dupe . fst) $ V.toList packageIds
+lookupTag Tags{..} IsModule = map (dupe . fst) $ V.toList moduleIds
+lookupTag Tags{..} (EqPackage x) = map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
+lookupTag Tags{..} (EqModule x) = map (moduleIds V.!) $ findIndices f $ split0 moduleNames
     where
         f | Just x <- stripPrefix "." x, Just x <- stripSuffix "." x = (==) (BS.pack x)
           | Just x <- stripPrefix "." x = BS.isPrefixOf $ BS.pack x
           | otherwise = let y = BS.pack x; y2 = BS.pack $ ('.':x)
                         in \v -> y `BS.isPrefixOf` v || y2 `BS.isInfixOf` v
-lookupTag Tags{..} x = concat
+lookupTag Tags{..} (EqCategory cat val) = concat
     [ V.toList $ jaggedAsk categoryIds i
-    | i <- findIndices (== BS.pack (joinPair ":" x)) $ split0 categoryNames
+    | i <- findIndices (== BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames
     ]
 
+
 filterTags :: Tags -> [Query] -> ([Query], Bool, TargetId -> Bool)
-filterTags ts qs = (qs, exact, \i -> all ($ i) fs)
+filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
     where fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs
-          exact = QueryScope True "is" "exact" `elem` qs
+          exact = Just IsExact `elem` [parseTag a b | QueryScope True a b <- qs]
+          redo (QueryScope sense cat val)
+              | Just (k,v) <- showTag <$> parseTag cat val = QueryScope sense k v
+              | otherwise = QueryNone $ ['-' | not sense] ++ cat ++ ":" ++ val
+          redo q = q
 
 
 filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
     where (posq,negq) = both inRanges (pos,neg)
           (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
-          f (QueryScope sense cat val) = map (sense,) $ lookupTag ts (cat,val)
+          f (QueryScope sense cat val) = map (sense,) $ maybe [] (lookupTag ts) $ parseTag cat val
+
 
 searchTags :: Tags -> [Query] -> [TargetId]
 searchTags ts [] = map fst $ V.toList $ packageIds ts
 searchTags ts qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
-    where x:xs = [map fst $ lookupTag ts (cat,val) | QueryScope True cat val <- qs]
+    where x:xs = [map fst $ maybe [] (lookupTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
