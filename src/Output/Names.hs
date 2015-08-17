@@ -24,7 +24,7 @@ foreign import ccall text_search_bound :: CString -> IO CInt
 foreign import ccall text_search :: CString -> Ptr CString -> CInt -> Ptr CInt -> IO CInt
 
 
-data NamesSize a where NamesSize :: NamesSize BS.ByteString deriving Typeable
+data NamesSize a where NamesSize :: NamesSize Int deriving Typeable
 data NamesItems a where NamesItems :: NamesItems (V.Vector TargetId) deriving Typeable
 data NamesText a where NamesText :: NamesText BS.ByteString deriving Typeable
 
@@ -33,7 +33,7 @@ writeNames store xs = do
     let (ids, strs) = unzip [(i, [' ' | isUpper1 name] ++ lower name) | (Just i, x) <- xs, name <- itemNamePart x]
     let b = BS.intercalate (BS.pack "\0") (map strPack strs) `BS.append` BS.pack "\0\0"
     bound <- BS.unsafeUseAsCString b $ \ptr -> text_search_bound ptr
-    storeWrite store NamesSize $ intToBS $ fromIntegral bound
+    storeWrite store NamesSize $ fromIntegral bound
     storeWrite store NamesItems $ V.fromList ids
     storeWrite store NamesText b
 
@@ -48,7 +48,7 @@ searchNames store exact (filter (/= "") . map trim -> xs) = unsafePerformIO $ do
     -- if there are no questions, we will match everything, which exceeds the result buffer
     if null xs then return $ V.toList vs else do
         let tweak x = strPack $ [' ' | isUpper1 x] ++ lower x ++ "\0"
-        bracket (mallocArray $ intFromBS $ storeRead store NamesSize) free $ \result ->
+        bracket (mallocArray $ storeRead store NamesSize) free $ \result ->
             BS.unsafeUseAsCString (storeRead store NamesText) $ \haystack ->
                 withs (map (BS.unsafeUseAsCString . tweak) xs) $ \needles ->
                     withArray0 nullPtr needles $ \needles -> do
