@@ -41,7 +41,6 @@ data Tags = Tags
     ,categoryIds :: Jagged (TargetId, TargetId)
     ,moduleNames :: Str0
     ,moduleIds :: V.Vector (TargetId, TargetId)
-    ,completionNames :: Str0
     } deriving Typeable
 
 writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe TargetId, Item)] -> IO ()
@@ -78,11 +77,11 @@ readTags store = Tags{..}
         (packageNames, packageIds) = storeRead store Packages
         (categoryNames, categoryIds) = storeRead store Categories
         (moduleNames, moduleIds) = storeRead store Modules
-        completionNames = storeRead store Completions
 
 
-listTags :: Tags -> [String]
-listTags Tags{..} = map BS.unpack $ split0 completionNames
+listTags :: StoreRead -> [String]
+listTags store = map BS.unpack $ split0 $ storeRead store Completions
+
 
 data Tag = IsExact | IsPackage | IsModule | EqPackage String | EqModule String | EqCategory String String deriving Eq
 

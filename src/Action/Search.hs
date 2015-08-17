@@ -105,7 +105,7 @@ action_search_test database = testing "Action.Search.search" $ withSearch databa
     "ShakeOptions -> Int" === hackage "shake/docs/Development-Shake.html#v:shakeThreads"
     "is:module" === hackage "base/docs/Prelude.html"
 
-    let tags = listTags $ readTags store
+    let tags = listTags store
     let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
     asserts ("set:haskell-platform" `elem` tags) "set:haskell-platform `elem` tags"
     asserts ("author:Neil-Mitchell" `elem` tags) "author:Neil-Mitchell `elem` tags"
