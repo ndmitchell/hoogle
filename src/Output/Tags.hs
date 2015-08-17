@@ -102,23 +102,6 @@ showTag (EqCategory k v) = (k,v)
 ---------------------------------------------------------------------
 -- TAG SEMANTICS
 
-data Tags = Tags
-    {packageNames :: Str0
-    ,packageIds :: V.Vector (TargetId, TargetId)
-    ,categoryNames :: Str0
-    ,categoryIds :: Jagged (TargetId, TargetId)
-    ,moduleNames :: Str0
-    ,moduleIds :: V.Vector (TargetId, TargetId)
-    } deriving Typeable
-
-readTags :: StoreRead -> Tags
-readTags store = Tags{..}
-    where
-        (packageNames, packageIds) = storeRead store Packages
-        (categoryNames, categoryIds) = storeRead store Categories
-        (moduleNames, moduleIds) = storeRead store Modules
-
-
 -- | Given a tag, find the ranges of identifiers it covers
 resolveTag :: StoreRead -> Tag -> [(TargetId,TargetId)]
 resolveTag store x = case x of
@@ -136,7 +119,9 @@ resolveTag store x = case x of
                    | otherwise = let y = BS.pack x; y2 = BS.pack $ ('.':x)
                                  in \v -> y `BS.isPrefixOf` v || y2 `BS.isInfixOf` v
 
-        Tags{..} = readTags store
+        (packageNames, packageIds) = storeRead store Packages
+        (categoryNames, categoryIds) = storeRead store Categories
+        (moduleNames, moduleIds) = storeRead store Modules
 
 
 ---------------------------------------------------------------------
