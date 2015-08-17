@@ -16,6 +16,9 @@ import General.Util
 import General.Store
 import General.Str
 
+---------------------------------------------------------------------
+-- DATA TYPE
+
 -- matches (a,b) if i >= a && i <= b
 
 data Packages a where Packages :: Packages (Str0, V.Vector (TargetId, TargetId)) deriving Typeable
@@ -62,27 +65,15 @@ writeTags store keep extra xs = do
         weightTag _ = 4
 
 
+---------------------------------------------------------------------
+-- SIMPLE SELECTORS
+
 listTags :: StoreRead -> [String]
 listTags store = map BS.unpack $ split0 $ storeRead store Completions
 
 
-
-data Tags = Tags
-    {packageNames :: Str0
-    ,packageIds :: V.Vector (TargetId, TargetId)
-    ,categoryNames :: Str0
-    ,categoryIds :: Jagged (TargetId, TargetId)
-    ,moduleNames :: Str0
-    ,moduleIds :: V.Vector (TargetId, TargetId)
-    } deriving Typeable
-
-readTags :: StoreRead -> Tags
-readTags store = Tags{..}
-    where
-        (packageNames, packageIds) = storeRead store Packages
-        (categoryNames, categoryIds) = storeRead store Categories
-        (moduleNames, moduleIds) = storeRead store Modules
-
+---------------------------------------------------------------------
+-- DATA TYPE, PARSE, PRINT
 
 data Tag = IsExact | IsPackage | IsModule | EqPackage String | EqModule String | EqCategory String String deriving Eq
 
@@ -106,6 +97,26 @@ showTag IsModule = ("is","module")
 showTag (EqPackage x) = ("package",x)
 showTag (EqModule x) = ("module",x)
 showTag (EqCategory k v) = (k,v)
+
+
+---------------------------------------------------------------------
+-- TAG SEMANTICS
+
+data Tags = Tags
+    {packageNames :: Str0
+    ,packageIds :: V.Vector (TargetId, TargetId)
+    ,categoryNames :: Str0
+    ,categoryIds :: Jagged (TargetId, TargetId)
+    ,moduleNames :: Str0
+    ,moduleIds :: V.Vector (TargetId, TargetId)
+    } deriving Typeable
+
+readTags :: StoreRead -> Tags
+readTags store = Tags{..}
+    where
+        (packageNames, packageIds) = storeRead store Packages
+        (categoryNames, categoryIds) = storeRead store Categories
+        (moduleNames, moduleIds) = storeRead store Modules
 
 
 lookupTag :: Tags -> Tag -> [(TargetId,TargetId)]
