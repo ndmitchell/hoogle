@@ -35,13 +35,13 @@ data Completions a where Completions :: Completions Str0 deriving Typeable
 
 
 data Tags = Tags
-    {packageNames :: Str0 -- sorted
+    {packageNames :: Str0
     ,packageIds :: V.Vector (TargetId, TargetId)
-    ,categoryNames :: Str0 -- sorted
+    ,categoryNames :: Str0
     ,categoryIds :: Jagged (TargetId, TargetId)
-    ,moduleNames :: Str0 -- not sorted
+    ,moduleNames :: Str0
     ,moduleIds :: V.Vector (TargetId, TargetId)
-    ,completionNames :: Str0 -- things I want to complete to
+    ,completionNames :: Str0
     } deriving Typeable
 
 writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe TargetId, Item)] -> IO ()
