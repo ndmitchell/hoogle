@@ -48,7 +48,7 @@ withSearch database act = do
 search :: StoreRead -> [Query] -> [Target]
 search store qs = runIdentity $ do
     let tags = readTags store
-    let exact = QueryScope True "is" "exact" `elem` qs
+    (qs, exact, filt) <- return $ filterTags tags $ filter isQueryScope qs
     is <- case (filter isQueryName qs, filter isQueryType qs) of
         ([], [] ) -> return $ searchTags tags qs
         ([], t:_) -> return $ searchTypes store $ hseToSig $ fromQueryType t
@@ -57,7 +57,6 @@ search store qs = runIdentity $ do
             nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
             return $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
     let look = lookupItem store
-    let (_, filt) = filterTags tags $ filter isQueryScope qs
     return $ map look $ filter filt is
 
 
