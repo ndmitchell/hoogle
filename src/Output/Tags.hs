@@ -34,15 +34,6 @@ data Completions a where Completions :: Completions Str0 deriving Typeable
     -- a list of things to complete to, interspersed with \0
 
 
-data Tags = Tags
-    {packageNames :: Str0
-    ,packageIds :: V.Vector (TargetId, TargetId)
-    ,categoryNames :: Str0
-    ,categoryIds :: Jagged (TargetId, TargetId)
-    ,moduleNames :: Str0
-    ,moduleIds :: V.Vector (TargetId, TargetId)
-    } deriving Typeable
-
 writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe TargetId, Item)] -> IO ()
 writeTags store keep extra xs = do
     let splitPkg = splitIPackage xs
@@ -71,16 +62,26 @@ writeTags store keep extra xs = do
         weightTag _ = 4
 
 
+listTags :: StoreRead -> [String]
+listTags store = map BS.unpack $ split0 $ storeRead store Completions
+
+
+
+data Tags = Tags
+    {packageNames :: Str0
+    ,packageIds :: V.Vector (TargetId, TargetId)
+    ,categoryNames :: Str0
+    ,categoryIds :: Jagged (TargetId, TargetId)
+    ,moduleNames :: Str0
+    ,moduleIds :: V.Vector (TargetId, TargetId)
+    } deriving Typeable
+
 readTags :: StoreRead -> Tags
 readTags store = Tags{..}
     where
         (packageNames, packageIds) = storeRead store Packages
         (categoryNames, categoryIds) = storeRead store Categories
         (moduleNames, moduleIds) = storeRead store Modules
-
-
-listTags :: StoreRead -> [String]
-listTags store = map BS.unpack $ split0 $ storeRead store Completions
 
 
 data Tag = IsExact | IsPackage | IsModule | EqPackage String | EqModule String | EqCategory String String deriving Eq
