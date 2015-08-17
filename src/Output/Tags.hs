@@ -19,9 +19,8 @@ import General.Str
 -- matches (a,b) if i >= a && i <= b
 
 data Packages a where Packages :: Packages (Str0, V.Vector (TargetId, TargetId)) deriving Typeable
-    -- list of packages, sorted by name, lowercase, interspersed with \0
+    -- list of packages, sorted by popularity, lowercase, interspersed with \0
     -- for each index in PackageNames, the first is the module item, any in the bounds are in that package
---- FIXME: PackageIds should be sorted by popularity
 
 data Modules a where Modules :: Modules (Str0, V.Vector (TargetId, TargetId)) deriving Typeable
     -- list of modules, sorted by popularity, not unique, lowercase, interspersed with \0
@@ -48,10 +47,9 @@ data Tags = Tags
 writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe TargetId, Item)] -> IO ()
 writeTags store keep extra xs = do
     let splitPkg = splitIPackage xs
-    let packagesRaw = addRange splitPkg
-    let packages = sortOn (lower . fst) packagesRaw
+    let packages = addRange splitPkg
     let categories = map (first snd . second reverse) $ Map.toList $ Map.fromListWith (++)
-            [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packagesRaw, ex <- extra p]
+            [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
 
     storeWrite store Packages (join0 $ map fst packages, V.fromList $ map snd packages)
     storeWrite store Categories (join0 $ map fst categories, jaggedFromList $ map snd categories)
@@ -61,7 +59,7 @@ writeTags store keep extra xs = do
 
     storeWrite store Completions $ join0 $
         takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
-        map ("package:"++) (filter keep $ map fst packages) ++
+        map ("package:"++) (sortOn lower $ filter keep $ map fst packages) ++
         map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p])
     where
         addRange :: [(String, [(Maybe TargetId,a)])] -> [(String, (TargetId, TargetId))]
