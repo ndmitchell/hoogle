@@ -14,41 +14,36 @@ import Input.Item
 import Query
 import General.Util
 import General.Store
+import General.Str
 
 -- matches (a,b) if i >= a && i <= b
 
-data Packages a where Packages :: Packages (BS.ByteString, V.Vector (TargetId, TargetId)) deriving Typeable
+data Packages a where Packages :: Packages (Str0, V.Vector (TargetId, TargetId)) deriving Typeable
     -- list of packages, sorted by name, lowercase, interspersed with \0
     -- for each index in PackageNames, the first is the module item, any in the bounds are in that package
 --- FIXME: PackageIds should be sorted by popularity
 
-data Modules a where Modules :: Modules (BS.ByteString, V.Vector (TargetId, TargetId)) deriving Typeable
+data Modules a where Modules :: Modules (Str0, V.Vector (TargetId, TargetId)) deriving Typeable
     -- list of modules, sorted by popularity, not unique, lowercase, interspersed with \0
     -- for each index in ModuleNames, the first is the module item, any in the bounds are in that module
 
-data Categories a where Categories :: Categories (BS.ByteString, Jagged (TargetId, TargetId)) deriving Typeable
+data Categories a where Categories :: Categories (Str0, Jagged (TargetId, TargetId)) deriving Typeable
     -- list of categories, sorted by name, interspersed with \0
     -- for each index in CategoryNames, a range of items containing a category, first item is a package
 
-data Completions a where Completions :: Completions BS.ByteString deriving Typeable
+data Completions a where Completions :: Completions Str0 deriving Typeable
     -- a list of things to complete to, interspersed with \0
 
 
 data Tags = Tags
-    {packageNames :: BS.ByteString -- sorted
-    ,categoryNames :: BS.ByteString -- sorted
+    {packageNames :: Str0 -- sorted
+    ,categoryNames :: Str0 -- sorted
     ,packageIds :: V.Vector (TargetId, TargetId)
     ,categoryIds :: Jagged (TargetId, TargetId)
-    ,moduleNames :: BS.ByteString -- not sorted
+    ,moduleNames :: Str0 -- not sorted
     ,moduleIds :: V.Vector (TargetId, TargetId)
-    ,completionNames :: BS.ByteString -- things I want to complete to
+    ,completionNames :: Str0 -- things I want to complete to
     } deriving Typeable
-
-join0 :: [String] -> BS.ByteString
-join0 = BS.pack . intercalate "\0"
-
-split0 :: BS.ByteString -> [BS.ByteString]
-split0 = BS.split '\0'
 
 writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe TargetId, Item)] -> IO ()
 writeTags store keep extra xs = do
