@@ -120,7 +120,7 @@ storeWriteFile file act = do
         let stats =
                 [name ++ " (:: " ++ atomType ++ ") = " ++ show atomSize ++ " bytes" |
                     (name, Atom{..}) <- reverse $ sortOn (atomSize . snd) $ Map.toList atoms] ++
-                ["Total atom size = " ++ show (sum $ map atomSize $ Map.elems atoms)
+                ["Overheads = " ++ show (fromIntegral final - sum (map atomSize $ Map.elems atoms))
                 ,"Total file size = " ++ show final]
         return (stats, res)
 
