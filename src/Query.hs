@@ -21,6 +21,7 @@ data Query
     = QueryName {fromQueryName :: String}
     | QueryType {fromQueryType :: Type}
     | QueryScope {scopeInclude :: Bool, scopeCategory :: String, scopeValue :: String}
+    | QueryNone String -- part of the query that is ignored
       deriving (Show,Eq)
 
 isQueryName, isQueryType, isQueryScope :: Query -> Bool
@@ -31,9 +32,10 @@ isQueryScope QueryScope{} = True; isQueryScope _ = False
 renderQuery :: [Query] -> String
 renderQuery [] = "<i>No query</i>"
 renderQuery xs = escapeHTML $ unwords $
-    [x | QueryName x <- xs] ++
-    [":: " ++ pretty x | QueryType x <- xs] ++
-    [['-' | not scopeInclude] ++ scopeCategory ++ ":" ++ scopeValue | QueryScope{..} <- xs]
+    [escapeHTML x | QueryName x <- xs] ++
+    [":: " ++ escapeHTML (pretty x) | QueryType x <- xs] ++
+    [['-' | not scopeInclude] ++ escapeHTML scopeCategory ++ ":" ++ escapeHTML scopeValue | QueryScope{..} <- xs] ++
+    ["<strikethrough>" ++ escapeHTML x ++ "</strikethrough>" | QueryNone x <- xs]
 
 
 ---------------------------------------------------------------------
