@@ -119,30 +119,31 @@ readTags store = Tags{..}
         (moduleNames, moduleIds) = storeRead store Modules
 
 
-
-
-lookupTag :: Tags -> Tag -> [(TargetId,TargetId)]
-lookupTag Tags{..} IsExact = []
-lookupTag Tags{..} IsPackage = map (dupe . fst) $ V.toList packageIds
-lookupTag Tags{..} IsModule = map (dupe . fst) $ V.toList moduleIds
-lookupTag Tags{..} (EqPackage x) = map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
-lookupTag Tags{..} (EqModule x) = map (moduleIds V.!) $ findIndices f $ split0 moduleNames
+-- | Given a tag, find the ranges of identifiers it covers
+resolveTag :: StoreRead -> Tag -> [(TargetId,TargetId)]
+resolveTag store x = case x of
+    IsExact -> []
+    IsPackage -> map (dupe . fst) $ V.toList packageIds
+    IsModule -> map (dupe . fst) $ V.toList moduleIds
+    EqPackage x -> map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames
+    EqModule x -> map (moduleIds V.!) $ findIndices (eqModule x) $ split0 moduleNames
+    EqCategory cat val -> concat
+        [ V.toList $ jaggedAsk categoryIds i
+        | i <- findIndices (== BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames]
     where
-        f | Just x <- stripPrefix "." x, Just x <- stripSuffix "." x = (==) (BS.pack x)
-          | Just x <- stripPrefix "." x = BS.isPrefixOf $ BS.pack x
-          | otherwise = let y = BS.pack x; y2 = BS.pack $ ('.':x)
-                        in \v -> y `BS.isPrefixOf` v || y2 `BS.isInfixOf` v
-lookupTag Tags{..} (EqCategory cat val) = concat
-    [ V.toList $ jaggedAsk categoryIds i
-    | i <- findIndices (== BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames
-    ]
+        eqModule x | Just x <- stripPrefix "." x, Just x <- stripSuffix "." x = (==) (BS.pack x)
+                   | Just x <- stripPrefix "." x = BS.isPrefixOf $ BS.pack x
+                   | otherwise = let y = BS.pack x; y2 = BS.pack $ ('.':x)
+                                 in \v -> y `BS.isPrefixOf` v || y2 `BS.isInfixOf` v
+
+        Tags{..} = readTags store
 
 
 ---------------------------------------------------------------------
 -- TAG QUERIES
 
 filterTags :: StoreRead -> [Query] -> ([Query], Bool, TargetId -> Bool)
-filterTags (readTags -> ts) qs = (map redo qs, exact, \i -> all ($ i) fs)
+filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
     where fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs
           exact = Just IsExact `elem` [parseTag a b | QueryScope True a b <- qs]
           redo (QueryScope sense cat val)
@@ -154,10 +155,10 @@ filterTags (readTags -> ts) qs = (map redo qs, exact, \i -> all ($ i) fs)
 filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
     where (posq,negq) = both inRanges (pos,neg)
           (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
-          f (QueryScope sense cat val) = map (sense,) $ maybe [] (lookupTag ts) $ parseTag cat val
+          f (QueryScope sense cat val) = map (sense,) $ maybe [] (resolveTag ts) $ parseTag cat val
 
 
 searchTags :: StoreRead -> [Query] -> [TargetId]
-searchTags (readTags -> ts) [] = map fst $ lookupTag ts IsPackage
-searchTags (readTags -> ts) qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
-    where x:xs = [map fst $ maybe [] (lookupTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
+searchTags ts [] = map fst $ resolveTag ts IsPackage
+searchTags ts qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
+    where x:xs = [map fst $ maybe [] (resolveTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
