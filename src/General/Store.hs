@@ -219,6 +219,16 @@ instance (Typeable a, Typeable b, Stored a, Stored b) => Stored (a,b) where
 
 
 ---------------------------------------------------------------------
+-- LITERALS
+
+data StoredInt k v where StoredInt :: k -> StoredInt k BS.ByteString deriving Typeable
+
+instance Stored Int where
+    storedWrite store k v = storeWrite store (StoredInt k) $ intToBS v
+    storedRead store k = intFromBS $ storeRead store (StoredInt k)
+
+
+---------------------------------------------------------------------
 -- JAGGED ARRAYS
 
 data Jagged a = Jagged (V.Vector Word32) (V.Vector a) deriving Typeable
