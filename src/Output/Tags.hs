@@ -36,8 +36,8 @@ data Completions a where Completions :: Completions Str0 deriving Typeable
 
 data Tags = Tags
     {packageNames :: Str0 -- sorted
-    ,categoryNames :: Str0 -- sorted
     ,packageIds :: V.Vector (TargetId, TargetId)
+    ,categoryNames :: Str0 -- sorted
     ,categoryIds :: Jagged (TargetId, TargetId)
     ,moduleNames :: Str0 -- not sorted
     ,moduleIds :: V.Vector (TargetId, TargetId)
@@ -48,10 +48,10 @@ writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> 
 writeTags store keep extra xs = do
     let splitPkg = splitIPackage xs
     let packages = addRange splitPkg
+    storeWrite store Packages (join0 $ map fst packages, V.fromList $ map snd packages)
+
     let categories = map (first snd . second reverse) $ Map.toList $ Map.fromListWith (++)
             [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
-
-    storeWrite store Packages (join0 $ map fst packages, V.fromList $ map snd packages)
     storeWrite store Categories (join0 $ map fst categories, jaggedFromList $ map snd categories)
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
