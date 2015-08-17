@@ -108,7 +108,7 @@ replyServer log store cdn = \Input{..} -> case inputURL of
     xs -> return $ OutputFile $ joinPath $ "html" : xs
     where
         str = templateStr . lstrPack
-        tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- listTags store]
+        tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- completionTags store]
         params = map (second str)
             [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
             ,("version",showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]

@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, PatternGuards, GADTs #-}
 
-module Output.Tags(writeTags, listTags, filterTags, searchTags) where
+module Output.Tags(writeTags, completionTags, filterTags, searchTags) where
 
 import Data.List.Extra
 import Data.Tuple.Extra
@@ -68,8 +68,8 @@ writeTags store keep extra xs = do
 ---------------------------------------------------------------------
 -- SIMPLE SELECTORS
 
-listTags :: StoreRead -> [String]
-listTags store = map BS.unpack $ split0 $ storeRead store Completions
+completionTags :: StoreRead -> [String]
+completionTags store = map BS.unpack $ split0 $ storeRead store Completions
 
 
 ---------------------------------------------------------------------
