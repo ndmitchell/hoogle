@@ -142,6 +142,6 @@ filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
 
 
 searchTags :: Tags -> [Query] -> [TargetId]
-searchTags ts [] = map fst $ V.toList $ packageIds ts
+searchTags ts [] = map fst $ lookupTag ts IsPackage 
 searchTags ts qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
     where x:xs = [map fst $ maybe [] (lookupTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
