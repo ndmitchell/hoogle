@@ -143,6 +143,8 @@ filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
           f (QueryScope sense cat val) = map (sense,) $ maybe [] (resolveTag ts) $ parseTag cat val
 
 
+-- | Given a search which has no type or string in it, run the query on the tag bits.
+--   Using for things like IsModule, EqCategory etc.
 searchTags :: StoreRead -> [Query] -> [TargetId]
 searchTags ts [] = map fst $ resolveTag ts IsPackage
 searchTags ts qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
