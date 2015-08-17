@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, PatternGuards, GADTs #-}
 
-module Output.Tags(Tags, writeTags, listTags, filterTags, searchTags) where
+module Output.Tags(writeTags, listTags, filterTags, searchTags) where
 
 import Data.List.Extra
 import Data.Tuple.Extra
