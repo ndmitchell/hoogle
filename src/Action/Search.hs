@@ -29,7 +29,7 @@ import General.Util
 actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store -> do
-        res <- return $ search store $ parseQuery $ unwords query
+        (_, res) <- return $ search store $ parseQuery $ unwords query
         let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
         hSetEncoding stdout utf8
         putStr $ unlines $ map (unescapeHTML . innerTextHTML) shown
@@ -45,7 +45,7 @@ withSearch database act = do
     storeReadFile database act
 
 
-search :: StoreRead -> [Query] -> [Target]
+search :: StoreRead -> [Query] -> ([Query], [Target])
 search store qs = runIdentity $ do
     let tags = readTags store
     (qs, exact, filt) <- return $ filterTags tags $ filter isQueryScope qs
@@ -57,13 +57,13 @@ search store qs = runIdentity $ do
             nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
             return $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
     let look = lookupItem store
-    return $ map look $ filter filt is
+    return (qs, map look $ filter filt is)
 
 
 action_search_test :: FilePath -> IO ()
 action_search_test database = testing "Action.Search.search" $ withSearch database $ \store -> do
     let a ==$ f = do
-            res <- return $ search store (parseQuery a)
+            res <- return $ snd $ search store (parseQuery a)
             case res of
                 Target{..}:_ | f targetURL -> putChar '.'
                 _ -> error $ show (a, take 1 res)
