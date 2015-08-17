@@ -103,8 +103,8 @@ showTag (EqCategory k v) = (k,v)
 -- TAG SEMANTICS
 
 -- | Given a tag, find the ranges of identifiers it covers
-resolveTag :: StoreRead -> Tag -> [(TargetId,TargetId)]
-resolveTag store x = case x of
+resolveTag :: StoreRead -> Tag -> (Maybe Tag, [(TargetId,TargetId)])
+resolveTag store x = (Just x,) $ case x of
     IsExact -> []
     IsPackage -> map (dupe . fst) $ V.toList packageIds
     IsModule -> map (dupe . fst) $ V.toList moduleIds
@@ -146,12 +146,12 @@ filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
 filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
     where (posq,negq) = both inRanges (pos,neg)
           (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
-          f (QueryScope sense cat val) = map (sense,) $ maybe [] (resolveTag ts) $ parseTag cat val
+          f (QueryScope sense cat val) = map (sense,) $ maybe [] (snd . resolveTag ts) $ parseTag cat val
 
 
 -- | Given a search which has no type or string in it, run the query on the tag bits.
 --   Using for things like IsModule, EqCategory etc.
 searchTags :: StoreRead -> [Query] -> [TargetId]
-searchTags ts [] = map fst $ resolveTag ts IsPackage
+searchTags ts [] = map fst $ snd $ resolveTag ts IsPackage
 searchTags ts qs = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
-    where x:xs = [map fst $ maybe [] (resolveTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
+    where x:xs = [map fst $ maybe [] (snd . resolveTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
