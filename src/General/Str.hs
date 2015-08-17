@@ -3,7 +3,8 @@
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe 
 module General.Str(
     Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strConcat, strStripPrefix, strStripSuffix, strTrimStart, strUnlines, strUnwords,
-    LStr, lstrPack, lstrUnpack, lstrLines, lstrToChunks, lstrFromChunks, lstrToStr
+    LStr, lstrPack, lstrUnpack, lstrLines, lstrToChunks, lstrFromChunks, lstrToStr,
+    Str0, join0, split0
     ) where
 
 import qualified Data.ByteString.Char8 as BS
@@ -11,6 +12,7 @@ import qualified Data.ByteString.UTF8 as US
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as LUS
 import Data.Char
+import Data.List
 
 
 type Str = BS.ByteString
@@ -76,3 +78,11 @@ lstrUnpack = LUS.toString
 
 lstrPack :: String -> LStr
 lstrPack = LUS.fromString
+
+type Str0 = Str
+
+join0 :: [String] -> Str0
+join0 = BS.pack . intercalate "\0"
+
+split0 :: Str0 -> [Str]
+split0 = BS.split '\0'
