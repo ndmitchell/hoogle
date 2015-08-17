@@ -99,8 +99,9 @@ lookupTag Tags{..} x = concat
     | i <- findIndices (== BS.pack (joinPair ":" x)) $ split0 categoryNames
     ]
 
-filterTags :: Tags -> [Query] -> (TargetId -> Bool)
-filterTags ts qs = let fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs in \i -> all ($ i) fs
+filterTags :: Tags -> [Query] -> ([Maybe Query], TargetId -> Bool)
+filterTags ts qs = ([if isQueryScope q then Just q else Nothing | q <- qs], \i -> all ($ i) fs)
+    where fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs
 
 filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
     where (posq,negq) = both inRanges (pos,neg)

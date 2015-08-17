@@ -57,7 +57,8 @@ search store qs = runIdentity $ do
             nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
             return $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
     let look = lookupItem store
-    return $ map look $ filter (filterTags tags qs) is
+    let (_, filt) = filterTags tags $ filter isQueryScope qs
+    return $ map look $ filter filt is
 
 
 action_search_test :: FilePath -> IO ()
