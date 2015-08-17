@@ -17,26 +17,20 @@ import General.Store
 
 -- matches (a,b) if i >= a && i <= b
 
-data PackageNames a where PackageNames :: PackageNames BS.ByteString deriving Typeable
+data Packages a where Packages :: Packages (BS.ByteString, V.Vector (TargetId, TargetId)) deriving Typeable
     -- list of packages, sorted by name, lowercase, interspersed with \0
--- FIXME: PackageIds should be sorted by popularity
-
-data PackageIds a where PackageIds :: PackageIds (V.Vector (TargetId, TargetId)) deriving Typeable
     -- for each index in PackageNames, the first is the module item, any in the bounds are in that package
+--- FIXME: PackageIds should be sorted by popularity
 
-data ModuleNames a where ModuleNames :: ModuleNames BS.ByteString deriving Typeable
+data Modules a where Modules :: Modules (BS.ByteString, V.Vector (TargetId, TargetId)) deriving Typeable
     -- list of modules, sorted by popularity, not unique, lowercase, interspersed with \0
-
-data ModuleIds a where ModuleIds :: ModuleIds (V.Vector (TargetId, TargetId)) deriving Typeable
     -- for each index in ModuleNames, the first is the module item, any in the bounds are in that module
 
-data CategoryNames a where CategoryNames :: CategoryNames BS.ByteString deriving Typeable
+data Categories a where Categories :: Categories (BS.ByteString, Jagged (TargetId, TargetId)) deriving Typeable
     -- list of categories, sorted by name, interspersed with \0
-
-data CategoryIds a where CategoryIds :: CategoryIds (Jagged (TargetId, TargetId)) deriving Typeable
     -- for each index in CategoryNames, a range of items containing a category, first item is a package
 
-data CompletionNames a where CompletionNames :: CompletionNames BS.ByteString deriving Typeable
+data Completions a where Completions :: Completions BS.ByteString deriving Typeable
     -- a list of things to complete to, interspersed with \0
 
 
@@ -64,16 +58,13 @@ writeTags store keep extra xs = do
     let categories = map (first snd . second reverse) $ Map.toList $ Map.fromListWith (++)
             [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packagesRaw, ex <- extra p]
 
-    storeWrite store PackageNames $ join0 $ map fst packages
-    storeWrite store CategoryNames $ join0 $ map fst categories
-    storeWrite store PackageIds $ V.fromList $ map snd packages
-    storeWrite store CategoryIds $ jaggedFromList $ map snd categories
+    storeWrite store Packages (join0 $ map fst packages, V.fromList $ map snd packages)
+    storeWrite store Categories (join0 $ map fst categories, jaggedFromList $ map snd categories)
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
-    storeWrite store ModuleNames $ join0 $ map (lower . fst) modules
-    storeWrite store ModuleIds $ V.fromList $ map snd modules
+    storeWrite store Modules (join0 $ map (lower . fst) modules, V.fromList $ map snd modules)
 
-    storeWrite store CompletionNames $ join0 $
+    storeWrite store Completions $ join0 $
         takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
         map ("package:"++) (filter keep $ map fst packages) ++
         map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p])
@@ -89,10 +80,12 @@ writeTags store keep extra xs = do
 
 
 readTags :: StoreRead -> Tags
-readTags store = Tags
-    (storeRead store PackageNames) (storeRead store CategoryNames) (storeRead store PackageIds)
-    (storeRead store CategoryIds) (storeRead store ModuleNames) (storeRead store ModuleIds)
-    (storeRead store CompletionNames)
+readTags store = Tags{..}
+    where
+        (packageNames, packageIds) = storeRead store Packages
+        (categoryNames, categoryIds) = storeRead store Categories
+        (moduleNames, moduleIds) = storeRead store Modules
+        completionNames = storeRead store Completions
 
 
 listTags :: Tags -> [String]
