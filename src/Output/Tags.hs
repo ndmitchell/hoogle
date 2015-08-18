@@ -10,6 +10,8 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
+import Control.Applicative
+import Prelude
 
 import Input.Item
 import Query
