@@ -52,6 +52,7 @@ executable hoogle
     ghc-options:      -fno-state-hack -threaded
 
     other-modules:
+        Paths_hoogle
         Action.CmdLine
         Action.Generate
         Action.Search
