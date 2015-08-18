@@ -114,7 +114,7 @@ resolveTag store x = case x of
         | res@(_:_) <- [(BS.length x, (i,x)) | (i,x) <- zip [0..] $ split0 packageNames, val `BS.isPrefixOf` x]
             -> let (i,x) = snd $ minimumBy (compare `on` fst) res in (Just $ EqPackage $ BS.unpack x, [packageIds V.! i])
         | otherwise -> (Nothing, [])
-    EqModule x -> (Just $ EqModule x, map (moduleIds V.!) $ findIndices (eqModule x) $ split0 moduleNames)
+    EqModule x -> (Just $ EqModule x, map (moduleIds V.!) $ findIndices (eqModule $ lower x) $ split0 moduleNames)
     EqCategory cat val -> (Just $ EqCategory cat val, concat
         [ V.toList $ jaggedAsk categoryIds i
         | i <- findIndices (== BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames])
