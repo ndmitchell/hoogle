@@ -2,6 +2,7 @@
 
 module Output.Tags(writeTags, completionTags, applyTags) where
 
+import Data.Function
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Maybe
@@ -108,7 +109,11 @@ resolveTag store x = case x of
     IsExact -> (Just IsExact, [])
     IsPackage -> (Just IsPackage, map (dupe . fst) $ V.toList packageIds)
     IsModule -> (Just IsModule, map (dupe . fst) $ V.toList moduleIds)
-    EqPackage x -> (Just $ EqPackage x, map (packageIds V.!) $ findIndices (== BS.pack x) $ split0 packageNames)
+    EqPackage (BS.pack . lower -> val)
+        -- look for people who are an exact prefix, sort by remaining length, if there are ties, pick the first one
+        | res@(_:_) <- [(BS.length x, (i,x)) | (i,x) <- zip [0..] $ split0 packageNames, val `BS.isPrefixOf` x]
+            -> let (i,x) = snd $ minimumBy (compare `on` fst) res in (Just $ EqPackage $ BS.unpack x, [packageIds V.! i])
+        | otherwise -> (Nothing, [])
     EqModule x -> (Just $ EqModule x, map (moduleIds V.!) $ findIndices (eqModule x) $ split0 moduleNames)
     EqCategory cat val -> (Just $ EqCategory cat val, concat
         [ V.toList $ jaggedAsk categoryIds i
