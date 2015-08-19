@@ -6,7 +6,7 @@ module General.Conduit(
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     mapMC, mapAccumMC,
-    (|$|), pipelineC,
+    (|$|), pipelineC, groupOnLastC,
     zipFromC, linesC, linesCR
     ) where
 
@@ -40,6 +40,19 @@ zipFromC = void . mapAccumC (\i x -> (succ i, (i,x)))
 
 sinkList :: Monad m => Consumer a m [a]
 sinkList = consume
+
+-- | Group things while they have the same function result, only return the last value.
+--   Conduit version of @groupOnLast f = map last . groupOn f@.
+groupOnLastC :: (Monad m, Eq b) => (a -> b) -> Conduit a m a
+groupOnLastC op = do
+    x <- await
+    whenJust x $ \x -> f (op x) x
+    where
+        f k v = await >>= \x -> case x of
+            Nothing -> yield v
+            Just v2 | let k2 = op v2 -> do
+                when (k /= k2) $ yield v
+                f k2 v2
 
 
 -- | I use this version as in older versions of Conduit the equivalent is O(n^2).
