@@ -20,10 +20,10 @@ import Prelude
 
 
 data Cabal = Cabal
-    {cabalTags :: [(T.Text, T.Text)]
-    ,cabalSynopsis :: T.Text
-    ,cabalVersion :: T.Text -- never empty
-    ,cabalPopularity :: !Int
+    {cabalTags :: [(T.Text, T.Text)] -- The Tag information, e.g. (category,Development) (author,Neil Mitchell).
+    ,cabalSynopsis :: T.Text -- The synposis, grabbed from the top section.
+    ,cabalVersion :: T.Text -- The version, grabbed from the top section. Never empty (will be 0.0 if not found).
+    ,cabalPopularity :: !Int -- The number of packages that directly depend on this package.
     } deriving Show
 
 instance NFData Cabal where
@@ -38,6 +38,8 @@ parseCabalTarball :: FilePath -> IO ([String], Map.Map String Cabal)
 -- rely on the fact the highest version is last (using lastValues)
 parseCabalTarball tarfile = do
     rename <- loadRename
+    -- Left (n, s) -- there are n people importing this package, the first of which was s
+    -- Right c -- information about a Cabal package
     let zero = Map.empty :: Map.Map String (Either (Int, String) Cabal)
     res <- foldl' (f rename) zero . lastValues . map (first takeBaseName) <$> tarballReadFiles tarfile
     let (bad, good) = mapPartitionEither res
