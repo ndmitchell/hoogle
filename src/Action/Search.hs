@@ -34,7 +34,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
         hSetEncoding stdout utf8
         putStr $ unlines $ map (unescapeHTML . innerTextHTML) shown
         when (hidden /= []) $ do
-            putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+            whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
 
 
 withSearch :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
