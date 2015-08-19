@@ -21,13 +21,14 @@ import Prelude
 
 data Cabal = Cabal
     {cabalTags :: [(T.Text, T.Text)] -- The Tag information, e.g. (category,Development) (author,Neil Mitchell).
+    ,cabalLibrary :: Bool -- True if the package provides a library (False if it is only an executable with no API)
     ,cabalSynopsis :: T.Text -- The synposis, grabbed from the top section.
     ,cabalVersion :: T.Text -- The version, grabbed from the top section. Never empty (will be 0.0 if not found).
     ,cabalPopularity :: !Int -- The number of packages that directly depend on this package.
     } deriving Show
 
 instance NFData Cabal where
-    rnf (Cabal a b c d) = rnf (a,b,c,d)
+    rnf (Cabal a b c d e) = rnf (a,b,c,d,e)
 
 
 -- | Given the Cabal files we care about, pull out the fields you care about
@@ -91,6 +92,7 @@ readCabal rename src = (Cabal{..}, nubOrd depends)
                   concatMap (split (== ',')) $ ask "build-depends"
         cabalVersion = T.pack $ head $ dropWhile null (ask "version") ++ ["0.0"]
         cabalSynopsis = T.pack $ unwords $ words $ unwords $ ask "synopsis"
+        cabalLibrary = "library" `elem` map (lower . trim) (lines src)
         cabalPopularity = 0
 
         cabalTags = map (both T.pack) $ nubOrd $ concat
