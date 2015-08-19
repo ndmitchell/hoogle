@@ -41,7 +41,7 @@ writeItems store act = act $ do
     void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case target of
         Nothing -> return (pos, (Nothing, item))
         Just target -> do
-            let bs = BS.concat $ LBS.toChunks $ GZip.compress $ UTF8.fromString $ unlines $ outputItem target
+            let bs = LBS.toStrict $ GZip.compress $ UTF8.fromString $ unlines $ outputItem target
             liftIO $ do
                 storeWritePart store Items $ intToBS $ BS.length bs
                 storeWritePart store Items bs
