@@ -29,7 +29,8 @@ import General.Util
 actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store -> do
-        (_, res) <- return $ search store $ parseQuery $ unwords query
+        (q, res) <- return $ search store $ parseQuery $ unwords query
+        whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
         let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
         hSetEncoding stdout utf8
         putStr $ unlines $ map (unescapeHTML . innerTextHTML) shown
