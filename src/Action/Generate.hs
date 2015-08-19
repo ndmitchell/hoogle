@@ -13,6 +13,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Control.Monad.Extra
+import Numeric.Extra
 import System.Console.CmdArgs.Verbosity
 import Prelude
 
@@ -88,19 +89,19 @@ generate output metadata  = undefined
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
-data Timing = Timing
+data Timing = Timing (Maybe Handle)
 
-withTiming :: (Timing -> IO a) -> IO a
-withTiming f = do
+withTiming :: Maybe FilePath -> (Timing -> IO a) -> IO a
+withTiming file f = maybe ($ Nothing) (\file f -> withFile file WriteMode $ f . Just) file $ \h -> do
     offset <- offsetTime
-    res <- f Timing
+    res <- f $ Timing h
     end <- offset
     putStrLn $ "Took " ++ showDuration end
     return res
 
 
 timed :: MonadIO m => Timing -> String -> m a -> m a
-timed _ msg act = do
+timed (Timing h) msg act = do
     liftIO $ putStr (msg ++ "... ") >> hFlush stdout
     time <- liftIO offsetTime
     res <- act
@@ -108,6 +109,7 @@ timed _ msg act = do
     stats <- liftIO getGCStatsEnabled
     s <- if not stats then return "" else do GCStats{..} <- liftIO getGCStats; return $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
     liftIO $ putStrLn $ showDuration time ++ s
+    whenJust h $ \h -> liftIO $ hPutStr h $ showDP 2 time ++ "\t" ++ msg
     return res
 
 
