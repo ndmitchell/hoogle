@@ -91,7 +91,13 @@ generate output metadata  = undefined
 data Timing = Timing
 
 withTiming :: (Timing -> IO a) -> IO a
-withTiming f = f Timing
+withTiming f = do
+    offset <- offsetTime
+    res <- f Timing
+    end <- offset
+    putStrLn $ "Took " ++ showDuration end
+    return res
+
 
 timed :: MonadIO m => Timing -> String -> m a -> m a
 timed Timing msg act = do
@@ -112,8 +118,7 @@ actionGenerate Generate{..} = withTiming $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
     downloadInputs (timed timing) download $ takeDirectory database
-    (n,_) <- duration $ generate timing database debug include
-    putStrLn $ "Took " ++ showDuration n
+    generate timing database debug include
 
 
 generate :: Timing -> FilePath -> Bool -> [String] -> IO ()
