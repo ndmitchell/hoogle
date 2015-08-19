@@ -100,7 +100,7 @@ withTiming f = do
 
 
 timed :: MonadIO m => Timing -> String -> m a -> m a
-timed Timing msg act = do
+timed _ msg act = do
     liftIO $ putStr (msg ++ "... ") >> hFlush stdout
     time <- liftIO offsetTime
     res <- act
