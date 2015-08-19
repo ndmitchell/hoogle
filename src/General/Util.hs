@@ -55,7 +55,16 @@ exitFail msg = do
     exitFailure
 
 pretty :: Pretty a => a -> String
-pretty = trim . unwords . words . prettyPrint
+pretty = unwordsWords . prettyPrint
+
+-- | Fused version of @unwords . words@ which runs quite a bit faster
+unwordsWords :: String -> String
+unwordsWords = f . dropWhile isSpace
+    where
+        f (x:xs) | isSpace x = case dropWhile isSpace xs of [] -> []; x:xs -> ' ' : x : f xs
+                 | otherwise = x : f xs
+        f [] = []
+
 
 parseMode :: ParseMode
 parseMode = defaultParseMode{extensions=map EnableExtension es}
@@ -249,3 +258,5 @@ general_util_test = do
         splitPair "-" "module-" === ("module","")
     testing_ "General.Util.inRanges" $ do
         quickCheck $ \(x :: Int8) xs -> inRanges xs x == any (`inRange` x) xs
+    testing_ "General.Util.unwordsWords" $ do
+        quickCheck $ \xs -> unwords (words xs) == unwordsWords xs
