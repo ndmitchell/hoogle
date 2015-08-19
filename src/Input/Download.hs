@@ -22,11 +22,14 @@ urls =
     ]
 
 -- | Download all the input files to input/
-downloadInputs :: FilePath -> IO ()
-downloadInputs dir = do
+downloadInputs :: Maybe Bool -> FilePath -> IO ()
+downloadInputs download dir = do
     forM_ urls $ \(name, url) -> do
         let file = dir </> "input-" ++ name
-        unlessM (doesFileExist file) $ do
+        exists <- doesFileExist file
+        when (not exists && download == Just False) $
+            error $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
+        when (not exists || download == Just True) $
             timed ("Downloading " ++ url) $ do
                 downloadFile (file <.> "part") url
                 renameFile (file <.> "part") file
