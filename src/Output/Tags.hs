@@ -10,8 +10,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Vector.Storable as V
 import qualified Data.ByteString.Char8 as BS
-import Control.Applicative
-import Prelude
 
 import Input.Item
 import Query
@@ -145,7 +143,7 @@ filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
     where fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs
           exact = Just IsExact `elem` [parseTag a b | QueryScope True a b <- qs]
           redo (QueryScope sense cat val)
-              | Just (k,v) <- showTag <$> parseTag cat val = QueryScope sense k v
+              | Just (k,v) <- fmap showTag $ fst . resolveTag ts =<< parseTag cat val = QueryScope sense k v
               | otherwise = QueryNone $ ['-' | not sense] ++ cat ++ ":" ++ val
           redo q = q
 
