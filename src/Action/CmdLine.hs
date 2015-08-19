@@ -1,7 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse #-}
 
-module Action.CmdLine(CmdLine(..), getCmdLine) where
+module Action.CmdLine(
+    CmdLine(..), getCmdLine,
+    whenLoud, whenNormal
+    ) where
 
 import System.Console.CmdArgs
 import System.Directory
