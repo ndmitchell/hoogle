@@ -29,7 +29,7 @@ outputItem Target{..} =
 
 inputItem :: [String] -> Target
 inputItem (url:pkg:modu:typ:self:docs) =
-    Target (if url == "." then "" else url) (f pkg) (f modu) (if typ == "." then "" else typ) self (unlines docs)
+    Target (if url == "." then "" else url) (f pkg) (f modu) (if typ == "." then "" else typ) self (unlines $ replace ["."] [""] docs)
     where
         f "." = Nothing
         f x = Just (word1 x)
