@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, BangPatterns, ScopedTypeVariables #-}
 
 module Input.Cabal(Cabal(..), parseCabalTarball) where
 
@@ -8,13 +8,14 @@ import Control.Applicative
 import Control.DeepSeq
 import Control.Exception
 import System.IO.Extra
+import Control.Monad.Extra
 import General.Str
-import Data.Either.Extra
 import Data.Char
 import Data.Tuple.Extra
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import General.Util
+import General.Conduit
 import Paths_hoogle
 import Prelude
 
@@ -39,38 +40,26 @@ parseCabalTarball :: FilePath -> IO ([String], Map.Map String Cabal)
 -- rely on the fact the highest version is last (using lastValues)
 parseCabalTarball tarfile = do
     rename <- loadRename
-    -- Left (n, s) -- there are n people importing this package, the first of which was s
-    -- Right c -- information about a Cabal package
-    let zero = Map.empty :: Map.Map String (Either (Int, String) Cabal)
-    res <- foldl' (f rename) zero . lastValues . map (first takeBaseName) <$> tarballReadFiles tarfile
-    let (bad, good) = mapPartitionEither res
-    let err = [ b ++ ".cabal: Import of non-existant package " ++ a ++ (if i <= 1 then "" else ", also imported by " ++ show (i-1) ++ " others")
-              | (a,(i,b)) <- Map.toList bad]
-    evaluate good
-    evaluate err
-    return (err, good)
+
+    runConduit $ (sourceList =<< liftIO (tarballReadFiles tarfile)) =$=
+                 mapC (first takeBaseName) =$= groupOnLastC fst =$= mapMC (\x -> do evaluate $ rnf x; return x) =$=
+                 pipelineC 10 (mapC (second $ readCabal rename . lstrUnpack) =$= mapMC (\x -> do evaluate $ rnf x; return x) =$= mergeCabals)
+
+
+mergeCabals :: Monad m => Consumer (String, (Cabal, [String])) m ([String], Map.Map String Cabal)
+mergeCabals = freeze <$> foldC add (Map.empty, Map.empty)
     where
-        setFields new Nothing = Right new
-        setFields new (Just (Left (i, _))) = Right new{cabalPopularity = i}
+        -- Takes imports (Map Name (Int,Name)), where a |-> (i,b) means a has i people who depend on it, b is one of them
+        -- Takes cabals (Map Name Cabal), just the mapping to return at the end
+        add (!imports, !cabals) x@(name,(cabal,depends)) = (imports2, Map.insert name cabal cabals)
+            where imports2 = foldl' (\mp i -> Map.insertWith merge i (1::Int,name) mp) imports depends
+                  merge (c1,n1) (c2,n2) = let cc = c1+c2 in cc `seq` (cc, n1)
 
-        incPopularity pkg Nothing = Left (1, pkg)
-        incPopularity _ (Just (Left (i, pkg))) = i `seq` Left (i+1, pkg)
-        incPopularity _ (Just (Right c)) = Right c{cabalPopularity = cabalPopularity c + 1}
-
-        f rename mp (pkg,body) = rnf pkg `seq` rnf res `seq` foldl' (g pkg) (Map.alter (Just . setFields res) pkg mp) deps
-            where (res, deps) = readCabal rename $ lstrUnpack body
-
-        g pkg mp dep = Map.alter (Just . incPopularity pkg) dep mp
-
-
-mapPartitionEither :: Map.Map a (Either b c) -> (Map.Map a b, Map.Map a c)
-mapPartitionEither = (Map.map fromLeft *** Map.map fromRight) . Map.partition isLeft
-
-
-lastValues :: Eq a => [(a,b)] -> [(a,b)]
-lastValues ((a1,_):(a2,x):xs) | a1 == a2 = lastValues $ (a2,x):xs
-lastValues (x:xs) = x : lastValues xs
-lastValues [] = []
+        freeze (imports, cabals) = bad `seq` good `seq` (bad, good)
+            where bad = [ user ++ ".cabal: Import of non-existant package " ++ name ++
+                          (if i <= 1 then "" else ", also imported by " ++ show (i-1) ++ " others")
+                        | (name,(i,user)) <- Map.toList $ Map.difference imports cabals]
+                  good = Map.differenceWith (\c (i,_) -> Just c{cabalPopularity=i}) cabals imports
 
 
 loadRename :: IO (String -> String)
