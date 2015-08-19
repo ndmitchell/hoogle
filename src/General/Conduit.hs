@@ -5,7 +5,7 @@ module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
     sourceList, sinkList, sourceLStr,
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
-    mapAccumMC,
+    mapMC, mapAccumMC,
     (|$|), pipelineC,
     zipFromC, linesC, linesCR
     ) where
@@ -25,6 +25,7 @@ import Prelude
 
 concatC = C.concat
 mapC = C.map
+mapMC = C.mapM
 foldC = C.fold
 mapMaybeC = C.mapMaybe
 mapAccumC f = C.mapAccum (\x a -> a `seq` f a x)
