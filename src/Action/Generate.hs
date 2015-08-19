@@ -105,16 +105,14 @@ timed _ msg act = do
     time <- liftIO offsetTime
     res <- act
     time <- liftIO time
-    liftIO $ putStr $ showDuration time
-    liftIO $ whenM getGCStatsEnabled $ do
-        stats@GCStats{..} <- getGCStats
-        putStr $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
-    liftIO $ putStrLn ""
+    stats <- liftIO getGCStatsEnabled
+    s <- if not stats then return "" else do GCStats{..} <- liftIO getGCStats; return $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
+    liftIO $ putStrLn $ showDuration time ++ s
     return res
 
 
 actionGenerate :: CmdLine -> IO ()
-actionGenerate Generate{..} = withTiming $ \timing -> do
+actionGenerate Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
     downloadInputs (timed timing) download $ takeDirectory database
