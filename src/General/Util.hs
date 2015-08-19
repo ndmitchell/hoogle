@@ -6,7 +6,7 @@ module General.Util(
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
-    testing, timed,
+    testing,
     showUTCTime,
     strict,
     withs,
@@ -19,7 +19,6 @@ module General.Util(
     general_util_test
     ) where
 
-import Control.Monad.IO.Class
 import Language.Haskell.Exts
 import Control.Applicative
 import Data.List.Extra
@@ -41,8 +40,6 @@ import Foreign.Storable
 import Data.Int
 import System.IO
 import System.Exit
-import System.Time.Extra
-import GHC.Stats
 #if __GLASGOW_HASKELL__< 710
 import System.Locale
 #endif
@@ -152,19 +149,6 @@ joinPair sep (a,b) = a ++ sep ++ b
 testing_, testing :: String -> IO () -> IO ()
 testing_ name act = do putStr $ "Test " ++ name ++ " "; act
 testing name act = do testing_ name act; putStrLn ""
-
-timed :: MonadIO m => String -> m a -> m a
-timed msg act = do
-    liftIO $ putStr (msg ++ "... ") >> hFlush stdout
-    time <- liftIO offsetTime
-    res <- act
-    time <- liftIO time
-    liftIO $ putStr $ showDuration time
-    liftIO $ whenM getGCStatsEnabled $ do
-        stats@GCStats{..} <- getGCStats
-        putStr $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
-    liftIO $ putStrLn ""
-    return res
 
 showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale

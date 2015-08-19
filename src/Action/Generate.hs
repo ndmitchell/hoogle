@@ -88,6 +88,21 @@ generate output metadata  = undefined
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
+
+timed :: MonadIO m => String -> m a -> m a
+timed msg act = do
+    liftIO $ putStr (msg ++ "... ") >> hFlush stdout
+    time <- liftIO offsetTime
+    res <- act
+    time <- liftIO time
+    liftIO $ putStr $ showDuration time
+    liftIO $ whenM getGCStatsEnabled $ do
+        stats@GCStats{..} <- getGCStats
+        putStr $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
+    liftIO $ putStrLn ""
+    return res
+
+
 actionGenerate :: CmdLine -> IO ()
 actionGenerate Generate{..} = do
     putStrLn "Starting generate"
