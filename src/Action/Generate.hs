@@ -9,6 +9,7 @@ import System.Time.Extra
 import Data.Tuple.Extra
 import Control.Exception.Extra
 import Data.IORef
+import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -89,19 +90,27 @@ generate output metadata  = undefined
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
-data Timing = Timing (Maybe Handle)
+data Timing = Timing (Maybe (IORef [(String, Double)]))
 
 withTiming :: Maybe FilePath -> (Timing -> IO a) -> IO a
-withTiming file f = maybe ($ Nothing) (\file f -> withFile file WriteMode $ f . Just) file $ \h -> do
+withTiming file f = do
     offset <- offsetTime
-    res <- f $ Timing h
+    ref <- newIORef []
+    res <- f $ Timing $ if isJust file then Just ref else Nothing
     end <- offset
+    whenJust file $ \file -> do
+        ref <- readIORef ref
+        -- Expecting unrecorded of ~2s
+        -- Most of that comes from the pipeline - we get occasional 0.01 between items as one flushes
+        -- Then at the end there is ~0.5 while the final item flushes
+        ref <- return $ reverse $ sortOn snd $ ("Unrecorded",end - sum (map snd ref)) : ref
+        writeFile file $ unlines [showDP 2 b ++ "\t" ++ a | (a,b) <- ("Total",end) : ref]
     putStrLn $ "Took " ++ showDuration end
     return res
 
 
 timed :: MonadIO m => Timing -> String -> m a -> m a
-timed (Timing h) msg act = do
+timed (Timing ref) msg act = do
     liftIO $ putStr (msg ++ "... ") >> hFlush stdout
     time <- liftIO offsetTime
     res <- act
@@ -109,7 +118,7 @@ timed (Timing h) msg act = do
     stats <- liftIO getGCStatsEnabled
     s <- if not stats then return "" else do GCStats{..} <- liftIO getGCStats; return $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
     liftIO $ putStrLn $ showDuration time ++ s
-    whenJust h $ \h -> liftIO $ hPutStr h $ showDP 2 time ++ "\t" ++ msg
+    whenJust ref $ \ref -> liftIO $ modifyIORef ref ((msg,time):)
     return res
 
 
