@@ -88,9 +88,13 @@ generate output metadata  = undefined
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
+data Timing = Timing
 
-timed :: MonadIO m => String -> m a -> m a
-timed msg act = do
+withTiming :: (Timing -> IO a) -> IO a
+withTiming f = f Timing
+
+timed :: MonadIO m => Timing -> String -> m a -> m a
+timed Timing msg act = do
     liftIO $ putStr (msg ++ "... ") >> hFlush stdout
     time <- liftIO offsetTime
     res <- act
@@ -104,16 +108,16 @@ timed msg act = do
 
 
 actionGenerate :: CmdLine -> IO ()
-actionGenerate Generate{..} = do
+actionGenerate Generate{..} = withTiming $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
-    downloadInputs timed download $ takeDirectory database
-    (n,_) <- duration $ generate database debug include
+    downloadInputs (timed timing) download $ takeDirectory database
+    (n,_) <- duration $ generate timing database debug include
     putStrLn $ "Took " ++ showDuration n
 
 
-generate :: FilePath -> Bool -> [String] -> IO ()
-generate database debug args = do
+generate :: Timing -> FilePath -> Bool -> [String] -> IO ()
+generate timing database debug args = do
     -- fix up people using Hoogle 4 instructions
     args <- if "all" `notElem` args then return args else do
         putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
@@ -128,7 +132,7 @@ generate database debug args = do
     let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
     -- peakMegabytesAllocated = 2
 
-    (cblErrs,cbl) <- timed "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
+    (cblErrs,cbl) <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
     let packageTags pkg =
             [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
             [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
@@ -147,7 +151,7 @@ generate database debug args = do
 
             let consume :: Conduit (Int, (String, LStr)) IO (Maybe Target, Item)
                 consume = awaitForever $ \(i, (pkg, body)) -> do
-                    timed ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
+                    timed timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle warning pkg body
 
             writeItems store $ \items -> do
@@ -174,10 +178,10 @@ generate database debug args = do
                 return xs
 
 
-        xs <- timed "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
-        timed "Writing tags" $ writeTags store (`Set.member` want) packageTags xs
-        timed "Writing names" $ writeNames store xs
-        timed "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
+        xs <- timed timing "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
+        timed timing "Writing tags" $ writeTags store (`Set.member` want) packageTags xs
+        timed timing "Writing names" $ writeNames store xs
+        timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 
         whenM getGCStatsEnabled $ do
             performGC
