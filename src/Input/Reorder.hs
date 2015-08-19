@@ -15,7 +15,7 @@ reorderItems packageOrder xs = do
     let rebase (x, xs) | x `elem` ["base","haskell98","haskell2010"]
                        = (x, concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ refunc $ splitIModule xs)
         rebase (x, xs) = (x, concatMap snd $ sortOn fst $ refunc $ splitIModule xs)
-    return $ concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitIPackage xs
+    return $! concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitIPackage xs
 
 baseModuleOrder :: String -> Int
 baseModuleOrder x
