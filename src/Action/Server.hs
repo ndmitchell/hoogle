@@ -45,7 +45,7 @@ actionServer Server{..} = do
     putStrLn $ "Server started on port " ++ show port
     putStr "Reading log..." >> hFlush stdout
     time <- offsetTime
-    log <- timed "Reading log" $ logCreate (if logs == "" then Left stdout else Right logs) $
+    log <- logCreate (if logs == "" then Left stdout else Right logs) $
         \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
     putStrLn . showDuration =<< time
     evaluate spawned
