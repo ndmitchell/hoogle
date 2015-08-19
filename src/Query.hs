@@ -35,7 +35,7 @@ renderQuery xs = escapeHTML $ unwords $
     [escapeHTML x | QueryName x <- xs] ++
     [":: " ++ escapeHTML (pretty x) | QueryType x <- xs] ++
     [['-' | not scopeInclude] ++ escapeHTML scopeCategory ++ ":" ++ escapeHTML scopeValue | QueryScope{..} <- xs] ++
-    ["<strikethrough>" ++ escapeHTML x ++ "</strikethrough>" | QueryNone x <- xs]
+    ["<strike>" ++ escapeHTML x ++ "</strike>" | QueryNone x <- xs]
 
 
 ---------------------------------------------------------------------
