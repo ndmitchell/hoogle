@@ -24,7 +24,7 @@ data Cabal = Cabal
     ,cabalLibrary :: Bool -- True if the package provides a library (False if it is only an executable with no API)
     ,cabalSynopsis :: T.Text -- The synposis, grabbed from the top section.
     ,cabalVersion :: T.Text -- The version, grabbed from the top section. Never empty (will be 0.0 if not found).
-    ,cabalPopularity :: !Int -- The number of packages that directly depend on this package.
+    ,cabalPopularity :: {-# UNPACK #-} !Int -- The number of packages that directly depend on this package.
     } deriving Show
 
 instance NFData Cabal where
