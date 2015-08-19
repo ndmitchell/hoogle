@@ -64,10 +64,7 @@ typeItem _ = ""
 
 -- FIXME: used to be in two different modules, now does and then undoes lots of stuff
 reformat :: [Str] -> String
-reformat = trimStart . replace "<p>" "" . replace "</p>" "\n" . unwords . lines .
-           unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy (== "") . map strUnpack
-    where f xs@(x:_) | x `elem` ["<pre>","<ul>"] = xs
-          f xs = ["<p>",unwords xs,"</p>"]
+reformat = unlines . map strUnpack
 
 
 hierarchyC :: Monad m => String -> Conduit (Target, Entry) m (Maybe Target, Item)
