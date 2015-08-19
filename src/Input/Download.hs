@@ -3,7 +3,6 @@
 
 module Input.Download(downloadInputs) where
 
-import General.Util
 import System.FilePath
 import Control.Monad.Extra
 import System.Directory
@@ -22,8 +21,8 @@ urls =
     ]
 
 -- | Download all the input files to input/
-downloadInputs :: Maybe Bool -> FilePath -> IO ()
-downloadInputs download dir = do
+downloadInputs :: (String -> IO () -> IO ()) -> Maybe Bool -> FilePath -> IO ()
+downloadInputs timed download dir = do
     forM_ urls $ \(name, url) -> do
         let file = dir </> "input-" ++ name
         exists <- doesFileExist file

@@ -92,7 +92,7 @@ actionGenerate :: CmdLine -> IO ()
 actionGenerate Generate{..} = do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
-    downloadInputs download $ takeDirectory database
+    downloadInputs timed download $ takeDirectory database
     (n,_) <- duration $ generate database debug include
     putStrLn $ "Took " ++ showDuration n
 
