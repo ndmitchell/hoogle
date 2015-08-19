@@ -118,7 +118,9 @@ timed (Timing ref) msg act = do
     stats <- liftIO getGCStatsEnabled
     s <- if not stats then return "" else do GCStats{..} <- liftIO getGCStats; return $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
     liftIO $ putStrLn $ showDuration time ++ s
-    whenJust ref $ \ref -> liftIO $ modifyIORef ref ((msg,time):)
+    case ref of -- don't use whenJust, induces Appliative pre-AMP
+        Nothing -> return ()
+        Just ref -> liftIO $ modifyIORef ref ((msg,time):)
     return res
 
 
