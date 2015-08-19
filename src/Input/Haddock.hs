@@ -46,7 +46,7 @@ parserC warning file = f [] ""
                   | strNull $ strTrimStart s -> f [] ""
                   | Just s <- strStripSuffix " :: GLenum" s -> do
                         -- there are 38K instances of :: GLenum in the OpenGLRaw package, so speed them up (saves 16s + 100Mb)
-                        yield (Target url Nothing Nothing "" (renderItem $ glenum $ strUnpack s) $ reformat $ reverse $ map strUnpack com, glenum $ strUnpack s)
+                        yield (Target url Nothing Nothing "" (renderItem $ glenum $ strUnpack s) $ reformat $ reverse com, glenum $ strUnpack s)
                         f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
@@ -54,7 +54,7 @@ parserC warning file = f [] ""
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
                             Right xs -> forM_ xs $ \x ->
-                                yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse $ map strUnpack com, x) -- descendBi stringShare x)
+                                yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse com, x) -- descendBi stringShare x)
                         f [] ""
 
 typeItem (EPackage x) = "package"
@@ -63,8 +63,9 @@ typeItem _ = ""
 
 
 -- FIXME: used to be in two different modules, now does and then undoes lots of stuff
+reformat :: [Str] -> String
 reformat = trimStart . replace "<p>" "" . replace "</p>" "\n" . unwords . lines .
-           unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy (== "")
+           unlines . replace ["</p>","<p>"] ["</p><p>"] . concatMap f . wordsBy (== "") . map strUnpack
     where f xs@(x:_) | x `elem` ["<pre>","<ul>"] = xs
           f xs = ["<p>",unwords xs,"</p>"]
 
