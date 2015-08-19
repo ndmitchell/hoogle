@@ -147,7 +147,9 @@ generate database debug args = do
                         (((zipFromC 1 =$= consume) >> when (null args) (sourceList packages))
                             =$= pipelineC 10 (items =$= sinkList)))
 
-                putStrLn $ "Packages not found: " ++ unwords (Set.toList $ want `Set.difference` seen)
+                putStrLn $ ("Packages not found: " ++) $ unwords $ sortOn lower
+                    [x | x <- Set.toList $ want `Set.difference` seen
+                       , fmap cabalLibrary (Map.lookup x cbl) /= Just False]
                 when (Set.null seen) $
                     exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
 
