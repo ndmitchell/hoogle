@@ -8,7 +8,7 @@ module General.Store(
     Jagged, jaggedFromList, jaggedAsk,
     ) where
 
-import Data.IORef
+import Data.IORef.Extra
 import System.IO.Extra
 import Data.Typeable
 import qualified Data.Map as Map
@@ -74,19 +74,16 @@ instance Binary Atom where
 -- TYPE CLASS
 
 class Typeable a => Stored a where
-    allowParts :: a -> Bool
-    allowParts _ = False
-    storedWrite :: Typeable (t a) => StoreWrite -> t a -> a -> IO ()
+    storedWrite :: Typeable (t a) => StoreWrite -> t a -> Bool -> a -> IO ()
     storedRead :: Typeable (t a) => StoreRead -> t a -> a
 
 instance Stored BS.ByteString where
-    allowParts _ = True
-    storedWrite store k v = BS.unsafeUseAsCStringLen v $ \x -> storeWriteAtom store k x
+    storedWrite store k part v = BS.unsafeUseAsCStringLen v $ \x -> storeWriteAtom store k part x
     storedRead store k = storeReadAtom store k BS.unsafePackCStringLen
 
 instance forall a . (Typeable a, Storable a) => Stored (V.Vector a) where
-    allowParts _ = True
-    storedWrite store k v = V.unsafeWith v $ \ptr -> storeWriteAtom store k (castPtr ptr, V.length v * sizeOf (undefined :: a))
+    storedWrite store k part v = V.unsafeWith v $ \ptr ->
+        storeWriteAtom store k part (castPtr ptr, V.length v * sizeOf (undefined :: a))
     storedRead store k = storeReadAtom store k $ \(ptr, len) -> do
         ptr <- newForeignPtr_ $ castPtr ptr
         return $ V.unsafeFromForeignPtr0 ptr (len `div` sizeOf (undefined :: a))
@@ -95,11 +92,13 @@ instance forall a . (Typeable a, Storable a) => Stored (V.Vector a) where
 ---------------------------------------------------------------------
 -- WRITE OUT
 
-data StoreWrite = StoreWrite
-    {swAtoms :: IORef (Map.Map String Atom) -- the atoms that have been stored
-    ,swPart :: IORef (Maybe String) -- am I currently storing a part
-    ,swHandle :: Handle
+data SW = SW
+    {swHandle :: Handle -- Immutable handle I write to
+    ,swPosition :: !Int -- Position within swHandle
+    ,swAtoms :: [(String, Atom)] -- List of pieces, in reverse
     }
+
+data StoreWrite = StoreWrite (IORef SW)
 
 storeWriteFile :: FilePath -> (StoreWrite -> IO a) -> IO ([String], a)
 storeWriteFile file act = do
@@ -108,9 +107,16 @@ storeWriteFile file act = do
     withBinaryFile file WriteMode $ \h -> do
         -- put the version string at the start and end, so we can tell truncation vs wrong version
         BS.hPut h verString
-        res <- act $ StoreWrite atoms parts h
+        ref <- newIORef $ SW h (BS.length verString) []
+        res <- act $ StoreWrite ref
+        SW{..} <- readIORef ref
+
+        -- sort the atoms and validate there are no duplicates
+        let atoms = Map.fromList swAtoms
+        when (Map.size atoms /= length swAtoms) $
+            error "Some duplicate names have been written out"
+
         -- write the atoms out, then put the size at the end
-        atoms <- readIORef atoms
         let bs = encodeBS atoms
         BS.hPut h bs
         BS.hPut h $ intToBS $ BS.length bs
@@ -125,37 +131,27 @@ storeWriteFile file act = do
         return (stats, res)
 
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
-storeWrite store@StoreWrite{..} k v = do
-    writeIORef swPart Nothing
-    storedWrite store k v
-    writeIORef swPart Nothing
+storeWrite store k v = storedWrite store k False v
 
 storeWritePart :: forall t a . (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
-storeWritePart store k v = do
-    unless (allowParts (undefined :: a)) $ error "Can't call storeWritePart on a type that doesn't support parts"
-    storedWrite store k v
+storeWritePart store k v = storedWrite store k True v
 
-storeWriteAtom :: forall t a . (Typeable (t a), Typeable a) => StoreWrite -> t a -> CStringLen -> IO ()
-storeWriteAtom StoreWrite{..} (typeOf -> k) (ptr, len) = do
-    start <- fromIntegral <$> hTell swHandle
-    hPutBuf swHandle ptr len
+{-# NOINLINE putBuffer #-}
+putBuffer a b c = hPutBuf a b c
 
-    let key = show k
+storeWriteAtom :: forall t a . (Typeable (t a), Typeable a) => StoreWrite -> t a -> Bool -> CStringLen -> IO ()
+storeWriteAtom (StoreWrite ref) (show . typeOf -> key) part (ptr, len) = do
+    sw@SW{..} <- readIORef ref
+    putBuffer swHandle ptr len
+
     let val = show $ typeOf (undefined :: a)
-    atoms <- readIORef swAtoms
-    part <- readIORef swPart
-    if part == Just key then do
-        let upd a | start /= atomPosition a + atomSize a = error "Internal error, inconsistent storeWritePart"
-                  | atomType a /= val = error "Different type when doing subsequent storeWritePart"
-                  | otherwise = a{atomSize = atomSize a + len}
-        let atom2 = upd $ atoms Map.! key
-        evaluate atom2
-        writeIORef swAtoms $ Map.insert key atom2 atoms
-     else if key `Map.member` atoms then
-        error "Duplicate key name in storeWritePart"
-     else do
-        writeIORef swAtoms $ Map.insert key (Atom val start len) atoms
-        writeIORef swPart $ Just key
+    atoms <- case swAtoms of
+        (keyOld,a):xs | part, key == keyOld -> do
+            let size = atomSize a + len
+            evaluate size
+            return $ (key,a{atomSize=size}) : xs
+        _ -> return $ (key, Atom val swPosition len) : swAtoms
+    writeIORef' ref sw{swPosition = swPosition + len, swAtoms = atoms}
 
 
 ---------------------------------------------------------------------
@@ -214,7 +210,7 @@ data Fst k v where Fst :: k -> Fst k a deriving Typeable
 data Snd k v where Snd :: k -> Snd k b deriving Typeable
 
 instance (Typeable a, Typeable b, Stored a, Stored b) => Stored (a,b) where
-    storedWrite store k (a,b) = storeWrite store (Fst k) a >> storeWrite store (Snd k) b
+    storedWrite store k False (a,b) = storeWrite store (Fst k) a >> storeWrite store (Snd k) b
     storedRead store k = (storeRead store $ Fst k, storeRead store $ Snd k)
 
 
@@ -224,7 +220,7 @@ instance (Typeable a, Typeable b, Stored a, Stored b) => Stored (a,b) where
 data StoredInt k v where StoredInt :: k -> StoredInt k BS.ByteString deriving Typeable
 
 instance Stored Int where
-    storedWrite store k v = storeWrite store (StoredInt k) $ intToBS v
+    storedWrite store k False v = storeWrite store (StoredInt k) $ intToBS v
     storedRead store k = intFromBS $ storeRead store (StoredInt k)
 
 
@@ -245,5 +241,5 @@ jaggedAsk (Jagged is vs) i = V.slice start (end - start) vs
           end   = fromIntegral $ is V.! succ i
 
 instance (Typeable a, Storable a) => Stored (Jagged a) where
-    storedWrite store k (Jagged is vs) = storeWrite store (JaggedStore k) (is, vs)
+    storedWrite store k False (Jagged is vs) = storeWrite store (JaggedStore k) (is, vs)
     storedRead store k = uncurry Jagged $ storeRead store $ JaggedStore k
