@@ -7,7 +7,7 @@ module General.Conduit(
     foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
     mapAccumMC,
     (|$|), pipelineC,
-    zipFromC, countC, sumC, linesC, linesCR
+    zipFromC, linesC, linesCR
     ) where
 
 import Data.Conduit
@@ -33,12 +33,6 @@ filterC = C.filter
 
 zipFromC :: (Monad m, Enum i) => i -> Conduit a m (i, a)
 zipFromC = void . mapAccumC (\i x -> (succ i, (i,x)))
-
-countC :: (Monad m, Num c) => Consumer a m c
-countC = mapC (const 1) =$= sumC
-
-sumC :: (Monad m, Num a) => Consumer a m a
-sumC = foldC (+) 0
 
 (|$|) :: Monad m => ConduitM i o m r1 -> ConduitM i o m r2 -> ConduitM i o m (r1,r2)
 (|$|) a b = getZipConduit $ (,) <$> ZipConduit a <*> ZipConduit b
