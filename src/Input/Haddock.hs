@@ -35,8 +35,6 @@ parseHoogle warning file body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= p
 parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Target, Entry)
 parserC warning file = f [] ""
     where
-        glenum x = EDecl $ TypeSig (SrcLoc "<unknown>.hs" 1 1) [Ident x] (TyCon (UnQual (Ident "GLenum")))
-
         f com url = do
             x <- await
             whenJust x $ \(i,s) -> case () of
@@ -44,10 +42,6 @@ parserC warning file = f [] ""
                   | Just s <- strStripPrefix "--" s -> f (if null com then [] else strTrimStart s : com) url
                   | Just s <- strStripPrefix "@url " s -> f com (strUnpack s)
                   | strNull $ strTrimStart s -> f [] ""
-                  | Just s <- strStripSuffix " :: GLenum" s -> do
-                        -- there are 38K instances of :: GLenum in the OpenGLRaw package, so speed them up (saves 16s + 100Mb)
-                        yield (Target url Nothing Nothing "" (renderItem $ glenum $ strUnpack s) $ reformat $ reverse com, glenum $ strUnpack s)
-                        f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
                             Left y -> lift $ warning $ file ++ ":" ++ show i ++ ":" ++ y
