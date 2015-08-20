@@ -4,7 +4,8 @@
 module General.Str(
     Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strConcat, strStripPrefix, strStripSuffix, strTrimStart, strUnlines, strUnwords,
     LStr, lstrPack, lstrUnpack, lstrLines, lstrToChunks, lstrFromChunks, lstrToStr,
-    Str0, join0, split0
+    Str0, join0, split0,
+    general_str_test
     ) where
 
 import qualified Data.ByteString.Char8 as BS
@@ -19,6 +20,7 @@ import Foreign.Ptr
 import Foreign.Storable
 import Data.Bits
 import General.Util
+import Test.QuickCheck(quickCheck)
 import Data.IORef
 import Data.Char
 import Data.List
@@ -138,3 +140,9 @@ join0 = BS.pack . intercalate "\0"
 
 split0 :: Str0 -> [Str]
 split0 = BS.split '\0'
+
+
+general_str_test :: IO ()
+general_str_test = do
+    testing_ "General.Str.lstrPack" $ do
+        quickCheck $ \x -> lstrPack x == LUS.fromString x
