@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, BangPatterns #-}
 
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe 
 module General.Str(
@@ -8,9 +8,18 @@ module General.Str(
     ) where
 
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Unsafe as BS
 import qualified Data.ByteString.UTF8 as US
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as LUS
+import qualified Data.ByteString.Internal as IBS
+import System.IO.Unsafe
+import Data.Word
+import Foreign.Ptr
+import Foreign.Storable
+import Data.Bits
+import General.Util
+import Data.IORef
 import Data.Char
 import Data.List
 
@@ -76,8 +85,51 @@ lstrFromChunks = LBS.fromChunks
 lstrUnpack :: LStr -> String
 lstrUnpack = LUS.toString
 
+-- | Significantly faster than the utf8-string one, and also lazy as well
 lstrPack :: String -> LStr
-lstrPack = LUS.fromString
+lstrPack [] = LBS.empty
+lstrPack xs = unsafePerformIO $ do
+    ref <- newIORef undefined
+    fmap LBS.fromChunks $ flip unfoldrIO xs $ \xs -> do
+        if null xs then return Nothing else do
+            bs <- IBS.create 1024 $ \ptr -> do
+                (ptr2, xs2) <- f ptr (ptr `plusPtr` 1020) xs
+                writeIORef ref (ptr2 `minusPtr` ptr, xs2)
+            (n,xs) <- readIORef ref
+            return $ Just (BS.unsafeTake n bs, xs)
+    where
+        f :: Ptr Word8 -> Ptr Word8 -> String -> IO (Ptr Word8, String)
+        f !ptr !end xs | null xs || ptr >= end = return (ptr, xs)
+        f !ptr !end (x:xs)
+            | x <= '\x7f' = poke ptr (IBS.c2w x) >> f (plusPtr ptr 1) end xs
+            | otherwise = case ord x of
+                oc | oc <= 0x7ff -> do
+                        poke ptr $ fromIntegral $ 0xc0 + (oc `shiftR` 6)
+                        pokeByteOff ptr 1 (fromIntegral $ 0x80 + oc .&. 0x3f :: Word8)
+                        f (plusPtr ptr 2) end xs
+                   | oc <= 0xffff -> do
+                        poke ptr $ fromIntegral $ 0xe0 + (oc `shiftR` 12)
+                        pokeByteOff ptr 1 (fromIntegral $ 0x80 + ((oc `shiftR` 6) .&. 0x3f) :: Word8)
+                        pokeByteOff ptr 2 (fromIntegral $ 0x80 + oc .&. 0x3f :: Word8)
+                        f (plusPtr ptr 3) end xs
+                   | otherwise -> do
+                        poke ptr $ fromIntegral $ 0xf0 + (oc `shiftR` 18)
+                        pokeByteOff ptr 1 (fromIntegral $ 0x80 + ((oc `shiftR` 12) .&. 0x3f) :: Word8)
+                        pokeByteOff ptr 2 (fromIntegral $ 0x80 + ((oc `shiftR` 6) .&. 0x3f) :: Word8)
+                        pokeByteOff ptr 3 (fromIntegral $ 0x80 + oc .&. 0x3f :: Word8)
+                        f (plusPtr ptr 4) end xs
+
+
+unfoldrIO :: (a -> IO (Maybe (b,a))) -> a -> IO [b]
+unfoldrIO f = go
+    where go z = do
+            x <- f z
+            case x of
+                Nothing -> return []
+                Just (x, z) -> do
+                        xs <- unsafeInterleaveIO $ go z
+                        return $ x : xs
+
 
 type Str0 = Str
 
