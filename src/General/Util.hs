@@ -6,7 +6,7 @@ module General.Util(
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
-    testing,
+    testing, testing_,
     showUTCTime,
     strict,
     withs,
