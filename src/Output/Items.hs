@@ -8,6 +8,7 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
 import qualified Codec.Compression.GZip as GZip
+import General.Str
 
 import Input.Item
 import General.Util
@@ -41,7 +42,7 @@ writeItems store act = act $ do
     void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case target of
         Nothing -> return (pos, (Nothing, item))
         Just target -> do
-            let bs = LBS.toStrict $ GZip.compress $ UTF8.fromString $ unlines $ outputItem target
+            let bs = LBS.toStrict $ GZip.compress $ lstrPack $ unlines $ outputItem target
             liftIO $ do
                 storeWritePart store Items $ intToBS $ BS.length bs
                 storeWritePart store Items bs
