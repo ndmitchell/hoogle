@@ -68,7 +68,7 @@ lstrToChunks :: LStr -> [Str]
 lstrToChunks = LBS.toChunks
 
 lstrToStr :: LStr -> Str
-lstrToStr = BS.concat . LBS.toChunks
+lstrToStr = LBS.toStrict
 
 lstrFromChunks :: [Str] -> LStr
 lstrFromChunks = LBS.fromChunks
