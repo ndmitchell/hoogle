@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, OverloadedStrings, PatternGuards #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, OverloadedStrings, PatternGuards, ScopedTypeVariables #-}
 
 -- | Types used to generate the input.
 module Input.Item(
@@ -16,8 +16,8 @@ import Language.Haskell.Exts
 import Data.List.Extra
 import Data.Maybe
 import Data.Ix
+import Data.Binary
 import Foreign.Storable
-import Data.Word
 import Control.DeepSeq
 import Data.Data
 import General.Util
@@ -37,6 +37,19 @@ instance NFData n => NFData (Ctx n) where rnf (Ctx x y) = rnf x `seq` rnf y
 instance NFData n => NFData (Ty  n) where
     rnf (TCon x y) = rnf x `seq` rnf y
     rnf (TVar x y) = rnf x `seq` rnf y
+
+instance Binary n => Binary (Sig n) where
+    put (Sig a b) = put a >> put b
+    get = liftA2 Sig get get
+
+instance Binary n => Binary (Ctx n) where
+    put (Ctx a b) = put a >> put b
+    get = liftA2 Ctx get get
+
+instance Binary n => Binary (Ty n) where
+    put (TCon x y) = put (0 :: Word8) >> put x >> put y
+    put (TVar x y) = put (1 :: Word8) >> put x >> put y
+    get = do i :: Word8 <- get; liftA2 (case i of 0 -> TCon; 1 -> TVar) get get
 
 
 ---------------------------------------------------------------------
