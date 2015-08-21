@@ -68,7 +68,7 @@ data Atom = Atom
 
 instance Binary Atom where
     put (Atom a b c) = put a >> put b >> put c
-    get = liftM3 Atom get get get
+    get = liftA3 Atom get get get
 
 ---------------------------------------------------------------------
 -- TYPE CLASS
