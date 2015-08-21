@@ -153,7 +153,10 @@ readItem x -- newtype
     = Just $ DataDecl a NewType c d e f g
 readItem x -- constructors
     | ParseOk (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) <- myParseDecl $ "data Data where " ++ x
-    = Just $ TypeSig s [name] ty
+    , let f (TyBang _ (TyParen x@TyApp{})) = x
+          f (TyBang _ x) = x
+          f x = x
+    = Just $ TypeSig s [name] $ applyFun1 $ map f $ unapplyFun ty
 readItem ('(':xs) -- tuple constructors
     | (com,')':rest) <- span (== ',') xs
     , ParseOk (TypeSig s [Ident _] ty) <- myParseDecl $ replicate (length com + 2) 'a' ++ rest
