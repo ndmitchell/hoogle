@@ -13,8 +13,8 @@ A slow search ranks the 100 items, excluding some
 import qualified Data.Map as Map
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Vector.Storable as V
+import Data.Binary
 import Data.Maybe
-import Data.Word
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Generics.Uniplate.Data
@@ -61,7 +61,7 @@ data TypesNames a where TypesNames :: TypesNames (BS.ByteString, V.Vector Name) 
 -- First 0-99 are variables, rest are constructors.
 -- More popular type constructors have higher numbers.
 -- There are currently about 14K names, so about 25% of the bit patterns are taken
-newtype Name = Name Word16 deriving (Eq,Ord,Show,Data,Typeable,Storable)
+newtype Name = Name Word16 deriving (Eq,Ord,Show,Data,Typeable,Storable,Binary)
 
 name0 = Name 0 -- use to represent _
 
