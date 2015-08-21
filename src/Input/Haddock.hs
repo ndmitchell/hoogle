@@ -198,6 +198,8 @@ input_hoogle_test = testing "Input.Hoogle.parseLine" $ do
     test "data Char"
     "data Char :: *" === "data Char"
     "newtype ModuleName :: *" === "newtype ModuleName"
+    "Progress :: !(Maybe String) -> {-# UNPACK #-} !Int -> !(Int -> Bool) -> Progress" ===
+        "Progress :: Maybe String -> Int -> (Int -> Bool) -> Progress"
     -- Broken in the last HSE release, fixed in HSE HEAD
     -- test "quotRemInt# :: Int# -> Int# -> (# Int#, Int# #)"
     test "( # ) :: Int"
