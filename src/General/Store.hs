@@ -50,10 +50,10 @@ intFromBS :: BS.ByteString -> Int
 intFromBS bs = fromIntegral (decodeBS bs :: Word32)
 
 encodeBS :: Binary a => a -> BS.ByteString
-encodeBS = BS.concat . LBS.toChunks . encode
+encodeBS = LBS.toStrict . encode
 
 decodeBS :: Binary a => BS.ByteString -> a
-decodeBS = decode . LBS.fromChunks . return
+decodeBS = decode . LBS.fromStrict
 
 
 ---------------------------------------------------------------------
