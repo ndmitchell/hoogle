@@ -39,7 +39,7 @@ writeTypes store debug xs = do
     xs <- writeDuplicates store [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
     names <- writeNames store debugger inst xs
     xs <- return $ map (lookupNames names (error "Unknown name in writeTypes")) xs
-    writeFingerprints store $ map toFingerprint xs
+    writeFingerprints store xs
 
 
 searchTypes :: StoreRead -> Sig String -> [TargetId]
@@ -192,8 +192,8 @@ toFingerprint sig = Fingerprint{..}
           fpArity = fromIntegral $ max 0 $ pred $ length $ sigTy sig
           fpTerms = fromIntegral $ min 255 $ length (universeBi sig :: [Name])
 
-writeFingerprints :: StoreWrite -> [Fingerprint] -> IO ()
-writeFingerprints store xs = storeWrite store TypesFingerprints $ V.fromList xs
+writeFingerprints :: StoreWrite -> [Sig Name] -> IO ()
+writeFingerprints store xs = storeWrite store TypesFingerprints $ V.fromList $ map toFingerprint xs
 
 matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
 matchFingerprint sig@(toFingerprint -> target) = \candidate ->
