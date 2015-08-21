@@ -2,7 +2,7 @@
 
 module General.Util(
     URL,
-    pretty, parseMode, tyApps, fromName, fromQName, fromTyVarBind, declNames,
+    pretty, parseMode, applyType, fromName, fromQName, fromTyVarBind, declNames,
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
@@ -72,9 +72,9 @@ parseMode = defaultParseMode{extensions=map EnableExtension es}
                ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples
                ,ParallelArrays,UnicodeSyntax,DataKinds,PolyKinds]
 
-tyApps :: Type -> [Type] -> Type
-tyApps x (t:ts) = tyApps (TyApp x t) ts
-tyApps x [] = x
+applyType :: Type -> [Type] -> Type
+applyType x (t:ts) = applyType (TyApp x t) ts
+applyType x [] = x
 
 fromName :: Name -> String
 fromName (Ident x) = x

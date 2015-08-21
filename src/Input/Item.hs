@@ -139,6 +139,6 @@ hseToSig = tyForall
 hseToItem :: Decl -> Maybe Item
 hseToItem (TypeSig _ [name] ty) = Just $ ISignature (fromName name) (toIString <$> hseToSig ty)
 hseToItem (TypeDecl _ name bind rhs) = Just $ IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)
-hseToItem (InstDecl _ _ _ ctx name args _) = Just $ IInstance $ fmap toIString $ hseToSig $ TyForall Nothing ctx $ tyApps (TyCon name) args
+hseToItem (InstDecl _ _ _ ctx name args _) = Just $ IInstance $ fmap toIString $ hseToSig $ TyForall Nothing ctx $ applyType (TyCon name) args
 hseToItem x | [x] <- declNames x = Just $ IName x
 hseToItem x = Nothing
