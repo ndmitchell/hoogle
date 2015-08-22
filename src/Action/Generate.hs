@@ -134,6 +134,8 @@ actionGenerate Generate{..} = withTiming (if debug then Just $ replaceExtension 
 
 generate :: Timing -> FilePath -> Bool -> [String] -> IO ()
 generate timing database debug args = do
+    gcStats <- getGCStatsEnabled
+
     -- fix up people using Hoogle 4 instructions
     args <- if "all" `notElem` args then return args else do
         putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
@@ -194,24 +196,19 @@ generate timing database debug args = do
                     putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
                 return xs
 
-
+        itemsMb <- if not gcStats then return 0 else do performGC; GCStats{..} <- getGCStats; return $ currentBytesUsed `div` (1024*1024)
         xs <- timed timing "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) packageTags xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 
-        whenM getGCStatsEnabled $ do
-            performGC
+        when gcStats $ do
             stats@GCStats{..} <- getGCStats
             x <- getVerbosity
-            if x >= Loud then
+            when (x >= Loud) $
                 print stats
-             else if x >= Normal then
-                putStrLn $ "Required " ++ show peakMegabytesAllocated ++ "Mb, " ++ show (currentBytesUsed `div` (1024*1024)) ++ "Mb currently used"
-             else
-                return ()
-
-            void $ evaluate xs
+            when (x >= Normal) $ do
+                putStrLn $ "Peak of " ++ show peakMegabytesAllocated ++ "Mb, " ++ show itemsMb ++ "Mb for items"
 
     when debug $
         writeFile (database `replaceExtension` "store") $ unlines stats
