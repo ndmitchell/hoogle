@@ -7,7 +7,6 @@ import Action.CmdLine
 import Action.Search
 import Action.Server
 import General.Util
-import General.Str
 import Input.Item
 import Input.Haddock
 import System.IO.Extra
@@ -22,7 +21,6 @@ actionTest :: CmdLine -> IO ()
 actionTest Test{..} = withBuffering stdout NoBuffering $ do
     putStrLn "Quick tests"
     general_util_test
-    general_str_test
     input_hoogle_test
     query_test
     action_search_test database
