@@ -13,6 +13,7 @@ A slow search ranks the 100 items, excluding some
 import qualified Data.Map as Map
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Vector.Storable as V
+import qualified Data.Vector.Storable.Mutable as VM
 import Data.Binary
 import Data.Maybe
 import Data.List.Extra
@@ -40,6 +41,7 @@ writeTypes store debug xs = do
     names <- writeNames store debugger inst xs
     xs <- return $ map (lookupNames names (error "Unknown name in writeTypes")) xs
     writeFingerprints store xs
+    writeSignatures store xs
 
 
 searchTypes :: StoreRead -> Sig String -> [TargetId]
@@ -241,3 +243,20 @@ searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]
 searchFingerprints store names n sig = map snd $ takeSortOn fst n [(v, i) | (i,f) <- zip [0..] fs, Just v <- [test f]]
     where fs = V.toList $ storeRead store TypesFingerprints :: [Fingerprint]
           test = matchFingerprint sig
+
+
+---------------------------------------------------------------------
+-- SIGNATURES
+
+data TypesSigPositions a where TypesSigPositions :: TypesSigPositions (V.Vector Word32) deriving Typeable
+data TypesSigData a where TypesSigData :: TypesSigData BS.ByteString deriving Typeable
+
+writeSignatures :: StoreWrite -> [Sig Name] -> IO ()
+writeSignatures store xs = do
+    v <- VM.new $ length xs
+    forM_ (zip [0..] xs) $ \(i,x) -> do
+        let b = encodeBS x
+        storeWritePart store TypesSigData b
+        VM.write v i $ fromIntegral $ BS.length b
+    v <- V.freeze v
+    storeWrite store TypesSigPositions v
