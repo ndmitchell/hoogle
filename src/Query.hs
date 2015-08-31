@@ -31,7 +31,7 @@ isQueryScope QueryScope{} = True; isQueryScope _ = False
 
 renderQuery :: [Query] -> String
 renderQuery [] = "<i>No query</i>"
-renderQuery xs = escapeHTML $ unwords $
+renderQuery xs = unwords $
     [escapeHTML x | QueryName x <- xs] ++
     [":: " ++ escapeHTML (pretty x) | QueryType x <- xs] ++
     [['-' | not scopeInclude] ++ escapeHTML scopeCategory ++ ":" ++ escapeHTML scopeValue | QueryScope{..} <- xs] ++
