@@ -16,6 +16,7 @@ module General.Util(
     inRanges,
     readMaybe,
     exitFail,
+    minimum', maximum', minimumBy', maximumBy',
     general_util_test
     ) where
 
@@ -242,6 +243,21 @@ takeSortOn op n xs
         add o@(Full mx mp) x = let k = op x in if k >= mx then o else full $ Map.insertWith (++) k [x] $ delMax mp
         full mp = Full (fst $ Map.findMax mp) mp
         delMax mp | Just ((k,_:vs), mp) <- Map.maxViewWithKey mp = if null vs then mp else Map.insert k vs mp
+
+
+
+-- See https://ghc.haskell.org/trac/ghc/ticket/10830 - they broke maximumBy
+maximumBy' :: (a -> a -> Ordering) -> [a] -> a
+maximumBy' cmp = foldl1' $ \x y -> if cmp x y == GT then x else y
+
+maximum' :: Ord a => [a] -> a
+maximum' xs = maximumBy' compare xs
+
+minimumBy' :: (a -> a -> Ordering) -> [a] -> a
+minimumBy' cmp = foldl1' $ \x y -> if cmp x y == LT then x else y
+
+minimum' :: Ord a => [a] -> a
+minimum' xs = minimumBy' compare xs
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient
