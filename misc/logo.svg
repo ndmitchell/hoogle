@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -12,10 +13,10 @@
    height="1052.3622047"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
-   sodipodi:docbase="D:\sources\maintainer\hoogle\misc\logo"
+   inkscape:version="0.91 r13725"
    sodipodi:docname="logo.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.1">
   <defs
      id="defs4">
     <inkscape:perspective
@@ -37,15 +38,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="6.8944087"
-     inkscape:cx="138.3176"
+     inkscape:cx="116.63336"
      inkscape:cy="651.27981"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     inkscape:window-width="1024"
-     inkscape:window-height="682"
-     inkscape:window-x="0"
-     inkscape:window-y="44"
-     showgrid="false" />
+     inkscape:window-width="1280"
+     inkscape:window-height="716"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     showgrid="false"
+     inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -61,15 +63,31 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       id="rect3350"
+       width="48.056999"
+       height="17.500999"
+       x="104.35"
+       y="394.47018"
+       style="fill:#ffffff"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
     <text
        xml:space="preserve"
        style="font-size:12px;font-style:normal;font-weight:bold;fill:#800080;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Book Antiqua"
        x="108.57143"
        y="406.64789"
-       id="text2160"><tspan
+       id="text2160"
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
          sodipodi:role="line"
          id="tspan2162"
          x="108.57143"
-         y="406.64789">Hoogλe</tspan></text>
+         y="406.64789"
+         style="-inkscape-font-specification:'Berlin Sans FB';font-family:'Berlin Sans FB';font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal"><tspan
+   style="-inkscape-font-specification:'Arial Bold';font-family:Arial;font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal"
+   id="tspan3340">H</tspan>oog<tspan
+   style="-inkscape-font-specification:'Book Antiqua Bold';font-family:'Book Antiqua';font-weight:bold;font-style:normal;font-stretch:normal;font-variant:normal"
+   id="tspan3336">λ</tspan>e</tspan></text>
   </g>
 </svg>
