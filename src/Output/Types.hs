@@ -10,7 +10,7 @@ A quick search finds the most promising 100 fingerprints
 A slow search ranks the 100 items, excluding some
 -}
 
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Vector.Storable as V
 import qualified Data.Vector.Storable.Mutable as VM
