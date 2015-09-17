@@ -151,7 +151,8 @@ writeDuplicates :: Ord a => StoreWrite -> [(TargetId, Sig a)] -> IO [Sig a]
 writeDuplicates store xs = do
     -- s=signature, t=targetid, p=popularity (incoing index), i=index (outgoing index)
     xs <- return $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
-        Map.fromListWith (\(!x1,x2) (!y1,y2) -> (min x1 y1, x2 ++ y2)) [(s,(p,[t])) | (p,(t,s)) <- zip [0::Int ..] xs]
+        Map.fromListWith (\(x1,x2) (y1,y2) -> (, x2 ++ y2) $! min x1 y1)
+                         [(s,(p,[t])) | (p,(t,s)) <- zip [0::Int ..] xs]
     -- give a list of TargetId's at each index
     storeWrite store TypesDuplicates $ jaggedFromList $ map (reverse . snd) xs
     return $ map fst xs
