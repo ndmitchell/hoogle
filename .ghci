@@ -12,11 +12,15 @@
         ,":!obj\\o2\\main +RTS -T -N2 -RTS " ++ xs]
 :}
 :{
-:def time \xs -> return $ unlines
+:def time_ \xs -> return $ unlines
         [":!mkdir obj"
         ,":!mkdir obj\\prof"
         ,":!ghc -prof -rtsopts -auto-all -caf-all -O2 -fno-state-hack -isrc -DPROFILE --make src/Paths.hs Main -outputdir obj/prof -o obj/prof/main cbits/text_search.o"
-        ,":!obj\\prof\\main +RTS -p -T -RTS " ++ xs
+        ,":!obj\\prof\\main +RTS -p -T -RTS " ++ xs]
+:}
+:{
+:def time \xs -> return $ unlines
+        [":time " ++ xs
         ,":!start main.prof"]
 :}
 :{
