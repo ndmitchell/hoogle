@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #24, don't use code.galois.com
 4.2.41
     #115, require warp-2.1 or above
 4.2.40
