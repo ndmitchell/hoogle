@@ -181,7 +181,7 @@ rules opts@Data{..} warn = do
 urls :: C.CmdLine -> [(FilePath, URL)]
 urls Data{..} = let (*) = (,) in
     ["keyword.htm" * "http://wiki.haskell.org/Keywords"
-    ,"platform.cabal" * "http://code.galois.com/darcs/haskell-platform/haskell-platform.cabal"
+    ,"platform.cabal" * "http://code.haskell.org/haskell-platform/haskell-platform.cabal"
     ,"base.txt" * "http://www.haskell.org/hoogle/base.txt"
     ,"cabal.tar.gz" * (hackage ++ "packages/index.tar.gz")
     ,"hoogle.tar.gz" * (hackage ++ "packages/hoogle.tar.gz")]
