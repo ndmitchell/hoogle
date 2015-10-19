@@ -147,7 +147,8 @@ generate timing database debug args = do
     setStackage <- setStackage $ input "stackage.txt"
     setPlatform <- setPlatform $ input "platform.txt"
     setGHC <- setGHC $ input "platform.txt"
-    let want = if args /= [] then Set.fromList args else Set.unions [setStackage, setPlatform, setGHC]
+    let want = if args /= [] then Set.fromList args else
+            Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
     -- peakMegabytesAllocated = 2
 
     (cblErrs,cbl) <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
@@ -177,7 +178,11 @@ generate timing database debug args = do
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
-                    (sourceList =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")) =$=
+                    (do sourceList =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")
+                        src <- liftIO $ strReadFile $ input "ghc.txt"
+                        Just (_, rest) <- return $ strSplitInfix (strPack "-- |") src
+                        let url = "@url http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
+                        yield ("ghc.txt", lstrFromChunks [strPack $ url ++ "\n-- |", rest])) =$=
                     mapC (first takeBaseName) =$=
                     filterC (flip Set.member want . fst) =$=
                         ((fmap Set.fromList $ mapC fst =$= sinkList) |$|

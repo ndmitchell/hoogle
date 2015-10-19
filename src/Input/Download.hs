@@ -16,6 +16,7 @@ import Control.Monad.Trans.Resource
 urls =
     [("stackage.txt","https://www.stackage.org/lts/cabal.config")
     ,("platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs")
+    ,("ghc.txt","http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/ghc.txt")
     ,("cabal.tar.gz","https://hackage.haskell.org/packages/index.tar.gz")
     ,("hoogle.tar.gz","https://hackage.haskell.org/packages/hoogle.tar.gz")
     ]
