@@ -2,7 +2,7 @@
 
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe 
 module General.Str(
-    Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strConcat, strStripPrefix, strStripSuffix, strTrimStart, strUnlines, strUnwords,
+    Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strConcat, strStripPrefix, strStripSuffix, strLines, strTrimStart, strUnlines, strUnwords,
     LStr, lstrPack, lstrUnpack, lstrLines, lstrToChunks, lstrFromChunks, lstrToStr,
     Str0, join0, split0
     ) where
@@ -57,6 +57,9 @@ strTrimStart = BS.dropWhile isSpace
 
 strUnlines :: [Str] -> Str
 strUnlines = BS.unlines
+
+strLines :: Str -> [Str]
+strLines = BS.lines
 
 strUnwords :: [Str] -> Str
 strUnwords = BS.unwords
