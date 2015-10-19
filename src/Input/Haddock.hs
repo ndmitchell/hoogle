@@ -68,7 +68,7 @@ hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
         f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (Just t{targetURL=url}, IPackage x))
             where url = targetURL t `orIfNull` hackage ++ "package/" ++ x
         f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, IModule x))
-            where url = targetURL t `orIfNull` maybe "" snd pkg ++ "/docs/" ++ replace "." "-" x ++ ".html"
+            where url = targetURL t `orIfNull` let p = maybe "" snd pkg in p ++ (if "/" `isSuffixOf` p then "" else "/docs/") ++ replace "." "-" x ++ ".html"
         f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
         f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
             where url = targetURL t `orIfNull` maybe "" snd mod ++ "#" ++ declURL x
