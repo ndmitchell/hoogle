@@ -74,6 +74,7 @@ hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
             where url = targetURL t `orIfNull` maybe "" snd mod ++ "#" ++ declURL x
 
         hseToItem_ x = fromMaybe (error $ "hseToItem failed, " ++ pretty x) $ hseToItem x
+        infix 1 `orIfNull`
         orIfNull x y = if null x then y else x
 
         declURL (TypeSig _ [name] _) = "v:" ++ esc (fromName name)
