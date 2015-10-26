@@ -27,6 +27,7 @@ data CmdLine
         {hackage :: String
         ,download :: Maybe Bool
         ,database :: FilePath
+        ,insecure :: Bool
         ,include :: [String]
         ,debug :: Bool
         }
@@ -71,6 +72,7 @@ search_ = Search
 generate = Generate
     {hackage = "https://hackage.haskell.org/" &= typ "URL" &= help "Hackage instance to target"
     ,download = def &= help "Download all files from the web"
+    ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
     ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"

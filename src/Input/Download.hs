@@ -8,6 +8,7 @@ import Control.Monad.Extra
 import System.Directory
 import Data.Conduit.Binary (sinkFile)
 import qualified Network.HTTP.Conduit as C
+import Network.Connection
 import qualified Data.Conduit as C
 import Network
 import Control.Monad.Trans.Resource
@@ -22,8 +23,8 @@ urls =
     ]
 
 -- | Download all the input files to input/
-downloadInputs :: (String -> IO () -> IO ()) -> Maybe Bool -> FilePath -> IO ()
-downloadInputs timed download dir = do
+downloadInputs :: (String -> IO () -> IO ()) -> Bool -> Maybe Bool -> FilePath -> IO ()
+downloadInputs timed insecure download dir = do
     forM_ urls $ \(name, url) -> do
         let file = dir </> "input-" ++ name
         exists <- doesFileExist file
@@ -31,13 +32,13 @@ downloadInputs timed download dir = do
             error $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
         when (not exists || download == Just True) $
             timed ("Downloading " ++ url) $ do
-                downloadFile (file <.> "part") url
+                downloadFile insecure (file <.> "part") url
                 renameFile (file <.> "part") file
 
-downloadFile :: FilePath -> String -> IO ()
-downloadFile file url = withSocketsDo $ do
+downloadFile :: Bool -> FilePath -> String -> IO ()
+downloadFile insecure file url = withSocketsDo $ do
     request <- C.parseUrl url
-    manager <- C.newManager C.conduitManagerSettings
+    manager <- C.newManager $ C.mkManagerSettings (TLSSettingsSimple insecure False False) Nothing
     runResourceT $ do
         response <- C.http request manager
         C.responseBody response C.$$+- sinkFile file
