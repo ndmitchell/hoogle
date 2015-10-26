@@ -17,3 +17,4 @@ test_script:
 - stack setup > nul
 - echo "" | stack --no-terminal build
 - stack exec -- hoogle generate --insecure
+- stack exec -- hoogle test
