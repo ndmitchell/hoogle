@@ -125,21 +125,16 @@ timed (Timing ref) msg act = do
 
 
 actionGenerate :: CmdLine -> IO ()
-actionGenerate Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
+actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
     downloadInputs (timed timing) insecure download $ takeDirectory database
-    generate timing database debug include
-
-
-generate :: Timing -> FilePath -> Bool -> [String] -> IO ()
-generate timing database debug args = do
     gcStats <- getGCStatsEnabled
 
     -- fix up people using Hoogle 4 instructions
-    args <- if "all" `notElem` args then return args else do
+    args <- if "all" `notElem` include then return include else do
         putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
-        return $ delete "all" args
+        return $ delete "all" include
 
     -- peakMegabytesAllocated = 2
     let input x = takeDirectory database </> "input-" ++ x
