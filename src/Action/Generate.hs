@@ -124,17 +124,9 @@ timed (Timing ref) msg act = do
     return res
 
 
-actionGenerate :: CmdLine -> IO ()
-actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
-    putStrLn "Starting generate"
-    createDirectoryIfMissing True $ takeDirectory database
+readRemote :: CmdLine -> Timing -> [String] -> IO (Map.Map String Cabal, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
+readRemote Generate{..} timing args = do
     downloadInputs (timed timing) insecure download $ takeDirectory database
-    gcStats <- getGCStatsEnabled
-
-    -- fix up people using Hoogle 4 instructions
-    args <- if "all" `notElem` include then return include else do
-        putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
-        return $ delete "all" include
 
     -- peakMegabytesAllocated = 2
     let input x = takeDirectory database </> "input-" ++ x
@@ -142,9 +134,6 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     setStackage <- setStackage $ input "stackage.txt"
     setPlatform <- setPlatform $ input "platform.txt"
     setGHC <- setGHC $ input "platform.txt"
-    let want = if args /= [] then Set.fromList args else
-            Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
-    -- peakMegabytesAllocated = 2
 
     (cblErrs,cbl) <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
     let packageTags pkg =
@@ -153,6 +142,31 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             [("set","stackage") | pkg `Set.member` setStackage] ++
             maybe [] (map (both T.unpack) . cabalTags) (Map.lookup pkg cbl)
     -- peakMegabytesAllocated = 21, currentBytesUsed = 6.5Mb
+    let want = if args /= [] then Set.fromList args else
+            Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
+
+    let source =
+            (do sourceList =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")
+                src <- liftIO $ strReadFile $ input "ghc.txt"
+                Just (_, rest) <- return $ strSplitInfix (strPack "-- |") src
+                let url = "@url http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
+                yield ("ghc.txt", lstrFromChunks [strPack $ url ++ "\n-- |", rest])) =$=
+            mapC (first takeBaseName)
+    return (cbl, packageTags, cblErrs, want, source)
+
+actionGenerate :: CmdLine -> IO ()
+actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
+    putStrLn "Starting generate"
+    createDirectoryIfMissing True $ takeDirectory database
+    (remote,local) <- return $ if remote == False && local == False then (True,True) else (remote,local)
+    gcStats <- getGCStatsEnabled
+
+    -- fix up people using Hoogle 4 instructions
+    args <- if "all" `notElem` include then return include else do
+        putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
+        return $ delete "all" include
+
+    (cbl, packageTags, cblErrs,  want, source) <- readRemote g timing args
 
     (stats, _) <- storeWriteFile database $ \store -> do
         xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do
@@ -173,12 +187,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                                | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
-                    (do sourceList =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")
-                        src <- liftIO $ strReadFile $ input "ghc.txt"
-                        Just (_, rest) <- return $ strSplitInfix (strPack "-- |") src
-                        let url = "@url http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
-                        yield ("ghc.txt", lstrFromChunks [strPack $ url ++ "\n-- |", rest])) =$=
-                    mapC (first takeBaseName) =$=
+                    source =$=
                     filterC (flip Set.member want . fst) =$=
                         ((fmap Set.fromList $ mapC fst =$= sinkList) |$|
                         (((zipFromC 1 =$= consume) >> when (null args) (sourceList packages))

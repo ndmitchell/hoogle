@@ -29,6 +29,8 @@ data CmdLine
         ,database :: FilePath
         ,insecure :: Bool
         ,include :: [String]
+        ,local :: Bool
+        ,remote :: Bool
         ,debug :: Bool
         }
     | Server
@@ -74,6 +76,8 @@ generate = Generate
     ,download = def &= help "Download all files from the web"
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
+    ,local = def &= help "Index local packages"
+    ,remote = def &= help "Index remote packages"
     ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"
 
