@@ -15,6 +15,8 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import Control.Monad.Extra
 import Numeric.Extra
+import Data.Char
+import System.Process
 import System.Console.CmdArgs.Verbosity
 import Prelude
 
@@ -154,6 +156,22 @@ readRemote Generate{..} timing args = do
             mapC (first takeBaseName)
     return (cbl, packageTags, cblErrs, want, source)
 
+
+readLocal :: CmdLine -> Timing -> [String] -> IO (Map.Map String Cabal, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
+readLocal Generate{..} timing args = do
+    stdout <- readProcess "ghc-pkg" ["field","*","haddock-html"] ""
+    let package = fmap (reverse . drop 1 . dropWhile (\x -> isDigit x || x == '.') . reverse) .
+                  listToMaybe . filter ('-' `elem`) . reverse . splitDirectories
+    let xs = [(p, x) | x <- lines stdout, Just x <- [stripPrefix "haddock-html: " x], Just p <- [package x]]
+    let source =
+            forM_ xs $ \(name,dir) -> do
+                let file = dir </> name <.> "txt"
+                whenM (liftIO $ doesFileExist file) $ do
+                    src <- liftIO $ strReadFile file
+                    yield (name, lstrFromChunks [src])
+    return (Map.empty, const [("set","stackage"),("set","installed")], [], Set.fromList $ map fst xs, source)
+
+
 actionGenerate :: CmdLine -> IO ()
 actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
@@ -166,7 +184,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
         return $ delete "all" include
 
-    (cbl, packageTags, cblErrs,  want, source) <- readRemote g timing args
+    (cbl, packageTags, cblErrs, want, source) <-
+        if remote then readRemote g timing args else readLocal g timing args
 
     (stats, _) <- storeWriteFile database $ \store -> do
         xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do
