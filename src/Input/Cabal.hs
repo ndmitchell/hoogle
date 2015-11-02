@@ -34,6 +34,13 @@ data Package = Package
 instance NFData Package where
     rnf (Package a b c d e f) = rnf (a,b,c,d,e,f)
 
+instance Monoid Package where
+    mempty = Package [] False mempty (T.pack "0.0") 0 Nothing
+    mappend (Package x1 x2 x3 x4 x5 x6) (Package y1 y2 y3 y4 y5 y6) =
+        Package (x1++y1) (x2||y2) (if T.null x3 then y3 else x3)
+                (if x4 == T.pack "0.0" then y4 else x4)
+                (x5+y5) (mplus x6 y6)
+
 
 readGhcPkg :: IO ([String], Map.Map String Package)
 readGhcPkg = do
