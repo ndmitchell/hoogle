@@ -124,7 +124,7 @@ timed (Timing ref) msg act = do
     return res
 
 
-readRemote :: CmdLine -> Timing -> [String] -> IO (Map.Map String Package, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
+readRemote :: CmdLine -> Timing -> [String] -> IO ([String], Map.Map String Package, String -> [(String,String)], Set.Set String, Source IO (String, LStr))
 readRemote Generate{..} timing args = do
     downloadInputs (timed timing) insecure download $ takeDirectory database
 
@@ -152,10 +152,10 @@ readRemote Generate{..} timing args = do
                 let url = "@url http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
                 yield ("ghc.txt", lstrFromChunks [strPack $ url ++ "\n-- |", rest])) =$=
             mapC (first takeBaseName)
-    return (cbl, getPackageTags, cblErrs, want, source)
+    return (cblErrs, cbl, getPackageTags, want, source)
 
 
-readLocal :: CmdLine -> Timing -> [String] -> IO (Map.Map String Package, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
+readLocal :: CmdLine -> Timing -> [String] -> IO ([String], Map.Map String Package, String -> [(String,String)], Set.Set String, Source IO (String, LStr))
 readLocal Generate{..} timing args = do
     (cblErrs, cbl) <- readGhcPkg
     let source =
@@ -166,7 +166,7 @@ readLocal Generate{..} timing args = do
                     yield (name, lstrFromChunks [src])
     cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
-    return (cbl, const [("set","stackage"),("set","installed")], cblErrs, Map.keysSet cbl, source)
+    return (cblErrs, cbl, const [("set","stackage"),("set","installed")], Map.keysSet cbl, source)
 
 
 actionGenerate :: CmdLine -> IO ()
@@ -181,7 +181,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
         return $ delete "all" include
 
-    (cbl, packageTags, cblErrs, want, source) <-
+    (cblErrs, cbl, packageTags, want, source) <-
         if remote then readRemote g timing args else readLocal g timing args
 
     (stats, _) <- storeWriteFile database $ \store -> do
