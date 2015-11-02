@@ -50,7 +50,7 @@ actionServer Server{..} = do
     putStrLn . showDuration =<< time
     evaluate spawned
     withSearch database $ \store ->
-        server log port $ replyServer log store cdn
+        server log local port $ replyServer log local store cdn
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -58,7 +58,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
-        let op = replyServer log store ""
+        let op = replyServer log False store ""
         replicateM_ repeat_ $ forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
@@ -69,15 +69,15 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 spawned :: UTCTime
 spawned = unsafePerformIO getCurrentTime
 
-replyServer :: Log -> StoreRead -> String -> Input -> IO Output
-replyServer log store cdn = \Input{..} -> case inputURL of
+replyServer :: Log -> Bool -> StoreRead -> String -> Input -> IO Output
+replyServer log local store cdn = \Input{..} -> case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
-        let body = showResults inputArgs q2 $ dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
+        let body = showResults local inputArgs q2 $ dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions $ grab "scope")
@@ -108,6 +108,9 @@ replyServer log store cdn = \Input{..} -> case inputURL of
             return $ OutputString $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
          else
             return $ OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
+    "file":xs -> do
+        let x = intercalate "/" xs
+        return $ OutputFile $ x ++ (if hasTrailingPathSeparator x then "index.html" else "")
     xs -> return $ OutputFile $ joinPath $ "html" : xs
     where
         str = templateStr . lstrPack
@@ -131,8 +134,8 @@ dedupeTake n key = f [] Map.empty
             where k = key x 
 
 
-showResults :: [(String, String)] -> [Query] -> [[Target]] -> String
-showResults args query results = unlines $
+showResults :: Bool -> [(String, String)] -> [Query] -> [[Target]] -> String
+showResults local args query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"
     ,"<ul id=left>"
     ,"<li><b>Packages</b></li>"] ++
@@ -140,8 +143,8 @@ showResults args query results = unlines $
     ["</ul>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
-     "<div class=ans><a href=\"" ++ targetURL ++ "\">" ++ displayItem query targetItem ++ "</a></div>" ++
-     "<div class=from>" ++ showFroms is  ++ "</div>" ++
+     "<div class=ans><a href=\"" ++ showURL local targetURL ++ "\">" ++ displayItem query targetItem ++ "</a></div>" ++
+     "<div class=from>" ++ showFroms local is  ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
      "</div>"
     | is@(Target{..}:_) <- results]
@@ -163,13 +166,18 @@ itemCategories xs =
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
-showFroms :: [Target] -> String
-showFroms xs = intercalate ", " $ for pkgs $ \p ->
+showFroms :: Bool -> [Target] -> String
+showFroms local xs = intercalate ", " $ for pkgs $ \p ->
     let ms = filter ((==) p . targetPackage) xs
-    in unwords ["<a href=\"" ++ b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
+    in unwords ["<a href=\"" ++ showURL local b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
     where
         remod Target{..} = do (a,_) <- targetModule; return (a,targetURL)
         pkgs = nubOrd $ map targetPackage xs
+
+showURL :: Bool -> URL -> String
+showURL True (stripPrefix "file:///" -> Just x) = "file/" ++ x
+showURL _ x = x
+
 
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
@@ -209,7 +217,7 @@ action_server_test database = do
     testing "Action.Server.replyServer" $ withSearch database $ \store -> do
         log <- logNone
         let q === want = do
-                OutputString (lstrUnpack -> res) <- replyServer log store "" (Input [] [("hoogle",q)])
+                OutputString (lstrUnpack -> res) <- replyServer log False store "" (Input [] [("hoogle",q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
         "<>" === "<span class=name>(<b>&lt;&gt;</b>)</span>"
         "filt" === "<span class=name><b>filt</b>er</span>"

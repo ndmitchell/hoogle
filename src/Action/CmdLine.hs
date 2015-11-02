@@ -38,6 +38,7 @@ data CmdLine
         ,database :: FilePath
         ,cdn :: String
         ,logs :: FilePath
+        ,local :: Bool
         }
     | Replay
         {logs :: FilePath
@@ -85,6 +86,7 @@ server = Server
     {port = 80 &= typ "INT" &= help "Port number"
     ,cdn = "" &= typ "URL" &= help "URL prefix to use"
     ,logs = "" &= opt "log.txt" &= typFile &= help "File to log requests to (defaults to stdout)"
+    ,local = False &= help "Allow following file:// links, restricts to 127.0.0.1"
     } &= help "Start a Hoogle server"
 
 replay = Replay

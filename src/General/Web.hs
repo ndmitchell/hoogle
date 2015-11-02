@@ -53,13 +53,16 @@ instance NFData Output where
     rnf (OutputFile x) = rnf x
 
 
-server :: Log -> Int -> (Input -> IO Output) -> IO ()
+server :: Log -> Bool -> Int -> (Input -> IO Output) -> IO ()
 #ifdef PROFILE
-server log port act = return ()
+server log local port act = return ()
 #else
-server log port act = do
+server log local port act = do
     logAddMessage log $ "Server started on port " ++ show port
-    runSettings (setOnExceptionResponse exceptionResponseForDebug $ setPort port defaultSettings) $ \req reply -> do
+    let set = setOnExceptionResponse exceptionResponseForDebug
+            . setPort port
+            . (if local then setHost "127.0.0.1" else id)
+    runSettings (set defaultSettings) $ \req reply -> do
         putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
         let pay = Input (map Text.unpack $ pathInfo req)
                         [(strUnpack a, maybe "" strUnpack b) | (a,b) <- queryString req]
