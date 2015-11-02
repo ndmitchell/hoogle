@@ -124,7 +124,7 @@ timed (Timing ref) msg act = do
     return res
 
 
-readRemote :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, String, LStr))
+readRemote :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readRemote Generate{..} timing = do
     downloadInputs (timed timing) insecure download $ takeDirectory database
 
@@ -146,15 +146,15 @@ readRemote Generate{..} timing = do
 
     let source = do
             tar <- liftIO $ tarballReadFiles $ input "hoogle.tar.gz"
-            forM_ tar $ \(name, src) ->
-                yield (takeBaseName name, "https://hackage.haskell.org/package/" ++ name, src)
+            forM_ tar $ \(takeBaseName -> name, src) ->
+                yield (name, "https://hackage.haskell.org/package/" ++ name, src)
             src <- liftIO $ strReadFile $ input "ghc.txt"
             let url = "http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
             yield ("ghc", url, lstrFromChunks [src])
     return (cbl, want, source)
 
 
-readLocal :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, String, LStr))
+readLocal :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readLocal Generate{..} timing = do
     cbl <- timed timing "Reading ghc-pkg" readGhcPkg
     let source =
@@ -194,10 +194,10 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
-            let consume :: Conduit (Int, (String, LStr)) IO (Maybe Target, Item)
-                consume = awaitForever $ \(i, (pkg, body)) -> do
+            let consume :: Conduit (Int, (String, URL, LStr)) IO (Maybe Target, Item)
+                consume = awaitForever $ \(i, (pkg, url, body)) -> do
                     timed timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                        parseHoogle warning pkg body
+                        parseHoogle warning pkg url body
 
             writeItems store $ \items -> do
                 let packages = [ fakePackage name $ "Not in Stackage, so not searched.\n" ++ T.unpack packageSynopsis
@@ -205,9 +205,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
                 (seen, xs) <- runConduit $
                     source =$=
-                    mapC (\(a,_,b) -> (a,b)) =$=
-                    filterC (flip Set.member want . fst) =$=
-                        ((fmap Set.fromList $ mapC fst =$= sinkList) |$|
+                    filterC (flip Set.member want . fst3) =$=
+                        ((fmap Set.fromList $ mapC fst3 =$= sinkList) |$|
                         (((zipFromC 1 =$= consume) >> when (null args) (sourceList packages))
                             =$= pipelineC 10 (items =$= sinkList)))
 

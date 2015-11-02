@@ -16,8 +16,6 @@ import Control.Monad.Extra
 import General.Str
 
 
-hackage = "https://hackage.haskell.org/"
-
 -- | An entry in the Hoogle DB
 data Entry = EPackage String
            | EModule String
@@ -26,11 +24,11 @@ data Entry = EPackage String
 
 
 fakePackage :: String -> String -> (Maybe Target, Item)
-fakePackage name desc = (Just $ Target (hackage ++ "package/" ++ name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
+fakePackage name desc = (Just $ Target ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => (String -> m ()) -> FilePath -> LStr -> Producer m (Maybe Target, Item)
-parseHoogle warning file body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning file =$= hierarchyC hackage =$= mapC (\x -> rnf x `seq` x)
+parseHoogle :: Monad m => (String -> m ()) -> FilePath -> URL -> LStr -> Producer m (Maybe Target, Item)
+parseHoogle warning file url body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning file =$= hierarchyC url =$= mapC (\x -> rnf x `seq` x)
 
 parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Target, Entry)
 parserC warning file = f [] ""
@@ -62,11 +60,11 @@ reformat :: [Str] -> String
 reformat = unlines . map strUnpack
 
 
-hierarchyC :: Monad m => String -> Conduit (Target, Entry) m (Maybe Target, Item)
-hierarchyC hackage = void $ mapAccumC f (Nothing, Nothing)
+hierarchyC :: Monad m => URL -> Conduit (Target, Entry) m (Maybe Target, Item)
+hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
     where
         f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (Just t{targetURL=url}, IPackage x))
-            where url = targetURL t `orIfNull` hackage ++ "package/" ++ x
+            where url = targetURL t `orIfNull` packageUrl
         f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, IModule x))
             where url = targetURL t `orIfNull` let p = maybe "" snd pkg in p ++ (if "/" `isSuffixOf` p then "" else "/docs/") ++ replace "." "-" x ++ ".html"
         f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
