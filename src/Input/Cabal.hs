@@ -22,6 +22,8 @@ import qualified Data.Map.Strict as Map
 import General.Util
 import General.Conduit
 import Paths_hoogle
+import Control.Applicative
+import Prelude
 
 ---------------------------------------------------------------------
 -- DATA TYPE
