@@ -162,7 +162,10 @@ readLocal Generate{..} timing = do
                 let file = docs </> name <.> "txt"
                 whenM (liftIO $ doesFileExist file) $ do
                     src <- liftIO $ strReadFile file
-                    yield (name, docs, lstrFromChunks [src])
+                    docs <- liftIO $ canonicalizePath docs
+                    let url = "file://" ++ ['/' | not $ all isPathSeparator $ take 1 docs] ++
+                              replace "\\" "/" (addTrailingPathSeparator docs)
+                    yield (name, url, lstrFromChunks [src])
     cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
