@@ -124,7 +124,7 @@ timed (Timing ref) msg act = do
     return res
 
 
-readRemote :: CmdLine -> Timing -> IO ([String], Map.Map String Package, Source IO (String, LStr))
+readRemote :: CmdLine -> Timing -> IO (Map.Map String Package, Source IO (String, LStr))
 readRemote Generate{..} timing = do
     downloadInputs (timed timing) insecure download $ takeDirectory database
 
@@ -135,7 +135,7 @@ readRemote Generate{..} timing = do
     setPlatform <- setPlatform $ input "platform.txt"
     setGHC <- setGHC $ input "platform.txt"
 
-    (cblErrs,cbl) <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
+    cbl <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
     let want = Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
     cbl <- return $ flip Map.mapWithKey cbl $ \name p ->
         p{packageTags =
@@ -151,21 +151,21 @@ readRemote Generate{..} timing = do
                 let url = "@url http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
                 yield ("ghc.txt", lstrFromChunks [strPack $ url ++ "\n-- |", rest])) =$=
             mapC (first takeBaseName)
-    return (cblErrs, cbl, source)
+    return (cbl, source)
 
 
-readLocal :: CmdLine -> Timing -> IO ([String], Map.Map String Package, Source IO (String, LStr))
+readLocal :: CmdLine -> Timing -> IO (Map.Map String Package, Source IO (String, LStr))
 readLocal Generate{..} timing = do
-    (cblErrs, cbl) <- readGhcPkg
+    cbl <- timed timing "Reading ghc-pkg" readGhcPkg
     let source =
-            forM_ (Map.toList cbl) $ \(name,Package{..}) -> do
-                let file = fromJust packageDocs </> name <.> "txt"
+            forM_ (Map.toList cbl) $ \(name,Package{..}) -> whenJust packageDocs $ \docs -> do
+                let file = docs </> name <.> "txt"
                 whenM (liftIO $ doesFileExist file) $ do
                     src <- liftIO $ strReadFile file
                     yield (name, lstrFromChunks [src])
     cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
-    return (cblErrs, cbl, source)
+    return (cbl, source)
 
 
 actionGenerate :: CmdLine -> IO ()
@@ -180,8 +180,9 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
         return $ delete "all" include
 
-    (cblErrs, cbl, source) <-
+    (cbl, source) <-
         if remote then readRemote g timing else readLocal g timing
+    let (cblErrs, popularity) = packagePopularity cbl
     want <- return $ if args /= [] then Set.fromList args else Map.keysSet cbl
 
     (stats, _) <- storeWriteFile database $ \store -> do
@@ -222,7 +223,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 return xs
 
         itemsMb <- if not gcStats then return 0 else do performGC; GCStats{..} <- getGCStats; return $ currentBytesUsed `div` (1024*1024)
-        xs <- timed timing "Reodering items" $ reorderItems (\s -> maybe 1 (negate . packagePopularity) $ Map.lookup s cbl) xs
+        xs <- timed timing "Reodering items" $ reorderItems (\s -> maybe 1 negate $ Map.lookup s popularity) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both T.unpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs

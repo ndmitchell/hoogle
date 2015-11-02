@@ -1,14 +1,16 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, BangPatterns, ScopedTypeVariables #-}
 
-module Input.Cabal(Package(..), parseCabalTarball, readGhcPkg) where
+module Input.Cabal(
+    Package(..),
+    parseCabalTarball, readGhcPkg,
+    packagePopularity
+    ) where
 
 import Data.List.Extra
 import System.FilePath
-import Control.Applicative
 import Control.DeepSeq
 import Control.Exception
 import System.IO.Extra
-import Control.Monad.Extra
 import General.Str
 import System.Process
 import Data.Char
@@ -19,40 +21,50 @@ import qualified Data.Map.Strict as Map
 import General.Util
 import General.Conduit
 import Paths_hoogle
-import Prelude
 
+---------------------------------------------------------------------
+-- DATA TYPE
 
 data Package = Package
     {packageTags :: [(T.Text, T.Text)] -- The Tag information, e.g. (category,Development) (author,Neil Mitchell).
     ,packageLibrary :: Bool -- True if the package provides a library (False if it is only an executable with no API)
     ,packageSynopsis :: T.Text -- The synposis, grabbed from the top section.
-    ,packageVersion :: T.Text -- The version, grabbed from the top section. Never empty (will be 0.0 if not found).
-    ,packagePopularity :: {-# UNPACK #-} !Int -- The number of packages that directly depend on this package.
+    ,packageVersion :: T.Text -- The version, grabbed from the top section.
+    ,packageDepends :: [T.Text] -- The number of packages that directly depend on this package.
     ,packageDocs :: Maybe FilePath -- ^ Directory where the documentation is located
     } deriving Show
 
 instance NFData Package where
     rnf (Package a b c d e f) = rnf (a,b,c,d,e,f)
 
-instance Monoid Package where
-    mempty = Package [] False mempty (T.pack "0.0") 0 Nothing
-    mappend (Package x1 x2 x3 x4 x5 x6) (Package y1 y2 y3 y4 y5 y6) =
-        Package (x1++y1) (x2||y2) (if T.null x3 then y3 else x3)
-                (if x4 == T.pack "0.0" then y4 else x4)
-                (x5+y5) (mplus x6 y6)
+
+---------------------------------------------------------------------
+-- POPULARITY
+
+packagePopularity :: Map.Map String Package -> ([String], Map.Map String Int)
+packagePopularity cbl = (errs, Map.map length good)
+    where
+        errs =  [ user ++ ".cabal: Import of non-existant package " ++ name ++
+                          (if null rest then "" else ", also imported by " ++ show (length rest) ++ " others")
+                | (name,(user:rest)) <- Map.toList bad]
+        (good, bad)  = Map.partitionWithKey (\k _ -> k `Map.member` cbl) $
+            Map.fromListWith (++) [(T.unpack b,[a]) | (a,bs) <- Map.toList cbl, b <- packageDepends bs]
 
 
-readGhcPkg :: IO ([String], Map.Map String Package)
+---------------------------------------------------------------------
+-- READERS
+
+readGhcPkg :: IO (Map.Map String Package)
 readGhcPkg = do
-    stdout <- readProcess "ghc-pkg" ["field","*","haddock-html"] ""
-    let package = fmap (reverse . drop 1 . dropWhile (\x -> isDigit x || x == '.') . reverse) .
-                  listToMaybe . filter ('-' `elem`) . reverse . splitDirectories
-    let xs = [(p, x) | x <- lines stdout, Just x <- [stripPrefix "haddock-html: " x], Just p <- [package x]]
-    return ([], Map.fromList [(p, Package [] False mempty mempty 0 (Just x)) | (p,x) <- xs])
+    stdout <- readProcess "ghc-pkg" ["dump"] ""
+    rename <- loadRename
+    let f ((stripPrefix "name: " -> Just x):xs) = Just (x, (readCabal rename $ unlines xs){packageLibrary=True})
+        f xs = Nothing
+    return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines stdout
 
 
 -- | Given the Cabal files we care about, pull out the fields you care about
-parseCabalTarball :: FilePath -> IO ([String], Map.Map String Package)
+parseCabalTarball :: FilePath -> IO (Map.Map String Package)
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal
@@ -60,26 +72,15 @@ parseCabalTarball :: FilePath -> IO ([String], Map.Map String Package)
 parseCabalTarball tarfile = do
     rename <- loadRename
 
-    runConduit $ (sourceList =<< liftIO (tarballReadFiles tarfile)) =$=
-                 mapC (first takeBaseName) =$= groupOnLastC fst =$= mapMC (\x -> do evaluate $ rnf x; return x) =$=
-                 pipelineC 10 (mapC (second $ readCabal rename . lstrUnpack) =$= mapMC (\x -> do evaluate $ rnf x; return x) =$= mergeCabals)
+    res <- runConduit $
+        (sourceList =<< liftIO (tarballReadFiles tarfile)) =$=
+        mapC (first takeBaseName) =$= groupOnLastC fst =$= mapMC (\x -> do evaluate $ rnf x; return x) =$=
+        pipelineC 10 (mapC (second $ readCabal rename . lstrUnpack) =$= mapMC (\x -> do evaluate $ rnf x; return x) =$= sinkList)
+    return $ Map.fromList res
 
 
-mergeCabals :: Monad m => Consumer (String, (Package, [String])) m ([String], Map.Map String Package)
-mergeCabals = freeze <$> foldC add (Map.empty, Map.empty)
-    where
-        -- Takes imports (Map Name (Int,Name)), where a |-> (i,b) means a has i people who depend on it, b is one of them
-        -- Takes cabals (Map Name Cabal), just the mapping to return at the end
-        add (!imports, !cabals) x@(name,(cabal,depends)) = (imports2, Map.insert name cabal cabals)
-            where imports2 = foldl' (\mp i -> Map.insertWith merge i (1::Int,name) mp) imports depends
-                  merge (c1,n1) (c2,n2) = let cc = c1+c2 in cc `seq` (cc, n1)
-
-        freeze (imports, cabals) = bad `seq` good `seq` (bad, good)
-            where bad = [ user ++ ".cabal: Import of non-existant package " ++ name ++
-                          (if i <= 1 then "" else ", also imported by " ++ show (i-1) ++ " others")
-                        | (name,(i,user)) <- Map.toList $ Map.difference imports cabals]
-                  good = Map.differenceWith (\c (i,_) -> Just c{packagePopularity=i}) cabals imports
-
+---------------------------------------------------------------------
+-- PARSERS
 
 loadRename :: IO (String -> String)
 loadRename = do
@@ -90,19 +91,20 @@ loadRename = do
 
 
 -- | Cabal information, plus who I depend on
-readCabal :: (String -> String) -> String -> (Package, [String])
-readCabal rename src = (Package{..}, nubOrd depends)
+readCabal :: (String -> String) -> String -> Package
+readCabal rename src = Package{..}
     where
         mp = Map.fromListWith (++) $ lexCabal src
         ask x = Map.findWithDefault [] x mp
 
-        depends = nubOrd $ filter (/= "") $ map (takeWhile $ \x -> isAlphaNum x || x `elem` "-") $
-                  concatMap (split (== ',')) $ ask "build-depends"
+        packageDepends =
+            map T.pack $ nubOrd $ filter (/= "") $
+            map (intercalate "-" . takeWhile (all isAlpha . take 1) . splitOn "-") $
+            concatMap (split (== ',')) (ask "build-depends") ++ concatMap words (ask "depends")
         packageVersion = T.pack $ head $ dropWhile null (ask "version") ++ ["0.0"]
         packageSynopsis = T.pack $ unwords $ words $ unwords $ ask "synopsis"
         packageLibrary = "library" `elem` map (lower . trim) (lines src)
-        packagePopularity = 0
-        packageDocs = Nothing
+        packageDocs = listToMaybe $ ask "haddock-html"
 
         packageTags = map (both T.pack) $ nubOrd $ concat
             [ map (head xs,) $ concatMap cleanup $ concatMap ask xs
