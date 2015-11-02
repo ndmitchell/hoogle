@@ -13,6 +13,7 @@ import Control.Exception
 import System.IO.Extra
 import General.Str
 import System.Process
+import System.Directory
 import Data.Char
 import Data.Maybe
 import Data.Tuple.Extra
@@ -56,9 +57,13 @@ packagePopularity cbl = (errs, Map.map length good)
 
 readGhcPkg :: IO (Map.Map String Package)
 readGhcPkg = do
+    topdir <- findExecutable "ghc-pkg"
     stdout <- readProcess "ghc-pkg" ["dump"] ""
     rename <- loadRename
-    let f ((stripPrefix "name: " -> Just x):xs) = Just (x, (readCabal rename $ unlines xs){packageLibrary=True})
+    let g (stripPrefix "$topdir" -> Just x) | Just t <- topdir = takeDirectory t ++ x
+        g x = x
+    let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
+    let f ((stripPrefix "name: " -> Just x):xs) = Just (x, fixer $ readCabal rename $ unlines xs)
         f xs = Nothing
     return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines stdout
 
