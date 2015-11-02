@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, BangPatterns, ScopedTypeVariables #-}
 
-module Input.Cabal(Package(..), parseCabalTarball) where
+module Input.Cabal(Package(..), parseCabalTarball, readGhcPkg) where
 
 import Data.List.Extra
 import System.FilePath
@@ -10,7 +10,9 @@ import Control.Exception
 import System.IO.Extra
 import Control.Monad.Extra
 import General.Str
+import System.Process
 import Data.Char
+import Data.Maybe
 import Data.Tuple.Extra
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
@@ -26,10 +28,20 @@ data Package = Package
     ,packageSynopsis :: T.Text -- The synposis, grabbed from the top section.
     ,packageVersion :: T.Text -- The version, grabbed from the top section. Never empty (will be 0.0 if not found).
     ,packagePopularity :: {-# UNPACK #-} !Int -- The number of packages that directly depend on this package.
+    ,packageDocs :: Maybe FilePath -- ^ Directory where the documentation is located
     } deriving Show
 
 instance NFData Package where
-    rnf (Package a b c d e) = rnf (a,b,c,d,e)
+    rnf (Package a b c d e f) = rnf (a,b,c,d,e,f)
+
+
+readGhcPkg :: IO ([String], Map.Map String Package)
+readGhcPkg = do
+    stdout <- readProcess "ghc-pkg" ["field","*","haddock-html"] ""
+    let package = fmap (reverse . drop 1 . dropWhile (\x -> isDigit x || x == '.') . reverse) .
+                  listToMaybe . filter ('-' `elem`) . reverse . splitDirectories
+    let xs = [(p, x) | x <- lines stdout, Just x <- [stripPrefix "haddock-html: " x], Just p <- [package x]]
+    return ([], Map.fromList [(p, Package [] False mempty mempty 0 $ Just x) | (p,x) <- xs])
 
 
 -- | Given the Cabal files we care about, pull out the fields you care about
@@ -83,6 +95,7 @@ readCabal rename src = (Package{..}, nubOrd depends)
         packageSynopsis = T.pack $ unwords $ words $ unwords $ ask "synopsis"
         packageLibrary = "library" `elem` map (lower . trim) (lines src)
         packagePopularity = 0
+        packageDocs = Nothing
 
         packageTags = map (both T.pack) $ nubOrd $ concat
             [ map (head xs,) $ concatMap cleanup $ concatMap ask xs

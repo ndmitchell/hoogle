@@ -15,8 +15,6 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import Control.Monad.Extra
 import Numeric.Extra
-import Data.Char
-import System.Process
 import System.Console.CmdArgs.Verbosity
 import Prelude
 
@@ -159,17 +157,16 @@ readRemote Generate{..} timing args = do
 
 readLocal :: CmdLine -> Timing -> [String] -> IO (Map.Map String Package, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
 readLocal Generate{..} timing args = do
-    stdout <- readProcess "ghc-pkg" ["field","*","haddock-html"] ""
-    let package = fmap (reverse . drop 1 . dropWhile (\x -> isDigit x || x == '.') . reverse) .
-                  listToMaybe . filter ('-' `elem`) . reverse . splitDirectories
-    let xs = [(p, x) | x <- lines stdout, Just x <- [stripPrefix "haddock-html: " x], Just p <- [package x]]
+    (cblErrs, cbl) <- readGhcPkg
     let source =
-            forM_ xs $ \(name,dir) -> do
-                let file = dir </> name <.> "txt"
+            forM_ (Map.toList cbl) $ \(name,Package{..}) -> do
+                let file = fromJust packageDocs </> name <.> "txt"
                 whenM (liftIO $ doesFileExist file) $ do
                     src <- liftIO $ strReadFile file
                     yield (name, lstrFromChunks [src])
-    return (Map.empty, const [("set","stackage"),("set","installed")], [], Set.fromList $ map fst xs, source)
+    cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
+                    in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
+    return (cbl, const [("set","stackage"),("set","installed")], cblErrs, Map.keysSet cbl, source)
 
 
 actionGenerate :: CmdLine -> IO ()
