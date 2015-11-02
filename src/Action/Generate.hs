@@ -124,7 +124,7 @@ timed (Timing ref) msg act = do
     return res
 
 
-readRemote :: CmdLine -> Timing -> IO (Map.Map String Package, Source IO (String, LStr))
+readRemote :: CmdLine -> Timing -> IO (Map.Map String Package, Source IO (String, String, LStr))
 readRemote Generate{..} timing = do
     downloadInputs (timed timing) insecure download $ takeDirectory database
 
@@ -144,17 +144,18 @@ readRemote Generate{..} timing = do
             [(T.pack "set",T.pack "stackage") | name `Set.member` setStackage] ++
             packageTags p}
 
-    let source =
-            (do sourceList . filter (flip Set.member want . fst) =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")
-                src <- liftIO $ strReadFile $ input "ghc.txt"
-                Just (_, rest) <- return $ strSplitInfix (strPack "-- |") src
-                let url = "@url http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
-                yield ("ghc.txt", lstrFromChunks [strPack $ url ++ "\n-- |", rest])) =$=
-            mapC (first takeBaseName)
+    let source = do
+            tar <- liftIO $ tarballReadFiles $ input "hoogle.tar.gz"
+            forM_ tar $ \(name, src) ->
+                when (name `Set.member` want) $
+                    yield (takeBaseName name, "https://hackage.haskell.org/package/" ++ name, src)
+            src <- liftIO $ strReadFile $ input "ghc.txt"
+            let url = "http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
+            yield ("ghc", url, lstrFromChunks [src])
     return (cbl, source)
 
 
-readLocal :: CmdLine -> Timing -> IO (Map.Map String Package, Source IO (String, LStr))
+readLocal :: CmdLine -> Timing -> IO (Map.Map String Package, Source IO (String, String, LStr))
 readLocal Generate{..} timing = do
     cbl <- timed timing "Reading ghc-pkg" readGhcPkg
     let source =
@@ -162,7 +163,7 @@ readLocal Generate{..} timing = do
                 let file = docs </> name <.> "txt"
                 whenM (liftIO $ doesFileExist file) $ do
                     src <- liftIO $ strReadFile file
-                    yield (name, lstrFromChunks [src])
+                    yield (name, docs, lstrFromChunks [src])
     cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, source)
@@ -205,6 +206,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
                 (seen, xs) <- runConduit $
                     source =$=
+                    mapC (\(a,_,b) -> (a,b)) =$=
                     filterC (flip Set.member want . fst) =$=
                         ((fmap Set.fromList $ mapC fst =$= sinkList) |$|
                         (((zipFromC 1 =$= consume) >> when (null args) (sourceList packages))
