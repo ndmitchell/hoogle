@@ -104,7 +104,7 @@ readCabal rename src = Package{..}
 
         packageDepends =
             map T.pack $ nubOrd $ filter (/= "") $
-            map (intercalate "-" . takeWhile (all isAlpha . take 1) . splitOn "-") $
+            map (intercalate "-" . takeWhile (all isAlpha . take 1) . splitOn "-" . fst . word1) $
             concatMap (split (== ',')) (ask "build-depends") ++ concatMap words (ask "depends")
         packageVersion = T.pack $ head $ dropWhile null (ask "version") ++ ["0.0"]
         packageSynopsis = T.pack $ unwords $ words $ unwords $ ask "synopsis"
