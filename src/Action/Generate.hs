@@ -124,8 +124,8 @@ timed (Timing ref) msg act = do
     return res
 
 
-readRemote :: CmdLine -> Timing -> [String] -> IO ([String], Map.Map String Package, String -> [(String,String)], Set.Set String, Source IO (String, LStr))
-readRemote Generate{..} timing args = do
+readRemote :: CmdLine -> Timing -> IO ([String], Map.Map String Package, String -> [(String,String)], Set.Set String, Source IO (String, LStr))
+readRemote Generate{..} timing = do
     downloadInputs (timed timing) insecure download $ takeDirectory database
 
     -- peakMegabytesAllocated = 2
@@ -142,8 +142,7 @@ readRemote Generate{..} timing args = do
             [("set","stackage") | pkg `Set.member` setStackage] ++
             maybe [] (map (both T.unpack) . packageTags) (Map.lookup pkg cbl)
     -- peakMegabytesAllocated = 21, currentBytesUsed = 6.5Mb
-    let want = if args /= [] then Set.fromList args else
-            Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
+    let want = Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
 
     let source =
             (do sourceList =<< liftIO (tarballReadFiles $ input "hoogle.tar.gz")
@@ -155,8 +154,8 @@ readRemote Generate{..} timing args = do
     return (cblErrs, cbl, getPackageTags, want, source)
 
 
-readLocal :: CmdLine -> Timing -> [String] -> IO ([String], Map.Map String Package, String -> [(String,String)], Set.Set String, Source IO (String, LStr))
-readLocal Generate{..} timing args = do
+readLocal :: CmdLine -> Timing -> IO ([String], Map.Map String Package, String -> [(String,String)], Set.Set String, Source IO (String, LStr))
+readLocal Generate{..} timing = do
     (cblErrs, cbl) <- readGhcPkg
     let source =
             forM_ (Map.toList cbl) $ \(name,Package{..}) -> do
@@ -182,7 +181,9 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         return $ delete "all" include
 
     (cblErrs, cbl, packageTags, want, source) <-
-        if remote then readRemote g timing args else readLocal g timing args
+        if remote then readRemote g timing else readLocal g timing
+    wabt <- return $ if args /= [] then Set.fromList args else want
+            
 
     (stats, _) <- storeWriteFile database $ \store -> do
         xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do
