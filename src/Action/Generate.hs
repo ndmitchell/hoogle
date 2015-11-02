@@ -126,7 +126,7 @@ timed (Timing ref) msg act = do
     return res
 
 
-readRemote :: CmdLine -> Timing -> [String] -> IO (Map.Map String Cabal, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
+readRemote :: CmdLine -> Timing -> [String] -> IO (Map.Map String Package, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
 readRemote Generate{..} timing args = do
     downloadInputs (timed timing) insecure download $ takeDirectory database
 
@@ -138,11 +138,11 @@ readRemote Generate{..} timing args = do
     setGHC <- setGHC $ input "platform.txt"
 
     (cblErrs,cbl) <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
-    let packageTags pkg =
+    let getPackageTags pkg =
             [("set","included-with-ghc") | pkg `Set.member` setGHC] ++
             [("set","haskell-platform") | pkg `Set.member` setPlatform] ++
             [("set","stackage") | pkg `Set.member` setStackage] ++
-            maybe [] (map (both T.unpack) . cabalTags) (Map.lookup pkg cbl)
+            maybe [] (map (both T.unpack) . packageTags) (Map.lookup pkg cbl)
     -- peakMegabytesAllocated = 21, currentBytesUsed = 6.5Mb
     let want = if args /= [] then Set.fromList args else
             Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
@@ -154,10 +154,10 @@ readRemote Generate{..} timing args = do
                 let url = "@url http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
                 yield ("ghc.txt", lstrFromChunks [strPack $ url ++ "\n-- |", rest])) =$=
             mapC (first takeBaseName)
-    return (cbl, packageTags, cblErrs, want, source)
+    return (cbl, getPackageTags, cblErrs, want, source)
 
 
-readLocal :: CmdLine -> Timing -> [String] -> IO (Map.Map String Cabal, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
+readLocal :: CmdLine -> Timing -> [String] -> IO (Map.Map String Package, String -> [(String,String)], [String], Set.Set String, Source IO (String, LStr))
 readLocal Generate{..} timing args = do
     stdout <- readProcess "ghc-pkg" ["field","*","haddock-html"] ""
     let package = fmap (reverse . drop 1 . dropWhile (\x -> isDigit x || x == '.') . reverse) .
@@ -202,8 +202,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                         parseHoogle warning pkg body
 
             writeItems store $ \items -> do
-                let packages = [ fakePackage name $ "Not in Stackage, so not searched.\n" ++ T.unpack cabalSynopsis
-                               | (name,Cabal{..}) <- Map.toList cbl, name `Set.notMember` want]
+                let packages = [ fakePackage name $ "Not in Stackage, so not searched.\n" ++ T.unpack packageSynopsis
+                               | (name,Package{..}) <- Map.toList cbl, name `Set.notMember` want]
 
                 (seen, xs) <- runConduit $
                     source =$=
@@ -213,7 +213,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                             =$= pipelineC 10 (items =$= sinkList)))
 
                 let missing = [x | x <- Set.toList $ want `Set.difference` seen
-                                 , fmap cabalLibrary (Map.lookup x cbl) /= Just False]
+                                 , fmap packageLibrary (Map.lookup x cbl) /= Just False]
                 whenNormal $ when (missing /= []) $ do
                     putStrLn $ ("Packages not found: " ++) $ unwords $ sortOn lower missing
                 when (Set.null seen) $
@@ -225,7 +225,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 return xs
 
         itemsMb <- if not gcStats then return 0 else do performGC; GCStats{..} <- getGCStats; return $ currentBytesUsed `div` (1024*1024)
-        xs <- timed timing "Reodering items" $ reorderItems (\s -> maybe 1 (negate . cabalPopularity) $ Map.lookup s cbl) xs
+        xs <- timed timing "Reodering items" $ reorderItems (\s -> maybe 1 (negate . packagePopularity) $ Map.lookup s cbl) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) packageTags xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs

@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, BangPatterns, ScopedTypeVariables #-}
 
-module Input.Cabal(Cabal(..), parseCabalTarball) where
+module Input.Cabal(Package(..), parseCabalTarball) where
 
 import Data.List.Extra
 import System.FilePath
@@ -20,20 +20,20 @@ import Paths_hoogle
 import Prelude
 
 
-data Cabal = Cabal
-    {cabalTags :: [(T.Text, T.Text)] -- The Tag information, e.g. (category,Development) (author,Neil Mitchell).
-    ,cabalLibrary :: Bool -- True if the package provides a library (False if it is only an executable with no API)
-    ,cabalSynopsis :: T.Text -- The synposis, grabbed from the top section.
-    ,cabalVersion :: T.Text -- The version, grabbed from the top section. Never empty (will be 0.0 if not found).
-    ,cabalPopularity :: {-# UNPACK #-} !Int -- The number of packages that directly depend on this package.
+data Package = Package
+    {packageTags :: [(T.Text, T.Text)] -- The Tag information, e.g. (category,Development) (author,Neil Mitchell).
+    ,packageLibrary :: Bool -- True if the package provides a library (False if it is only an executable with no API)
+    ,packageSynopsis :: T.Text -- The synposis, grabbed from the top section.
+    ,packageVersion :: T.Text -- The version, grabbed from the top section. Never empty (will be 0.0 if not found).
+    ,packagePopularity :: {-# UNPACK #-} !Int -- The number of packages that directly depend on this package.
     } deriving Show
 
-instance NFData Cabal where
-    rnf (Cabal a b c d e) = rnf (a,b,c,d,e)
+instance NFData Package where
+    rnf (Package a b c d e) = rnf (a,b,c,d,e)
 
 
 -- | Given the Cabal files we care about, pull out the fields you care about
-parseCabalTarball :: FilePath -> IO ([String], Map.Map String Cabal)
+parseCabalTarball :: FilePath -> IO ([String], Map.Map String Package)
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal
@@ -46,7 +46,7 @@ parseCabalTarball tarfile = do
                  pipelineC 10 (mapC (second $ readCabal rename . lstrUnpack) =$= mapMC (\x -> do evaluate $ rnf x; return x) =$= mergeCabals)
 
 
-mergeCabals :: Monad m => Consumer (String, (Cabal, [String])) m ([String], Map.Map String Cabal)
+mergeCabals :: Monad m => Consumer (String, (Package, [String])) m ([String], Map.Map String Package)
 mergeCabals = freeze <$> foldC add (Map.empty, Map.empty)
     where
         -- Takes imports (Map Name (Int,Name)), where a |-> (i,b) means a has i people who depend on it, b is one of them
@@ -59,7 +59,7 @@ mergeCabals = freeze <$> foldC add (Map.empty, Map.empty)
             where bad = [ user ++ ".cabal: Import of non-existant package " ++ name ++
                           (if i <= 1 then "" else ", also imported by " ++ show (i-1) ++ " others")
                         | (name,(i,user)) <- Map.toList $ Map.difference imports cabals]
-                  good = Map.differenceWith (\c (i,_) -> Just c{cabalPopularity=i}) cabals imports
+                  good = Map.differenceWith (\c (i,_) -> Just c{packagePopularity=i}) cabals imports
 
 
 loadRename :: IO (String -> String)
@@ -71,20 +71,20 @@ loadRename = do
 
 
 -- | Cabal information, plus who I depend on
-readCabal :: (String -> String) -> String -> (Cabal, [String])
-readCabal rename src = (Cabal{..}, nubOrd depends)
+readCabal :: (String -> String) -> String -> (Package, [String])
+readCabal rename src = (Package{..}, nubOrd depends)
     where
         mp = Map.fromListWith (++) $ lexCabal src
         ask x = Map.findWithDefault [] x mp
 
         depends = nubOrd $ filter (/= "") $ map (takeWhile $ \x -> isAlphaNum x || x `elem` "-") $
                   concatMap (split (== ',')) $ ask "build-depends"
-        cabalVersion = T.pack $ head $ dropWhile null (ask "version") ++ ["0.0"]
-        cabalSynopsis = T.pack $ unwords $ words $ unwords $ ask "synopsis"
-        cabalLibrary = "library" `elem` map (lower . trim) (lines src)
-        cabalPopularity = 0
+        packageVersion = T.pack $ head $ dropWhile null (ask "version") ++ ["0.0"]
+        packageSynopsis = T.pack $ unwords $ words $ unwords $ ask "synopsis"
+        packageLibrary = "library" `elem` map (lower . trim) (lines src)
+        packagePopularity = 0
 
-        cabalTags = map (both T.pack) $ nubOrd $ concat
+        packageTags = map (both T.pack) $ nubOrd $ concat
             [ map (head xs,) $ concatMap cleanup $ concatMap ask xs
             | xs <- [["license"],["category"],["author","maintainer"]]]
 
