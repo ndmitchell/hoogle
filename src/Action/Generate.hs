@@ -124,7 +124,7 @@ timed (Timing ref) msg act = do
     return res
 
 
-readRemote :: CmdLine -> Timing -> IO (Map.Map String Package, Source IO (String, String, LStr))
+readRemote :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, String, LStr))
 readRemote Generate{..} timing = do
     downloadInputs (timed timing) insecure download $ takeDirectory database
 
@@ -147,15 +147,14 @@ readRemote Generate{..} timing = do
     let source = do
             tar <- liftIO $ tarballReadFiles $ input "hoogle.tar.gz"
             forM_ tar $ \(name, src) ->
-                when (name `Set.member` want) $
-                    yield (takeBaseName name, "https://hackage.haskell.org/package/" ++ name, src)
+                yield (takeBaseName name, "https://hackage.haskell.org/package/" ++ name, src)
             src <- liftIO $ strReadFile $ input "ghc.txt"
             let url = "http://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-7.10.2/"
             yield ("ghc", url, lstrFromChunks [src])
-    return (cbl, source)
+    return (cbl, want, source)
 
 
-readLocal :: CmdLine -> Timing -> IO (Map.Map String Package, Source IO (String, String, LStr))
+readLocal :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, String, LStr))
 readLocal Generate{..} timing = do
     cbl <- timed timing "Reading ghc-pkg" readGhcPkg
     let source =
@@ -166,7 +165,7 @@ readLocal Generate{..} timing = do
                     yield (name, docs, lstrFromChunks [src])
     cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
-    return (cbl, source)
+    return (cbl, Map.keysSet cbl, source)
 
 
 actionGenerate :: CmdLine -> IO ()
@@ -181,10 +180,10 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
         return $ delete "all" include
 
-    (cbl, source) <-
+    (cbl, want, source) <-
         if remote then readRemote g timing else readLocal g timing
     let (cblErrs, popularity) = packagePopularity cbl
-    want <- return $ if args /= [] then Set.fromList args else Map.keysSet cbl
+    want <- return $ if args /= [] then Set.fromList args else want
 
     (stats, _) <- storeWriteFile database $ \store -> do
         xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do
