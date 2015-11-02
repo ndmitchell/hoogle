@@ -48,7 +48,7 @@ readGhcPkg = do
     let package = fmap (reverse . drop 1 . dropWhile (\x -> isDigit x || x == '.') . reverse) .
                   listToMaybe . filter ('-' `elem`) . reverse . splitDirectories
     let xs = [(p, x) | x <- lines stdout, Just x <- [stripPrefix "haddock-html: " x], Just p <- [package x]]
-    return ([], Map.fromList [(p, Package [] False mempty mempty 0 $ Just x) | (p,x) <- xs])
+    return ([], Map.fromList [(p, Package [] False mempty mempty 0 (Just x)) | (p,x) <- xs])
 
 
 -- | Given the Cabal files we care about, pull out the fields you care about
