@@ -43,7 +43,8 @@ main = do
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=default.hoo +RTS -M1.5G -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " test --database=default.hoo"
         ignore $ echo system_ "pkill hoogle"
-        let cmd = "nohup " ++ exe ++ " server --database=default.hoo --port=8080 " ++
+        let cmd = "hoogle_datadir=. " ++
+                  "nohup " ++ exe ++ " server --database=default.hoo --port=8080 " ++
                   "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
                   "--log=../../log.txt +RTS -T -N4 >> ../../out.txt 2>&1 &"
         echo system_ cmd
