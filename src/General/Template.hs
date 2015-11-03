@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, DeriveDataTypeable, ScopedTypeVariables #-}
 
 module General.Template(
     Template, templateFile, templateStr, templateApply, templateRender
@@ -7,10 +7,12 @@ module General.Template(
 import Data.Data
 import Data.Monoid
 import General.Str
+import Control.Exception
 import Data.Generics.Uniplate.Data
 import Control.Applicative
 import System.IO.Unsafe
 import System.Directory
+import Control.Monad
 import Data.IORef
 import Prelude
 
@@ -79,7 +81,10 @@ treeCache t0 = unsafePerformIO $ do
     ref <- newIORef ([], treeOptimise t0)
     return $ do
         (old,t) <- readIORef ref
-        new <- mapM getModificationTime files
+        new <- forM files $ \file ->
+            -- the standard getModificationTime message on Windows doesn't say the file
+            getModificationTime file `catch` \(e :: IOException) ->
+                fail $ "Failed: getModificationTime on " ++ file ++ ", " ++ show e
         if old == new then return t else do
             t <- treeOptimise <$> treeRemoveLam t0
             writeIORef ref (new,t)
