@@ -108,7 +108,7 @@ replyServer log local store cdn = \Input{..} -> case inputURL of
             return $ OutputString $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
          else
             return $ OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
-    "file":xs -> do
+    "file":xs | local -> do
         let x = intercalate "/" xs
         return $ OutputFile $ x ++ (if hasTrailingPathSeparator x then "index.html" else "")
     xs -> return $ OutputFile $ joinPath $ "html" : xs
