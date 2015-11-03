@@ -24,6 +24,14 @@ extra-source-files:
     cbits/*.c
 data-files:
     misc/tag-rename.txt
+    html/*.js
+    html/*.png
+    html/*.css
+    html/*.xml
+    html/*.html
+    html/plugin/*.css
+    html/plugin/*.js
+    html/plugin/*.png
 
 source-repository head
     type:     git
