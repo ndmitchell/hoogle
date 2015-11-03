@@ -49,8 +49,9 @@ actionServer Server{..} = do
         \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
     putStrLn . showDuration =<< time
     evaluate spawned
+    dataDir <- getDataDir
     withSearch database $ \store ->
-        server log local port $ replyServer log local store cdn
+        server log local port $ replyServer log local store cdn (dataDir </> "html")
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -58,7 +59,8 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
-        let op = replyServer log False store ""
+        dataDir <- getDataDir
+        let op = replyServer log False store "" (dataDir </> "html")
         replicateM_ repeat_ $ forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
@@ -69,8 +71,8 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 spawned :: UTCTime
 spawned = unsafePerformIO getCurrentTime
 
-replyServer :: Log -> Bool -> StoreRead -> String -> Input -> IO Output
-replyServer log local store cdn = \Input{..} -> case inputURL of
+replyServer :: Log -> Bool -> StoreRead -> String -> FilePath -> Input -> IO Output
+replyServer log local store cdn htmlDir = \Input{..} -> case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
@@ -111,17 +113,19 @@ replyServer log local store cdn = \Input{..} -> case inputURL of
     "file":xs | local -> do
         let x = intercalate "/" xs
         return $ OutputFile $ x ++ (if hasTrailingPathSeparator x then "index.html" else "")
-    xs -> return $ OutputFile $ joinPath $ "html" : xs
+    xs ->
+        -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
+        return $ OutputFile $ joinPath $ htmlDir : filter (not . all (== '.')) xs
     where
         str = templateStr . lstrPack
         tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- completionTags store]
         params = map (second str)
             [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
             ,("version",showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
-        templateIndex = templateFile "html/index.html" `templateApply` params
-        templateEmpty = templateFile "html/welcome.html"
+        templateIndex = templateFile (htmlDir </> "index.html") `templateApply` params
+        templateEmpty = templateFile (htmlDir </>  "welcome.html")
         templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str ""),("robots",str "index")]
-        templateLog = templateFile "html/log.html" `templateApply` params
+        templateLog = templateFile (htmlDir </> "log.html") `templateApply` params
 
 
 dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
@@ -216,8 +220,9 @@ action_server_test database = do
 
     testing "Action.Server.replyServer" $ withSearch database $ \store -> do
         log <- logNone
+        dataDir <- getDataDir
         let q === want = do
-                OutputString (lstrUnpack -> res) <- replyServer log False store "" (Input [] [("hoogle",q)])
+                OutputString (lstrUnpack -> res) <- replyServer log False store "" (dataDir </> "html") (Input [] [("hoogle",q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
         "<>" === "<span class=name>(<b>&lt;&gt;</b>)</span>"
         "filt" === "<span class=name><b>filt</b>er</span>"
