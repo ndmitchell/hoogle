@@ -49,7 +49,7 @@ executable hoogle
         extra >= 1.4, js-jquery, js-flot, uniplate, cmdargs,
         tar, zlib, mmap,
         network, network-uri, conduit, conduit-extra, resourcet, http-conduit, wai, http-types, warp, wai-logger, connection,
-        haskell-src-exts >= 1.16 && < 1.17
+        haskell-src-exts >= 1.16 && < 1.18
 
     c-sources:        cbits/text_search.c
     include-dirs:     cbits
