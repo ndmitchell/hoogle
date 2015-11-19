@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Allow haskell-src-exts-1.17
 4.2.42
     #24, don't use code.galois.com
 4.2.41

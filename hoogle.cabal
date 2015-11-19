@@ -59,7 +59,7 @@ library
         vector >= 0.9,
         vector-algorithms >= 0.6,
         QuickCheck,
-        haskell-src-exts >= 1.16 && < 1.17
+        haskell-src-exts >= 1.16 && < 1.18
 
     if !os(mingw32)
         build-depends: unix
@@ -153,7 +153,7 @@ executable hoogle
         Cabal >= 1.8,
         shake >= 0.14,
         QuickCheck,
-        haskell-src-exts >= 1.16 && < 1.17
+        haskell-src-exts >= 1.16 && < 1.18
 
     if !os(mingw32)
         build-depends: unix
