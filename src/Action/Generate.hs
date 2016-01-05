@@ -149,7 +149,7 @@ readRemote Generate{..} timing = do
             forM_ tar $ \(takeBaseName -> name, src) ->
                 yield (name, "https://hackage.haskell.org/package/" ++ name, src)
             src <- liftIO $ strReadFile $ input "ghc.txt"
-            let url = "http://downloads.haskell.org/~ghc/7.10.2/docs/html/libraries/ghc-7.10.2/"
+            let url = "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/"
             yield ("ghc", url, lstrFromChunks [src])
     return (cbl, want, source)
 
