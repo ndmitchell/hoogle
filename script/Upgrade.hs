@@ -41,6 +41,7 @@ main = do
         echo system_ "cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M1.5G -T -N2"
+        echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M1.5G -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " test --database=haskell.hoo"
         ignore $ echo system_ "pkill hoogle"
         echo system_ $
@@ -48,6 +49,11 @@ main = do
             "nohup " ++ exe ++ " server --database=haskell.hoo --port=8080 " ++
             "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
             "--log=../../log.txt +RTS -T -N4 >> ../../out.txt 2>&1 &"
+        echo system_ $
+            "hoogle_datadir=. " ++
+            "nohup " ++ exe ++ " server --database=frege.hoo --port=8081 " ++
+            "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
+            "--log=../../log-frege.txt +RTS -T -N2 >> ../../out-frege.txt 2>&1 &"
         writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=haskell.hoo --port=8080 --log=../../log.txt >> ../../out.txt &\n"
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
     putStrLn "Successfully upgraded"
