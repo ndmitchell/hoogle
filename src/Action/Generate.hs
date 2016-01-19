@@ -155,13 +155,13 @@ readRemote Generate{..} timing = do
                 yield ("ghc", url, lstrFromChunks [src])
         return (cbl, want, source)
 
-    else if language == Frege then do
+     else if language == Frege then do
         let source = do
                 src <- liftIO $ strReadFile $ input "frege.txt"
                 yield ("frege", "http://google.com/", lstrFromChunks [src])
         return (Map.empty, Set.singleton "frege", source)
 
-    else
+     else
         fail $ "Unknown language, " ++ show language
 
 
