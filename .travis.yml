@@ -7,5 +7,9 @@ env:
  - GHCVER=8.0.1
  - GHCVER=head
 
+matrix:
+  allow_failures:
+   - env: GHCVER=8.0.1 # Dependencies won't install
+
 script:
  - wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --no-check-certificate --quiet | sh
