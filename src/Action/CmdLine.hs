@@ -2,16 +2,18 @@
 {-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse #-}
 
 module Action.CmdLine(
-    CmdLine(..), getCmdLine,
+    CmdLine(..), Language(..), getCmdLine,
     whenLoud, whenNormal
     ) where
 
 import System.Console.CmdArgs
 import System.Directory
 import System.FilePath
+import Data.List.Extra
 import Data.Version
 import Paths_hoogle(version)
 
+data Language = Haskell | Frege deriving (Data,Typeable,Show,Eq,Enum,Bounded)
 
 data CmdLine
     = Search
@@ -22,6 +24,7 @@ data CmdLine
         ,count :: Int
         ,query :: [String]
         ,repeat_ :: Int
+        ,language :: Language
         }
     | Generate
         {hackage :: String
@@ -32,6 +35,7 @@ data CmdLine
         ,local :: Bool
         ,remote :: Bool
         ,debug :: Bool
+        ,language :: Language
         }
     | Server
         {port :: Int
@@ -39,15 +43,18 @@ data CmdLine
         ,cdn :: String
         ,logs :: FilePath
         ,local :: Bool
+        ,language :: Language
         }
     | Replay
         {logs :: FilePath
         ,database :: FilePath
         ,repeat_ :: Int
+        ,language :: Language
         }
     | Test
         {deep :: Bool
         ,database :: FilePath
+        ,language :: Language
         }
       deriving (Data,Typeable,Show)
 
@@ -56,7 +63,7 @@ getCmdLine = do
     args <- cmdArgsRun cmdLineMode
     if database args /= "" then return args else do
         dir <- getAppUserDataDirectory "hoogle"
-        return $ args{database=dir </> "default-" ++ showVersion version ++ ".hoo"}
+        return $ args{database=dir </> "default-" ++ lower (show $ language args) ++ "-" ++ showVersion version ++ ".hoo"}
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
     &= verbosity &= program "hoogle"
@@ -70,6 +77,7 @@ search_ = Search
     ,count = 10 &= name "n" &= help "Maximum number of results to return"
     ,query = def &= args &= typ "QUERY"
     ,repeat_ = 1 &= help "Number of times to repeat (for benchmarking)"
+    ,language = enum [x &= explicit &= name (lower $ show x) &= help ("Work with " ++ show x) | x <- [minBound..maxBound]] &= groupname "Language"
     } &= help "Perform a search"
 
 generate = Generate

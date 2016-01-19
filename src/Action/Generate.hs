@@ -126,36 +126,49 @@ timed (Timing ref) msg act = do
 
 readRemote :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readRemote Generate{..} timing = do
-    downloadInputs (timed timing) insecure download $ takeDirectory database
+    downloadInputs (timed timing) insecure download language $ takeDirectory database
 
     -- peakMegabytesAllocated = 2
-    let input x = takeDirectory database </> "input-" ++ x
+    let input x = takeDirectory database </> "input-" ++ lower (show language) ++ "-" ++ x
 
-    setStackage <- setStackage $ input "stackage.txt"
-    setPlatform <- setPlatform $ input "platform.txt"
-    setGHC <- setGHC $ input "platform.txt"
+    if language == Haskell then do
 
-    cbl <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
-    let want = Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
-    cbl <- return $ flip Map.mapWithKey cbl $ \name p ->
-        p{packageTags =
-            [(T.pack "set",T.pack "included-with-ghc") | name `Set.member` setGHC] ++
-            [(T.pack "set",T.pack "haskell-platform") | name `Set.member` setPlatform] ++
-            [(T.pack "set",T.pack "stackage") | name `Set.member` setStackage] ++
-            packageTags p}
+        setStackage <- setStackage $ input "stackage.txt"
+        setPlatform <- setPlatform $ input "platform.txt"
+        setGHC <- setGHC $ input "platform.txt"
 
-    let source = do
-            tar <- liftIO $ tarballReadFiles $ input "hoogle.tar.gz"
-            forM_ tar $ \(takeBaseName -> name, src) ->
-                yield (name, "https://hackage.haskell.org/package/" ++ name, src)
-            src <- liftIO $ strReadFile $ input "ghc.txt"
-            let url = "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/"
-            yield ("ghc", url, lstrFromChunks [src])
-    return (cbl, want, source)
+        cbl <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
+        let want = Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
+        cbl <- return $ flip Map.mapWithKey cbl $ \name p ->
+            p{packageTags =
+                [(T.pack "set",T.pack "included-with-ghc") | name `Set.member` setGHC] ++
+                [(T.pack "set",T.pack "haskell-platform") | name `Set.member` setPlatform] ++
+                [(T.pack "set",T.pack "stackage") | name `Set.member` setStackage] ++
+                packageTags p}
+
+        let source = do
+                tar <- liftIO $ tarballReadFiles $ input "hoogle.tar.gz"
+                forM_ tar $ \(takeBaseName -> name, src) ->
+                    yield (name, "https://hackage.haskell.org/package/" ++ name, src)
+                src <- liftIO $ strReadFile $ input "ghc.txt"
+                let url = "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/"
+                yield ("ghc", url, lstrFromChunks [src])
+        return (cbl, want, source)
+
+    else if language == Frege then do
+        let source = do
+                src <- liftIO $ strReadFile $ input "frege.txt"
+                yield ("frege", "http://google.com/", lstrFromChunks [src])
+        return (Map.empty, Set.singleton "frege", source)
+
+    else
+        fail $ "Unknown language, " ++ show language
 
 
 readLocal :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readLocal Generate{..} timing = do
+    when (language /= Haskell) $ fail "Can only generate local database for Haskell"
+
     cbl <- timed timing "Reading ghc-pkg" readGhcPkg
     let source =
             forM_ (Map.toList cbl) $ \(name,Package{..}) -> whenJust packageDocs $ \docs -> do
