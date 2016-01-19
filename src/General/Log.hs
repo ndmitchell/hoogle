@@ -7,6 +7,7 @@ module General.Log(
 
 import Control.Concurrent.Extra
 import Control.Applicative
+import System.Directory
 import System.IO
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -40,7 +41,8 @@ logCreate store interesting = do
     (h, old) <- case store of
         Left h -> return (h, Map.empty)
         Right file -> do
-            mp <- withFile file ReadMode $ \h -> do
+            b <- doesFileExist file
+            mp <- if not b then return Map.empty else withFile file ReadMode $ \h -> do
                 src <- LBS.hGetContents h
                 let xs = mapMaybe (parseLogLine interesting) $ LBS.lines $ src
                 return $! foldl' (\mp (k,v) -> Map.alter (Just . maybe v (<> v)) k mp) Map.empty xs
