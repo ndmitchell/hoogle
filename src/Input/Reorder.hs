@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
+{-# LANGUAGE TupleSections #-}
 
 module Input.Reorder(reorderItems) where
 

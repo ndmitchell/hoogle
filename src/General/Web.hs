@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, OverloadedStrings, CPP, PatternGuards, ViewPatterns #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, CPP, ViewPatterns #-}
 
 module General.Web(
     Input(..), Output(..), readInput, server

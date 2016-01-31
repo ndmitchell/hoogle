@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE TupleSections, ScopedTypeVariables #-}
 
 module Main(main) where
 

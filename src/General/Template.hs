@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, DeriveDataTypeable, ScopedTypeVariables #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable, ScopedTypeVariables #-}
 
 module General.Template(
     Template, templateFile, templateStr, templateApply, templateRender

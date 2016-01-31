@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
 module Action.Test(actionTest) where
 

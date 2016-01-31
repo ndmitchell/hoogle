@@ -1,6 +1,6 @@
-{-# LANGUAGE PatternGuards, BangPatterns #-}
+{-# LANGUAGE PatternGuards #-}
 
--- | ByteString wrappers which don't require special imports and are all UTF8 safe 
+-- | ByteString wrappers which don't require special imports and are all UTF8 safe
 module General.Str(
     Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strConcat, strStripPrefix, strStripSuffix, strLines, strTrimStart, strUnlines, strUnwords,
     LStr, lstrPack, lstrUnpack, lstrLines, lstrToChunks, lstrFromChunks, lstrToStr,

@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE DisambiguateRecordFields #-}
 
 -- Draft of Hoogle API, does not yet compile!
 module Hoogle(
