@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections #-}
+{-# LANGUAGE PatternGuards, TupleSections #-}
 
 module Input.Set(setStackage, setPlatform, setGHC) where
 

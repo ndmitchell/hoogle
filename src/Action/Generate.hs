@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
 module Action.Generate(actionGenerate) where
 
@@ -188,12 +188,12 @@ actionGenerate :: CmdLine -> IO ()
 actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
-    (remote,local) <- return $ if remote == False && local == False then (True,True) else (remote,local)
+    (remote,local) <- return $ if not remote && not local then (True,True) else (remote,local)
     gcStats <- getGCStatsEnabled
 
     -- fix up people using Hoogle 4 instructions
     args <- if "all" `notElem` include then return include else do
-        putStrLn $ "Warning: 'all' argument is no longer required, and has been ignored."
+        putStrLn "Warning: 'all' argument is no longer required, and has been ignored."
         return $ delete "all" include
 
     (cbl, want, source) <-

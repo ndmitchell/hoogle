@@ -67,7 +67,7 @@ isSyms [] = False
 -- > "Data.Map.(!)" ==> ["Data",".","Map",".","(","!",")"]
 lexer :: String -> [String]
 lexer ('(':',':xs) | (a,')':b) <- span (== ',') xs = ("(," ++ a ++ ")") : lexer b
-lexer x | Just s <- fmap (bs !!) $ findIndex (`isPrefixOf` x) bs = s : lexer (drop (length s) x)
+lexer x | Just s <- (bs !!) <$> findIndex (`isPrefixOf` x) bs = s : lexer (drop (length s) x)
     where bs = zipWith (++) openBrackets shutBrackets ++ openBrackets ++ shutBrackets
 lexer (x:xs)
     | isSpace x = " " : lexer (dropWhile isSpace xs)

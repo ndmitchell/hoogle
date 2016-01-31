@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
 module Action.Search(actionSearch, withSearch, search, action_search_test) where
 

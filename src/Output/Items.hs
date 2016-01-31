@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable, GADTs #-}
+{-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable, GADTs #-}
 
 module Output.Items(writeItems, lookupItem, listItems) where
 

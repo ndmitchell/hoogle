@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, PatternGuards, GADTs #-}
+{-# LANGUAGE ViewPatterns, TupleSections, ScopedTypeVariables, DeriveDataTypeable, PatternGuards, GADTs #-}
 
 module Output.Tags(writeTags, completionTags, applyTags) where
 
@@ -117,11 +117,11 @@ resolveTag store x = case x of
     EqModule x -> (Just $ EqModule x, map (moduleIds V.!) $ findIndices (eqModule $ lower x) $ split0 moduleNames)
     EqCategory cat val -> (Just $ EqCategory cat val, concat
         [ V.toList $ jaggedAsk categoryIds i
-        | i <- findIndices (== BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames])
+        | i <- elemIndices (BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames])
     where
         eqModule x | Just x <- stripPrefix "." x, Just x <- stripSuffix "." x = (==) (BS.pack x)
                    | Just x <- stripPrefix "." x = BS.isPrefixOf $ BS.pack x
-                   | otherwise = let y = BS.pack x; y2 = BS.pack $ ('.':x)
+                   | otherwise = let y = BS.pack x; y2 = BS.pack ('.':x)
                                  in \v -> y `BS.isPrefixOf` v || y2 `BS.isInfixOf` v
 
         (packageNames, packageIds) = storeRead store Packages

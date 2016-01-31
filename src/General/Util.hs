@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables, RecordWildCards #-}
+{-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
 
 module General.Util(
     URL,
@@ -184,7 +184,7 @@ tag name attr inner = "<" ++ unwords (name : map f attr) ++ ">" ++ inner ++ "</"
           f x = x
 
 tag_ :: String -> String -> String
-tag_ name inner = tag name [] inner
+tag_ name = tag name []
 
 
 -- ensure that no value escapes in a thunk from the value
@@ -251,13 +251,13 @@ maximumBy' :: (a -> a -> Ordering) -> [a] -> a
 maximumBy' cmp = foldl1' $ \x y -> if cmp x y == GT then x else y
 
 maximum' :: Ord a => [a] -> a
-maximum' xs = maximumBy' compare xs
+maximum' = maximumBy' compare
 
 minimumBy' :: (a -> a -> Ordering) -> [a] -> a
 minimumBy' cmp = foldl1' $ \x y -> if cmp x y == LT then x else y
 
 minimum' :: Ord a => [a] -> a
-minimum' xs = minimumBy' compare xs
+minimum' = minimumBy' compare
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient

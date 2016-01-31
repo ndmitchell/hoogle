@@ -87,7 +87,7 @@ replyServer log local store cdn htmlDir = \Input{..} -> case inputURL of
                         ,("title",unwords qSource ++ " - Hoogle")
                         ,("search",unwords $ grab "hoogle")
                         ,("robots",if any isQueryScope q then "none" else "index")]
-                    | otherwise -> fmap OutputString $ templateRender templateHome []
+                    | otherwise -> OutputString <$> templateRender templateHome []
             Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ lstrPack body
             Just m -> return $ OutputFail $ lstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
@@ -135,7 +135,7 @@ dedupeTake n key = f [] Map.empty
         f res mp xs | Map.size mp >= n || null xs = map (reverse . (Map.!) mp) $ reverse res
         f res mp (x:xs) | Just vs <- Map.lookup k mp = f res (Map.insert k (x:vs) mp) xs
                         | otherwise = f (k:res) (Map.insert k [x] mp) xs
-            where k = key x 
+            where k = key x
 
 
 showResults :: Bool -> [(String, String)] -> [Query] -> [[Target]] -> String
@@ -200,7 +200,7 @@ highlightItem qs x
               f [] = []
 
 displayItem :: [Query] -> String -> String
-displayItem qs = highlightItem qs
+displayItem = highlightItem
 
 
 action_server_test :: FilePath -> IO ()

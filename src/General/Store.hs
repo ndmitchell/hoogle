@@ -131,10 +131,10 @@ storeWriteFile file act = do
         return (stats, res)
 
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
-storeWrite store k v = storedWrite store k False v
+storeWrite store k = storedWrite store k False
 
 storeWritePart :: forall t a . (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
-storeWritePart store k v = storedWrite store k True v
+storeWritePart store k = storedWrite store k True
 
 {-# NOINLINE putBuffer #-}
 putBuffer a b c = hPutBuf a b c

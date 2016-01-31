@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, BangPatterns, ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
 module Input.Cabal(
     Package(..),
@@ -49,7 +49,7 @@ packagePopularity cbl = (errs, Map.map length good)
     where
         errs =  [ user ++ ".cabal: Import of non-existant package " ++ name ++
                           (if null rest then "" else ", also imported by " ++ show (length rest) ++ " others")
-                | (name,(user:rest)) <- Map.toList bad]
+                | (name, user:rest) <- Map.toList bad]
         (good, bad)  = Map.partitionWithKey (\k _ -> k `Map.member` cbl) $
             Map.fromListWith (++) [(T.unpack b,[a]) | (a,bs) <- Map.toList cbl, b <- packageDepends bs]
 

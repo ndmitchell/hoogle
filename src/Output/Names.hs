@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, DeriveDataTypeable, ForeignFunctionInterface, GADTs #-}
+{-# LANGUAGE ViewPatterns, TupleSections, ScopedTypeVariables, DeriveDataTypeable, ForeignFunctionInterface, GADTs #-}
 
 module Output.Names(writeNames, searchNames) where
 
