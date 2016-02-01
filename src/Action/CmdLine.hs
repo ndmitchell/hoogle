@@ -19,6 +19,7 @@ data CmdLine
     = Search
         {color :: Maybe Bool
         ,link :: Bool
+        ,numbers :: Bool
         ,info :: Bool
         ,database :: FilePath
         ,count :: Int
@@ -72,6 +73,7 @@ cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
 search_ = Search
     {color = def &= name "colour" &= help "Use colored output (requires ANSI terminal)"
     ,link = def &= help "Give URL's for each result"
+    ,numbers = def &= help "Give counter for each result"
     ,info = def &= help "Give extended information about the first result"
     ,database = def &= typFile &= help "Name of database to use (use .hoo extension)"
     ,count = 10 &= name "n" &= help "Maximum number of results to return"

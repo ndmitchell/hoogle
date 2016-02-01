@@ -33,10 +33,13 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
         whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
         let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
         hSetEncoding stdout utf8
-        putStr $ unlines $ map (unescapeHTML . innerTextHTML) shown
+        let toShow = if numbers && not info then addCounter shown else shown
+        putStr $ unlines $ map (unescapeHTML . innerTextHTML) toShow
         when (hidden /= []) $ do
             whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
 
+addCounter :: [String] -> [String]
+addCounter = zipWith (\i x -> show i ++ ") " ++ x) [1..]
 
 withSearch :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
 withSearch database act = do
