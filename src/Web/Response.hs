@@ -85,7 +85,7 @@ runEmbed dbs cq@Search{queryParsed = Right q}
     | null now = "<i>No results found</i>"
     | otherwise = unlines
         ["<a href='" ++ url ++ "'>" ++ showTagHTML (transform f $ self $ snd x) ++ "</a>"
-        | x <- now, let url = fromList "" $ map fst $ locations $ snd x]
+        | x <- now, let url = headDef "" $ map fst $ locations $ snd x]
     where
         now = take (maybe 10 (max 1) $ count cq) $ search dbs q
         f (TagEmph x) = TagBold x

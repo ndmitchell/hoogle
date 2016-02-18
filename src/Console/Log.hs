@@ -29,7 +29,7 @@ instance Show Stats where
         ["Hits:      " ++ show hits
         ,"Searches:  " ++ show searches
         ,"Unique:    " ++ show (Map.size common)
-        ,"Top:       " ++ fromList "" (map (LBS.unpack . fst) top)
+        ,"Top:       " ++ headDef "" (map (LBS.unpack . fst) top)
         ]
         where
             top = take 20 $ sortBy (comparing $ negate . snd) $ Map.toList common
@@ -87,7 +87,7 @@ readEntry x
     | Just ('[',x) <- LBS.uncons x
     = do y <- readList x
          let (a,b) = partition (flip elem qstr . fst) y
-         return entry{search=fromList LBS.empty $ map snd a, extra = b}
+         return entry{search=headDef LBS.empty $ map snd a, extra = b}
     where
         readList x = do
             ('(',x) <- LBS.uncons x
@@ -122,7 +122,7 @@ readEntry o@x
               ys <- readArgs x
               return $ (a,b) : ys
             | otherwise = Just []
-    
+
 
 -- log format v3
 readEntry x
@@ -133,7 +133,7 @@ readEntry x
          args <- readArgs $ LBS.dropWhile isSpace x
          let (a,b) = partition (flip elem qstr . fst) args
          return entry{date = Just d, time = Just t, extra = b,
-            search=fromList LBS.empty $ map snd a,
+            search=headDef LBS.empty $ map snd a,
             unique = if u == "0" then Nothing else Just u}
     where
         readArgs x
