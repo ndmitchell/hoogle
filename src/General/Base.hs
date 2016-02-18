@@ -47,7 +47,7 @@ bsReplace find rep = BS.concat . f
         nfind = BS.length find
 
         f x | BS.null b = [a]
-            | otherwise = a : rep : f (BS.drop nfind b) 
+            | otherwise = a : rep : f (BS.drop nfind b)
             where (a,b) = BS.breakSubstring find x
 
 lbsReplace :: LBString -> LBString -> LBString -> LBString
@@ -159,6 +159,6 @@ chop f as = b : chop f as'
     where (b, as') = f as
 
 
-fromList :: a -> [a] -> a
-fromList x [] = x
-fromList x (y:ys) = y
+headDef :: a -> [a] -> a
+headDef x [] = x
+headDef x (y:ys) = y
