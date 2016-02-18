@@ -14,6 +14,7 @@ import General.Web
 import System.FilePath
 import Hoogle
 import Hoogle.Type.All
+import System.Console.CmdArgs
 
 
 action :: CmdLine -> IO ()
@@ -82,7 +83,9 @@ convert url deps x out src = do
     deps2 <- filterM doesFileExist deps
     when (deps /= deps2) $ putStrLn $ "Warning: " ++ x ++ " doesn't know about dependencies on " ++ unwords (deps \\ deps2)
     dbs <- mapM loadDatabase deps2
-    putStr $ "Converting " ++ x ++ "... "
+    putStrLn $ "Converting " ++ x ++ "... "
     err <- createDatabase url Haskell dbs src out
+    verbose <- isLoud
+    when verbose $ mapM_ print err
     putStrLn "done"
     unless (null err) $ putStrLn $ "Skipped " ++ show (length err) ++ " warnings in " ++ x
