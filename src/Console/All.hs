@@ -53,7 +53,11 @@ action (Convert url from to doc merge haddock) = do
                           else id
 
       addDoc :: Maybe FilePath -> Maybe URL
-      addDoc = addGhcDoc . fmap (\x -> if "http://" `isPrefixOf` x then x else filePathToURL $ x </> "index.html")
+      addDoc = addGhcDoc . fmap toURL
+      toURL x | "http://" `isPrefixOf` x
+             || "https://" `isPrefixOf` x
+             || "file://" `isPrefixOf` x = x
+      toURL x = filePathToURL $ x </> "index.html"
 
       addGhcDoc :: Maybe URL -> Maybe URL
       addGhcDoc x = if isNothing x && takeBaseName from == "ghc"
