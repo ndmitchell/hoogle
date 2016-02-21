@@ -9,6 +9,7 @@ import Data.List.Extra
 import Data.Functor.Identity
 import System.Directory
 import System.IO
+import Data.Maybe
 
 import Output.Items
 import Output.Tags
@@ -33,10 +34,22 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
         whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
         let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
         hSetEncoding stdout utf8
-        let toShow = if numbers && not info then addCounter shown else shown
-        putStr $ unlines $ map (unescapeHTML . innerTextHTML) toShow
-        when (hidden /= []) $ do
-            whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+        if null res then
+            putStrLn "No results found"
+         else if info then do
+            let Target{..} = head res
+            putStrLn (unHTML targetItem)
+            let packageModule = map fst $ catMaybes [targetPackage, targetModule]
+            unless (null packageModule) $
+              putStrLn (unwords packageModule)
+            putStrLn (unHTML targetDocs)
+         else do
+            let toShow = if numbers && not info then addCounter shown else shown
+            putStr $ unlines $ map unHTML toShow
+            when (hidden /= []) $ do
+                whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+
+    where unHTML = unescapeHTML . innerTextHTML
 
 addCounter :: [String] -> [String]
 addCounter = zipWith (\i x -> show i ++ ") " ++ x) [1..]
