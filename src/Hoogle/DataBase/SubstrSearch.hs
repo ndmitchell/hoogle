@@ -79,11 +79,10 @@ createSubstrSearch xs = SubstrSearch
     (listArray (0,length is-1) is)
     where
         (ts,is) = unzip xs
-        (ts2,ls2) = f "" ts
-
-        f x (y:ys) = first (y:) $ second (length y:) $ f y ys
-        f x [] = ([],[])
-
+        (ts2,ls2) = foldr
+          (\t (ts, ls) -> let t' = take 255 t in (t':ts, length t':ls))
+          ([], [])
+          ts
 
 data S a = S
     {sCount :: !Int -- which one are we on
