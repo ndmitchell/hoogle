@@ -26,6 +26,7 @@ import Network.Wai
 import Network.Wai.Internal
 #endif
 import Network.Wai.Handler.Warp
+import Network.Wai.Handler.WarpTLS
 
 
 server :: CmdLine -> IO ()
@@ -33,7 +34,12 @@ server q@Server{..} = do
     resp <- respArgs q
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
-    runSettings (setOnException exception $ setPort port defaultSettings)
+    let
+        settings = (setOnException exception $ setPort port defaultSettings)
+        runServer :: Application -> IO ()
+        runServer = if https then runTLS (tlsSettings cert key) settings
+                             else runSettings settings
+    runServer
 #if MIN_VERSION_wai(3, 0, 0)
       $ \r sendResponse -> do
 #else

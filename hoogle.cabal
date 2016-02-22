@@ -151,6 +151,7 @@ executable hoogle
         parsec >= 2.1,
         wai >= 1.1,
         warp >= 2.1,
+        warp-tls,
         Cabal >= 1.8,
         shake >= 0.14,
         QuickCheck,
