@@ -18,24 +18,24 @@ haddockToHTML = intercalate [""] . map (concatMap linewrap . convert) . join . m
         para = unwords . map trim
 
         paragraphs = filter (not . all empty) . groupBy (\x y -> not (empty x) && not (empty y))
-        
+
         classify xs = case trim (head xs) of
                         "@"    | trim (last xs) == "@", length xs > 1 -> Blk $ tail $ init xs
-                            
+
                         '>':_  | all ((">" `isPrefixOf`) . ltrim) xs  -> Verb $ map (tail . ltrim) xs
-                        
+
                         '[':ys | (cs, ']':zs) <- break (==']') ys     -> Defn [(trim cs, para $ zs : tail xs)]
-                        
+
                         '*':ys                                        -> Li [para $ ys : tail xs]
                         '-':ys                                        -> Li [para $ ys : tail xs]
-                        
+
                         '(':ys | (cs, ')':zs) <- break (==')') ys
                                , all isDigit cs                       -> Numb [para $ zs : tail xs]
                         c:ys | isDigit c
                              , '.':zs <- dropWhile isDigit ys         -> Numb [para $ zs : tail xs]
-                        
+
                         _                                             -> Para $ para xs
-                        
+
         join (Li xs   : Li ys   : zs) = join $ Li   (xs ++ ys) : zs
         join (Numb xs : Numb ys : zs) = join $ Numb (xs ++ ys) : zs
         join (Defn xs : Defn ys : zs) = join $ Defn (xs ++ ys) : zs
@@ -120,12 +120,13 @@ isQName xs = case R.readPrec_to_S R.lexP 0 xs of
 -- Change !Int to Int, HSE bug
 -- Drop {-# UNPACK #-}, Haddock bug
 -- Drop everything after where, Haddock bug
+-- Remove square brackets around symbols
 
 haddockHacks :: Maybe URL -> [String] -> [String]
 haddockHacks loc src = maybe id haddockPackageUrl loc (translate src)
     where
         translate :: [String] -> [String]
-        translate = map (unwords . g . map f . words) . filter (not . isPrefixOf "@version ")
+        translate = map (fixLine . unwords . g . map f . words) . filter (not . isPrefixOf "@version ")
 
         f "::" = "::"
         f (':':xs) = "(:" ++ xs ++ ")"
@@ -138,6 +139,9 @@ haddockHacks loc src = maybe id haddockPackageUrl loc (translate src)
         g ("where":xs) = []
         g (x:xs) = x : g xs
         g [] = []
+
+        fixLine ('[':x:xs) | isAlpha x || x `elem` ("_(" :: String), (a,']':b) <- break (== ']') xs = x : a ++ b
+        fixLine x = x
 
 haddockPackageUrl :: URL -> [String] -> [String]
 haddockPackageUrl x = concatMap f
