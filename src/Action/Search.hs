@@ -4,12 +4,12 @@ module Action.Search(actionSearch, withSearch, search, action_search_test) where
 
 import Control.Monad.Extra
 import Control.DeepSeq
+import Data.Maybe
 import qualified Data.Set as Set
 import Data.List.Extra
 import Data.Functor.Identity
 import System.Directory
 import System.IO
-import Data.Maybe
 
 import Output.Items
 import Output.Tags
@@ -40,8 +40,8 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             let Target{..} = head res
             putStrLn (unHTML targetItem)
             let packageModule = map fst $ catMaybes [targetPackage, targetModule]
-            unless (null packageModule) $
-              putStrLn (unwords packageModule)
+            unless (null packageModule) $ do
+                putStrLn (unwords packageModule)
             putStrLn (unHTML targetDocs)
          else do
             let toShow = if numbers && not info then addCounter shown else shown
