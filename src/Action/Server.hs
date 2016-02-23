@@ -51,7 +51,7 @@ actionServer Server{..} = do
     evaluate spawned
     dataDir <- getDataDir
     withSearch database $ \store ->
-        server log local port $ replyServer log local store cdn (dataDir </> "html")
+        server log local host port $ replyServer log local store cdn (dataDir </> "html")
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
