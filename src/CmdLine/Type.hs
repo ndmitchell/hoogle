@@ -18,18 +18,18 @@ isWebCmdLine _ = False
 
 data CmdLine
     = Search
-        {color :: Bool
-        ,link :: Bool
-        ,info :: Bool
-        ,exact :: Bool
-        ,databases :: [FilePath]
-        ,start :: Maybe Int
-        ,count :: Maybe Int
-        ,web :: Maybe String
-        ,repeat_ :: Int
-        ,queryChunks :: [String]
-        ,queryParsed :: Either ParseError Query
-        ,queryText :: String
+        { color :: Bool
+        , link :: Bool
+        , info :: Bool
+        , exact :: Bool
+        , databases :: [FilePath]
+        , start :: Maybe Int
+        , count :: Maybe Int
+        , web :: Maybe String
+        , repeat_ :: Int
+        , queryChunks :: [String]
+        , queryParsed :: Either ParseError Query
+        , queryText :: String
         }
     | Data {
           hackage    :: String
@@ -41,7 +41,17 @@ data CmdLine
         , actions :: [String]
         , nodownload :: Bool
         }
-    | Server {port :: Int, local_ :: Bool, databases :: [FilePath], resources :: FilePath, dynamic :: Bool, template :: [FilePath]}
+    | Server {
+          port :: Int
+        , local_ :: Bool
+        , databases :: [FilePath]
+        , resources :: FilePath
+        , dynamic :: Bool
+        , template :: [FilePath]
+        , https :: Bool
+        , cert :: FilePath
+        , key :: FilePath
+        }
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {
           hackage :: String
@@ -89,6 +99,9 @@ server = Server
     ,local_ = def &= help "Rewrite and serve file: links (potential security hole)"
     ,dynamic = def &= name "x" &= help "Allow resource files to change during execution"
     ,template = def &= typFile &= help "Template files to use instead of default definitions"
+    ,https = def &= help "Start an https server (use --cert and --key to specify paths to the .pem files)"
+    ,cert = "cert.pem" &= typFile &= help "Path to the certificate pem file (when running an https server)"
+    ,key = "key.pem" &= typFile &= help "Path to the key pem file (when running an https server)"
     } &= help "Start a Hoogle server"
 
 dump = Dump
