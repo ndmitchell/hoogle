@@ -153,15 +153,14 @@ actionGenerate :: CmdLine -> IO ()
 actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
-    (remote,local) <- return $ if not remote && not local then (True,True) else (remote,local)
     gcStats <- getGCStatsEnabled
 
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     (cbl, want, source) <- case language of
-        Haskell | remote -> readRemoteHaskell timing download
-                | otherwise -> readLocalHaskell timing
-        Frege | remote -> readRemoteFrege timing download
-              | otherwise -> errorIO "No support for local Frege databases"
+        Haskell | local -> readLocalHaskell timing
+                | otherwise -> readRemoteHaskell timing download
+        Frege | local -> errorIO "No support for local Frege databases"
+              | otherwise -> readRemoteFrege timing download
     let (cblErrs, popularity) = packagePopularity cbl
     want <- return $ if include /= [] then Set.fromList include else want
 
