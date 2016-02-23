@@ -83,5 +83,6 @@ executable hoogle
         General.Store
         General.Str
         General.Template
+        General.Timing
         General.Util
         General.Web
