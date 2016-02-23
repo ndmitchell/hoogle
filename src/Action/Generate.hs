@@ -91,7 +91,12 @@ generate output metadata  = undefined
 
 readRemoteHaskell :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readRemoteHaskell Generate{..} timing = do
-    downloadInputs (timed timing) insecure download language $ takeDirectory database
+    downloadInputs (timed timing) insecure download (takeDirectory database)
+        [("haskell-stackage.txt","https://www.stackage.org/lts/cabal.config")
+        ,("haskell-platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs")
+        ,("haskell-ghc.txt","http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt")
+        ,("haskell-cabal.tar.gz","https://hackage.haskell.org/packages/index.tar.gz")
+        ,("haskell-hoogle.tar.gz","https://hackage.haskell.org/packages/hoogle.tar.gz")]
 
     -- peakMegabytesAllocated = 2
     let input x = takeDirectory database </> "input-" ++ lower (show language) ++ "-" ++ x
@@ -120,7 +125,9 @@ readRemoteHaskell Generate{..} timing = do
 
 readRemoteFrege :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readRemoteFrege Generate{..} timing = do
-    downloadInputs (timed timing) insecure download language $ takeDirectory database
+    downloadInputs (timed timing) insecure download (takeDirectory database)
+        [("frege-frege.txt","http://try.frege-lang.org/hoogle-frege.txt")]
+
     let input x = takeDirectory database </> "input-" ++ lower (show language) ++ "-" ++ x
     let source = do
             src <- liftIO $ strReadFile $ input "frege.txt"
@@ -128,8 +135,8 @@ readRemoteFrege Generate{..} timing = do
     return (Map.empty, Set.singleton "frege", source)
 
 
-readLocalHaskell :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readLocalHaskell Generate{..} timing = do
+readLocalHaskell :: Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readLocalHaskell timing = do
     cbl <- timed timing "Reading ghc-pkg" readGhcPkg
     let source =
             forM_ (Map.toList cbl) $ \(name,Package{..}) -> whenJust packageDocs $ \docs -> do
@@ -154,7 +161,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
     (cbl, want, source) <- case language of
         Haskell | remote -> readRemoteHaskell g timing
-                | otherwise -> readLocalHaskell g timing
+                | otherwise -> readLocalHaskell timing
         Frege | remote -> readRemoteFrege g timing
               | otherwise -> errorIO "No support for local Frege databases"
     let (cblErrs, popularity) = packagePopularity cbl
