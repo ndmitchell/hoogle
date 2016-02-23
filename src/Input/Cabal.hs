@@ -10,6 +10,7 @@ import Data.List.Extra
 import System.FilePath
 import Control.DeepSeq
 import Control.Exception
+import Control.Monad
 import System.IO.Extra
 import General.Str
 import System.Process
@@ -36,6 +37,12 @@ data Package = Package
     ,packageDepends :: [T.Text] -- The number of packages that directly depend on this package.
     ,packageDocs :: Maybe FilePath -- ^ Directory where the documentation is located
     } deriving Show
+
+instance Monoid Package where
+    mempty = Package [] True T.empty T.empty [] Nothing
+    mappend (Package x1 x2 x3 x4 x5 x6) (Package y1 y2 y3 y4 y5 y6) =
+        Package (x1++y1) (x2||y2) (one x3 y3) (one x4 y4) (nubOrd $ x5 ++ y5) (x6 `mplus` y6)
+        where one a b = if T.null a then b else a
 
 instance NFData Package where
     rnf (Package a b c d e f) = rnf (a,b,c,d,e,f)
