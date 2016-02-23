@@ -126,7 +126,6 @@ readRemoteHaskell timing download = do
 readRemoteFrege :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readRemoteFrege timing download = do
     frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
-
     let source = do
             src <- liftIO $ strReadFile frege
             yield ("frege", "http://google.com/", lstrFromChunks [src])
