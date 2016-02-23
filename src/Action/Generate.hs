@@ -129,7 +129,8 @@ readHaskellDir timing dir = do
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
             yield (name, "https://hackage.haskell.org/package/" ++ name, lstrFromChunks [src])
-    return (Map.empty, Set.fromList $ map fst packages, source)
+    return (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages
+           ,Set.fromList $ map fst packages, source)
 
 
 readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
