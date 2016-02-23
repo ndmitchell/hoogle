@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, CPP, ViewPatterns #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, CPP, ViewPatterns, RecordWildCards #-}
 
 module General.Web(
     Input(..), Output(..), readInput, server
@@ -10,8 +10,10 @@ module General.Web(
 -- Tracked as https://github.com/yesodweb/wai/issues/311
 #ifndef PROFILE
 import Network.Wai.Handler.Warp hiding (Port, Handle)
+import Network.Wai.Handler.WarpTLS
 #endif
 
+import Action.CmdLine
 import Network.Wai.Logger
 import Network.Wai
 import Control.DeepSeq
@@ -21,6 +23,7 @@ import General.Str
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.List.Extra
+import Data.String
 import Data.Tuple.Extra
 import Data.Monoid
 import System.FilePath
@@ -53,16 +56,22 @@ instance NFData Output where
     rnf (OutputFile x) = rnf x
 
 
-server :: Log -> Bool -> Int -> (Input -> IO Output) -> IO ()
+server :: Log -> CmdLine -> (Input -> IO Output) -> IO ()
 #ifdef PROFILE
-server log local port act = return ()
+server _ _ _ = return ()
 #else
-server log local port act = do
+server log Server{..} act = do
     logAddMessage log $ "Server started on port " ++ show port
-    let set = setOnExceptionResponse exceptionResponseForDebug
-            . setPort port
-            . (if local then setHost "127.0.0.1" else id)
-    runSettings (set defaultSettings) $ \req reply -> do
+    let
+        host' = fromString $ if local then "127.0.0.1" else host
+        set = setOnExceptionResponse exceptionResponseForDebug
+            . setHost host'
+            . setPort port $
+            defaultSettings
+        runServer :: Application -> IO ()
+        runServer = if https then runTLS (tlsSettings cert key) set
+                             else runSettings set
+    runServer $ \req reply -> do
         putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
         let pay = Input (map Text.unpack $ pathInfo req)
                         [(strUnpack a, maybe "" strUnpack b) | (a,b) <- queryString req]

@@ -38,7 +38,7 @@ import Prelude
 
 
 actionServer :: CmdLine -> IO ()
-actionServer Server{..} = do
+actionServer cmd@Server{..} = do
     -- so I can get good error messages
     hSetBuffering stdout LineBuffering
     hSetBuffering stderr LineBuffering
@@ -51,7 +51,7 @@ actionServer Server{..} = do
     evaluate spawned
     dataDir <- getDataDir
     withSearch database $ \store ->
-        server log local port $ replyServer log local store cdn (dataDir </> "html")
+        server log cmd $ replyServer log local store cdn (dataDir </> "html")
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
