@@ -157,9 +157,9 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     (cbl, want, source) <- case language of
-        Haskell | local -> readHaskellGhcpkg timing
+        Haskell | local_ -> readHaskellGhcpkg timing
                 | otherwise -> readHaskellOnline timing download
-        Frege | local -> errorIO "No support for local Frege databases"
+        Frege | local_ -> errorIO "No support for local Frege databases"
               | otherwise -> readFregeOnline timing download
     let (cblErrs, popularity) = packagePopularity cbl
     want <- return $ if include /= [] then Set.fromList include else want

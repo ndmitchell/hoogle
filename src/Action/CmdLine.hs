@@ -33,7 +33,7 @@ data CmdLine
         ,database :: FilePath
         ,insecure :: Bool
         ,include :: [String]
-        ,local :: Bool
+        ,local_ :: Bool
         ,debug :: Bool
         ,language :: Language
         }
@@ -102,7 +102,7 @@ generate = Generate
     ,download = def &= help "Download all files from the web"
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
-    ,local = def &= help "Index local packages"
+    ,local_ = def &= help "Index local packages"
     ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"
 
