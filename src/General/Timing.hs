@@ -13,7 +13,7 @@ import GHC.Stats
 import Control.Monad.IO.Class
 
 
-data Timing = Timing (Maybe (IORef [(String, Double)]))
+newtype Timing = Timing (Maybe (IORef [(String, Double)]))
 
 withTiming :: Maybe FilePath -> (Timing -> IO a) -> IO a
 withTiming file f = do
