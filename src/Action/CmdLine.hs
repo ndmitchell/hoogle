@@ -45,6 +45,7 @@ data CmdLine
         ,logs :: FilePath
         ,local :: Bool
         ,language :: Language
+        ,host :: String
         }
     | Replay
         {logs :: FilePath
@@ -97,6 +98,7 @@ server = Server
     ,cdn = "" &= typ "URL" &= help "URL prefix to use"
     ,logs = "" &= opt "log.txt" &= typFile &= help "File to log requests to (defaults to stdout)"
     ,local = False &= help "Allow following file:// links, restricts to 127.0.0.1"
+    ,host = "*" &= help "Set the host to bind on (e.g., an ip address; '!4' for ipv4-only; '!6' for ipv6-only; default: '*' for any host)."
     } &= help "Start a Hoogle server"
 
 replay = Replay
