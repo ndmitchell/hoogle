@@ -1,7 +1,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-} -- Use conduitManagerSettings to work with http-conduit-2.1.6 and below
 
-module Input.Download(downloadInputs) where
+module Input.Download(downloadInput) where
 
 import System.FilePath
 import Control.Monad.Extra
@@ -17,17 +17,17 @@ import Control.Monad.Trans.Resource
 
 
 -- | Download all the input files to input/
-downloadInputs :: Timing -> Bool -> Maybe Bool -> FilePath -> [(String, URL)] -> IO ()
-downloadInputs timing insecure download dir urls = do
-    forM_ urls $ \(name, url) -> do
-        let file = dir </> "input-" ++ name
-        exists <- doesFileExist file
-        when (not exists && download == Just False) $
-            error $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
-        when (not exists || download == Just True) $
-            timed timing ("Downloading " ++ url) $ do
-                downloadFile insecure (file <.> "part") url
-                renameFile (file <.> "part") file
+downloadInput :: Timing -> Bool -> Maybe Bool -> FilePath -> String -> URL -> IO FilePath
+downloadInput timing insecure download dir name url = do
+    let file = dir </> "input-" ++ name
+    exists <- doesFileExist file
+    when (not exists && download == Just False) $
+        error $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
+    when (not exists || download == Just True) $
+        timed timing ("Downloading " ++ url) $ do
+            downloadFile insecure (file <.> "part") url
+            renameFile (file <.> "part") file
+    return file
 
 downloadFile :: Bool -> FilePath -> String -> IO ()
 downloadFile insecure file url = withSocketsDo $ do

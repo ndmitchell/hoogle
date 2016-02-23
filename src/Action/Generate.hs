@@ -89,22 +89,22 @@ generate output metadata  = undefined
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
-readRemoteHaskell :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readRemoteHaskell Generate{..} timing = do
-    downloadInputs timing insecure download (takeDirectory database)
-        [("haskell-stackage.txt","https://www.stackage.org/lts/cabal.config")
-        ,("haskell-platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs")
-        ,("haskell-ghc.txt","http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt")
-        ,("haskell-cabal.tar.gz","https://hackage.haskell.org/packages/index.tar.gz")
-        ,("haskell-hoogle.tar.gz","https://hackage.haskell.org/packages/hoogle.tar.gz")]
+type Download = String -> URL -> IO FilePath
+
+readRemoteHaskell :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readRemoteHaskell timing download = do
+    stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
+    platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
+    ghcapi   <- download "haskell-ghc.txt" "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt"
+    cabals   <- download "haskell-cabal.tar.gz" "https://hackage.haskell.org/packages/index.tar.gz"
+    hoogles  <- download "haskell-hoogle.tar.gz" "https://hackage.haskell.org/packages/hoogle.tar.gz"
 
     -- peakMegabytesAllocated = 2
-    let input x = takeDirectory database </> "input-" ++ lower (show language) ++ "-" ++ x
-    setStackage <- setStackage $ input "stackage.txt"
-    setPlatform <- setPlatform $ input "platform.txt"
-    setGHC <- setGHC $ input "platform.txt"
+    setStackage <- setStackage stackage
+    setPlatform <- setPlatform platform
+    setGHC <- setGHC platform
 
-    cbl <- timed timing "Reading Cabal" $ parseCabalTarball $ input "cabal.tar.gz"
+    cbl <- timed timing "Reading Cabal" $ parseCabalTarball cabals
     let want = Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
     cbl <- return $ flip Map.mapWithKey cbl $ \name p ->
         p{packageTags =
@@ -114,23 +114,21 @@ readRemoteHaskell Generate{..} timing = do
             packageTags p}
 
     let source = do
-            tar <- liftIO $ tarballReadFiles $ input "hoogle.tar.gz"
+            tar <- liftIO $ tarballReadFiles hoogles
             forM_ tar $ \(takeBaseName -> name, src) ->
                 yield (name, "https://hackage.haskell.org/package/" ++ name, src)
-            src <- liftIO $ strReadFile $ input "ghc.txt"
+            src <- liftIO $ strReadFile ghcapi
             let url = "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/"
             yield ("ghc", url, lstrFromChunks [src])
     return (cbl, want, source)
 
 
-readRemoteFrege :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readRemoteFrege Generate{..} timing = do
-    downloadInputs timing insecure download (takeDirectory database)
-        [("frege-frege.txt","http://try.frege-lang.org/hoogle-frege.txt")]
+readRemoteFrege :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readRemoteFrege timing download = do
+    frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
 
-    let input x = takeDirectory database </> "input-" ++ lower (show language) ++ "-" ++ x
     let source = do
-            src <- liftIO $ strReadFile $ input "frege.txt"
+            src <- liftIO $ strReadFile frege
             yield ("frege", "http://google.com/", lstrFromChunks [src])
     return (Map.empty, Set.singleton "frege", source)
 
@@ -159,10 +157,11 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     (remote,local) <- return $ if not remote && not local then (True,True) else (remote,local)
     gcStats <- getGCStatsEnabled
 
+    download <- return $ downloadInput timing insecure download (takeDirectory database)
     (cbl, want, source) <- case language of
-        Haskell | remote -> readRemoteHaskell g timing
+        Haskell | remote -> readRemoteHaskell timing download
                 | otherwise -> readLocalHaskell timing
-        Frege | remote -> readRemoteFrege g timing
+        Frege | remote -> readRemoteFrege timing download
               | otherwise -> errorIO "No support for local Frege databases"
     let (cblErrs, popularity) = packagePopularity cbl
     want <- return $ if include /= [] then Set.fromList include else want
