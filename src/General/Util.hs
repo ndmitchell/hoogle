@@ -196,12 +196,6 @@ strict act = do
         Right v -> do evaluate $ rnf v; return v
 
 -- I would like to use the storable-tuple package, but it's not in Stackage
-instance Storable () where
-    sizeOf _ = 0
-    alignment _ = 1
-    peek _ = return ()
-    poke _ _ = return ()
-
 instance forall a b . (Storable a, Storable b) => Storable (a,b) where
     sizeOf x = sizeOf (fst x) + sizeOf (snd x)
     alignment x = alignment (fst x) `max` alignment (snd x) -- dodgy, but enough for my purposes
