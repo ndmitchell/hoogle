@@ -123,6 +123,16 @@ readHaskellOnline timing download = do
     return (cbl, want, source)
 
 
+readHaskellDir :: Timing -> FilePath -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellDir timing dir = do
+    files <- listFiles dir
+    let source = forM_ files $ \file -> do
+            let pkg = takeBaseName file
+            src <- liftIO $ strReadFile file
+            yield (pkg, "https://hackage.haskell.org/package/" ++ pkg, lstrFromChunks [src])
+    return (Map.empty, Set.fromList $ map takeBaseName files, source)
+
+
 readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readFregeOnline timing download = do
     frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
@@ -157,9 +167,10 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     (cbl, want, source) <- case language of
-        Haskell | local_ -> readHaskellGhcpkg timing
+        Haskell | Just "" <- local_ -> readHaskellGhcpkg timing
+                | Just dir <- local_ -> readHaskellDir timing dir
                 | otherwise -> readHaskellOnline timing download
-        Frege | local_ -> errorIO "No support for local Frege databases"
+        Frege | isJust local_ -> errorIO "No support for local Frege databases"
               | otherwise -> readFregeOnline timing download
     let (cblErrs, popularity) = packagePopularity cbl
     want <- return $ if include /= [] then Set.fromList include else want
