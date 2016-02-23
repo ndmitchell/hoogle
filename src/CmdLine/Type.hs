@@ -51,6 +51,7 @@ data CmdLine
         , https :: Bool
         , cert :: FilePath
         , key :: FilePath
+        , host :: String
         }
     | Combine {srcfiles :: [FilePath], outfile :: String}
     | Convert {
@@ -102,6 +103,7 @@ server = Server
     ,https = def &= help "Start an https server (use --cert and --key to specify paths to the .pem files)"
     ,cert = "cert.pem" &= typFile &= help "Path to the certificate pem file (when running an https server)"
     ,key = "key.pem" &= typFile &= help "Path to the key pem file (when running an https server)"
+    ,host = "*" &= help "Set the host to bind on (e.g., an ip address; '!4' for ipv4-only; '!6' for ipv6-only; default: '*' for any host)."
     } &= help "Start a Hoogle server"
 
 dump = Dump

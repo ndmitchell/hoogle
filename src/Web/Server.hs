@@ -35,7 +35,9 @@ server q@Server{..} = do
     v <- newMVar ()
     putStrLn $ "Starting Hoogle Server on port " ++ show port
     let
-        settings = (setOnException exception $ setPort port defaultSettings)
+        settings = setOnException exception $
+                   setHost (fromString host) $
+                   setPort port defaultSettings
         runServer :: Application -> IO ()
         runServer = if https then runTLS (tlsSettings cert key) settings
                              else runSettings settings
