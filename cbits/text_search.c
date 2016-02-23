@@ -69,7 +69,7 @@ char* memmem_(char* haystack, size_t hlen, char* needle, size_t nlen)
     if (nlen == 0) return haystack; // degenerate edge case
     if (hlen < nlen) return 0; // another degenerate edge case
     char *hlimit = haystack + hlen - nlen + 1;
-    while (haystack = memchr(haystack, needle[0], hlimit-haystack))
+    while ((haystack = memchr(haystack, needle[0], hlimit-haystack)))
     {
         if (!memcmp(haystack, needle, nlen)) return haystack;
         haystack++;
