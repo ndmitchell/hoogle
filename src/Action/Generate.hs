@@ -156,15 +156,10 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     (remote,local) <- return $ if not remote && not local then (True,True) else (remote,local)
     gcStats <- getGCStatsEnabled
 
-    -- fix up people using Hoogle 4 instructions
-    args <- if "all" `notElem` include then return include else do
-        putStrLn "Warning: 'all' argument is no longer required, and has been ignored."
-        return $ delete "all" include
-
     (cbl, want, source) <-
         if remote then readRemote g timing else readLocal g timing
     let (cblErrs, popularity) = packagePopularity cbl
-    want <- return $ if args /= [] then Set.fromList args else want
+    want <- return $ if include /= [] then Set.fromList include else want
 
     (stats, _) <- storeWriteFile database $ \store -> do
         xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do
@@ -188,7 +183,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                     source =$=
                     filterC (flip Set.member want . fst3) =$=
                         ((fmap Set.fromList $ mapC fst3 =$= sinkList) |$|
-                        (((zipFromC 1 =$= consume) >> when (null args) (sourceList packages))
+                        (((zipFromC 1 =$= consume) >> when (null include) (sourceList packages))
                             =$= pipelineC 10 (items =$= sinkList)))
 
                 let missing = [x | x <- Set.toList $ want `Set.difference` seen

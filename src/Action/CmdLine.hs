@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse #-}
 
 module Action.CmdLine(
@@ -66,9 +66,21 @@ data CmdLine
 getCmdLine :: IO CmdLine
 getCmdLine = do
     args <- cmdArgsRun cmdLineMode
-    if database args /= "" then return args else do
+
+    -- fill in the default database
+    args <- if database args /= "" then return args else do
         dir <- getAppUserDataDirectory "hoogle"
         return $ args{database=dir </> "default-" ++ lower (show $ language args) ++ "-" ++ showVersion version ++ ".hoo"}
+
+    -- fix up people using Hoogle 4 instructions
+    args <- case args of
+        Generate{..} | "all" `elem` include -> do
+            putStrLn "Warning: 'all' argument is no longer required, and has been ignored."
+            return $ args{include = delete "all" include}
+        _ -> return args
+
+    return args
+
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
     &= verbosity &= program "hoogle"
