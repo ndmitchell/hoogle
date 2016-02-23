@@ -91,7 +91,7 @@ generate output metadata  = undefined
 
 readRemoteHaskell :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readRemoteHaskell Generate{..} timing = do
-    downloadInputs (timed timing) insecure download (takeDirectory database)
+    downloadInputs timing insecure download (takeDirectory database)
         [("haskell-stackage.txt","https://www.stackage.org/lts/cabal.config")
         ,("haskell-platform.txt","https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs")
         ,("haskell-ghc.txt","http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt")
@@ -125,7 +125,7 @@ readRemoteHaskell Generate{..} timing = do
 
 readRemoteFrege :: CmdLine -> Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readRemoteFrege Generate{..} timing = do
-    downloadInputs (timed timing) insecure download (takeDirectory database)
+    downloadInputs timing insecure download (takeDirectory database)
         [("frege-frege.txt","http://try.frege-lang.org/hoogle-frege.txt")]
 
     let input x = takeDirectory database </> "input-" ++ lower (show language) ++ "-" ++ x

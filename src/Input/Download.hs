@@ -11,20 +11,21 @@ import qualified Network.HTTP.Conduit as C
 import Network.Connection
 import qualified Data.Conduit as C
 import General.Util
+import General.Timing
 import Network
 import Control.Monad.Trans.Resource
 
 
 -- | Download all the input files to input/
-downloadInputs :: (String -> IO () -> IO ()) -> Bool -> Maybe Bool -> FilePath -> [(String, URL)] -> IO ()
-downloadInputs timed insecure download dir urls = do
+downloadInputs :: Timing -> Bool -> Maybe Bool -> FilePath -> [(String, URL)] -> IO ()
+downloadInputs timing insecure download dir urls = do
     forM_ urls $ \(name, url) -> do
         let file = dir </> "input-" ++ name
         exists <- doesFileExist file
         when (not exists && download == Just False) $
             error $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
         when (not exists || download == Just True) $
-            timed ("Downloading " ++ url) $ do
+            timed timing ("Downloading " ++ url) $ do
                 downloadFile insecure (file <.> "part") url
                 renameFile (file <.> "part") file
 
