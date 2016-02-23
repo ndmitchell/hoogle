@@ -91,8 +91,8 @@ generate output metadata  = undefined
 
 type Download = String -> URL -> IO FilePath
 
-readRemoteHaskell :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readRemoteHaskell timing download = do
+readHaskellOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellOnline timing download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
     ghcapi   <- download "haskell-ghc.txt" "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt"
@@ -123,8 +123,8 @@ readRemoteHaskell timing download = do
     return (cbl, want, source)
 
 
-readRemoteFrege :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readRemoteFrege timing download = do
+readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readFregeOnline timing download = do
     frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
     let source = do
             src <- liftIO $ strReadFile frege
@@ -132,8 +132,8 @@ readRemoteFrege timing download = do
     return (Map.empty, Set.singleton "frege", source)
 
 
-readLocalHaskell :: Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readLocalHaskell timing = do
+readHaskellGhcpkg :: Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellGhcpkg timing = do
     cbl <- timed timing "Reading ghc-pkg" readGhcPkg
     let source =
             forM_ (Map.toList cbl) $ \(name,Package{..}) -> whenJust packageDocs $ \docs -> do
@@ -157,10 +157,10 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     (cbl, want, source) <- case language of
-        Haskell | local -> readLocalHaskell timing
-                | otherwise -> readRemoteHaskell timing download
+        Haskell | local -> readHaskellGhcpkg timing
+                | otherwise -> readHaskellOnline timing download
         Frege | local -> errorIO "No support for local Frege databases"
-              | otherwise -> readRemoteFrege timing download
+              | otherwise -> readFregeOnline timing download
     let (cblErrs, popularity) = packagePopularity cbl
     want <- return $ if include /= [] then Set.fromList include else want
 
