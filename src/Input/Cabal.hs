@@ -23,6 +23,7 @@ import qualified Data.Map.Strict as Map
 import General.Util
 import General.Conduit
 import Paths_hoogle
+import Data.Monoid
 import Control.Applicative
 import Prelude
 
