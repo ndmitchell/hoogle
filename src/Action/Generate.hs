@@ -13,6 +13,7 @@ import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Control.Monad.Extra
+import Control.Applicative
 import System.Console.CmdArgs.Verbosity
 import Prelude
 
