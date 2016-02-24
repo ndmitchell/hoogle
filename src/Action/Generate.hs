@@ -14,6 +14,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import Control.Monad.Extra
 import Control.Applicative
+import Data.Monoid
 import System.Console.CmdArgs.Verbosity
 import Prelude
 
