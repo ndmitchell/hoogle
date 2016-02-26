@@ -29,8 +29,7 @@ data CmdLine
         ,language :: Language
         }
     | Generate
-        {hackage :: String
-        ,download :: Maybe Bool
+        {download :: Maybe Bool
         ,database :: FilePath
         ,insecure :: Bool
         ,include :: [String]
@@ -103,8 +102,7 @@ search_ = Search
     } &= help "Perform a search"
 
 generate = Generate
-    {hackage = "https://hackage.haskell.org/" &= typ "URL" &= help "Hackage instance to target"
-    ,download = def &= help "Download all files from the web"
+    {download = def &= help "Download all files from the web"
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
     ,local_ = def &= opt "" &= help "Index local packages"
