@@ -6,7 +6,7 @@ module General.Util(
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
-    testing, testing_,
+    testing, testing_, testEq,
     showUTCTime,
     strict,
     withs,
@@ -168,6 +168,10 @@ joinPair sep (a,b) = a ++ sep ++ b
 testing_, testing :: String -> IO () -> IO ()
 testing_ name act = do putStr $ "Test " ++ name ++ " "; act
 testing name act = do testing_ name act; putStrLn ""
+
+testEq :: (Show a, Eq a) => a -> a -> IO ()
+testEq a b | a == b = putStr "."
+           | otherwise = errorIO $ "Expected equal, but " ++ show a ++ " /= " ++ show b
 
 showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale
