@@ -29,7 +29,7 @@ outputItem Target{..} =
     replace [""] ["."] (lines targetDocs)
 
 inputItem :: [String] -> Target
-inputItem (url:pkg:modu:typ:self:docs) =
+inputItem (url:pkg:modu:typ:self:docs) = targetExpandURL $
     Target (if url == "." then "" else url) (f pkg) (f modu) (if typ == "." then "" else typ) self (unlines $ replace ["."] [""] docs)
     where
         f "." = Nothing
