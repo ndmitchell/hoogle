@@ -7,8 +7,8 @@ import System.Time.Extra
 import Data.IORef
 import Data.Maybe
 import Control.Monad.Extra
-import Numeric.Extra
 import System.IO
+import General.Util
 import GHC.Stats
 import Control.Monad.IO.Class
 
@@ -27,7 +27,7 @@ withTiming file f = do
         -- Most of that comes from the pipeline - we get occasional 0.01 between items as one flushes
         -- Then at the end there is ~0.5 while the final item flushes
         ref <- return $ reverse $ sortOn snd $ ("Unrecorded",end - sum (map snd ref)) : ref
-        writeFile file $ unlines [showDP 2 b ++ "\t" ++ a | (a,b) <- ("Total",end) : ref]
+        writeFile file $ unlines $ prettyTable 2 "Secs" ref
     putStrLn $ "Took " ++ showDuration end
     return res
 
