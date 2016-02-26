@@ -3,6 +3,7 @@
 
 module Action.CmdLine(
     CmdLine(..), Language(..), getCmdLine,
+    defaultGenerate,
     whenLoud, whenNormal
     ) where
 
@@ -79,6 +80,10 @@ getCmdLine = do
         _ -> return args
 
     return args
+
+
+defaultGenerate :: CmdLine
+defaultGenerate = generate{language=Haskell}
 
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
