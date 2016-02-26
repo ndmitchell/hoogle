@@ -66,10 +66,10 @@ hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
         f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (Just t{targetURL=url}, IPackage x))
             where url = targetURL t `orIfNull` packageUrl
         f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, IModule x))
-            where url = targetURL t `orIfNull` let p = maybe "" snd pkg in p ++ (if "/" `isSuffixOf` p then "" else "/docs/") ++ replace "." "-" x ++ ".html"
+            where url = targetURL t `orIfNull` "/docs/" ++ replace "." "-" x ++ ".html"
         f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
         f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
-            where url = targetURL t `orIfNull` maybe "" snd mod ++ "#" ++ declURL x
+            where url = targetURL t `orIfNull` "#" ++ declURL x
 
         hseToItem_ x = fromMaybe (error $ "hseToItem failed, " ++ pretty x) $ hseToItem x
         infix 1 `orIfNull`
