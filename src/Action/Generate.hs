@@ -127,7 +127,7 @@ readHaskellOnline timing download = do
 
 readHaskellDir :: Timing -> FilePath -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readHaskellDir timing dir = do
-    packages <- map (takeBaseName &&& id) <$> listFiles dir
+    packages <- map (takeBaseName &&& id) . filter ((==) ".txt" . takeExtension) <$> listFiles dir
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
             yield (name, "https://hackage.haskell.org/package/" ++ name, lstrFromChunks [src])
