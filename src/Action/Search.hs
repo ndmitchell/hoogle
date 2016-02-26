@@ -86,6 +86,9 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
     let a === b = a ==$ (== b)
     let hackage x = "https://hackage.haskell.org/package/" ++ x
     if sample then do
+        "__prefix__" === "http://henry.com?too_long"
+        "__suffix__" === "http://henry.com?too_long"
+        "__infix__" === "http://henry.com?too_long"
         when False $ "Wife" === "http://eghmitchell.com/Mitchell.html#a_wife"
      else do
         "base" === hackage "base"
