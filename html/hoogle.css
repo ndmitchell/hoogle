@@ -89,7 +89,7 @@ form {
     vertical-align: bottom;
 }
 #scope_chosen, #scope {
-    max-width: 200px;
+    width: 200px;
 }
 #scope_chosen .chosen-drop {
     width: 400px;
