@@ -81,7 +81,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
     let a ==$ f = do
             res <- return $ snd $ search store (parseQuery a)
             case res of
-                Target{..}:_ | f targetURL -> putChar '.'
+                t:_ | f $ targetURL $ targetExpandURL t -> putChar '.'
                 _ -> error $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res)
     let a === b = a ==$ (== b)
     let hackage x = "https://hackage.haskell.org/package/" ++ x

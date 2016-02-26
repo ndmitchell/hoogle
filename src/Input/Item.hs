@@ -1,10 +1,11 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, OverloadedStrings, PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor #-}
+{-# LANGUAGE RecordWildCards, OverloadedStrings, PatternGuards, ScopedTypeVariables #-}
 
 -- | Types used to generate the input.
 module Input.Item(
     Sig(..), Ctx(..), Ty(..),
     Item(..), itemName,
-    Target(..), TargetId(..),
+    Target(..), targetExpandURL, TargetId(..),
     splitIPackage, splitIModule,
     hseToSig, hseToItem
     ) where
@@ -13,6 +14,7 @@ import Numeric
 import Control.Applicative
 import Data.Tuple.Extra
 import Language.Haskell.Exts
+import Data.Char
 import Data.List.Extra
 import Data.Maybe
 import Data.Ix
@@ -100,6 +102,17 @@ data Target = Target
 
 instance NFData Target where
     rnf (Target a b c d e f) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e `seq` rnf f
+
+targetExpandURL :: Target -> Target
+targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const mod) <$> targetModule}
+    where
+        pkg = maybe "" snd targetPackage
+        mod = maybe pkg (plus pkg . snd) targetModule
+        url = plus mod targetURL
+
+        plus a b | b == "" = ""
+                 | ':':_ <- dropWhile isAsciiLower b = b -- match http: etc
+                 | otherwise = a ++ b
 
 
 splitIPackage, splitIModule :: [(a, Item)] -> [(String, [(a, Item)])]
