@@ -1,3 +1,5 @@
+-- Script to upgrade a copy of Hoogle, run every day on haskell.org.
+-- See docs/Haskell.org.md for details.
 
 import Data.List.Extra
 import Control.Monad
