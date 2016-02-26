@@ -38,7 +38,7 @@ Add the GHC/Cabal binaries to the `$PATH` in the `~/.profile`.
 Create a shell script `update.sh`:
 
 	cd /home/www
-	wget https://raw.githubusercontent.com/ndmitchell/hoogle/master/script/Upgrade.hs -O - --no-check-certificate --quiet | runhaskell
+	wget https://raw.githubusercontent.com/ndmitchell/hoogle/master/misc/Upgrade.hs -O - --no-check-certificate --quiet | runhaskell
 
 Then configure updating every day at 8pm. Add a Cron job by using `crontab -e` and adding the line:
 
