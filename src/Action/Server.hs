@@ -233,6 +233,8 @@ action_server_test sample database = do
          else do
             "<>" === "<span class=name>(<b>&lt;&gt;</b>)</span>"
             "filt" === "<span class=name><b>filt</b>er</span>"
+            "True" === "https://hackage.haskell.org/package/base/docs/Prelude.html#v:True"
+
 
 -------------------------------------------------------------
 -- ANALYSE THE LOG
