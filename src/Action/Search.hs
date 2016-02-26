@@ -76,8 +76,8 @@ search store qs = runIdentity $ do
     return (qs, map look $ filter filt is)
 
 
-action_search_test :: FilePath -> IO ()
-action_search_test database = testing "Action.Search.search" $ withSearch database $ \store -> do
+action_search_test :: Bool -> FilePath -> IO ()
+action_search_test sample database = testing "Action.Search.search" $ withSearch database $ \store -> do
     let a ==$ f = do
             res <- return $ snd $ search store (parseQuery a)
             case res of
@@ -85,45 +85,48 @@ action_search_test database = testing "Action.Search.search" $ withSearch databa
                 _ -> error $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res)
     let a === b = a ==$ (== b)
     let hackage x = "https://hackage.haskell.org/package/" ++ x
-    "base" === hackage "base"
-    "Prelude" === hackage "base/docs/Prelude.html"
-    "map" === hackage "base/docs/Prelude.html#v:map"
-    "map package:base" === hackage "base/docs/Prelude.html#v:map"
-    "True" === hackage "base/docs/Prelude.html#v:True"
-    "Bool" === hackage "base/docs/Prelude.html#t:Bool"
-    "String" === hackage "base/docs/Prelude.html#t:String"
-    "Ord" === hackage "base/docs/Prelude.html#t:Ord"
-    ">>=" === hackage "base/docs/Prelude.html#v:-62--62--61-"
-    "sequen" === hackage "base/docs/Prelude.html#v:sequence"
-    "foldl'" === hackage "base/docs/Data-List.html#v:foldl-39-"
-    "Action package:shake" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
-    "Action package:shake set:stackage" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
-    "map -package:base" ==$ \x -> not $ "/base/" `isInfixOf` x
-    "<>" === hackage "base/docs/Data-Monoid.html#v:-60--62-"
-    "Data.Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
-    "Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
-    "Prelude.mapM_" === hackage "base/docs/Prelude.html#v:mapM_"
-    "Data.Complex.(:+)" === hackage "base/docs/Data-Complex.html#v::-43-"
-    "\8801" === hackage "base-unicode-symbols/docs/Data-Eq-Unicode.html#v:-8801-"
-    "\8484" === hackage "base-unicode-symbols/docs/Prelude-Unicode.html#t:-8484-"
-    "copilot" === hackage "copilot"
-    "supero" === hackage "supero"
-    "set:stackage" === hackage "base"
-    "author:Neil-Mitchell" === hackage "filepath"
-    -- FIXME: "author:Neil-M" === hackage "filepath"
-    -- FIXME: "Data.Se.insert" === hackage "containers/docs/Data-Set.html#v:insert"
-    "set:-haskell-platform author:Neil-Mitchell" === hackage "cmdargs"
-    "author:Neil-Mitchell category:Development" === hackage "derive"
-    "( )" ==$ flip seq True -- used to segfault
-    "( -is:exact) package:base=" ==$ flip seq True
-    "(a -> b) -> [a] -> [b]" === hackage "base/docs/Prelude.html#v:map"
-    "Ord a => [a] -> [a]" === hackage "base/docs/Data-List.html#v:sort"
-    "ShakeOptions -> Int" === hackage "shake/docs/Development-Shake.html#v:shakeThreads"
-    "is:module" === hackage "base/docs/Prelude.html"
+    if sample then do
+        when False $ "Wife" === "http://eghmitchell.com/Mitchell.html#a_wife"
+     else do
+        "base" === hackage "base"
+        "Prelude" === hackage "base/docs/Prelude.html"
+        "map" === hackage "base/docs/Prelude.html#v:map"
+        "map package:base" === hackage "base/docs/Prelude.html#v:map"
+        "True" === hackage "base/docs/Prelude.html#v:True"
+        "Bool" === hackage "base/docs/Prelude.html#t:Bool"
+        "String" === hackage "base/docs/Prelude.html#t:String"
+        "Ord" === hackage "base/docs/Prelude.html#t:Ord"
+        ">>=" === hackage "base/docs/Prelude.html#v:-62--62--61-"
+        "sequen" === hackage "base/docs/Prelude.html#v:sequence"
+        "foldl'" === hackage "base/docs/Data-List.html#v:foldl-39-"
+        "Action package:shake" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
+        "Action package:shake set:stackage" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
+        "map -package:base" ==$ \x -> not $ "/base/" `isInfixOf` x
+        "<>" === hackage "base/docs/Data-Monoid.html#v:-60--62-"
+        "Data.Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
+        "Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
+        "Prelude.mapM_" === hackage "base/docs/Prelude.html#v:mapM_"
+        "Data.Complex.(:+)" === hackage "base/docs/Data-Complex.html#v::-43-"
+        "\8801" === hackage "base-unicode-symbols/docs/Data-Eq-Unicode.html#v:-8801-"
+        "\8484" === hackage "base-unicode-symbols/docs/Prelude-Unicode.html#t:-8484-"
+        "copilot" === hackage "copilot"
+        "supero" === hackage "supero"
+        "set:stackage" === hackage "base"
+        "author:Neil-Mitchell" === hackage "filepath"
+        -- FIXME: "author:Neil-M" === hackage "filepath"
+        -- FIXME: "Data.Se.insert" === hackage "containers/docs/Data-Set.html#v:insert"
+        "set:-haskell-platform author:Neil-Mitchell" === hackage "cmdargs"
+        "author:Neil-Mitchell category:Development" === hackage "derive"
+        "( )" ==$ flip seq True -- used to segfault
+        "( -is:exact) package:base=" ==$ flip seq True
+        "(a -> b) -> [a] -> [b]" === hackage "base/docs/Prelude.html#v:map"
+        "Ord a => [a] -> [a]" === hackage "base/docs/Data-List.html#v:sort"
+        "ShakeOptions -> Int" === hackage "shake/docs/Development-Shake.html#v:shakeThreads"
+        "is:module" === hackage "base/docs/Prelude.html"
 
-    let tags = completionTags store
-    let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
-    asserts ("set:haskell-platform" `elem` tags) "set:haskell-platform `elem` tags"
-    asserts ("author:Neil-Mitchell" `elem` tags) "author:Neil-Mitchell `elem` tags"
-    asserts ("package:uniplate" `elem` tags) "package:uniplate `elem` tags"
-    asserts ("package:supero" `notElem` tags) "package:supero `notElem` tags"
+        let tags = completionTags store
+        let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
+        asserts ("set:haskell-platform" `elem` tags) "set:haskell-platform `elem` tags"
+        asserts ("author:Neil-Mitchell" `elem` tags) "author:Neil-Mitchell `elem` tags"
+        asserts ("package:uniplate" `elem` tags) "package:uniplate `elem` tags"
+        asserts ("package:supero" `notElem` tags) "package:supero `notElem` tags"

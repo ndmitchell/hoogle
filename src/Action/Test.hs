@@ -6,6 +6,7 @@ import Query
 import Action.CmdLine
 import Action.Search
 import Action.Server
+import Action.Generate
 import General.Util
 import Input.Item
 import Input.Haddock
@@ -18,14 +19,24 @@ import Control.Exception
 
 
 actionTest :: CmdLine -> IO ()
-actionTest Test{..} = withBuffering stdout NoBuffering $ do
-    putStrLn "Quick tests"
+actionTest Test{..} = withBuffering stdout NoBuffering $ withTempFile $ \sample -> do
+    putStrLn "Code tests"
     general_util_test
     input_hoogle_test
     query_test
-    action_search_test database
-    action_server_test database
+    action_server_test_
     putStrLn ""
+
+    putStrLn "Sample database tests"
+    actionGenerate defaultGenerate{database=sample, local_=Just "misc/sample-data"}
+    action_search_test True sample
+    action_server_test True sample
+    putStrLn ""
+
+    putStrLn "Haskell.org database tests"
+    action_search_test False database
+    action_server_test False database
+
     when deep $ withSearch database $ \store -> do
         putStrLn "Deep tests"
         let xs = map targetItem $ listItems store
