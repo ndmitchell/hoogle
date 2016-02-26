@@ -16,6 +16,7 @@ module General.Util(
     inRanges,
     readMaybe,
     exitFail,
+    prettyTable,
     minimum', maximum', minimumBy', maximumBy',
     general_util_test
     ) where
@@ -30,6 +31,7 @@ import Control.Monad.Extra
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
 import Data.Ix
+import Numeric.Extra
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
 import Data.Time.Clock
@@ -180,6 +182,19 @@ showUTCTime = formatTime defaultTimeLocale
 withs :: [(a -> r) -> r] -> ([a] -> r) -> r
 withs [] act = act []
 withs (f:fs) act = f $ \a -> withs fs $ \as -> act $ a:as
+
+
+prettyTable :: Int -> String -> [(String, Double)] -> [String]
+prettyTable dp units xs =
+    ( padR len units ++ "\tPercent\tName") :
+    [ padL len (showDP dp b) ++ "\t" ++ padL 7 (showDP 1 (100 * b / tot) ++ "%") ++ "\t" ++ a
+    | (a,b) <- ("Total", tot) : sortOn (negate . snd) xs]
+    where
+        tot = sum $ map snd xs
+        len = length units `max` length (showDP dp tot)
+
+        padL n s = replicate (n - length s) ' ' ++ s
+        padR n s = s ++ replicate (n - length s) ' '
 
 
 tag :: String -> [String] -> String -> String
