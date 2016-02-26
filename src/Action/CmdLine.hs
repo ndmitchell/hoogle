@@ -44,6 +44,7 @@ data CmdLine
         ,logs :: FilePath
         ,local :: Bool
         ,language :: Language
+        ,scope :: String
         ,host :: String
         ,https :: Bool
         ,cert :: FilePath
@@ -54,6 +55,7 @@ data CmdLine
         ,database :: FilePath
         ,repeat_ :: Int
         ,language :: Language
+        ,scope :: String
         }
     | Test
         {deep :: Bool
@@ -114,6 +116,7 @@ server = Server
     ,cdn = "" &= typ "URL" &= help "URL prefix to use"
     ,logs = "" &= opt "log.txt" &= typFile &= help "File to log requests to (defaults to stdout)"
     ,local = False &= help "Allow following file:// links, restricts to 127.0.0.1"
+    ,scope = def &= help "Default scope to start with"
     ,host = "*" &= help "Set the host to bind on (e.g., an ip address; '!4' for ipv4-only; '!6' for ipv6-only; default: '*' for any host)."
     ,https = def &= help "Start an https server (use --cert and --key to specify paths to the .pem files)"
     ,cert = "cert.pem" &= typFile &= help "Path to the certificate pem file (when running an https server)"
