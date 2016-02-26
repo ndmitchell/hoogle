@@ -101,7 +101,7 @@ loadRename :: IO (String -> String)
 loadRename = do
     dataDir <- getDataDir
     src <- readFileUTF8 $ dataDir </> "misc/tag-rename.txt"
-    let mp = Map.fromList $ map (both trim . splitPair "=") $ lines src
+    let mp = Map.fromList $ mapMaybe (fmap (both trim) . stripInfix "=") $ lines src
     return $ \x -> Map.findWithDefault x x mp
 
 
