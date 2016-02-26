@@ -215,6 +215,8 @@ action_server_test_ = do
         "+*" === "(<0>{+*}&amp;</0>) :: Int"
         "+<" === "(<0>&gt;{+&lt;}</0>) :: Int"
         "foo" === "<i>data</i> <0>{Foo}d</0>"
+        "foo" === "<i>type</i> <0>{Foo}d</0>"
+        "foo" === "<i>type family</i> <0>{Foo}d</0>"
         "foo" === "<i>module</i> Foo.Bar.<0>F{Foo}</0>"
         "foo" === "<i>module</i> <0>{Foo}o</0>"
 
