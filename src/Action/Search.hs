@@ -89,7 +89,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "__prefix__" === "http://henry.com?too_long"
         "__suffix__" === "http://henry.com?too_long"
         "__infix__" === "http://henry.com?too_long"
-        when False $ "Wife" === "http://eghmitchell.com/Mitchell.html#a_wife"
+        "Wife" === "http://eghmitchell.com/Mitchell.html#a_wife"
      else do
         "base" === hackage "base"
         "Prelude" === hackage "base/docs/Prelude.html"
