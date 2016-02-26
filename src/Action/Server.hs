@@ -151,7 +151,7 @@ showResults local args query results = unlines $
      "<div class=from>" ++ showFroms local is  ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
      "</div>"
-    | is@((targetExpandURL -> Target{..}):_) <- results]
+    | is@(Target{..}:_) <- results]
     where
         add x = escapeHTML $ ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
