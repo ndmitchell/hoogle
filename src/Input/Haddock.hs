@@ -99,7 +99,8 @@ renderModule (breakEnd (== '.') -> (pre,post)) = "<b>module</b> " ++ escapeHTML 
 renderItem :: Entry -> String
 renderItem = keyword . focus
     where
-        keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ a ++ "</b> " ++ b
+        keyword x | Just b <- stripPrefix "type family " x = "<b>type family</b> " ++ b
+                  | (a,b) <- word1 x, a `elem` kws = "<b>" ++ a ++ "</b> " ++ b
                   | otherwise = x
             where kws = words "class data type newtype"
 
