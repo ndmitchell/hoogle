@@ -6,17 +6,15 @@
 
 :{
 :def opt \xs -> return $ unlines
-        [":!mkdir obj"
-        ,":!mkdir obj\\o2"
-        ,":!ghc -O2 -fno-state-hack -isrc --make src/Paths.hs Main -threaded -outputdir obj/o2 -o obj/o2/main -rtsopts cbits/text_search.o"
-        ,":!obj\\o2\\main +RTS -T -N2 -RTS " ++ xs]
+        [":!mkdir dist\\obj\\o2"
+        ,":!ghc -O2 -fno-state-hack -isrc --make src/Paths.hs Main -threaded -outputdir dist/obj/o2 -o dist/obj/o2/main -rtsopts cbits/text_search.o"
+        ,":!dist\\obj\\o2\\main +RTS -T -N2 -RTS " ++ xs]
 :}
 :{
 :def time_ \xs -> return $ unlines
-        [":!mkdir obj"
-        ,":!mkdir obj\\prof"
-        ,":!ghc -prof -rtsopts -auto-all -caf-all -O2 -fno-state-hack -isrc -DPROFILE --make src/Paths.hs Main -outputdir obj/prof -o obj/prof/main cbits/text_search.o"
-        ,":!obj\\prof\\main +RTS -p -T -RTS " ++ xs]
+        [":!mkdir dist\\obj\\prof"
+        ,":!ghc -prof -rtsopts -auto-all -caf-all -O2 -fno-state-hack -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o"
+        ,":!dist\\obj\\prof\\main +RTS -p -T -RTS " ++ xs]
 :}
 :{
 :def time \xs -> return $ unlines
@@ -25,10 +23,9 @@
 :}
 :{
 :def space \xs -> return $ unlines
-        [":!mkdir obj"
-        ,":!mkdir obj\\prof"
-        ,":!ghc -fno-state-hack -prof -rtsopts -auto-all -caf-all -isrc -DPROFILE --make src/Paths.hs Main -outputdir obj/prof -o obj/prof/main cbits/text_search.o && " ++
-         "obj\\prof\\main +RTS -xt -hc -T -RTS " ++ xs ++ " && " ++
+        [":!mkdir dist\\obj\\prof"
+        ,":!ghc -fno-state-hack -prof -rtsopts -auto-all -caf-all -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o && " ++
+         "dist\\obj\\prof\\main +RTS -xt -hc -T -RTS " ++ xs ++ " && " ++
          "hp2ps -c main.hp && " ++
          "start main.ps"]
 :}
