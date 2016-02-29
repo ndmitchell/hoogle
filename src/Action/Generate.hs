@@ -118,7 +118,7 @@ readHaskellOnline timing download = do
     let source = do
             tar <- liftIO $ tarballReadFiles hoogles
             forM_ tar $ \(takeBaseName -> name, src) ->
-                yield (name, "https://hackage.haskell.org/package/" ++ name, src)
+                yield (name, hackagePackageURL name, src)
             src <- liftIO $ strReadFile ghcapi
             let url = "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/"
             yield ("ghc", url, lstrFromChunks [src])
@@ -130,7 +130,7 @@ readHaskellDir timing dir = do
     packages <- map (takeBaseName &&& id) . filter ((==) ".txt" . takeExtension) <$> listFiles dir
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
-            yield (name, "https://hackage.haskell.org/package/" ++ name, lstrFromChunks [src])
+            yield (name, hackagePackageURL name, lstrFromChunks [src])
     return (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages
            ,Set.fromList $ map fst packages, source)
 

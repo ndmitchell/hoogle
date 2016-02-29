@@ -24,7 +24,7 @@ data Entry = EPackage String
 
 
 fakePackage :: String -> String -> (Maybe Target, Item)
-fakePackage name desc = (Just $ Target ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
+fakePackage name desc = (Just $ Target (hackagePackageURL name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogle :: Monad m => (String -> m ()) -> URL -> LStr -> Producer m (Maybe Target, Item)
