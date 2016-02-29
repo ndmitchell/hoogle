@@ -27,6 +27,7 @@ data CmdLine
         ,query :: [String]
         ,repeat_ :: Int
         ,language :: Language
+        ,compare_ :: [String]
         }
     | Generate
         {download :: Maybe Bool
@@ -101,6 +102,7 @@ search_ = Search
     ,query = def &= args &= typ "QUERY"
     ,repeat_ = 1 &= help "Number of times to repeat (for benchmarking)"
     ,language = enum [x &= explicit &= name (lower $ show x) &= help ("Work with " ++ show x) | x <- [minBound..maxBound]] &= groupname "Language"
+    ,compare_ = def &= help "Type signatures to compare against"
     } &= help "Perform a search"
 
 generate = Generate
