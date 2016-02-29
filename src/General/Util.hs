@@ -2,7 +2,7 @@
 
 module General.Util(
     URL,
-    pretty, parseMode, applyType, applyFun1, unapplyFun, fromName, fromQName, fromTyVarBind, declNames,
+    pretty, parseMode, applyType, applyFun1, unapplyFun, fromName, fromQName, fromTyVarBind, declNames, isTypeSig,
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
@@ -118,6 +118,10 @@ declNames x = map fromName $ case x of
     ClassDecl _ _ name _ _ _ -> [name]
     TypeSig _ names _ -> names
     _ -> []
+
+isTypeSig :: Decl -> Bool
+isTypeSig TypeSig{} = True
+isTypeSig _ = False
 
 
 tarballReadFiles :: FilePath -> IO [(FilePath, LBS.ByteString)]
