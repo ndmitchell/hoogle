@@ -198,36 +198,57 @@ toFingerprint sig = Fingerprint{..}
 writeFingerprints :: StoreWrite -> [Sig Name] -> IO ()
 writeFingerprints store xs = storeWrite store TypesFingerprints $ V.fromList $ map toFingerprint xs
 
-matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
-matchFingerprint sig@(toFingerprint -> target) = \candidate ->
-    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity candidate
-    where
-        (+$+) = liftM2 (+)
+data MatchFingerprint a ma = MatchFingerprint
+    {mfpAdd :: a -> a -> a
+    ,mfpAddM :: ma -> ma -> ma
+    ,mfpJust :: a -> ma
+    ,mfpCost :: String -> Int -> a
+    ,mfpMiss :: String -> ma
+    }
 
+
+matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int
+matchFingerprint = matchFingerprintEx MatchFingerprint{..}
+    where
+        mfpAdd = (+)
+        mfpAddM = liftM2 (+)
+        mfpJust = Just
+        mfpCost _ x = x
+        mfpMiss _ = Nothing
+
+
+{-# INLINE matchFingerprintEx #-}
+matchFingerprintEx :: MatchFingerprint a ma -> Sig Name -> Fingerprint -> ma -- lower is better
+matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
+    \candidate -> arity (fpArity candidate) `mfpAddM` terms (fpTerms candidate) `mfpAddM` rarity candidate
+    where
         -- CAFs must match perfectly, otherwise too many is better than too few
-        arity | ta == 0 = \ca -> if ca == 0 then Just 0 else Nothing -- searching for a CAF
+        arity | ta == 0 = \ca -> if ca == 0 then mfpJust $ mfpCost "" 0 else mfpMiss "" -- searching for a CAF
               | otherwise = \ca -> case fromIntegral $ ca - ta of
-                    _ | ca == 0 -> Nothing -- searching for a CAF
-                    0  -> Just 0 -- perfect match
-                    -1 -> Just 1000 -- not using something the user carefully wrote
-                    n | n > 0 && allowMore -> Just $ 300 * n -- user will have to make up a lot, but they said _ in their search
-                    1  -> Just 300  -- user will have to make up an extra param
-                    2  -> Just 900  -- user will have to make up two params
-                    _ -> Nothing
+                    _ | ca == 0 -> mfpMiss "" -- searching for a CAF
+                    0  -> mfpJust $ mfpCost "" 0 -- perfect match
+                    -1 -> mfpJust $ mfpCost "" 1000 -- not using something the user carefully wrote
+                    n | n > 0 && allowMore -> mfpJust $ mfpCost "" $ 300 * n -- user will have to make up a lot, but they said _ in their search
+                    1  -> mfpJust $ mfpCost "" 300  -- user will have to make up an extra param
+                    2  -> mfpJust $ mfpCost ""  900  -- user will have to make up two params
+                    _ -> mfpMiss ""
             where
                 ta = fpArity target
                 allowMore = TVar name0 [] `elem` sigTy sig
 
         -- missing terms are a bit worse than invented terms, but it's fairly balanced, clip at large numbers
         terms = \ct -> case fromIntegral $ ct - tt of
-                n | abs n > 20 -> Nothing -- too different
-                  | n > 0 -> Just $ n * 10 -- candidate has more terms
-                  | otherwise -> Just $ n * 12 -- candidate has less terms
+                n | abs n > 20 -> mfpMiss "" -- too different
+                  | n > 0 -> mfpJust $ mfpCost "" $ n * 10 -- candidate has more terms
+                  | otherwise -> mfpJust $ mfpCost "" $ n * 12 -- candidate has less terms
             where
                 tt = fpTerms target
 
-        rarity = \cr -> let tr = target in Just $ floor $
-                differences 1000 400 tr cr + -- searched for T but its not in the candidate, bad if rare, not great if common
+        -- given two fingerprints, you have three sets:
+        -- Those in common; those in one but not two; those in two but not one
+        -- those that are different
+        rarity = \cr -> let tr = target in mfpJust $ mfpCost "" $ floor $
+                differences 5000 400 tr cr + -- searched for T but its not in the candidate, bad if rare, not great if common
                 differences 1000  50 cr tr   -- T is in the candidate but I didn't search for it, bad if rare, OK if common
             where
                 fpRaresElem :: Name -> Fingerprint -> Bool
