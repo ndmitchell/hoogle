@@ -106,7 +106,7 @@ parseCabalTarball tarfile = do
 loadRename :: IO (String -> String)
 loadRename = do
     dataDir <- getDataDir
-    src <- readFileUTF8 $ dataDir </> "misc/tag-rename.txt"
+    src <- readFileUTF8 $ dataDir </> "misc/cabal-rename.txt"
     let mp = Map.fromList $ mapMaybe (fmap (both trim) . stripInfix "=") $ lines src
     return $ \x -> Map.findWithDefault x x mp
 
