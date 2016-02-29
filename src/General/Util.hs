@@ -17,6 +17,7 @@ module General.Util(
     readMaybe,
     exitFail,
     prettyTable,
+    hackagePackageURL, hackageModuleURL, hackageDeclURL,
     minimum', maximum', minimumBy', maximumBy',
     general_util_test
     ) where
@@ -275,6 +276,26 @@ minimumBy' cmp = foldl1' $ \x y -> if cmp x y == LT then x else y
 
 minimum' :: Ord a => [a] -> a
 minimum' = minimumBy' compare
+
+
+hackagePackageURL :: String -> URL
+hackagePackageURL x = "https://hackage.haskell.org/package/" ++ x
+
+hackageModuleURL :: String -> URL
+hackageModuleURL x = "/docs/" ++ replace "." "-" x ++ ".html"
+
+hackageDeclURL :: Bool -> String -> URL
+hackageDeclURL typesig x = "#" ++ (if typesig then "v" else "t") ++ ":" ++ concatMap f x
+    where
+        f x | isLegal x = [x]
+            | otherwise = "-" ++ show (ord x) ++ "-"
+        -- isLegal is from haddock-api:Haddock.Utils; we need to use
+        -- the same escaping strategy here in order for fragment links
+        -- to work
+        isLegal ':' = True
+        isLegal '_' = True
+        isLegal '.' = True
+        isLegal c = isAscii c && isAlphaNum c
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient
