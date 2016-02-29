@@ -1,5 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
+-- | Module for reading Cabal files.
 module Input.Cabal(
     Package(..),
     parseCabalTarball, readGhcPkg,
@@ -30,12 +31,13 @@ import Prelude
 ---------------------------------------------------------------------
 -- DATA TYPE
 
+-- | A representation of a Cabal package.
 data Package = Package
-    {packageTags :: [(T.Text, T.Text)] -- The Tag information, e.g. (category,Development) (author,Neil Mitchell).
-    ,packageLibrary :: Bool -- True if the package provides a library (False if it is only an executable with no API)
-    ,packageSynopsis :: T.Text -- The synposis, grabbed from the top section.
-    ,packageVersion :: T.Text -- The version, grabbed from the top section.
-    ,packageDepends :: [T.Text] -- The number of packages that directly depend on this package.
+    {packageTags :: [(T.Text, T.Text)] -- ^ The Tag information, e.g. (category,Development) (author,Neil Mitchell).
+    ,packageLibrary :: Bool -- ^ True if the package provides a library (False if it is only an executable with no API)
+    ,packageSynopsis :: T.Text -- ^ The synposis, grabbed from the top section.
+    ,packageVersion :: T.Text -- ^ The version, grabbed from the top section.
+    ,packageDepends :: [T.Text] -- ^ The list of packages that this package directly depends on.
     ,packageDocs :: Maybe FilePath -- ^ Directory where the documentation is located
     } deriving Show
 
@@ -52,6 +54,8 @@ instance NFData Package where
 ---------------------------------------------------------------------
 -- POPULARITY
 
+-- | Given a set of packages, return the popularity of each package, along with any warnings
+--   about packages imported but not found.
 packagePopularity :: Map.Map String Package -> ([String], Map.Map String Int)
 packagePopularity cbl = (errs, Map.map length good)
     where
@@ -65,6 +69,7 @@ packagePopularity cbl = (errs, Map.map length good)
 ---------------------------------------------------------------------
 -- READERS
 
+-- | Run 'ghc-pkg' and get a list of packages which are installed.
 readGhcPkg :: IO (Map.Map String Package)
 readGhcPkg = do
     topdir <- findExecutable "ghc-pkg"
@@ -78,7 +83,7 @@ readGhcPkg = do
     return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines stdout
 
 
--- | Given the Cabal files we care about, pull out the fields you care about
+-- | Given a tarball of Cabal files, parse the latest version of each package.
 parseCabalTarball :: FilePath -> IO (Map.Map String Package)
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
@@ -97,6 +102,7 @@ parseCabalTarball tarfile = do
 ---------------------------------------------------------------------
 -- PARSERS
 
+-- | Fix bad names in the Cabal file.
 loadRename :: IO (String -> String)
 loadRename = do
     dataDir <- getDataDir
