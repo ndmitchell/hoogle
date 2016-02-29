@@ -27,11 +27,11 @@ fakePackage :: String -> String -> (Maybe Target, Item)
 fakePackage name desc = (Just $ Target ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => (String -> m ()) -> FilePath -> URL -> LStr -> Producer m (Maybe Target, Item)
-parseHoogle warning file url body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning file =$= hierarchyC url =$= mapC (\x -> rnf x `seq` x)
+parseHoogle :: Monad m => (String -> m ()) -> URL -> LStr -> Producer m (Maybe Target, Item)
+parseHoogle warning url body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning =$= hierarchyC url =$= mapC (\x -> rnf x `seq` x)
 
-parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Target, Entry)
-parserC warning file = f [] ""
+parserC :: Monad m => (String -> m ()) -> Conduit (Int, Str) m (Target, Entry)
+parserC warning = f [] ""
     where
         f com url = do
             x <- await
@@ -42,7 +42,7 @@ parserC warning file = f [] ""
                   | strNull $ strTrimStart s -> f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
-                            Left y -> lift $ warning $ file ++ ":" ++ show i ++ ":" ++ y
+                            Left y -> lift $ warning $ show i ++ ":" ++ y
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
                             Right [EDecl InfixDecl{}] -> return () -- can ignore infix constructors

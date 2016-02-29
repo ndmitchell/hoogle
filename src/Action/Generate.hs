@@ -189,7 +189,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             let consume :: Conduit (Int, (String, URL, LStr)) IO (Maybe Target, Item)
                 consume = awaitForever $ \(i, (pkg, url, body)) -> do
                     timed timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                        parseHoogle warning pkg url body
+                        parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body
 
             writeItems store $ \items -> do
                 let packages = [ fakePackage name $ "Not in Stackage, so not searched.\n" ++ T.unpack packageSynopsis
