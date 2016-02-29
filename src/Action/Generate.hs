@@ -215,7 +215,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 return xs
 
         itemsMb <- if not gcStats then return 0 else do performGC; GCStats{..} <- getGCStats; return $ currentBytesUsed `div` (1024*1024)
-        xs <- timed timing "Reodering items" $ reorderItems (\s -> maybe 1 negate $ Map.lookup s popularity) xs
+        xs <- timed timing "Reodering items" $ return $! reorderItems (\s -> maybe 1 negate $ Map.lookup s popularity) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both T.unpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs

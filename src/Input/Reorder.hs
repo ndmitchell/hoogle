@@ -9,13 +9,15 @@ import Data.Tuple.Extra
 
 
 -- | Reorder items so the most popular ones are first, using reverse dependencies
-reorderItems :: (String -> Int) -> [(a, Item)] -> IO [(a, Item)]
-reorderItems packageOrder xs = do
-    let refunc = map $ second $ \(x:xs) -> x : sortOn (itemName . snd) xs
-    let rebase (x, xs) | x `elem` ["base","haskell98","haskell2010"]
+reorderItems :: (String -> Int) -> [(a, Item)] -> [(a, Item)]
+reorderItems packageOrder xs =
+    concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitIPackage xs
+    where
+        refunc = map $ second $ \(x:xs) -> x : sortOn (itemName . snd) xs
+        rebase (x, xs) | x `elem` ["base","haskell98","haskell2010"]
                        = (x, concatMap snd $ sortOn ((baseModuleOrder &&& id) . fst) $ refunc $ splitIModule xs)
         rebase (x, xs) = (x, concatMap snd $ sortOn fst $ refunc $ splitIModule xs)
-    return $! concatMap snd $ sortOn ((packageOrder &&& id) . fst) $ map rebase $ splitIPackage xs
+
 
 baseModuleOrder :: String -> Int
 baseModuleOrder x
