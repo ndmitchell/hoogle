@@ -66,30 +66,16 @@ hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
         f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (Just t{targetURL=url}, IPackage x))
             where url = targetURL t `orIfNull` packageUrl
         f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, IModule x))
-            where url = targetURL t `orIfNull` "/docs/" ++ replace "." "-" x ++ ".html"
+            where url = targetURL t `orIfNull` hackageModuleURL x
         f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
         f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
-            where url = targetURL t `orIfNull` "#" ++ declURL x
+            where url = targetURL t `orIfNull` case x of
+                            _ | [n] <- declNames x -> hackageDeclURL (isTypeSig x) n
+                              | otherwise -> ""
 
         hseToItem_ x = fromMaybe (error $ "hseToItem failed, " ++ pretty x) $ hseToItem x
         infix 1 `orIfNull`
         orIfNull x y = if null x then y else x
-
-        declURL (TypeSig _ [name] _) = "v:" ++ esc (fromName name)
-        declURL x | [x] <- declNames x = "t:" ++ esc x
-        declURL x = ""
-
-        esc = concatMap f
-            where
-                f x | isLegal x = [x]
-                    | otherwise = "-" ++ show (ord x) ++ "-"
-                -- isLegal is from haddock-api:Haddock.Utils; we need to use
-                -- the same escaping strategy here in order for fragment links
-                -- to work
-                isLegal ':' = True
-                isLegal '_' = True
-                isLegal '.' = True
-                isLegal c = isAscii c && isAlphaNum c
 
 
 renderPackage x = "<b>package</b> <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
