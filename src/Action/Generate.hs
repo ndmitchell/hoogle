@@ -97,7 +97,7 @@ readHaskellOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set S
 readHaskellOnline timing download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
-    ghcapi   <- download "haskell-ghc.txt" "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt"
+    ghcapi   <- download "haskell-ghcapi.txt" "https://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt"
     cabals   <- download "haskell-cabal.tar.gz" "https://hackage.haskell.org/packages/index.tar.gz"
     hoogles  <- download "haskell-hoogle.tar.gz" "https://hackage.haskell.org/packages/hoogle.tar.gz"
 
