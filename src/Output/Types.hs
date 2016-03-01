@@ -218,7 +218,7 @@ matchFingerprint = matchFingerprintEx MatchFingerprint{..}
 
 
 {-# INLINE matchFingerprintEx #-}
-matchFingerprintEx :: MatchFingerprint a ma -> Sig Name -> Fingerprint -> ma -- lower is better
+matchFingerprintEx :: forall a ma . MatchFingerprint a ma -> Sig Name -> Fingerprint -> ma -- lower is better
 matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
     \candidate -> arity (fpArity candidate) `mfpAddM` terms (fpTerms candidate) `mfpAddM` rarity candidate
     where
@@ -247,18 +247,18 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
         -- given two fingerprints, you have three sets:
         -- Those in common; those in one but not two; those in two but not one
         -- those that are different
-        rarity = \cr -> let tr = target in mfpJust $ mfpCost "" $ floor $
-                differences 5000 400 tr cr + -- searched for T but its not in the candidate, bad if rare, not great if common
-                differences 1000  50 cr tr   -- T is in the candidate but I didn't search for it, bad if rare, OK if common
+        rarity = \cr -> let tr = target in mfpJust $
+                differences 5000 400 tr cr `mfpAdd` -- searched for T but its not in the candidate, bad if rare, not great if common
+                differences 1000  50 cr tr          -- T is in the candidate but I didn't search for it, bad if rare, OK if common
             where
                 fpRaresElem :: Name -> Fingerprint -> Bool
                 fpRaresElem !x = fpRaresFold (||) (== x)
 
-                differences :: Double -> Double -> Fingerprint -> Fingerprint -> Double
-                differences !rare !common !want !have = fpRaresFold (+) f want
-                    where f n | fpRaresElem n have = 0
-                              | n == name0 = rare -- should this be common?
-                              | otherwise = let p = popularityName n in ((p*common) + ((1-p)*rare)) / 2
+                differences :: Double -> Double -> Fingerprint -> Fingerprint -> a
+                differences !rare !common !want !have = fpRaresFold mfpAdd f want
+                    where f n | fpRaresElem n have = mfpCost "" 0
+                              | n == name0 = mfpCost "" $ floor rare -- should this be common?
+                              | otherwise = mfpCost "" $ floor $ let p = popularityName n in ((p*common) + ((1-p)*rare)) / 2
 
 
 searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]
