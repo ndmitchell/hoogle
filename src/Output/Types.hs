@@ -282,7 +282,7 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
         terms = \ct -> case fromIntegral $ ct - tt of
                 n | abs n > 20 -> mfpMiss "" -- too different
                   | n > 0 -> mfpJust $ mfpCost "" $ n * 10 -- candidate has more terms
-                  | otherwise -> mfpJust $ mfpCost "" $ n * 12 -- candidate has less terms
+                  | otherwise -> mfpJust $ mfpCost "" $ abs n * 12 -- candidate has less terms
             where
                 tt = fpTerms target
 
