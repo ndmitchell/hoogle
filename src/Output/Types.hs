@@ -25,6 +25,7 @@ import System.IO.Extra
 import Control.Monad.Extra
 import Foreign.Storable
 import Control.Applicative
+import Numeric.Extra
 import Prelude
 
 import Input.Item
@@ -265,14 +266,14 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
     \candidate -> arity (fpArity candidate) `mfpAddM` terms (fpTerms candidate) `mfpAddM` rarity candidate
     where
         -- CAFs must match perfectly, otherwise too many is better than too few
-        arity | ta == 0 = \ca -> if ca == 0 then mfpJust $ mfpCost "" 0 else mfpMiss "" -- searching for a CAF
+        arity | ta == 0 = \ca -> if ca == 0 then mfpJust $ mfpCost "arity equal" 0 else mfpMiss "arity different and query a CAF" -- searching for a CAF
               | otherwise = \ca -> case fromIntegral $ ca - ta of
-                    _ | ca == 0 -> mfpMiss "" -- searching for a CAF
-                    0  -> mfpJust $ mfpCost "" 0 -- perfect match
-                    -1 -> mfpJust $ mfpCost "" 1000 -- not using something the user carefully wrote
-                    n | n > 0 && allowMore -> mfpJust $ mfpCost "" $ 300 * n -- user will have to make up a lot, but they said _ in their search
-                    1  -> mfpJust $ mfpCost "" 300  -- user will have to make up an extra param
-                    2  -> mfpJust $ mfpCost ""  900  -- user will have to make up two params
+                    _ | ca == 0 -> mfpMiss "arity different and answer a CAF" -- searching for a CAF
+                    0  -> mfpJust $ mfpCost "arity equal" 0 -- perfect match
+                    -1 -> mfpJust $ mfpCost "arity 1 to remove" 1000 -- not using something the user carefully wrote
+                    n | n > 0 && allowMore -> mfpJust $ mfpCost ("arity " ++ show n ++ " to add with wildcard") $ 300 * n -- user will have to make up a lot, but they said _ in their search
+                    1  -> mfpJust $ mfpCost "arity 1 to add" 300  -- user will have to make up an extra param
+                    2  -> mfpJust $ mfpCost "arity 2 to add"  900  -- user will have to make up two params
                     _ -> mfpMiss ""
             where
                 ta = fpArity target
@@ -280,9 +281,10 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
 
         -- missing terms are a bit worse than invented terms, but it's fairly balanced, clip at large numbers
         terms = \ct -> case fromIntegral $ ct - tt of
-                n | abs n > 20 -> mfpMiss "" -- too different
-                  | n > 0 -> mfpJust $ mfpCost "" $ n * 10 -- candidate has more terms
-                  | otherwise -> mfpJust $ mfpCost "" $ abs n * 12 -- candidate has less terms
+                n | abs n > 20 -> mfpMiss $ "terms " ++ show n ++ " different" -- too different
+                  | n == 0 -> mfpJust $ mfpCost "terms equal" 0
+                  | n > 0 -> mfpJust $ mfpCost ("terms " ++ show n ++ " to add") $ n * 10 -- candidate has more terms
+                  | otherwise -> mfpJust $ mfpCost ("terms " ++ show (-n) ++ " to remove") $ abs n * 12 -- candidate has less terms
             where
                 tt = fpTerms target
 
@@ -298,9 +300,10 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
 
                 differences :: Double -> Double -> Fingerprint -> Fingerprint -> a
                 differences !rare !common !want !have = fpRaresFold mfpAdd f want
-                    where f n | fpRaresElem n have = mfpCost "" 0
-                              | n == name0 = mfpCost "" $ floor rare -- should this be common?
-                              | otherwise = mfpCost "" $ floor $ let p = popularityName n in ((p*common) + ((1-p)*rare)) / 2
+                    where f n | fpRaresElem n have = mfpCost ("term in common " ++ prettyName n) 0
+                              | n == name0 = mfpCost ("term _ missing") $ floor rare -- should this be common?
+                              | otherwise = let p = popularityName n in mfpCost ("term " ++ prettyName n ++ " (" ++ showDP 2 p ++ ") missing") $
+                                            floor $ (p*common) + ((1-p)*rare)
 
 
 searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]
