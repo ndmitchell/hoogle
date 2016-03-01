@@ -28,12 +28,12 @@ import General.Util
 -- filter -- search all
 
 actionSearch :: CmdLine -> IO ()
-actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
+actionSearch Search{..} = replicateM_ repeat_ $ do-- deliberately reopen the database each time
+    hSetEncoding stdout utf8
     withSearch database $ \store -> do
         (q, res) <- return $ search store $ parseQuery $ unwords query
         whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
         let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
-        hSetEncoding stdout utf8
         if null res then
             putStrLn "No results found"
          else if info then do
