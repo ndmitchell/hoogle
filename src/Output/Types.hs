@@ -68,11 +68,15 @@ searchTypesDebug store query answers = intercalate [""] $
             ,"Sig Name: " ++ prettySig (fmap prettyName sn)
             ,"Fingerprint: " ++ prettyFingerprint fp] ++
             if not match then [] else
-            ["Cost: " ++ maybe "No match" show (matchFingerprint qsig fp)
-            ,"Explain: " ++ show (matchFingerprintDebug qsig fp)]
+            ["Cost: " ++ maybe "X, no match" show (matchFingerprint qsig fp)
+            ,"Explain: " ++ showExplain (matchFingerprintDebug qsig fp)]
             where
                 sn = lookupNames names name0 sig
                 fp = toFingerprint sn
+
+                showExplain = intercalate ", " . map g . sortOn (either (const minBound) (negate . snd))
+                g (Left s) = "X " ++ s
+                g (Right (s, x)) = show x ++ " " ++ s
 
 
 ---------------------------------------------------------------------
