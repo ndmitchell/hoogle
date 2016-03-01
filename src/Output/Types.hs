@@ -67,7 +67,7 @@ searchTypesDebug store query answers = intercalate [""] $
             ,"Sig Name: " ++ prettySig (fmap prettyName sn)
             ,"Fingerprint: " ++ prettyFingerprint fp] ++
             if not match then [] else
-            ["Score: " ++ show (matchFingerprint qsig fp)
+            ["Cost: " ++ maybe "No match" show (matchFingerprint qsig fp)
             ,"Explain: " ++ show (matchFingerprintDebug qsig fp)]
             where
                 sn = lookupNames names name0 sig
