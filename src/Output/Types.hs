@@ -1,7 +1,7 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 {-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, BangPatterns, GADTs #-}
 
-module Output.Types(writeTypes, searchTypes) where
+module Output.Types(writeTypes, searchTypes, searchTypesDebug) where
 
 {-
 Approach:
@@ -52,6 +52,10 @@ searchTypes store q =
         -- map unknown fields to name0, i.e. _
     where
         names = readNames store
+
+
+searchTypesDebug :: StoreRead -> Sig String -> [Sig String] -> [String]
+searchTypesDebug store query answers = show query : map show answers
 
 
 ---------------------------------------------------------------------
