@@ -49,7 +49,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
                     whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
         else do
             let parseType x = case parseQuery x of
-                                  [QueryType t] -> hseToSig t
+                                  [QueryType t] -> (pretty t, hseToSig t)
                                   _ -> error $ "Expected a type signature, got: " ++ x
             putStr $ unlines $ searchTypesDebug store (parseType $ unwords query) (map parseType compare_)
 

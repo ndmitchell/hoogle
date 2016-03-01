@@ -54,8 +54,23 @@ searchTypes store q =
         names = readNames store
 
 
-searchTypesDebug :: StoreRead -> Sig String -> [Sig String] -> [String]
-searchTypesDebug store query answers = show query : map show answers
+searchTypesDebug :: StoreRead -> (String, Sig String) -> [(String, Sig String)] -> [String]
+searchTypesDebug store query answers = intercalate [""] $
+    f False "Query" query : zipWith (\i -> f True ("Answer " ++ show i)) [1..] answers
+    where
+        qsig = lookupNames names name0 $ snd query
+        names = readNames store
+        f match name (raw, sig) =
+            [name ++ ": " ++ raw
+            ,"Sig String: " ++ show sig
+            ,"Sig Name: " ++ show sn
+            ,"Fingerprint: " ++ show fp] ++
+            if not match then [] else
+            ["Score: " ++ show (matchFingerprint qsig fp)
+            ,"Explain: " ++ show (matchFingerprintDebug qsig fp)]
+            where
+                sn = lookupNames names name0 sig
+                fp = toFingerprint sn
 
 
 ---------------------------------------------------------------------
@@ -219,6 +234,15 @@ matchFingerprint = matchFingerprintEx MatchFingerprint{..}
         mfpJust = Just
         mfpCost _ x = x
         mfpMiss _ = Nothing
+
+matchFingerprintDebug :: Sig Name -> Fingerprint -> [Either String (String, Int)]
+matchFingerprintDebug = matchFingerprintEx MatchFingerprint{..}
+    where
+        mfpAdd = (++)
+        mfpAddM = (++)
+        mfpJust = id
+        mfpCost s x = [Right (s,x)]
+        mfpMiss s = [Left s]
 
 
 {-# INLINE matchFingerprintEx #-}
