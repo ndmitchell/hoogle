@@ -65,7 +65,7 @@ searchTypesDebug store query answers = intercalate [""] $
             [name ++ ": " ++ raw
             ,"Sig String: " ++ prettySig sig
             ,"Sig Name: " ++ prettySig (fmap prettyName sn)
-            ,"Fingerprint: " ++ show fp] ++
+            ,"Fingerprint: " ++ prettyFingerprint fp] ++
             if not match then [] else
             ["Score: " ++ show (matchFingerprint qsig fp)
             ,"Explain: " ++ show (matchFingerprintDebug qsig fp)]
@@ -201,6 +201,12 @@ data Fingerprint = Fingerprint
     ,fpArity :: {-# UNPACK #-} !Word8 -- Artiy, where 0 = CAF
     ,fpTerms :: {-# UNPACK #-} !Word8 -- Number of terms (where 255 = 255 and above)
     } deriving (Eq,Show,Typeable)
+
+prettyFingerprint :: Fingerprint -> String
+prettyFingerprint Fingerprint{..} =
+    "arity=" ++ show fpArity ++ ", terms=" ++ show fpTerms ++
+    ", rarity=" ++ unwords (map prettyName [fpRare1, fpRare2, fpRare3])
+
 
 {-# INLINE fpRaresFold #-}
 fpRaresFold :: (b -> b -> b) -> (Name -> b) -> Fingerprint -> b
