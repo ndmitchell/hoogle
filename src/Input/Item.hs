@@ -3,7 +3,7 @@
 
 -- | Types used to generate the input.
 module Input.Item(
-    Sig(..), Ctx(..), Ty(..),
+    Sig(..), Ctx(..), Ty(..), prettySig,
     Item(..), itemName,
     Target(..), targetExpandURL, TargetId(..),
     splitIPackage, splitIModule,
@@ -52,6 +52,18 @@ instance Binary n => Binary (Ty n) where
     put (TCon x y) = put (0 :: Word8) >> put x >> put y
     put (TVar x y) = put (1 :: Word8) >> put x >> put y
     get = do i :: Word8 <- get; liftA2 (case i of 0 -> TCon; 1 -> TVar) get get
+
+prettySig :: Sig String -> String
+prettySig Sig{..} =
+        (if length ctx > 1 then "(" ++ ctx ++ ") => "
+         else if null ctx then "" else ctx ++ " => ") ++
+        intercalate " -> " (map f sigTy)
+    where
+        ctx = intercalate ", " [a ++ " " ++ b | Ctx a b <- sigCtx]
+
+        f (TVar x xs) = f $ TCon x xs
+        f (TCon x []) = x
+        f (TCon x xs) = "(" ++ unwords (x : map f xs) ++ ")"
 
 
 ---------------------------------------------------------------------
