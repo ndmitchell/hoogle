@@ -7,6 +7,7 @@ import Action.Generate
 import Action.Search
 import Action.Server
 import Action.Test
+import System.IO
 
 
 -- -- generate all
@@ -16,6 +17,7 @@ import Action.Test
 
 main :: IO ()
 main = do
+    hSetEncoding stdout utf8
     args <- getCmdLine
     case args of
         Search{} -> actionSearch args

@@ -9,7 +9,6 @@ import qualified Data.Set as Set
 import Data.List.Extra
 import Data.Functor.Identity
 import System.Directory
-import System.IO
 
 import Output.Items
 import Output.Tags
@@ -28,8 +27,7 @@ import General.Util
 -- filter -- search all
 
 actionSearch :: CmdLine -> IO ()
-actionSearch Search{..} = replicateM_ repeat_ $ do-- deliberately reopen the database each time
-    hSetEncoding stdout utf8
+actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store -> do
         (q, res) <- return $ search store $ parseQuery $ unwords query
         whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
