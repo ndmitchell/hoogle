@@ -60,10 +60,11 @@ searchTypesDebug store query answers = intercalate [""] $
     where
         qsig = lookupNames names name0 $ snd query
         names = readNames store
+
         f match name (raw, sig) =
             [name ++ ": " ++ raw
-            ,"Sig String: " ++ show sig
-            ,"Sig Name: " ++ show sn
+            ,"Sig String: " ++ prettySig sig
+            ,"Sig Name: " ++ prettySig (fmap prettyName sn)
             ,"Fingerprint: " ++ show fp] ++
             if not match then [] else
             ["Score: " ++ show (matchFingerprint qsig fp)
@@ -89,6 +90,13 @@ name0 = Name 0 -- use to represent _
 isCon, isVar :: Name -> Bool
 isVar (Name x) = x < 100
 isCon = not . isVar
+
+prettyName :: Name -> String
+prettyName x@(Name i)
+    | x == name0 = "_"
+    | isVar x = "v" ++ show i
+    | otherwise = "C" ++ show i
+
 
 -- | Give a name a popularity, where 0 is least popular, 1 is most popular
 popularityName :: Name -> Double
