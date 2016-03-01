@@ -28,24 +28,30 @@ import General.Util
 
 actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
-    withSearch database $ \store -> do
-        (q, res) <- return $ search store $ parseQuery $ unwords query
-        whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
-        let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
-        if null res then
-            putStrLn "No results found"
-         else if info then do
-            let Target{..} = head res
-            putStrLn (unHTML targetItem)
-            let packageModule = map fst $ catMaybes [targetPackage, targetModule]
-            unless (null packageModule) $ do
-                putStrLn (unwords packageModule)
-            putStrLn (unHTML targetDocs)
-         else do
-            let toShow = if numbers && not info then addCounter shown else shown
-            putStr $ unlines $ map unHTML toShow
-            when (hidden /= []) $ do
-                whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+    withSearch database $ \store ->
+        if null compare_ then do
+            (q, res) <- return $ search store $ parseQuery $ unwords query
+            whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
+            let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
+            if null res then
+                putStrLn "No results found"
+             else if info then do
+                let Target{..} = head res
+                putStrLn (unHTML targetItem)
+                let packageModule = map fst $ catMaybes [targetPackage, targetModule]
+                unless (null packageModule) $ do
+                    putStrLn (unwords packageModule)
+                putStrLn (unHTML targetDocs)
+             else do
+                let toShow = if numbers && not info then addCounter shown else shown
+                putStr $ unlines $ map unHTML toShow
+                when (hidden /= []) $ do
+                    whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+        else do
+            let parseType x = case parseQuery x of
+                                  [QueryType t] -> hseToSig t
+                                  _ -> error $ "Expected a type signature, got: " ++ x
+            putStr $ unlines $ searchTypesDebug store (parseType $ unwords query) (map parseType compare_)
 
     where unHTML = unescapeHTML . innerTextHTML
 
