@@ -97,7 +97,7 @@ readHaskellOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set S
 readHaskellOnline timing download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
-    ghcapi   <- download "haskell-ghc.txt" "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt"
+    ghcapi   <- download "haskell-ghcapi.txt" "https://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/ghc.txt"
     cabals   <- download "haskell-cabal.tar.gz" "https://hackage.haskell.org/packages/index.tar.gz"
     hoogles  <- download "haskell-hoogle.tar.gz" "https://hackage.haskell.org/packages/hoogle.tar.gz"
 
@@ -118,7 +118,7 @@ readHaskellOnline timing download = do
     let source = do
             tar <- liftIO $ tarballReadFiles hoogles
             forM_ tar $ \(takeBaseName -> name, src) ->
-                yield (name, "https://hackage.haskell.org/package/" ++ name, src)
+                yield (name, hackagePackageURL name, src)
             src <- liftIO $ strReadFile ghcapi
             let url = "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/"
             yield ("ghc", url, lstrFromChunks [src])
@@ -127,10 +127,10 @@ readHaskellOnline timing download = do
 
 readHaskellDir :: Timing -> FilePath -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readHaskellDir timing dir = do
-    packages <- map (takeBaseName &&& id) <$> listFiles dir
+    packages <- map (takeBaseName &&& id) . filter ((==) ".txt" . takeExtension) <$> listFiles dir
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
-            yield (name, "https://hackage.haskell.org/package/" ++ name, lstrFromChunks [src])
+            yield (name, hackagePackageURL name, lstrFromChunks [src])
     return (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages
            ,Set.fromList $ map fst packages, source)
 
@@ -189,7 +189,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             let consume :: Conduit (Int, (String, URL, LStr)) IO (Maybe Target, Item)
                 consume = awaitForever $ \(i, (pkg, url, body)) -> do
                     timed timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
-                        parseHoogle warning pkg url body
+                        parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body
 
             writeItems store $ \items -> do
                 let packages = [ fakePackage name $ "Not in Stackage, so not searched.\n" ++ T.unpack packageSynopsis
@@ -215,7 +215,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 return xs
 
         itemsMb <- if not gcStats then return 0 else do performGC; GCStats{..} <- getGCStats; return $ currentBytesUsed `div` (1024*1024)
-        xs <- timed timing "Reodering items" $ reorderItems (\s -> maybe 1 negate $ Map.lookup s popularity) xs
+        xs <- timed timing "Reodering items" $ return $! reorderItems (\s -> maybe 1 negate $ Map.lookup s popularity) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both T.unpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs

@@ -1,7 +1,7 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 {-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, BangPatterns, GADTs #-}
 
-module Output.Types(writeTypes, searchTypes) where
+module Output.Types(writeTypes, searchTypes, searchTypesDebug) where
 
 {-
 Approach:
@@ -25,6 +25,7 @@ import System.IO.Extra
 import Control.Monad.Extra
 import Foreign.Storable
 import Control.Applicative
+import Numeric.Extra
 import Prelude
 
 import Input.Item
@@ -54,6 +55,30 @@ searchTypes store q =
         names = readNames store
 
 
+searchTypesDebug :: StoreRead -> (String, Sig String) -> [(String, Sig String)] -> [String]
+searchTypesDebug store query answers = intercalate [""] $
+    f False "Query" query : zipWith (\i -> f True ("Answer " ++ show i)) [1..] answers
+    where
+        qsig = lookupNames names name0 $ snd query
+        names = readNames store
+
+        f match name (raw, sig) =
+            [name ++ ": " ++ raw
+            ,"Sig String: " ++ prettySig sig
+            ,"Sig Name: " ++ prettySig (fmap prettyName sn)
+            ,"Fingerprint: " ++ prettyFingerprint fp] ++
+            if not match then [] else
+            ["Cost: " ++ maybe "X, no match" show (matchFingerprint qsig fp)
+            ,"Explain: " ++ showExplain (matchFingerprintDebug qsig fp)]
+            where
+                sn = lookupNames names name0 sig
+                fp = toFingerprint sn
+
+                showExplain = intercalate ", " . map g . sortOn (either (const minBound) (negate . snd))
+                g (Left s) = "X " ++ s
+                g (Right (s, x)) = show x ++ " " ++ s
+
+
 ---------------------------------------------------------------------
 -- NAME/CTOR INFORMATION
 
@@ -70,6 +95,13 @@ name0 = Name 0 -- use to represent _
 isCon, isVar :: Name -> Bool
 isVar (Name x) = x < 100
 isCon = not . isVar
+
+prettyName :: Name -> String
+prettyName x@(Name i)
+    | x == name0 = "_"
+    | isVar x = "v" ++ show i
+    | otherwise = "C" ++ show i
+
 
 -- | Give a name a popularity, where 0 is least popular, 1 is most popular
 popularityName :: Name -> Double
@@ -175,6 +207,12 @@ data Fingerprint = Fingerprint
     ,fpTerms :: {-# UNPACK #-} !Word8 -- Number of terms (where 255 = 255 and above)
     } deriving (Eq,Show,Typeable)
 
+prettyFingerprint :: Fingerprint -> String
+prettyFingerprint Fingerprint{..} =
+    "arity=" ++ show fpArity ++ ", terms=" ++ show fpTerms ++
+    ", rarity=" ++ unwords (map prettyName [fpRare1, fpRare2, fpRare3])
+
+
 {-# INLINE fpRaresFold #-}
 fpRaresFold :: (b -> b -> b) -> (Name -> b) -> Fingerprint -> b
 fpRaresFold g f Fingerprint{..} = f fpRare1 `g` f fpRare2 `g` f fpRare3
@@ -198,46 +236,78 @@ toFingerprint sig = Fingerprint{..}
 writeFingerprints :: StoreWrite -> [Sig Name] -> IO ()
 writeFingerprints store xs = storeWrite store TypesFingerprints $ V.fromList $ map toFingerprint xs
 
-matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int -- lower is better
-matchFingerprint sig@(toFingerprint -> target) = \candidate ->
-    arity (fpArity candidate) +$+ terms (fpTerms candidate) +$+ rarity candidate
-    where
-        (+$+) = liftM2 (+)
+data MatchFingerprint a ma = MatchFingerprint
+    {mfpAdd :: a -> a -> a
+    ,mfpAddM :: ma -> ma -> ma
+    ,mfpJust :: a -> ma
+    ,mfpCost :: String -> Int -> a
+    ,mfpMiss :: String -> ma
+    }
 
+
+matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int
+matchFingerprint = matchFingerprintEx MatchFingerprint{..}
+    where
+        mfpAdd = (+)
+        mfpAddM = liftM2 (+)
+        mfpJust = Just
+        mfpCost _ x = x
+        mfpMiss _ = Nothing
+
+matchFingerprintDebug :: Sig Name -> Fingerprint -> [Either String (String, Int)]
+matchFingerprintDebug = matchFingerprintEx MatchFingerprint{..}
+    where
+        mfpAdd = (++)
+        mfpAddM = (++)
+        mfpJust = id
+        mfpCost s x = [Right (s,x)]
+        mfpMiss s = [Left s]
+
+
+{-# INLINE matchFingerprintEx #-}
+matchFingerprintEx :: forall a ma . MatchFingerprint a ma -> Sig Name -> Fingerprint -> ma -- lower is better
+matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
+    \candidate -> arity (fpArity candidate) `mfpAddM` terms (fpTerms candidate) `mfpAddM` rarity candidate
+    where
         -- CAFs must match perfectly, otherwise too many is better than too few
-        arity | ta == 0 = \ca -> if ca == 0 then Just 0 else Nothing -- searching for a CAF
+        arity | ta == 0 = \ca -> if ca == 0 then mfpJust $ mfpCost "arity equal" 0 else mfpMiss "arity different and query a CAF" -- searching for a CAF
               | otherwise = \ca -> case fromIntegral $ ca - ta of
-                    _ | ca == 0 -> Nothing -- searching for a CAF
-                    0  -> Just 0 -- perfect match
-                    -1 -> Just 1000 -- not using something the user carefully wrote
-                    n | n > 0 && allowMore -> Just $ 300 * n -- user will have to make up a lot, but they said _ in their search
-                    1  -> Just 300  -- user will have to make up an extra param
-                    2  -> Just 900  -- user will have to make up two params
-                    _ -> Nothing
+                    _ | ca == 0 -> mfpMiss "arity different and answer a CAF" -- searching for a CAF
+                    0  -> mfpJust $ mfpCost "arity equal" 0 -- perfect match
+                    -1 -> mfpJust $ mfpCost "arity 1 to remove" 1000 -- not using something the user carefully wrote
+                    n | n > 0 && allowMore -> mfpJust $ mfpCost ("arity " ++ show n ++ " to add with wildcard") $ 300 * n -- user will have to make up a lot, but they said _ in their search
+                    1  -> mfpJust $ mfpCost "arity 1 to add" 300  -- user will have to make up an extra param
+                    2  -> mfpJust $ mfpCost "arity 2 to add"  900  -- user will have to make up two params
+                    _ -> mfpMiss ""
             where
                 ta = fpArity target
                 allowMore = TVar name0 [] `elem` sigTy sig
 
         -- missing terms are a bit worse than invented terms, but it's fairly balanced, clip at large numbers
         terms = \ct -> case fromIntegral $ ct - tt of
-                n | abs n > 20 -> Nothing -- too different
-                  | n > 0 -> Just $ n * 10 -- candidate has more terms
-                  | otherwise -> Just $ n * 12 -- candidate has less terms
+                n | abs n > 20 -> mfpMiss $ "terms " ++ show n ++ " different" -- too different
+                  | n == 0 -> mfpJust $ mfpCost "terms equal" 0
+                  | n > 0 -> mfpJust $ mfpCost ("terms " ++ show n ++ " to add") $ n * 10 -- candidate has more terms
+                  | otherwise -> mfpJust $ mfpCost ("terms " ++ show (-n) ++ " to remove") $ abs n * 12 -- candidate has less terms
             where
                 tt = fpTerms target
 
-        rarity = \cr -> let tr = target in Just $ floor $
-                differences 1000 400 tr cr + -- searched for T but its not in the candidate, bad if rare, not great if common
-                differences 1000  50 cr tr   -- T is in the candidate but I didn't search for it, bad if rare, OK if common
+        -- given two fingerprints, you have three sets:
+        -- Those in common; those in one but not two; those in two but not one
+        -- those that are different
+        rarity = \cr -> let tr = target in mfpJust $
+                differences 5000 400 tr cr `mfpAdd` -- searched for T but its not in the candidate, bad if rare, not great if common
+                differences 1000  50 cr tr          -- T is in the candidate but I didn't search for it, bad if rare, OK if common
             where
                 fpRaresElem :: Name -> Fingerprint -> Bool
                 fpRaresElem !x = fpRaresFold (||) (== x)
 
-                differences :: Double -> Double -> Fingerprint -> Fingerprint -> Double
-                differences !rare !common !want !have = fpRaresFold (+) f want
-                    where f n | fpRaresElem n have = 0
-                              | n == name0 = rare -- should this be common?
-                              | otherwise = let p = popularityName n in ((p*common) + ((1-p)*rare)) / 2
+                differences :: Double -> Double -> Fingerprint -> Fingerprint -> a
+                differences !rare !common !want !have = fpRaresFold mfpAdd f want
+                    where f n | fpRaresElem n have = mfpCost ("term in common " ++ prettyName n) 0
+                              | n == name0 = mfpCost ("term _ missing") $ floor rare -- should this be common?
+                              | otherwise = let p = popularityName n in mfpCost ("term " ++ prettyName n ++ " (" ++ showDP 2 p ++ ") missing") $
+                                            floor $ (p*common) + ((1-p)*rare)
 
 
 searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]

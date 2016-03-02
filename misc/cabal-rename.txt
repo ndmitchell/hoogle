@@ -1,3 +1,9 @@
+# A list of tag renamings, installed as a data file on the users machine.
+# Used to when the same semantic value is used multiple times with
+# typos/names/capitalisation.
+#
+# This file is global and applies to all Cabal files.
+
 Silk-B.V. = Silk
 Silk.-B.V. = Silk
 Michael-snoyman = Michael-Snoyman

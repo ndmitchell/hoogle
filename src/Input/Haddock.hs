@@ -24,14 +24,14 @@ data Entry = EPackage String
 
 
 fakePackage :: String -> String -> (Maybe Target, Item)
-fakePackage name desc = (Just $ Target ("https://hackage.haskell.org/package/" ++ name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
+fakePackage name desc = (Just $ Target (hackagePackageURL name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => (String -> m ()) -> FilePath -> URL -> LStr -> Producer m (Maybe Target, Item)
-parseHoogle warning file url body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning file =$= hierarchyC url =$= mapC (\x -> rnf x `seq` x)
+parseHoogle :: Monad m => (String -> m ()) -> URL -> LStr -> Producer m (Maybe Target, Item)
+parseHoogle warning url body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning =$= hierarchyC url =$= mapC (\x -> rnf x `seq` x)
 
-parserC :: Monad m => (String -> m ()) -> FilePath -> Conduit (Int, Str) m (Target, Entry)
-parserC warning file = f [] ""
+parserC :: Monad m => (String -> m ()) -> Conduit (Int, Str) m (Target, Entry)
+parserC warning = f [] ""
     where
         f com url = do
             x <- await
@@ -42,7 +42,7 @@ parserC warning file = f [] ""
                   | strNull $ strTrimStart s -> f [] ""
                   | otherwise -> do
                         case parseLine $ fixLine $ strUnpack s of
-                            Left y -> lift $ warning $ file ++ ":" ++ show i ++ ":" ++ y
+                            Left y -> lift $ warning $ show i ++ ":" ++ y
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
                             Right [EDecl InfixDecl{}] -> return () -- can ignore infix constructors
@@ -66,30 +66,16 @@ hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
         f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (Just t{targetURL=url}, IPackage x))
             where url = targetURL t `orIfNull` packageUrl
         f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, IModule x))
-            where url = targetURL t `orIfNull` let p = maybe "" snd pkg in p ++ (if "/" `isSuffixOf` p then "" else "/docs/") ++ replace "." "-" x ++ ".html"
+            where url = targetURL t `orIfNull` hackageModuleURL x
         f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
         f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
-            where url = targetURL t `orIfNull` maybe "" snd mod ++ "#" ++ declURL x
+            where url = targetURL t `orIfNull` case x of
+                            _ | [n] <- declNames x -> hackageDeclURL (isTypeSig x) n
+                              | otherwise -> ""
 
         hseToItem_ x = fromMaybe (error $ "hseToItem failed, " ++ pretty x) $ hseToItem x
         infix 1 `orIfNull`
         orIfNull x y = if null x then y else x
-
-        declURL (TypeSig _ [name] _) = "v:" ++ esc (fromName name)
-        declURL x | [x] <- declNames x = "t:" ++ esc x
-        declURL x = ""
-
-        esc = concatMap f
-            where
-                f x | isLegal x = [x]
-                    | otherwise = "-" ++ show (ord x) ++ "-"
-                -- isLegal is from haddock-api:Haddock.Utils; we need to use
-                -- the same escaping strategy here in order for fragment links
-                -- to work
-                isLegal ':' = True
-                isLegal '_' = True
-                isLegal '.' = True
-                isLegal c = isAscii c && isAlphaNum c
 
 
 renderPackage x = "<b>package</b> <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
@@ -99,7 +85,8 @@ renderModule (breakEnd (== '.') -> (pre,post)) = "<b>module</b> " ++ escapeHTML 
 renderItem :: Entry -> String
 renderItem = keyword . focus
     where
-        keyword x | (a,b) <- word1 x, a `elem` kws = "<b>" ++ dropWhile (== '@') a ++ "</b> " ++ b
+        keyword x | Just b <- stripPrefix "type family " x = "<b>type family</b> " ++ b
+                  | (a,b) <- word1 x, a `elem` kws = "<b>" ++ a ++ "</b> " ++ b
                   | otherwise = x
             where kws = words "class data type newtype"
 

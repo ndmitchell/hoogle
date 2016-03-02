@@ -1,3 +1,5 @@
+-- A script for parsing the Haskell keywords out of the Haskell wiki page
+-- and producing a database.
 
 import Text.HTML.TagSoup
 import Data.List

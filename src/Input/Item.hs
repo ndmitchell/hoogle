@@ -1,10 +1,11 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, OverloadedStrings, PatternGuards, ScopedTypeVariables #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor #-}
+{-# LANGUAGE RecordWildCards, OverloadedStrings, PatternGuards, ScopedTypeVariables #-}
 
 -- | Types used to generate the input.
 module Input.Item(
-    Sig(..), Ctx(..), Ty(..),
+    Sig(..), Ctx(..), Ty(..), prettySig,
     Item(..), itemName,
-    Target(..), TargetId(..),
+    Target(..), targetExpandURL, TargetId(..),
     splitIPackage, splitIModule,
     hseToSig, hseToItem
     ) where
@@ -13,6 +14,7 @@ import Numeric
 import Control.Applicative
 import Data.Tuple.Extra
 import Language.Haskell.Exts
+import Data.Char
 import Data.List.Extra
 import Data.Maybe
 import Data.Ix
@@ -50,6 +52,18 @@ instance Binary n => Binary (Ty n) where
     put (TCon x y) = put (0 :: Word8) >> put x >> put y
     put (TVar x y) = put (1 :: Word8) >> put x >> put y
     get = do i :: Word8 <- get; liftA2 (case i of 0 -> TCon; 1 -> TVar) get get
+
+prettySig :: Sig String -> String
+prettySig Sig{..} =
+        (if length ctx > 1 then "(" ++ ctx ++ ") => "
+         else if null ctx then "" else ctx ++ " => ") ++
+        intercalate " -> " (map f sigTy)
+    where
+        ctx = intercalate ", " [a ++ " " ++ b | Ctx a b <- sigCtx]
+
+        f (TVar x xs) = f $ TCon x xs
+        f (TCon x []) = x
+        f (TCon x xs) = "(" ++ unwords (x : map f xs) ++ ")"
 
 
 ---------------------------------------------------------------------
@@ -100,6 +114,17 @@ data Target = Target
 
 instance NFData Target where
     rnf (Target a b c d e f) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e `seq` rnf f
+
+targetExpandURL :: Target -> Target
+targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const mod) <$> targetModule}
+    where
+        pkg = maybe "" snd targetPackage
+        mod = maybe pkg (plus pkg . snd) targetModule
+        url = plus mod targetURL
+
+        plus a b | b == "" = ""
+                 | ':':_ <- dropWhile isAsciiLower b = b -- match http: etc
+                 | otherwise = a ++ b
 
 
 splitIPackage, splitIModule :: [(a, Item)] -> [(String, [(a, Item)])]

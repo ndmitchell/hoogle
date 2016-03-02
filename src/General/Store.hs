@@ -22,6 +22,7 @@ import Foreign.Ptr
 import Foreign.ForeignPtr
 import Control.Monad.Extra
 import Control.Exception
+import Numeric.Extra
 import Data.Binary
 import Data.List.Extra
 import System.IO.MMap
@@ -123,11 +124,9 @@ storeWriteFile file act = do
         BS.hPut h verString
 
         final <- hTell h
-        let stats =
-                [name ++ " (:: " ++ atomType ++ ") = " ++ show atomSize ++ " bytes" |
-                    (name, Atom{..}) <- reverse $ sortOn (atomSize . snd) $ Map.toList atoms] ++
-                ["Overheads = " ++ show (fromIntegral final - sum (map atomSize $ Map.elems atoms))
-                ,"Total file size = " ++ show final]
+        let stats = prettyTable 0 "Bytes" $
+                ("Overheads", intToDouble $ fromIntegral final - sum (map atomSize $ Map.elems atoms)) :
+                [(name ++ " (:: " ++ atomType ++ ")", intToDouble atomSize) | (name, Atom{..}) <- Map.toList atoms]
         return (stats, res)
 
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()

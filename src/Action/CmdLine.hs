@@ -3,6 +3,7 @@
 
 module Action.CmdLine(
     CmdLine(..), Language(..), getCmdLine,
+    defaultGenerate,
     whenLoud, whenNormal
     ) where
 
@@ -26,10 +27,10 @@ data CmdLine
         ,query :: [String]
         ,repeat_ :: Int
         ,language :: Language
+        ,compare_ :: [String]
         }
     | Generate
-        {hackage :: String
-        ,download :: Maybe Bool
+        {download :: Maybe Bool
         ,database :: FilePath
         ,insecure :: Bool
         ,include :: [String]
@@ -44,6 +45,7 @@ data CmdLine
         ,logs :: FilePath
         ,local :: Bool
         ,language :: Language
+        ,scope :: String
         ,host :: String
         ,https :: Bool
         ,cert :: FilePath
@@ -54,6 +56,7 @@ data CmdLine
         ,database :: FilePath
         ,repeat_ :: Int
         ,language :: Language
+        ,scope :: String
         }
     | Test
         {deep :: Bool
@@ -81,6 +84,10 @@ getCmdLine = do
     return args
 
 
+defaultGenerate :: CmdLine
+defaultGenerate = generate{language=Haskell}
+
+
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
     &= verbosity &= program "hoogle"
     &= summary ("Hoogle " ++ showVersion version ++ ", http://hoogle.haskell.org/")
@@ -95,11 +102,11 @@ search_ = Search
     ,query = def &= args &= typ "QUERY"
     ,repeat_ = 1 &= help "Number of times to repeat (for benchmarking)"
     ,language = enum [x &= explicit &= name (lower $ show x) &= help ("Work with " ++ show x) | x <- [minBound..maxBound]] &= groupname "Language"
+    ,compare_ = def &= help "Type signatures to compare against"
     } &= help "Perform a search"
 
 generate = Generate
-    {hackage = "https://hackage.haskell.org/" &= typ "URL" &= help "Hackage instance to target"
-    ,download = def &= help "Download all files from the web"
+    {download = def &= help "Download all files from the web"
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
     ,local_ = def &= opt "" &= help "Index local packages"
@@ -111,6 +118,7 @@ server = Server
     ,cdn = "" &= typ "URL" &= help "URL prefix to use"
     ,logs = "" &= opt "log.txt" &= typFile &= help "File to log requests to (defaults to stdout)"
     ,local = False &= help "Allow following file:// links, restricts to 127.0.0.1"
+    ,scope = def &= help "Default scope to start with"
     ,host = "*" &= help "Set the host to bind on (e.g., an ip address; '!4' for ipv4-only; '!6' for ipv6-only; default: '*' for any host)."
     ,https = def &= help "Start an https server (use --cert and --key to specify paths to the .pem files)"
     ,cert = "cert.pem" &= typFile &= help "Path to the certificate pem file (when running an https server)"

@@ -2,11 +2,11 @@
 
 module General.Util(
     URL,
-    pretty, parseMode, applyType, applyFun1, unapplyFun, fromName, fromQName, fromTyVarBind, declNames,
+    pretty, parseMode, applyType, applyFun1, unapplyFun, fromName, fromQName, fromTyVarBind, declNames, isTypeSig,
     tarballReadFiles,
     isUpper1, isAlpha1,
     splitPair, joinPair,
-    testing, testing_,
+    testing, testing_, testEq,
     showUTCTime,
     strict,
     withs,
@@ -16,6 +16,8 @@ module General.Util(
     inRanges,
     readMaybe,
     exitFail,
+    prettyTable,
+    hackagePackageURL, hackageModuleURL, hackageDeclURL,
     minimum', maximum', minimumBy', maximumBy',
     general_util_test
     ) where
@@ -30,6 +32,7 @@ import Control.Monad.Extra
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Map as Map
 import Data.Ix
+import Numeric.Extra
 import Codec.Compression.GZip as GZip
 import Codec.Archive.Tar as Tar
 import Data.Time.Clock
@@ -117,6 +120,10 @@ declNames x = map fromName $ case x of
     TypeSig _ names _ -> names
     _ -> []
 
+isTypeSig :: Decl -> Bool
+isTypeSig TypeSig{} = True
+isTypeSig _ = False
+
 
 tarballReadFiles :: FilePath -> IO [(FilePath, LBS.ByteString)]
 tarballReadFiles file = f . Tar.read . GZip.decompress <$> LBS.readFile file
@@ -169,6 +176,10 @@ testing_, testing :: String -> IO () -> IO ()
 testing_ name act = do putStr $ "Test " ++ name ++ " "; act
 testing name act = do testing_ name act; putStrLn ""
 
+testEq :: (Show a, Eq a) => a -> a -> IO ()
+testEq a b | a == b = putStr "."
+           | otherwise = errorIO $ "Expected equal, but " ++ show a ++ " /= " ++ show b
+
 showUTCTime :: String -> UTCTime -> String
 showUTCTime = formatTime defaultTimeLocale
 
@@ -176,6 +187,19 @@ showUTCTime = formatTime defaultTimeLocale
 withs :: [(a -> r) -> r] -> ([a] -> r) -> r
 withs [] act = act []
 withs (f:fs) act = f $ \a -> withs fs $ \as -> act $ a:as
+
+
+prettyTable :: Int -> String -> [(String, Double)] -> [String]
+prettyTable dp units xs =
+    ( padR len units ++ "\tPercent\tName") :
+    [ padL len (showDP dp b) ++ "\t" ++ padL 7 (showDP 1 (100 * b / tot) ++ "%") ++ "\t" ++ a
+    | (a,b) <- ("Total", tot) : sortOn (negate . snd) xs]
+    where
+        tot = sum $ map snd xs
+        len = length units `max` length (showDP dp tot)
+
+        padL n s = replicate (n - length s) ' ' ++ s
+        padR n s = s ++ replicate (n - length s) ' '
 
 
 tag :: String -> [String] -> String -> String
@@ -252,6 +276,26 @@ minimumBy' cmp = foldl1' $ \x y -> if cmp x y == LT then x else y
 
 minimum' :: Ord a => [a] -> a
 minimum' = minimumBy' compare
+
+
+hackagePackageURL :: String -> URL
+hackagePackageURL x = "https://hackage.haskell.org/package/" ++ x
+
+hackageModuleURL :: String -> URL
+hackageModuleURL x = "/docs/" ++ replace "." "-" x ++ ".html"
+
+hackageDeclURL :: Bool -> String -> URL
+hackageDeclURL typesig x = "#" ++ (if typesig then "v" else "t") ++ ":" ++ concatMap f x
+    where
+        f x | isLegal x = [x]
+            | otherwise = "-" ++ show (ord x) ++ "-"
+        -- isLegal is from haddock-api:Haddock.Utils; we need to use
+        -- the same escaping strategy here in order for fragment links
+        -- to work
+        isLegal ':' = True
+        isLegal '_' = True
+        isLegal '.' = True
+        isLegal c = isAscii c && isAlphaNum c
 
 
 -- | Equivalent to any (`inRange` x) xs, but more efficient

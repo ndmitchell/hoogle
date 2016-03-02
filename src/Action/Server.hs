@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 
-module Action.Server(actionServer, actionReplay, action_server_test) where
+module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
 
 import Data.List.Extra
 import System.FilePath
@@ -51,7 +51,7 @@ actionServer cmd@Server{..} = do
     evaluate spawned
     dataDir <- getDataDir
     withSearch database $ \store ->
-        server log cmd $ replyServer log local store cdn (dataDir </> "html")
+        server log cmd $ replyServer log local store cdn (dataDir </> "html") scope
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -60,7 +60,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
         dataDir <- getDataDir
-        let op = replyServer log False store "" (dataDir </> "html")
+        let op = replyServer log False store "" (dataDir </> "html") scope
         replicateM_ repeat_ $ forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
@@ -71,18 +71,19 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 spawned :: UTCTime
 spawned = unsafePerformIO getCurrentTime
 
-replyServer :: Log -> Bool -> StoreRead -> String -> FilePath -> Input -> IO Output
-replyServer log local store cdn htmlDir = \Input{..} -> case inputURL of
+replyServer :: Log -> Bool -> StoreRead -> String -> FilePath -> String -> Input -> IO Output
+replyServer log local store cdn htmlDir scope = \Input{..} -> case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
-        let qSource = grab "hoogle" ++ filter (/= "set:stackage") (grab "scope")
+        let qScope = let xs = grab "scope" in [scope | null xs && scope /= ""] ++ xs
+        let qSource = grab "hoogle" ++ filter (/= "set:stackage") qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
         let body = showResults local inputArgs q2 $ dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
-                        [("tags",tagOptions $ grab "scope")
+                        [("tags",tagOptions qScope)
                         ,("body",body)
                         ,("title",unwords qSource ++ " - Hoogle")
                         ,("search",unwords $ grab "hoogle")
@@ -203,8 +204,8 @@ displayItem :: [Query] -> String -> String
 displayItem = highlightItem
 
 
-action_server_test :: FilePath -> IO ()
-action_server_test database = do
+action_server_test_ :: IO ()
+action_server_test_ = do
     testing "Action.Server.displayItem" $ do
         let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<0>" "" . replace "</0>" ""
             contract = replace "{" "" . replace "}" ""
@@ -215,17 +216,26 @@ action_server_test database = do
         "+*" === "(<0>{+*}&amp;</0>) :: Int"
         "+<" === "(<0>&gt;{+&lt;}</0>) :: Int"
         "foo" === "<i>data</i> <0>{Foo}d</0>"
+        "foo" === "<i>type</i> <0>{Foo}d</0>"
+        "foo" === "<i>type family</i> <0>{Foo}d</0>"
         "foo" === "<i>module</i> Foo.Bar.<0>F{Foo}</0>"
         "foo" === "<i>module</i> <0>{Foo}o</0>"
 
+action_server_test :: Bool -> FilePath -> IO ()
+action_server_test sample database = do
     testing "Action.Server.replyServer" $ withSearch database $ \store -> do
         log <- logNone
         dataDir <- getDataDir
         let q === want = do
-                OutputString (lstrUnpack -> res) <- replyServer log False store "" (dataDir </> "html") (Input [] [("hoogle",q)])
+                OutputString (lstrUnpack -> res) <- replyServer log False store "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
-        "<>" === "<span class=name>(<b>&lt;&gt;</b>)</span>"
-        "filt" === "<span class=name><b>filt</b>er</span>"
+        if sample then
+            "Wife" === "<b>type family</b>"
+         else do
+            "<>" === "<span class=name>(<b>&lt;&gt;</b>)</span>"
+            "filt" === "<span class=name><b>filt</b>er</span>"
+            "True" === "https://hackage.haskell.org/package/base/docs/Prelude.html#v:True"
+
 
 -------------------------------------------------------------
 -- ANALYSE THE LOG
