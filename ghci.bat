@@ -1,1 +1,1 @@
-ghci.exe cbits\text_search.o
+ghci.exe cbits\text_search.o %*
