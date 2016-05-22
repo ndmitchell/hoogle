@@ -17,6 +17,7 @@ module General.Util(
     readMaybe,
     exitFail,
     prettyTable,
+    ghcApiVersion,
     hackagePackageURL, hackageModuleURL, hackageDeclURL,
     minimum', maximum', minimumBy', maximumBy',
     general_util_test
@@ -52,6 +53,8 @@ import Prelude
 
 type URL = String
 
+ghcApiVersion :: String
+ghcApiVersion = "8.0.1"
 
 exitFail :: String -> IO ()
 exitFail msg = do

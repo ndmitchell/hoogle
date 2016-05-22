@@ -97,7 +97,7 @@ readHaskellOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set S
 readHaskellOnline timing download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
-    ghcapi   <- download "haskell-ghcapi.txt" "https://downloads.haskell.org/~ghc/8.0.1/docs/html/libraries/ghc-8.0.1/ghc.txt"
+    ghcapi   <- download "haskell-ghcapi.txt" $ "https://downloads.haskell.org/~ghc/" ++ ghcApiVersion ++ "/docs/html/libraries/ghc-" ++ ghcApiVersion ++ "/ghc.txt"
     cabals   <- download "haskell-cabal.tar.gz" "https://hackage.haskell.org/packages/index.tar.gz"
     hoogles  <- download "haskell-hoogle.tar.gz" "https://hackage.haskell.org/packages/hoogle.tar.gz"
 
@@ -120,7 +120,7 @@ readHaskellOnline timing download = do
             forM_ tar $ \(takeBaseName -> name, src) ->
                 yield (name, hackagePackageURL name, src)
             src <- liftIO $ strReadFile ghcapi
-            let url = "http://downloads.haskell.org/~ghc/7.10.3/docs/html/libraries/ghc-7.10.3/"
+            let url = "http://downloads.haskell.org/~ghc/" ++ ghcApiVersion ++ "/docs/html/libraries/ghc-" ++ ghcApiVersion ++ "/"
             yield ("ghc", url, lstrFromChunks [src])
     return (cbl, want, source)
 
