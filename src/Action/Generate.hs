@@ -120,7 +120,7 @@ readHaskellOnline timing download = do
             forM_ tar $ \(takeBaseName -> name, src) ->
                 yield (name, hackagePackageURL name, src)
             src <- liftIO $ strReadFile ghcapi
-            let url = "http://downloads.haskell.org/~ghc/" ++ ghcApiVersion ++ "/docs/html/libraries/ghc-" ++ ghcApiVersion ++ "/"
+            let url = "https://downloads.haskell.org/~ghc/" ++ ghcApiVersion ++ "/docs/html/libraries/ghc-" ++ ghcApiVersion ++ "/"
             yield ("ghc", url, lstrFromChunks [src])
     return (cbl, want, source)
 
