@@ -18,7 +18,7 @@ module General.Util(
     exitFail,
     prettyTable,
     ghcApiVersion,
-    hackagePackageURL, hackageModuleURL, hackageDeclURL,
+    hackagePackageURL, hackageModuleURL, hackageDeclURL, ghcModuleURL,
     minimum', maximum', minimumBy', maximumBy',
     general_util_test
     ) where
@@ -285,7 +285,10 @@ hackagePackageURL :: String -> URL
 hackagePackageURL x = "https://hackage.haskell.org/package/" ++ x
 
 hackageModuleURL :: String -> URL
-hackageModuleURL x = "/docs/" ++ replace "." "-" x ++ ".html"
+hackageModuleURL x = "/docs/" ++ ghcModuleURL x
+
+ghcModuleURL :: String -> URL
+ghcModuleURL x = replace "." "-" x ++ ".html"
 
 hackageDeclURL :: Bool -> String -> URL
 hackageDeclURL typesig x = "#" ++ (if typesig then "v" else "t") ++ ":" ++ concatMap f x
