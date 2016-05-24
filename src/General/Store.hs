@@ -126,7 +126,7 @@ storeWriteFile file act = do
         final <- hTell h
         let stats = prettyTable 0 "Bytes" $
                 ("Overheads", intToDouble $ fromIntegral final - sum (map atomSize $ Map.elems atoms)) :
-                [(name ++ " (:: " ++ atomType ++ ")", intToDouble atomSize) | (name, Atom{..}) <- Map.toList atoms]
+                [(name ++ " :: " ++ atomType, intToDouble atomSize) | (name, Atom{..}) <- Map.toList atoms]
         return (stats, res)
 
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
