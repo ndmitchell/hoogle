@@ -36,6 +36,8 @@ import Action.CmdLine
 import Control.Applicative
 import Prelude
 
+import qualified Data.Aeson.Encode as JSON
+
 
 actionServer :: CmdLine -> IO ()
 actionServer cmd@Server{..} = do
@@ -90,6 +92,7 @@ replyServer log local store cdn htmlDir scope = \Input{..} -> case inputURL of
                         ,("robots",if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputString <$> templateRender templateHome []
             Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ lstrPack body
+            Just "json" -> if null qSource then (OutputString <$> (templateRender templateEmpty [])) else return $ encodeResults local results
             Just m -> return $ OutputFail $ lstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
@@ -138,6 +141,11 @@ dedupeTake n key = f [] Map.empty
                         | otherwise = f (k:res) (Map.insert k [x] mp) xs
             where k = key x
 
+
+
+
+encodeResults :: Bool -> [Target] -> Output
+encodeResults local results = OutputString $ JSON.encode results
 
 showResults :: Bool -> [(String, String)] -> [Query] -> [[Target]] -> String
 showResults local args query results = unlines $

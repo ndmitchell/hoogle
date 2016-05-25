@@ -25,8 +25,8 @@ import Data.Data
 import General.Util
 import General.IString
 import Prelude
-
-
+import Data.Aeson.Types
+import qualified Data.Text as T
 ---------------------------------------------------------------------
 -- TYPES
 
@@ -114,6 +114,23 @@ data Target = Target
 
 instance NFData Target where
     rnf (Target a b c d e f) = rnf a `seq` rnf b `seq` rnf c `seq` rnf d `seq` rnf e `seq` rnf f
+
+instance ToJSON Target where
+    toJSON (Target a b c d e f) = object [
+      ("url" :: T.Text, toJSON a),
+      ("package" :: T.Text, maybeNamedURL b),
+      ("module" :: T.Text, maybeNamedURL c),
+      ("type" :: T.Text, toJSON d),
+      ("item" :: T.Text, toJSON e),
+      ("docs" :: T.Text, toJSON f)
+      ]
+      where
+        maybeNamedURL m = maybe emptyObject namedURL m
+        namedURL (name, url) = object [("name" :: T.Text, toJSON name), ("url" :: T.Text, toJSON url)]
+
+
+
+
 
 targetExpandURL :: Target -> Target
 targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const mod) <$> targetModule}
