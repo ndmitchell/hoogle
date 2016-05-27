@@ -11,7 +11,7 @@ import Prelude
 
 -- | Return information about which items are in a particular set.
 setStackage :: FilePath -> IO (Set.Set String)
-setStackage file = Set.fromList . f . lines <$> readFile' file
+setStackage file = Set.fromList . delete "telegram-api" . f . lines <$> readFile' file
     where
         f (x:xs) | Just x <- stripPrefix "constraints:" x =
                     map (fst . word1) $ takeWhile (" " `isPrefixOf`) $ (' ':x) : xs
