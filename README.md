@@ -21,6 +21,7 @@ Hoogle can be used in several ways:
 
 * **Online**, with the web interface at http://haskell.org/hoogle
 * **In [IRC](http://haskell.org/haskellwiki/Haskell_IRC_channel)**, using the [Lambdabot](http://haskell.org/haskellwiki/Lambdabot) plugin with `@hoogle` and `@hoogle+`
+* **From `emacs`**, by means of [`engine-mode`](https://github.com/hrs/engine-mode)
 * **[Installed locally](https://github.com/ndmitchell/hoogle/blob/master/docs/Install.md)**, with either a command line or in a browser
 * **[As a developer](https://github.com/ndmitchell/hoogle/blob/master/docs/API.md)**, through Haskell or JSON APIs.
 
