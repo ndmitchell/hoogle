@@ -37,10 +37,9 @@ source-repository head
     type:     git
     location: https://github.com/ndmitchell/hoogle.git
 
-executable hoogle
-    main-is:            Main.hs
+library
     hs-source-dirs:     src
-    default-language: Haskell98
+    default-language:   Haskell98
 
     build-depends:
         QuickCheck,
@@ -87,7 +86,10 @@ executable hoogle
     install-includes: include.h
     cc-options:       -std=c99
 
-    ghc-options:      -fno-state-hack -threaded
+    ghc-options:      -fno-state-hack
+
+    exposed-modules:
+        Hoogle
 
     other-modules:
         Paths_hoogle
@@ -116,3 +118,14 @@ executable hoogle
         General.Timing
         General.Util
         General.Web
+
+
+executable hoogle
+    main-is:            Main.hs
+    hs-source-dirs:     src
+    default-language:   Haskell98
+    ghc-options:        -threaded
+
+    build-depends:
+        base > 4 && < 5,
+        hoogle

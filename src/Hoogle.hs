@@ -1,21 +1,42 @@
 
--- Draft of Hoogle API, does not yet compile!
+-- | High level Hoogle API
 module Hoogle(
-    Query(..), parseQuery,
-    ItemEx(..), Item(..), showItem,
-    withSearch
+    Database, withDatabase, searchDatabase,
+    Target(..), URL,
+    hoogle
     ) where
 
-import qualified Query as Q
-import qualified Input.Type as I
-import qualified General.Store as S
-import qualified Action.Search as S
+import Query
+import Input.Item
+import General.Util
+import General.Store
+
+import Action.CmdLine
+import Action.Generate
+import Action.Search
+import Action.Server
+import Action.Test
 
 
+-- | Database containing Hoogle search data.
 newtype Database = Database StoreRead
 
+-- | Load a database from a file.
 withDatabase :: FilePath -> (Database -> IO ()) -> IO ()
-withDatabase file act = withStoreFile file $ act . Database
+withDatabase file act = storeReadFile file $ act . Database
 
-search :: Database -> [Query] -> [ItemEx]
-search = undefined
+-- | Search a database, given a query string, produces a list of results.
+searchDatabase :: Database -> String -> [Target]
+searchDatabase (Database db) query = snd $ search db $ parseQuery query
+
+
+-- | Run a command line Hoogle operation.
+hoogle :: [String] -> IO ()
+hoogle args = do
+    args <- getCmdLine args
+    case args of
+        Search{} -> actionSearch args
+        Generate{} -> actionGenerate args
+        Server{} -> actionServer args
+        Test{} -> actionTest args
+        Replay{} -> actionReplay args
