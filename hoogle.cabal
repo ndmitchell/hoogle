@@ -121,8 +121,7 @@ library
 
 
 executable hoogle
-    main-is:            Main.hs
-    hs-source-dirs:     src
+    main-is:            src/Main.hs
     default-language:   Haskell98
     ghc-options:        -threaded
 
