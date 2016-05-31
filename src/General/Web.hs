@@ -45,12 +45,14 @@ readInput (breakOn "?" -> (a,b)) = Input (dropWhile null $ splitOn "/" a) $
 data Output
     = OutputString LBS.ByteString
     | OutputHTML LBS.ByteString
+    | OutputJSON LBS.ByteString
     | OutputFail LBS.ByteString
     | OutputFile FilePath
       deriving Show
 
 instance NFData Output where
     rnf (OutputString x) = rnf x
+    rnf (OutputJSON x) = rnf x
     rnf (OutputHTML x) = rnf x
     rnf (OutputFail x) = rnf x
     rnf (OutputFile x) = rnf x
@@ -85,6 +87,7 @@ server log Server{..} act = do
                 OutputFile file -> responseFile status200
                     [("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] file Nothing
                 OutputString msg -> responseLBS status200 [] msg
+                OutputJSON msg -> responseLBS status200 [("content-type", "application/json"), ("access-control-allow-origin", "*")] msg
                 OutputFail msg -> responseLBS status500 [] msg
                 OutputHTML msg -> responseLBS status200 [("content-type","text/html")] msg
 
