@@ -1,9 +1,7 @@
--- A list of tag renamings, installed as a data file on the users machine.
--- Used to when the same semantic value is used multiple times with
--- typos/names/capitalisation.
---
--- This file is global and applies to all Cabal files.
+-- A list of settings, installed as a data file on the users machine.
 
+-- Applied to cabal fields when the same semantic value is used multiple times with
+-- typos/names/capitalisation.
 RenameTag "Silk-B.V." "Silk"
 RenameTag "Silk.-B.V." "Silk"
 RenameTag "Michael-snoyman" "Michael-Snoyman"
@@ -26,3 +24,11 @@ RenameTag "Error-handling" "Error-Handling"
 RenameTag "Daniel-SchÃ¼ssler" "Daniel Schüssler"
 RenameTag "Various" ""
 RenameTag "Various;-see-individual-modules" ""
+
+-- Reorder modules so the common things come first
+ReorderModule "base" "Prelude"        1009
+ReorderModule "base" "Data.List"      1008
+ReorderModule "base" "Data.Maybe"     1007
+ReorderModule "base" "Data.Function"  1006
+ReorderModule "base" "Control.Monad"  1005
+ReorderModule "base" "GHC.*"        (-1000)

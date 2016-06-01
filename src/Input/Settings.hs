@@ -16,6 +16,9 @@ data Setting
     = -- | Given a Cabal tag/author rename it from the LHS to the RHS.
       --   If the RHS is blank, delete the tag.
       RenameTag String String
+    | -- | Change the priority of a module. Given package name, module name, new priority.
+      --   Use * for wildcard matches. All un-reordered modules are 0
+      ReorderModule String String Int
     deriving Read
 
 
