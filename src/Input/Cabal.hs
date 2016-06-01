@@ -7,6 +7,8 @@ module Input.Cabal(
     packagePopularity
     ) where
 
+import Input.Settings
+
 import Data.List.Extra
 import System.FilePath
 import Control.DeepSeq
@@ -23,7 +25,6 @@ import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import General.Util
 import General.Conduit
-import Paths_hoogle
 import Data.Monoid
 import Control.Applicative
 import Prelude
@@ -74,11 +75,11 @@ readGhcPkg :: IO (Map.Map String Package)
 readGhcPkg = do
     topdir <- findExecutable "ghc-pkg"
     stdout <- readProcess "ghc-pkg" ["dump"] ""
-    rename <- loadRename
+    settings <- loadSettings
     let g (stripPrefix "$topdir" -> Just x) | Just t <- topdir = takeDirectory t ++ x
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
-    let f ((stripPrefix "name: " -> Just x):xs) = Just (x, fixer $ readCabal rename $ unlines xs)
+    let f ((stripPrefix "name: " -> Just x):xs) = Just (x, fixer $ readCabal settings $ unlines xs)
         f xs = Nothing
     return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines stdout
 
@@ -90,30 +91,21 @@ parseCabalTarball :: FilePath -> IO (Map.Map String Package)
 -- QuickCheck/2.7.6/QuickCheck.cabal
 -- rely on the fact the highest version is last (using lastValues)
 parseCabalTarball tarfile = do
-    rename <- loadRename
+    settings <- loadSettings
 
     res <- runConduit $
         (sourceList =<< liftIO (tarballReadFiles tarfile)) =$=
         mapC (first takeBaseName) =$= groupOnLastC fst =$= mapMC (\x -> do evaluate $ rnf x; return x) =$=
-        pipelineC 10 (mapC (second $ readCabal rename . lstrUnpack) =$= mapMC (\x -> do evaluate $ rnf x; return x) =$= sinkList)
+        pipelineC 10 (mapC (second $ readCabal settings . lstrUnpack) =$= mapMC (\x -> do evaluate $ rnf x; return x) =$= sinkList)
     return $ Map.fromList res
 
 
 ---------------------------------------------------------------------
 -- PARSERS
 
--- | Fix bad names in the Cabal file.
-loadRename :: IO (String -> String)
-loadRename = do
-    dataDir <- getDataDir
-    src <- readFileUTF8 $ dataDir </> "misc/settings.txt"
-    let mp = Map.fromList $ mapMaybe (fmap (both trim) . stripInfix "=") $ lines src
-    return $ \x -> Map.findWithDefault x x mp
-
-
 -- | Cabal information, plus who I depend on
-readCabal :: (String -> String) -> String -> Package
-readCabal rename src = Package{..}
+readCabal :: Settings -> String -> Package
+readCabal Settings{..} src = Package{..}
     where
         mp = Map.fromListWith (++) $ lexCabal src
         ask x = Map.findWithDefault [] x mp
@@ -134,7 +126,7 @@ readCabal rename src = Package{..}
         -- split on things like "," "&" "and", then throw away email addresses, replace spaces with "-" and rename
         cleanup =
             filter (/= "") .
-            map (rename . intercalate "-" . filter ('@' `notElem`) . words . takeWhile (`notElem` "<(")) .
+            map (renameTag . intercalate "-" . filter ('@' `notElem`) . words . takeWhile (`notElem` "<(")) .
             concatMap (map unwords . split (== "and") . words) . split (`elem` ",&")
 
 

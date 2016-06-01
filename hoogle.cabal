@@ -102,6 +102,7 @@ executable hoogle
         Input.Item
         Input.Reorder
         Input.Set
+        Input.Settings
         Output.Items
         Output.Names
         Output.Tags
