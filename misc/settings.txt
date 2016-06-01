@@ -1,28 +1,28 @@
-# A list of tag renamings, installed as a data file on the users machine.
-# Used to when the same semantic value is used multiple times with
-# typos/names/capitalisation.
-#
-# This file is global and applies to all Cabal files.
+-- A list of tag renamings, installed as a data file on the users machine.
+-- Used to when the same semantic value is used multiple times with
+-- typos/names/capitalisation.
+--
+-- This file is global and applies to all Cabal files.
 
-Silk-B.V. = Silk
-Silk.-B.V. = Silk
-Michael-snoyman = Michael-Snoyman
-Apache-2.0 = Apache
-GPL-3 = GPL
-LGPL-2.1 = LGPL
-LGPL-3 = LGPL
-graphics = Graphics
-math = Math
-Unclassified =
-data = Data
-Edward-A.-Kmett = Edward-Kmett
-Jose-Pedro-Magalhaes = José-Pedro-Magalhães
-AUTHORS =
-contributors-see-README =
-author =
-http://www.cse.chalmers.se/~nad/ = Nils Anders Danielsson
-many-others =
-Error-handling = Error-Handling
-Daniel-SchÃ¼ssler = Daniel Schüssler
-Various =
-Various;-see-individual-modules =
+RenameTag "Silk-B.V." "Silk"
+RenameTag "Silk.-B.V." "Silk"
+RenameTag "Michael-snoyman" "Michael-Snoyman"
+RenameTag "Apache-2.0" "Apache"
+RenameTag "GPL-3" "GPL"
+RenameTag "LGPL-2.1" "LGPL"
+RenameTag "LGPL-3" "LGPL"
+RenameTag "graphics" "Graphics"
+RenameTag "math" "Math"
+RenameTag "Unclassified" ""
+RenameTag "data" "Data"
+RenameTag "Edward-A.-Kmett" "Edward-Kmett"
+RenameTag "Jose-Pedro-Magalhaes" "José-Pedro-Magalhães"
+RenameTag "AUTHORS" ""
+RenameTag "contributors-see-README" ""
+RenameTag "author" ""
+RenameTag "http://www.cse.chalmers.se/~nad/" "Nils Anders Danielsson"
+RenameTag "many-others" ""
+RenameTag "Error-handling" "Error-Handling"
+RenameTag "Daniel-SchÃ¼ssler" "Daniel Schüssler"
+RenameTag "Various" ""
+RenameTag "Various;-see-individual-modules" ""

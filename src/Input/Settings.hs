@@ -8,10 +8,13 @@ module Input.Settings(
 import Data.List.Extra
 import System.FilePath
 import System.IO.Extra
-import Data.Maybe
-import Data.Tuple.Extra
 import qualified Data.Map.Strict as Map
 import Paths_hoogle
+
+
+data Setting =
+    RenameTag String String
+    deriving Read
 
 
 data Settings = Settings
@@ -19,12 +22,24 @@ data Settings = Settings
     }
 
 
+readFileSettings :: FilePath -> IO [Setting]
+readFileSettings file = do
+    src <- readFileUTF8 file
+    return $ concat $ zipWith f [1..] $ map trim $ lines src
+    where
+        f i s | null s = []
+              | "--" `isPrefixOf` s = []
+              | [(x,"")] <- reads s = [x]
+              | otherwise = error $ file ++ ":" ++ show i ++ ": Failure to parse, got: " ++ s
+
+
+
 -- | Fix bad names in the Cabal file.
 loadSettings :: IO Settings
 loadSettings = do
     dataDir <- getDataDir
-    src <- readFileUTF8 $ dataDir </> "misc/settings.txt"
-    let mp = Map.fromList $ mapMaybe (fmap (both trim) . stripInfix "=") $ lines src
+    src <- readFileSettings $ dataDir </> "misc/settings.txt"
+    let mp = Map.fromList [(a,b) | RenameTag a b <- src]
     let renameTag x = Map.findWithDefault x x mp
     return Settings{..}
 
