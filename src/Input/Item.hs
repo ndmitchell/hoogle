@@ -129,9 +129,6 @@ instance ToJSON Target where
         namedURL (name, url) = object [("name" :: T.Text, toJSON name), ("url" :: T.Text, toJSON url)]
 
 
-
-
-
 targetExpandURL :: Target -> Target
 targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const mod) <$> targetModule}
     where
