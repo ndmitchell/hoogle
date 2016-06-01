@@ -63,8 +63,8 @@ decodeBS = decode . LBS.fromStrict
 -- each atom name is either unique (a scope) or "" (a list entry)
 data Atom = Atom
     {atomType :: String -- Type that the atom contains (for sanity checking)
-    ,atomPosition :: !Int -- Position at which the atom starts in the file
-    ,atomSize :: !Int -- Number of bytes the value takes up
+    ,atomPosition :: {-# UNPACK #-} !Int -- Position at which the atom starts in the file
+    ,atomSize :: {-# UNPACK #-} !Int -- Number of bytes the value takes up
     } deriving Show
 
 instance Binary Atom where
@@ -99,7 +99,7 @@ data SW = SW
     ,swAtoms :: [(String, Atom)] -- List of pieces, in reverse
     }
 
-data StoreWrite = StoreWrite (IORef SW)
+newtype StoreWrite = StoreWrite (IORef SW)
 
 storeWriteFile :: FilePath -> (StoreWrite -> IO a) -> IO ([String], a)
 storeWriteFile file act = do
@@ -126,7 +126,7 @@ storeWriteFile file act = do
         final <- hTell h
         let stats = prettyTable 0 "Bytes" $
                 ("Overheads", intToDouble $ fromIntegral final - sum (map atomSize $ Map.elems atoms)) :
-                [(name ++ " (:: " ++ atomType ++ ")", intToDouble atomSize) | (name, Atom{..}) <- Map.toList atoms]
+                [(name ++ " :: " ++ atomType, intToDouble atomSize) | (name, Atom{..}) <- Map.toList atoms]
         return (stats, res)
 
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
@@ -205,8 +205,8 @@ storeReadAtom StoreRead{..} (typeOf -> k) unpack = unsafePerformIO $ do
 ---------------------------------------------------------------------
 -- PAIRS
 
-data Fst k v where Fst :: k -> Fst k a deriving Typeable
-data Snd k v where Snd :: k -> Snd k b deriving Typeable
+newtype Fst k v where Fst :: k -> Fst k a deriving Typeable
+newtype Snd k v where Snd :: k -> Snd k b deriving Typeable
 
 instance (Typeable a, Typeable b, Stored a, Stored b) => Stored (a,b) where
     storedWrite store k False (a,b) = storeWrite store (Fst k) a >> storeWrite store (Snd k) b

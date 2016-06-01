@@ -9,6 +9,7 @@ module Action.CmdLine(
 
 import System.Console.CmdArgs
 import System.Directory
+import System.Environment
 import System.FilePath
 import Data.List.Extra
 import Data.Version
@@ -65,9 +66,9 @@ data CmdLine
         }
       deriving (Data,Typeable,Show)
 
-getCmdLine :: IO CmdLine
-getCmdLine = do
-    args <- cmdArgsRun cmdLineMode
+getCmdLine :: [String] -> IO CmdLine
+getCmdLine args = do
+    args <- withArgs args $ cmdArgsRun cmdLineMode
 
     -- fill in the default database
     args <- if database args /= "" then return args else do

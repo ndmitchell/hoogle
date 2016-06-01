@@ -104,12 +104,12 @@ instance Show TargetId where
     show (TargetId x) = showHex x ""
 
 data Target = Target
-    {targetURL :: URL -- URL where this thing is located
-    ,targetPackage :: Maybe (String, URL) -- name and URL of the package it is in (Nothing if it is a package)
-    ,targetModule :: Maybe (String, URL) -- name and URL of the module it is in (Nothing if it is a package or module)
-    ,targetType :: String -- one of package, module or empty string
-    ,targetItem :: String -- HTML span of the item, using <0> for the name and <1> onwards for arguments
-    ,targetDocs :: String -- HTML documentation to show, a sequence of block level elements
+    {targetURL :: URL -- ^ URL where this thing is located
+    ,targetPackage :: Maybe (String, URL) -- ^ Name and URL of the package it is in (Nothing if it is a package)
+    ,targetModule :: Maybe (String, URL) -- ^ Name and URL of the module it is in (Nothing if it is a package or module)
+    ,targetType :: String -- ^ One of package, module or empty string
+    ,targetItem :: String -- ^ HTML span of the item, using <0> for the name and <1> onwards for arguments
+    ,targetDocs :: String -- ^ HTML documentation to show, a sequence of block level elements
     } deriving (Show,Eq,Ord)
 
 instance NFData Target where
