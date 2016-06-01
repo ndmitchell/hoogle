@@ -13,7 +13,9 @@ import Paths_hoogle
 
 
 data Setting
-    = RenameTag String String
+    = -- | Given a Cabal tag/author rename it from the LHS to the RHS.
+      --   If the RHS is blank, delete the tag.
+      RenameTag String String
     deriving Read
 
 
