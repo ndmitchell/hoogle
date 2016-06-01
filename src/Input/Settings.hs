@@ -6,12 +6,14 @@ module Input.Settings(
     ) where
 
 import Data.List.Extra
+import Data.Maybe
 import System.FilePath
 import System.IO.Extra
 import qualified Data.Map.Strict as Map
 import Paths_hoogle
 
 
+-- | Settings values. Later settings always override earlier settings.
 data Setting
     = -- | Given a Cabal tag/author rename it from the LHS to the RHS.
       --   If the RHS is blank, delete the tag.
@@ -24,6 +26,7 @@ data Setting
 
 data Settings = Settings
     {renameTag :: String -> String -- ^ Rename a cabal tag
+    ,reorderModule :: String -> String -> Int
     }
 
 
@@ -44,8 +47,34 @@ loadSettings :: IO Settings
 loadSettings = do
     dataDir <- getDataDir
     src <- readFileSettings $ dataDir </> "misc/settings.txt"
-    let mp = Map.fromList [(a,b) | RenameTag a b <- src]
-    let renameTag x = Map.findWithDefault x x mp
-    return Settings{..}
+    return $ createSettings src
 
-    
+createSettings :: [Setting] -> Settings
+createSettings xs = Settings{..}
+    where
+        renameTag = \x -> fromMaybe x $ f x
+            where f = literals [(a,b) | RenameTag a b <- xs]
+
+        reorderModule = \pkg -> case f pkg of
+                                    [] -> const 0
+                                    xs -> let f = wildcards xs
+                                          in \mod -> last $ 0 : f mod
+            where f = wildcards [(a,(b,c)) | ReorderModule a b c <- xs]
+
+
+---------------------------------------------------------------------
+-- SPECIAL LOOKUPS
+
+literals :: [(String, a)] -> String -> Maybe a
+literals xs = \x -> Map.lookup x mp
+    where mp = Map.fromList xs
+
+wildcards :: [(String, a)] -> String -> [a]
+wildcards xs x = [b | (a,b) <- xs, matchWildcard a x]
+
+matchWildcard :: String -> String -> Bool
+matchWildcard ['*'] ys = True -- special common case
+matchWildcard ('*':xs) ys = any (matchWildcard xs) $ tails ys
+matchWildcard (x:xs) (y:ys) = x == y && matchWildcard xs ys
+matchWildcard [] [] = True
+matchWildcard _ _ = False
