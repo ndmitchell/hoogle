@@ -23,11 +23,11 @@ data Entry = EPackage String
              deriving (Data,Typeable,Show)
 
 
-fakePackage :: String -> String -> (Maybe Target, Item)
-fakePackage name desc = (Just $ Target (hackagePackageURL name) Nothing Nothing "package" (renderPackage name) desc, IPackage name)
+fakePackage :: String -> String -> (Maybe Target, [Item])
+fakePackage name desc = (Just $ Target (hackagePackageURL name) Nothing Nothing "package" (renderPackage name) desc, [IPackage name])
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => (String -> m ()) -> URL -> LStr -> Producer m (Maybe Target, Item)
+parseHoogle :: Monad m => (String -> m ()) -> URL -> LStr -> Producer m (Maybe Target, [Item])
 parseHoogle warning url body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning =$= hierarchyC url =$= mapC (\x -> rnf x `seq` x)
 
 parserC :: Monad m => (String -> m ()) -> Conduit (Int, Str) m (Target, Entry)
@@ -60,15 +60,15 @@ reformat :: [Str] -> String
 reformat = unlines . map strUnpack
 
 
-hierarchyC :: Monad m => URL -> Conduit (Target, Entry) m (Maybe Target, Item)
+hierarchyC :: Monad m => URL -> Conduit (Target, Entry) m (Maybe Target, [Item])
 hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
     where
-        f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (Just t{targetURL=url}, IPackage x))
+        f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (Just t{targetURL=url}, [IPackage x]))
             where url = targetURL t `orIfNull` packageUrl
-        f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, IModule x))
+        f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, [IModule x]))
             where url = targetURL t `orIfNull` (if isGhc then ghcModuleURL x else hackageModuleURL x)
-        f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
-        f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
+        f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, [hseToItem_ i]))
+        f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, [hseToItem_ x]))
             where url = targetURL t `orIfNull` case x of
                             _ | [n] <- declNames x -> hackageDeclURL (isTypeSig x) n
                               | otherwise -> ""

@@ -186,7 +186,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
-            let consume :: Conduit (Int, (String, URL, LStr)) IO (Maybe Target, Item)
+            let consume :: Conduit (Int, (String, URL, LStr)) IO (Maybe Target, [Item])
                 consume = awaitForever $ \(i, (pkg, url, body)) -> do
                     timed timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body
@@ -212,7 +212,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 itemWarn <- readIORef itemWarn
                 when (itemWarn > 0) $
                     putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
-                return xs
+                return [(a,b) | (a,bs) <- xs, b <- bs]
 
         itemsMb <- if not gcStats then return 0 else do performGC; GCStats{..} <- getGCStats; return $ currentBytesUsed `div` (1024*1024)
         xs <- timed timing "Reodering items" $ return $! reorderItems (\s -> maybe 1 negate $ Map.lookup s popularity) xs
