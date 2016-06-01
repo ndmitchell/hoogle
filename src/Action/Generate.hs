@@ -27,6 +27,7 @@ import Input.Haddock
 import Input.Download
 import Input.Reorder
 import Input.Set
+import Input.Settings
 import Input.Item
 import General.Util
 import General.Store
@@ -93,8 +94,8 @@ generate output metadata  = undefined
 
 type Download = String -> URL -> IO FilePath
 
-readHaskellOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readHaskellOnline timing download = do
+readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellOnline timing settings download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
     ghcapi   <- download "haskell-ghcapi.txt" $ "https://downloads.haskell.org/~ghc/" ++ ghcApiVersion ++ "/docs/html/libraries/ghc-" ++ ghcApiVersion ++ "/ghc.txt"
@@ -106,7 +107,7 @@ readHaskellOnline timing download = do
     setPlatform <- setPlatform platform
     setGHC <- setGHC platform
 
-    cbl <- timed timing "Reading Cabal" $ parseCabalTarball cabals
+    cbl <- timed timing "Reading Cabal" $ parseCabalTarball settings cabals
     let want = Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
     cbl <- return $ flip Map.mapWithKey cbl $ \name p ->
         p{packageTags =
@@ -144,9 +145,9 @@ readFregeOnline timing download = do
     return (Map.empty, Set.singleton "frege", source)
 
 
-readHaskellGhcpkg :: Timing -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readHaskellGhcpkg timing = do
-    cbl <- timed timing "Reading ghc-pkg" readGhcPkg
+readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellGhcpkg timing settings = do
+    cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
             forM_ (Map.toList cbl) $ \(name,Package{..}) -> whenJust packageDocs $ \docs -> do
                 let file = docs </> name <.> "txt"
@@ -168,10 +169,11 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     gcStats <- getGCStatsEnabled
 
     download <- return $ downloadInput timing insecure download (takeDirectory database)
+    settings <- loadSettings
     (cbl, want, source) <- case language of
-        Haskell | Just "" <- local_ -> readHaskellGhcpkg timing
+        Haskell | Just "" <- local_ -> readHaskellGhcpkg timing settings
                 | Just dir <- local_ -> readHaskellDir timing dir
-                | otherwise -> readHaskellOnline timing download
+                | otherwise -> readHaskellOnline timing settings download
         Frege | isJust local_ -> errorIO "No support for local Frege databases"
               | otherwise -> readFregeOnline timing download
     let (cblErrs, popularity) = packagePopularity cbl

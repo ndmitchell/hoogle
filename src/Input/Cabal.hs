@@ -71,11 +71,10 @@ packagePopularity cbl = (errs, Map.map length good)
 -- READERS
 
 -- | Run 'ghc-pkg' and get a list of packages which are installed.
-readGhcPkg :: IO (Map.Map String Package)
-readGhcPkg = do
+readGhcPkg :: Settings -> IO (Map.Map String Package)
+readGhcPkg settings = do
     topdir <- findExecutable "ghc-pkg"
     stdout <- readProcess "ghc-pkg" ["dump"] ""
-    settings <- loadSettings
     let g (stripPrefix "$topdir" -> Just x) | Just t <- topdir = takeDirectory t ++ x
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
@@ -85,14 +84,12 @@ readGhcPkg = do
 
 
 -- | Given a tarball of Cabal files, parse the latest version of each package.
-parseCabalTarball :: FilePath -> IO (Map.Map String Package)
+parseCabalTarball :: Settings -> FilePath -> IO (Map.Map String Package)
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal
 -- rely on the fact the highest version is last (using lastValues)
-parseCabalTarball tarfile = do
-    settings <- loadSettings
-
+parseCabalTarball settings tarfile = do
     res <- runConduit $
         (sourceList =<< liftIO (tarballReadFiles tarfile)) =$=
         mapC (first takeBaseName) =$= groupOnLastC fst =$= mapMC (\x -> do evaluate $ rnf x; return x) =$=
