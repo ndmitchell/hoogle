@@ -12,8 +12,8 @@ import qualified Data.Map.Strict as Map
 import Paths_hoogle
 
 
-data Setting =
-    RenameTag String String
+data Setting
+    = RenameTag String String
     deriving Read
 
 
