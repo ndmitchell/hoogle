@@ -72,8 +72,8 @@ prettySig Sig{..} =
 data Item
     = IPackage String
     | IModule String
-    | IName String -- class or newtype
-    | ISignature String (Sig IString)
+    | IName String
+    | ISignature (Sig IString)
     | IAlias String [IString] (Sig IString)
     | IInstance (Sig IString)
       deriving (Show,Eq,Ord,Typeable,Data)
@@ -82,7 +82,7 @@ instance NFData Item where
     rnf (IPackage x) = rnf x
     rnf (IModule x) = rnf x
     rnf (IName x) = rnf x
-    rnf (ISignature a b) = rnf (a,b)
+    rnf (ISignature x) = rnf x
     rnf (IAlias a b c) = rnf (a,b,c)
     rnf (IInstance a) = rnf a
 
@@ -90,7 +90,7 @@ itemName :: Item -> Maybe String
 itemName (IPackage x) = Just x
 itemName (IModule x) = Just x
 itemName (IName x) = Just x
-itemName (ISignature x _) = Just x
+itemName (ISignature _) = Nothing
 itemName (IAlias x _ _) = Just x
 itemName (IInstance _) = Nothing
 
@@ -188,9 +188,8 @@ hseToSig = tyForall
         ctx _ = []
 
 
-hseToItem :: Decl -> Maybe Item
-hseToItem (TypeSig _ [name] ty) = Just $ ISignature (fromName name) (toIString <$> hseToSig ty)
-hseToItem (TypeDecl _ name bind rhs) = Just $ IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)
-hseToItem (InstDecl _ _ _ ctx name args _) = Just $ IInstance $ fmap toIString $ hseToSig $ TyForall Nothing ctx $ applyType (TyCon name) args
-hseToItem x | [x] <- declNames x = Just $ IName x
-hseToItem x = Nothing
+hseToItem :: Decl -> [Item]
+hseToItem (TypeSig _ names ty) = ISignature (toIString <$> hseToSig ty) : map (IName . fromName) names
+hseToItem (TypeDecl _ name bind rhs) = [IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)]
+hseToItem (InstDecl _ _ _ ctx name args _) = [IInstance $ fmap toIString $ hseToSig $ TyForall Nothing ctx $ applyType (TyCon name) args]
+hseToItem x = map IName $ declNames x

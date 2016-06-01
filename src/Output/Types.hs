@@ -38,7 +38,7 @@ writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = do
     let debugger ext body = whenJust debug $ \file -> writeFileUTF8 (file <.> ext) body
     inst <- return $ Map.fromListWith (+) [(fromIString x,1) | (_, IInstance (Sig _ [TCon x _])) <- xs]
-    xs <- writeDuplicates store [(i, fromIString <$> t) | (Just i, ISignature _ t) <- xs]
+    xs <- writeDuplicates store [(i, fromIString <$> t) | (Just i, ISignature t) <- xs]
     names <- writeNames store debugger inst xs
     xs <- return $ map (lookupNames names (error "Unknown name in writeTypes")) xs
     writeFingerprints store xs

@@ -6,7 +6,6 @@ import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
 import Data.Data
-import Data.Maybe
 import Input.Item
 import General.Util
 import Control.DeepSeq
@@ -67,15 +66,15 @@ hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
             where url = targetURL t `orIfNull` packageUrl
         f (pkg, mod) (t, EModule x) = ((pkg, Just (x, url)), (Just t{targetPackage=pkg, targetURL=url}, [IModule x]))
             where url = targetURL t `orIfNull` (if isGhc then ghcModuleURL x else hackageModuleURL x)
-        f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, [hseToItem_ i]))
-        f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, [hseToItem_ x]))
+        f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
+        f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
             where url = targetURL t `orIfNull` case x of
                             _ | [n] <- declNames x -> hackageDeclURL (isTypeSig x) n
                               | otherwise -> ""
 
         isGhc = "~ghc" `isInfixOf` packageUrl
 
-        hseToItem_ x = fromMaybe (error $ "hseToItem failed, " ++ pretty x) $ hseToItem x
+        hseToItem_ x = hseToItem x `orIfNull` error ("hseToItem failed, " ++ pretty x)
         infix 1 `orIfNull`
         orIfNull x y = if null x then y else x
 
