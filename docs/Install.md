@@ -27,7 +27,7 @@ Run `hoogle generate --local` to query `ghc-pkg` and generate links for all pack
 
 ### Index a directory
 
-Run `hoogle generate --local=mydir` to generate an index for the packages in `mydir`, which must contain `foo.txt` Hoogle input files, and optionally `foo.cabal` files. Links to the results will default to Hackage, but if `@url` directives are in the `.txt` files they can override the link destination.
+Run `hoogle generate --local=mydir` to generate an index for the packages in `mydir`, which must contain `foo.txt` Hoogle input files. Links to the results will default to Hackage, but if `@url` directives are in the `.txt` files they can override the link destination.
 
 ## Searching a Hoogle database
 
