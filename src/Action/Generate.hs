@@ -190,7 +190,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
             let consume :: Conduit (Int, (String, URL, LStr)) IO (Maybe Target, [Item])
                 consume = awaitForever $ \(i, (pkg, url, body)) -> do
-                    timed timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
+                    timedOverwrite timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body
 
             writeItems store $ \items -> do
