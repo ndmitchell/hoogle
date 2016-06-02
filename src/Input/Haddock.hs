@@ -72,7 +72,7 @@ hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
                             _ | [n] <- declNames x -> hackageDeclURL (isTypeSig x) n
                               | otherwise -> ""
 
-        isGhc = "~ghc" `isInfixOf` packageUrl
+        isGhc = "~ghc" `isInfixOf` packageUrl || "/" `isSuffixOf` packageUrl
 
         hseToItem_ x = hseToItem x `orIfNull` error ("hseToItem failed, " ++ pretty x)
         infix 1 `orIfNull`
