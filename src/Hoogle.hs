@@ -6,6 +6,8 @@ module Hoogle(
     hoogle
     ) where
 
+import Control.DeepSeq (NFData)
+
 import Query
 import Input.Item
 import General.Util
@@ -22,7 +24,7 @@ import Action.Test
 newtype Database = Database StoreRead
 
 -- | Load a database from a file.
-withDatabase :: FilePath -> (Database -> IO ()) -> IO ()
+withDatabase :: NFData a => FilePath -> (Database -> IO a) -> IO a
 withDatabase file act = storeReadFile file $ act . Database
 
 -- | Search a database, given a query string, produces a list of results.
