@@ -1,13 +1,17 @@
-{-# LANGUAGE RecordWildCards, PatternGuards #-}
+{-# LANGUAGE RecordWildCards, PatternGuards, TemplateHaskell #-}
+
 
 -- | Module for reading settings files.
 module Input.Settings(
     Settings(..), loadSettings
     ) where
 
+import Control.Exception (catch, throwIO)
 import Data.List.Extra
 import Data.Maybe
+import Language.Haskell.TH.Syntax (lift, runIO)
 import System.FilePath
+import System.IO.Error (isDoesNotExistError)
 import System.IO.Extra
 import qualified Data.Map.Strict as Map
 import Paths_hoogle
@@ -30,9 +34,12 @@ data Settings = Settings
     }
 
 
-readFileSettings :: FilePath -> IO [Setting]
-readFileSettings file = do
-    src <- readFileUTF8 file
+readFileSettings :: FilePath -> String -> IO [Setting]
+readFileSettings file backup = do
+    src <- readFileUTF8 file `catch` \e ->
+        if isDoesNotExistError e
+            then return backup
+            else throwIO e
     return $ concat $ zipWith f [1..] $ map trim $ lines src
     where
         f i s | null s = []
@@ -46,7 +53,8 @@ readFileSettings file = do
 loadSettings :: IO Settings
 loadSettings = do
     dataDir <- getDataDir
-    src <- readFileSettings $ dataDir </> "misc/settings.txt"
+    let backup = $(runIO (readFileUTF8 "misc/settings.txt") >>= lift)
+    src <- readFileSettings (dataDir </> "misc/settings.txt") backup
     return $ createSettings src
 
 createSettings :: [Setting] -> Settings
