@@ -51,6 +51,7 @@ import System.Locale
 import Prelude
 
 
+-- | A URL, complete with a @https:@ prefix.
 type URL = String
 
 ghcApiVersion :: String

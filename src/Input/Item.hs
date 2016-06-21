@@ -103,6 +103,7 @@ newtype TargetId = TargetId Word32 deriving (Eq,Ord,Storable,NFData,Ix,Typeable)
 instance Show TargetId where
     show (TargetId x) = showHex x ""
 
+-- | A location of documentation.
 data Target = Target
     {targetURL :: URL -- ^ URL where this thing is located
     ,targetPackage :: Maybe (String, URL) -- ^ Name and URL of the package it is in (Nothing if it is a package)
