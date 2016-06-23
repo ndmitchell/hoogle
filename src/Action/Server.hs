@@ -22,6 +22,7 @@ import Data.Time.Calendar
 import System.IO.Unsafe
 import Numeric.Extra
 import GHC.Stats
+import System.Info.Extra
 
 import Output.Tags
 import Query
@@ -115,7 +116,7 @@ replyServer log local store cdn htmlDir scope = \Input{..} -> case inputURL of
          else
             return $ OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
     "file":xs | local -> do
-        let x = intercalate "/" xs
+        let x = ['/' | not isWindows] ++ intercalate "/" xs
         return $ OutputFile $ x ++ (if hasTrailingPathSeparator x then "index.html" else "")
     xs ->
         -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
