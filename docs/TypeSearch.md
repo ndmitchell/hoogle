@@ -60,3 +60,12 @@ Compute `TypeQ~` as a decision tree of names that must occur to match, relying o
 * If `[]` (`instance Functor []`) is mentioned either `[]` must be present or `Functor` must be satisfied.
 
 Compute `?~` by generating a state machine from the tree of `TypeQ~` and applying it to `TypeA~`.
+
+
+# Examples
+
+* `a -> b` should only look at things with very rare constructors - perhaps a bit of `()` and `Eq`, but nothing more.
+* `ShakeOptions -> ()` can look at very rare things, as long as they contain `ShakeOptions` in them.
+* `ShakeOptions -> ()` has a `Data` instance, so `{Data} -> ()` is fine to search for, but then you are restricted to things that have a very common things in them, since `Data` is so common.
+
+  
