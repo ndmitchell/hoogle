@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+5.0
     #172, make sure --local links work on Linux
     #116, store data files in getAppUserDataDirectory by default
     G472, be robust to corrupt Hoogle files
