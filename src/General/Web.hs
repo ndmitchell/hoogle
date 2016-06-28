@@ -63,9 +63,15 @@ server :: Log -> CmdLine -> (Input -> IO Output) -> IO ()
 server _ _ _ = return ()
 #else
 server log Server{..} act = do
-    logAddMessage log $ "Server started on port " ++ show port
     let
-        host' = fromString $ if local then "127.0.0.1" else host
+        host' = fromString $
+                  if host == "" then
+                    if local then
+                      "127.0.0.1"
+                    else
+                      "*"
+                  else
+                    host
         set = setOnExceptionResponse exceptionResponseForDebug
             . setHost host'
             . setPort port $
@@ -73,6 +79,9 @@ server log Server{..} act = do
         runServer :: Application -> IO ()
         runServer = if https then runTLS (tlsSettings cert key) set
                              else runSettings set
+
+    logAddMessage log $ "Server starting on port " ++ show port ++ " and host/IP " ++ show host'
+
     runServer $ \req reply -> do
         putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
         let pay = Input (map Text.unpack $ pathInfo req)
