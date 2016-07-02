@@ -1,3 +1,52 @@
+TODO
+
+Rename set:stackage to /everything/, should be distinct
+set:stackage really does restrict to the packages in stackage.
+Everything includes all the package names on hackage.
+
+hackage.catch - a package that I don't index?
+
+Add support for @name annotations in Haddock .txt files
+Required to support the Mu compiler flags
+
+Add ghc-flags and keywords into the normal run
+
+
+
+ghc-pkg field * haddock-html
+
+
+haddock-html: C:\Users\1323649\AppData\Local\Programs\stack\i386-windows\ghc-7.1
+0.2\lib/../doc/html/libraries/binary-0.7.5.0
+haddock-html: C:\Users\1323649\AppData\Local\Programs\stack\i386-windows\ghc-7.1
+0.2\lib/../doc/html/libraries/bin-package-db-0.0.0.0
+haddock-html: C:\Users\1323649\AppData\Local\Programs\stack\i386-windows\ghc-7.1
+0.2\lib/../doc/html/libraries/base-4.8.1.0
+haddock-html: C:\Users\1323649\AppData\Local\Programs\stack\i386-windows\ghc-7.1
+0.2\lib/../doc/html/libraries/array-0.5.1.0
+
+
+--local=True
+--local=False
+[no --local]
+
+
+--local
+
+--local=false
+
+--local=true -- only use things locally, found with ghc-pkg field
+--local=blend -- use metadata remotely, blend with local signatures
+--local=false -- only use remote things
+
+Available both during generate (which data to put in the database) and during 
+
+
+haskell:foo/Module.Name.function
+
+New URL scheme.
+
+
 
 Before beta:
 
