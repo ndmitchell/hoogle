@@ -61,6 +61,15 @@ Compute `TypeQ~` as a decision tree of names that must occur to match, relying o
 
 Compute `?~` by generating a state machine from the tree of `TypeQ~` and applying it to `TypeA~`.
 
+
+# Examples
+
+* `a -> b` should only look at things with very rare constructors - perhaps a bit of `()` and `Eq`, but nothing more.
+* `ShakeOptions -> ()` can look at very rare things, as long as they contain `ShakeOptions` in them.
+* `ShakeOptions -> ()` has a `Data` instance, so `{Data} -> ()` is fine to search for, but then you are restricted to things that have a very common things in them, since `Data` is so common.
+
+# Random notes
+
 ## Model
 
 The model is we have concrete types, type variables, and properties over type variables (roughly contexts).
@@ -144,4 +153,3 @@ vs 252K names.
 Best thing to do is get down to 100 or so plausible ones, then go from there.
 
 Arity filters.
-
