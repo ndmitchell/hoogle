@@ -51,7 +51,7 @@ library
         conduit,
         conduit-extra,
         connection,
-        containers,
+        containers >= 0.5,
         deepseq,
         directory,
         extra >= 1.4,
