@@ -34,7 +34,8 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
             let disp Target{..} = unwords $
                     fmap fst (maybeToList targetModule) ++
-                    [targetItem]
+                    [targetItem] ++
+                    ["-- " ++ targetURL | link]
             let (shown, hidden) = splitAt count $ nubOrd $ map disp res
             if null res then
                 putStrLn "No results found"
