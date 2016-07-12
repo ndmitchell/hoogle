@@ -32,7 +32,8 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
         if null compare_ then do
             (q, res) <- return $ search store $ parseQuery $ unwords query
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
-            let (shown, hidden) = splitAt count $ nubOrd $ map targetItem res
+            let disp Target{..} = maybe "" (\x -> fst x ++ " ") targetModule ++ targetItem
+            let (shown, hidden) = splitAt count $ nubOrd $ map disp res
             if null res then
                 putStrLn "No results found"
              else if info then do

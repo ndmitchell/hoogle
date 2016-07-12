@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #178, add module names to results on the command line
     #177, require containers 0.5 or above
 5.0
     #172, make sure --local links work on Linux
