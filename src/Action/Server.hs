@@ -102,7 +102,7 @@ replyServer log local store cdn htmlDir scope = \Input{..} -> case inputURL of
         now <- getCurrentTime
         summ <- logSummary log
         let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
-        let alive = (now `subtractTime` spawned) / (24 * 60 * 60)
+        let alive = fromRational $ toRational $ (now `diffUTCTime` spawned) / (24 * 60 * 60)
         let s = show errs ++ " errors since yesterday, running for " ++ showDP 2 alive ++ " days."
         return $ if errs == 0 && alive < 1.5 then OutputString $ lstrPack $ "Happy. " ++ s else OutputFail $ lstrPack $ "Sad. " ++ s
     ["log"] -> do
