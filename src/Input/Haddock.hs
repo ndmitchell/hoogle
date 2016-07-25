@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types, DeriveDataTypeable #-}
 
-module Input.Haddock(parseHoogle, fakePackage, input_hoogle_test) where
+module Input.Haddock(parseHoogle, fakePackage, input_haddock_test) where
 
 import Language.Haskell.Exts as HSE
 import Data.Char
@@ -165,8 +165,8 @@ prettyItem (EModule x) = "module " ++ x
 prettyItem (EDecl x) = pretty x
 
 
-input_hoogle_test :: IO ()
-input_hoogle_test = testing "Input.Hoogle.parseLine" $ do
+input_haddock_test :: IO ()
+input_haddock_test = testing "Input.Haddock.parseLine" $ do
     let a === b | fmap (map prettyItem) (parseLine a) == Right [b] = putChar '.'
                 | otherwise = error $ show (a,b,parseLine a, fmap (map prettyItem) $ parseLine a)
     let test a = a === a

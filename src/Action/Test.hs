@@ -22,7 +22,7 @@ actionTest :: CmdLine -> IO ()
 actionTest Test{..} = withBuffering stdout NoBuffering $ withTempFile $ \sample -> do
     putStrLn "Code tests"
     general_util_test
-    input_hoogle_test
+    input_haddock_test
     query_test
     action_server_test_
     putStrLn ""
