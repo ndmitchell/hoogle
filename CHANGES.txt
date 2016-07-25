@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Move to haskell-src-exts-1.18
 5.0.1
     #178, support the --link argument
     #178, add module names to results on the command line

@@ -12,13 +12,14 @@ import Control.DeepSeq
 import Control.Monad.Trans.Class
 import General.Conduit
 import Control.Monad.Extra
+import Data.Generics.Uniplate.Data
 import General.Str
 
 
 -- | An entry in the Hoogle DB
 data Entry = EPackage String
            | EModule String
-           | EDecl Decl
+           | EDecl (Decl ())
              deriving (Data,Typeable,Show)
 
 
@@ -131,32 +132,34 @@ fixLine x | "class " `isPrefixOf` x = fst $ breakOn " where " x
 fixLine x = x
 
 
-readItem :: String -> Maybe Decl
+readItem :: String -> Maybe (Decl ())
 readItem x | ParseOk y <- myParseDecl x = Just $ unGADT y
 readItem x -- newtype
     | Just x <- stripPrefix "newtype " x
-    , ParseOk (DataDecl a _ c d e f g) <- fmap unGADT $ myParseDecl $ "data " ++ x
-    = Just $ DataDecl a NewType c d e f g
+    , ParseOk (DataDecl an _ b c d e) <- fmap unGADT $ myParseDecl $ "data " ++ x
+    = Just $ DataDecl an (NewType ()) b c d e
 readItem x -- constructors
-    | ParseOk (GDataDecl _ _ _ _ _ _ [GadtDecl s name _ ty] _) <- myParseDecl $ "data Data where " ++ x
-    , let f (TyBang _ (TyParen x@TyApp{})) = x
-          f (TyBang _ x) = x
+    | ParseOk (GDataDecl _ _ _ _ _ [GadtDecl s name _ ty] _) <- myParseDecl $ "data Data where " ++ x
+    , let f (TyBang _ _ _ (TyParen _ x@TyApp{})) = x
+          f (TyBang _ _ _ x) = x
           f x = x
     = Just $ TypeSig s [name] $ applyFun1 $ map f $ unapplyFun ty
 readItem ('(':xs) -- tuple constructors
     | (com,')':rest) <- span (== ',') xs
-    , ParseOk (TypeSig s [Ident _] ty) <- myParseDecl $ replicate (length com + 2) 'a' ++ rest
-    = Just $ TypeSig s [Ident $ '(':com++")"] ty
+    , ParseOk (TypeSig s [Ident{}] ty) <- myParseDecl $ replicate (length com + 2) 'a' ++ rest
+    = Just $ TypeSig s [Ident s $ '(':com++")"] ty
 readItem (stripPrefix "data (" -> Just xs)  -- tuple data type
     | (com,')':rest) <- span (== ',') xs
-    , ParseOk (DataDecl a b c _ e f g) <- fmap unGADT $ myParseDecl $
+    , ParseOk (DataDecl a b c d e f) <- fmap unGADT $ myParseDecl $
         "data " ++ replicate (length com + 2) 'A' ++ rest
-    = Just $ DataDecl a b c (Ident $ '(':com++")") e f g
+    = Just $ DataDecl a b c (transform (op $ '(':com++")") d) e f
+    where op s DHead{} = DHead () $ Ident () s
+          op s x = x
 readItem _ = Nothing
 
-myParseDecl = parseDeclWithMode parseMode -- partial application, to share the initialisation cost
+myParseDecl = fmap (fmap $ const ()) . parseDeclWithMode parseMode -- partial application, to share the initialisation cost
 
-unGADT (GDataDecl a b c d e _ [] f) = DataDecl a b c d e [] f
+unGADT (GDataDecl a b c d _  [] e) = DataDecl a b c d [] e
 unGADT x = x
 
 prettyItem :: Entry -> String

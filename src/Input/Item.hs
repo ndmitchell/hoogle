@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, ViewPatterns #-}
 {-# LANGUAGE RecordWildCards, OverloadedStrings, PatternGuards, ScopedTypeVariables #-}
 
 -- | Types used to generate the input.
@@ -155,42 +155,43 @@ splitUsing f = repeatedly $ \(x:xs) ->
 ---------------------------------------------------------------------
 -- HSE CONVERSION
 
-hseToSig :: Type -> Sig String
+hseToSig :: Type a -> Sig String
 hseToSig = tyForall
     where
         -- forall at the top is different
-        tyForall (TyParen x) = tyForall x
-        tyForall (TyForall _ c t) | Sig cs ts <- tyForall t = Sig (concatMap ctx c ++ cs) ts
+        tyForall (TyParen _ x) = tyForall x
+        tyForall (TyForall _ _ c t) | Sig cs ts <- tyForall t =
+            Sig (maybe [] (concatMap ctx . fromContext) c ++ cs) ts
         tyForall x = Sig [] $ tyFun x
 
-        tyFun (TyParen x) = tyFun x
-        tyFun (TyFun a b) = ty a : tyFun b
+        tyFun (TyParen _ x) = tyFun x
+        tyFun (TyFun _ a b) = ty a : tyFun b
         tyFun x = [ty x]
 
-        ty (TyForall _ _ x) = TCon "\\/" [ty x]
+        ty (TyForall _ _ _ x) = TCon "\\/" [ty x]
         ty x@TyFun{} = TCon "->" $ tyFun x
-        ty (TyTuple box ts) = TCon (fromQName $ Special $ TupleCon box $ length ts - 1) (map ty ts)
-        ty (TyList x) = TCon "[]" [ty x]
-        ty (TyParArray x) = TCon "[::]" [ty x]
-        ty (TyApp x y) = case ty x of
+        ty (TyTuple an box ts) = TCon (fromQName $ Special an $ TupleCon an box $ length ts - 1) (map ty ts)
+        ty (TyList _ x) = TCon "[]" [ty x]
+        ty (TyParArray _ x) = TCon "[::]" [ty x]
+        ty (TyApp _ x y) = case ty x of
             TCon a b -> TCon a (b ++ [ty y])
             TVar a b -> TVar a (b ++ [ty y])
-        ty (TyVar x) = TVar (fromName x) []
-        ty (TyCon x) = TCon (fromQName x) []
-        ty (TyInfix a b c) = ty $ TyCon b `TyApp` a `TyApp` c
-        ty (TyKind x _) = ty x
-        ty (TyBang _ x) = ty x
-        ty (TyParen x) = ty x
+        ty (TyVar _ x) = TVar (fromName x) []
+        ty (TyCon _ x) = TCon (fromQName x) []
+        ty (TyInfix an a b c) = ty $ let ap = TyApp an in TyCon an b `ap` a `ap` c
+        ty (TyKind _ x _) = ty x
+        ty (TyBang _ _ _ x) = ty x
+        ty (TyParen _ x) = ty x
         ty _ = TVar "_" []
 
-        ctx (ParenA x) = ctx x
-        ctx (InfixA a con b) = ctx $ ClassA con [a,b]
-        ctx (ClassA con (TyVar var:_)) = [Ctx (fromQName con) (fromName var)]
+        ctx (ParenA _ x) = ctx x
+        ctx (InfixA an a con b) = ctx $ ClassA an con [a,b]
+        ctx (ClassA _ con (TyVar _ var:_)) = [Ctx (fromQName con) (fromName var)]
         ctx _ = []
 
 
-hseToItem :: Decl -> [Item]
+hseToItem :: Decl a -> [Item]
 hseToItem (TypeSig _ names ty) = ISignature (toIString <$> hseToSig ty) : map (IName . fromName) names
-hseToItem (TypeDecl _ name bind rhs) = [IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)]
-hseToItem (InstDecl _ _ _ ctx name args _) = [IInstance $ fmap toIString $ hseToSig $ TyForall Nothing ctx $ applyType (TyCon name) args]
+hseToItem (TypeDecl _ (fromDeclHead -> (name, bind)) rhs) = [IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)]
+hseToItem (InstDecl an _ (fromIParen -> IRule _ _ ctx (fromInstHead -> (name, args))) _) = [IInstance $ fmap toIString $ hseToSig $ TyForall an Nothing ctx $ applyType (TyCon an name) args]
 hseToItem x = map IName $ declNames x

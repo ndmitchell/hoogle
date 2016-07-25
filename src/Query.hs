@@ -21,7 +21,7 @@ import Prelude
 
 data Query
     = QueryName {fromQueryName :: String}
-    | QueryType {fromQueryType :: Type}
+    | QueryType {fromQueryType :: Type ()}
     | QueryScope {scopeInclude :: Bool, scopeCategory :: String, scopeValue :: String}
     | QueryNone String -- part of the query that is ignored
       deriving (Show,Eq)
@@ -129,7 +129,7 @@ scope_ xs = case xs of
 
 
 -- | If everything is a name, or everything is a symbol, then you only have names.
-divide :: [String] -> ([String], Maybe Type)
+divide :: [String] -> ([String], Maybe (Type ()))
 divide xs | all isAlpha1 ns = (ns, Nothing)
           | all isSyms ns = (ns, Nothing)
           | length ns == 1 = (ns, Nothing)
@@ -146,9 +146,9 @@ names_ ["(",x] = [x]
 names_ (x:xs) = [x | x /= " "] ++ names_ xs
 names_ [] = []
 
-typeSig_ :: [String] -> Maybe Type
+typeSig_ :: [String] -> Maybe (Type ())
 typeSig_ xs = case parseTypeWithMode parseMode $ unwords $ fixup $ filter (not . all isSpace) xs of
-    ParseOk x -> Just $ transformBi (\v -> if v == Ident "__" then Ident "_" else v) x
+    ParseOk x -> Just $ transformBi (\v -> if v == Ident () "__" then Ident () "_" else v) $ fmap (const ()) x
     _ -> Nothing
     where
         fixup = underscore . closeBracket . completeFunc . completeArrow
@@ -173,7 +173,7 @@ query_test = testing "Query.parseQuery" $ do
         wantEq v = want (show v) (== v)
         name = wantEq . QueryName
         scope b c v = wantEq $ QueryScope b c v
-        typ = wantEq . QueryType . fromParseResult . parseTypeWithMode parseMode
+        typ = wantEq . QueryType . fmap (const ()) . fromParseResult . parseTypeWithMode parseMode
         typpp x = want ("type " ++ x) (\v -> case v of QueryType s -> pretty s == x; _ -> False)
     let infixl 0 ===
         a === f | bad@(_:_) <- fst $ f ([], q) = error $ show (a,q,bad :: [String])
