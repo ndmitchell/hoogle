@@ -37,7 +37,7 @@ import Action.CmdLine
 import Control.Applicative
 import Prelude
 
-import qualified Data.Aeson.Encode as JSON
+import qualified Data.Aeson as JSON
 
 
 actionServer :: CmdLine -> IO ()
