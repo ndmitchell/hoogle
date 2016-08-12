@@ -2,8 +2,8 @@
 
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe
 module General.Str(
-    Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strConcat, strStripPrefix, strStripSuffix, strLines, strTrimStart, strUnlines, strUnwords,
-    LStr, lstrPack, lstrUnpack, lstrLines, lstrToChunks, lstrFromChunks, lstrToStr,
+    Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strStripPrefix, strTrimStart,
+    LStr, lstrPack, lstrUnpack, lstrToChunks, lstrFromChunks,
     Str0, join0, split0
     ) where
 
@@ -39,39 +39,16 @@ strSplitInfix _ _ = Nothing
 strNull :: Str -> Bool
 strNull = BS.null
 
-strConcat :: [Str] -> Str
-strConcat = BS.concat
-
 strStripPrefix :: Str -> Str -> Maybe Str
 strStripPrefix needle x
     | BS.isPrefixOf needle x = Just $ BS.drop (BS.length needle) x
     | otherwise = Nothing
 
-strStripSuffix :: Str -> Str -> Maybe Str
-strStripSuffix needle x
-    | BS.isSuffixOf needle x = Just $ BS.take (BS.length x - BS.length needle) x
-    | otherwise = Nothing
-
 strTrimStart :: Str -> Str
 strTrimStart = BS.dropWhile isSpace
 
-strUnlines :: [Str] -> Str
-strUnlines = BS.unlines
-
-strLines :: Str -> [Str]
-strLines = BS.lines
-
-strUnwords :: [Str] -> Str
-strUnwords = BS.unwords
-
-lstrLines :: LStr -> [LStr]
-lstrLines = LBS.lines
-
 lstrToChunks :: LStr -> [Str]
 lstrToChunks = LBS.toChunks
-
-lstrToStr :: LStr -> Str
-lstrToStr = LBS.toStrict
 
 lstrFromChunks :: [Str] -> LStr
 lstrFromChunks = LBS.fromChunks
