@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #181, use the proper network constrains
     Avoid deprecated Aeson modules
 5.0.2
     Move to haskell-src-exts-1.18

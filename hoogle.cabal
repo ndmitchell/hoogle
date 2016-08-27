@@ -37,9 +37,18 @@ source-repository head
     type:     git
     location: https://github.com/ndmitchell/hoogle.git
 
+flag network-uri
+    description: Get Network.URI from the network-uri package
+    default: True
+
 library
     hs-source-dirs:     src
     default-language:   Haskell98
+
+    if flag(network-uri)
+        build-depends: network-uri >= 2.6, network >= 2.6
+    else
+        build-depends: network-uri < 2.6, network < 2.6
 
     build-depends:
         QuickCheck,
@@ -62,8 +71,6 @@ library
         js-flot,
         js-jquery,
         mmap,
-        network,
-        network-uri,
         old-locale,
         process,
         resourcet,
