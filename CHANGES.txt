@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #183, make --local look for .txt files recursively
 5.0.3
     #181, use the proper network constrains
     Avoid deprecated Aeson modules
