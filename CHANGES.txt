@@ -2,7 +2,7 @@ Changelog for Hoogle
 
     #183, make --local look for .txt files recursively
 5.0.3
-    #181, use the proper network constrains
+    #181, use the proper network constraints
     Avoid deprecated Aeson modules
 5.0.2
     Move to haskell-src-exts-1.18
