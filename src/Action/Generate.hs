@@ -131,7 +131,9 @@ readHaskellDir timing dir = do
     packages <- map (takeBaseName &&& id) . filter ((==) ".txt" . takeExtension) <$> listFilesRecursive dir
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
-            yield (name, hackagePackageURL name, lstrFromChunks [src])
+            dir <- liftIO $ canonicalizePath $ takeDirectory file
+            let url = "file://" ++ dir ++ "/"
+            yield (name, url, lstrFromChunks [src])
     return (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages
            ,Set.fromList $ map fst packages, source)
 
