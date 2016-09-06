@@ -132,7 +132,7 @@ readHaskellDir timing dir = do
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
             dir <- liftIO $ canonicalizePath $ takeDirectory file
-            let url = "file://" ++ replace "\\" "/" dir ++ "/"
+            let url = "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ replace "\\" "/" dir ++ "/"
             yield (name, url, lstrFromChunks [src])
     return (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages
            ,Set.fromList $ map fst packages, source)
