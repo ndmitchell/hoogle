@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+5.0.4
     #184, use file URLs for local docs
     #183, make --local look for .txt files recursively
 5.0.3
