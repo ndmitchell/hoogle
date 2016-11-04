@@ -13,7 +13,7 @@ import Prelude
 setStackage :: FilePath -> IO (Set.Set String)
 setStackage file = Set.fromList . filter (`notElem` stackOverflow) . f . lines <$> readFile' file
     where
-        stackOverflow = ["telegram-api","pinchot","gogol-dfareporting"] -- see https://github.com/ndmitchell/hoogle/issues/167
+        stackOverflow = [] -- ["telegram-api","pinchot","gogol-dfareporting"] -- see https://github.com/ndmitchell/hoogle/issues/167
 
         f (x:xs) | Just x <- stripPrefix "constraints:" x =
                     map (fst . word1) $ takeWhile (" " `isPrefixOf`) $ (' ':x) : xs
