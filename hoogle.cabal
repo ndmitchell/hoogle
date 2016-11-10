@@ -65,7 +65,7 @@ library
         directory,
         extra >= 1.4,
         filepath,
-        haskell-src-exts >= 1.18 && < 1.19,
+        haskell-src-exts >= 1.18 && < 1.20,
         http-conduit,
         http-types,
         js-flot,
