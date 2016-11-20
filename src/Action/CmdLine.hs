@@ -35,7 +35,7 @@ data CmdLine
         ,database :: FilePath
         ,insecure :: Bool
         ,include :: [String]
-        ,local_ :: Maybe FilePath
+        ,local_ :: [Maybe FilePath]
         ,debug :: Bool
         ,language :: Language
         }
