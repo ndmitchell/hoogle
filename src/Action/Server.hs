@@ -54,7 +54,7 @@ actionServer cmd@Server{..} = do
     evaluate spawned
     dataDir <- getDataDir
     withSearch database $ \store ->
-        server log cmd $ replyServer log local store cdn (dataDir </> "html") scope
+        server log cmd $ replyServer log local store cdn home (dataDir </> "html") scope
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -63,7 +63,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
         dataDir <- getDataDir
-        let op = replyServer log False store "" (dataDir </> "html") scope
+        let op = replyServer log False store "" "" (dataDir </> "html") scope
         replicateM_ repeat_ $ forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
@@ -74,8 +74,8 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 spawned :: UTCTime
 spawned = unsafePerformIO getCurrentTime
 
-replyServer :: Log -> Bool -> StoreRead -> String -> FilePath -> String -> Input -> IO Output
-replyServer log local store cdn htmlDir scope = \Input{..} -> case inputURL of
+replyServer :: Log -> Bool -> StoreRead -> String -> String -> FilePath -> String -> Input -> IO Output
+replyServer log local store cdn home htmlDir scope = \Input{..} -> case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
@@ -125,12 +125,15 @@ replyServer log local store cdn htmlDir scope = \Input{..} -> case inputURL of
         str = templateStr . lstrPack
         tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- completionTags store]
         params = map (second str)
-            [("cdn",cdn),("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
+            [("cdn",cdn)
+            ,("home",if home == "" then defaultHome else home)
+            ,("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
             ,("version",showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
         templateIndex = templateFile (htmlDir </> "index.html") `templateApply` params
         templateEmpty = templateFile (htmlDir </>  "welcome.html")
         templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str ""),("robots",str "index")]
         templateLog = templateFile (htmlDir </> "log.html") `templateApply` params
+        defaultHome = "http://hoogle.haskell.org"
 
 
 dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
@@ -231,7 +234,7 @@ action_server_test sample database = do
         log <- logNone
         dataDir <- getDataDir
         let q === want = do
-                OutputString (lstrUnpack -> res) <- replyServer log False store "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
+                OutputString (lstrUnpack -> res) <- replyServer log False store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
         if sample then
             "Wife" === "<b>type family</b>"
