@@ -205,11 +205,12 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                         ((fmap Set.fromList $ mapC fst3 =$= sinkList) |$|
                         (((zipFromC 1 =$= consume) >> when (null include) (sourceList packages))
                             =$= pipelineC 10 (items =$= sinkList)))
+                putStrLn ""
 
                 let missing = [x | x <- Set.toList $ want `Set.difference` seen
                                  , fmap packageLibrary (Map.lookup x cbl) /= Just False]
                 whenNormal $ when (missing /= []) $ do
-                    putStrLn $ ("Packages not found: " ++) $ unwords $ sortOn lower missing
+                    putStrLn $ "Packages missing documentation: " ++ unwords (sortOn lower missing)
                 when (Set.null seen) $
                     exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
 
