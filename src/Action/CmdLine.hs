@@ -121,7 +121,7 @@ server = Server
     ,logs = "" &= opt "log.txt" &= typFile &= help "File to log requests to (defaults to stdout)"
     ,local = False &= help "Allow following file:// links, restricts to 127.0.0.1  Set --host explicitely (including to '*' for any host) to override the localhost-only behaviour"
     ,scope = def &= help "Default scope to start with"
-    ,home = "" &= typ "URL" &= help "Set the URL linked to by the Hoogle logo."
+    ,home = "http://hoogle.haskell.org" &= typ "URL" &= help "Set the URL linked to by the Hoogle logo."
     ,host = "" &= help "Set the host to bind on (e.g., an ip address; '!4' for ipv4-only; '!6' for ipv6-only; default: '*' for any host)."
     ,https = def &= help "Start an https server (use --cert and --key to specify paths to the .pem files)"
     ,cert = "cert.pem" &= typFile &= help "Path to the certificate pem file (when running an https server)"

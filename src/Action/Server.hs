@@ -126,14 +126,13 @@ replyServer log local store cdn home htmlDir scope = \Input{..} -> case inputURL
         tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- completionTags store]
         params = map (second str)
             [("cdn",cdn)
-            ,("home",if home == "" then defaultHome else home)
+            ,("home",home)
             ,("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
             ,("version",showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
         templateIndex = templateFile (htmlDir </> "index.html") `templateApply` params
         templateEmpty = templateFile (htmlDir </>  "welcome.html")
         templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str ""),("robots",str "index")]
         templateLog = templateFile (htmlDir </> "log.html") `templateApply` params
-        defaultHome = "http://hoogle.haskell.org"
 
 
 dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
