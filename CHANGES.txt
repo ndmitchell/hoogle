@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #195, add --home flag to server mode
     Allow haskell-src-exts-1.19
 5.0.4
     #184, use file URLs for local docs
