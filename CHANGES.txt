@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+5.0.5
     #193, support multiple --local flags
     #195, add --home flag to server mode
     Allow haskell-src-exts-1.19
