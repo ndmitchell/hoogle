@@ -128,7 +128,7 @@ readHaskellOnline timing settings download = do
 
 readHaskellDirs :: Timing -> [FilePath] -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readHaskellDirs timing dirs = do
-    packages <- map (takeBaseName &&& id) . filter ((==) ".txt" . takeExtension) <$> concat <$> mapM listFilesRecursive dirs
+    packages <- map (takeBaseName &&& id) . filter ((==) ".txt" . takeExtension) <$> concatMapM listFilesRecursive dirs
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
             dir <- liftIO $ canonicalizePath $ takeDirectory file
@@ -175,7 +175,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     (cbl, want, source) <- case language of
         Haskell | [Just ""] <- local_ -> readHaskellGhcpkg timing settings
                 | [] <- local_ -> readHaskellOnline timing settings download
-                | otherwise -> readHaskellDirs timing (fromJust <$> local_)
+                | otherwise -> readHaskellDirs timing $ map fromJust local_
         Frege | null local_ -> errorIO "No support for local Frege databases"
               | otherwise -> readFregeOnline timing download
     let (cblErrs, popularity) = packagePopularity cbl
