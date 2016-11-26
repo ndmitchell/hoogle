@@ -176,8 +176,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         Haskell | [""] <- local_ -> readHaskellGhcpkg timing settings
                 | [] <- local_ -> readHaskellOnline timing settings download
                 | otherwise -> readHaskellDirs timing local_
-        Frege | null local_ -> errorIO "No support for local Frege databases"
-              | otherwise -> readFregeOnline timing download
+        Frege | [] <- local_ -> readFregeOnline timing download
+              | otherwise -> errorIO "No support for local Frege databases"
     let (cblErrs, popularity) = packagePopularity cbl
     want <- return $ if include /= [] then Set.fromList include else want
 
