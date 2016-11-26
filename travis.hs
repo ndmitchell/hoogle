@@ -17,3 +17,4 @@ main = do
     timed "map package:base"
     timed ":: a -> b"
     timed ":: ShakeOptions -> a"
+    retry 3 $ timed "generate --frege"
