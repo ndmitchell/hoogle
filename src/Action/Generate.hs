@@ -9,9 +9,11 @@ import Data.Tuple.Extra
 import Control.Exception.Extra
 import Data.IORef
 import Data.Maybe
+import qualified Data.ByteString as S
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Control.Monad.Extra
 import Control.Applicative
 import Data.Monoid
@@ -126,17 +128,25 @@ readHaskellOnline timing settings download = do
     return (cbl, want, source)
 
 
-readHaskellDirs :: Timing -> [FilePath] -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
-readHaskellDirs timing dirs = do
+readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellDirs timing settings dirs = do
     packages <- map (takeBaseName &&& id) . filter ((==) ".txt" . takeExtension) <$> concatMapM listFilesRecursive dirs
+    cabals <- concatMapM listFilesRecursive dirs >>=
+              mapM parseCabal . filter ((==) ".cabal" . takeExtension)
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
             dir <- liftIO $ canonicalizePath $ takeDirectory file
             let url = "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ replace "\\" "/" dir ++ "/"
             yield (name, url, lstrFromChunks [src])
-    return (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages
+    return (Map.union
+                (Map.fromList cabals)
+                (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages)
            ,Set.fromList $ map fst packages, source)
-
+  where
+    parseCabal fp = do
+        src <- S.readFile fp
+        let pkg = readCabal settings (T.unpack (T.decodeUtf8 src))
+        return (takeBaseName fp, pkg)
 
 readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readFregeOnline timing download = do
@@ -175,7 +185,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     (cbl, want, source) <- case language of
         Haskell | [""] <- local_ -> readHaskellGhcpkg timing settings
                 | [] <- local_ -> readHaskellOnline timing settings download
-                | otherwise -> readHaskellDirs timing local_
+                | otherwise -> readHaskellDirs timing settings local_
         Frege | [] <- local_ -> readFregeOnline timing download
               | otherwise -> errorIO "No support for local Frege databases"
     let (cblErrs, popularity) = packagePopularity cbl
