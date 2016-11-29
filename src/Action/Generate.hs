@@ -130,9 +130,9 @@ readHaskellOnline timing settings download = do
 
 readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readHaskellDirs timing settings dirs = do
-    packages <- map (takeBaseName &&& id) . filter ((==) ".txt" . takeExtension) <$> concatMapM listFilesRecursive dirs
-    cabals <- concatMapM listFilesRecursive dirs >>=
-              mapM parseCabal . filter ((==) ".cabal" . takeExtension)
+    files <- concatMapM listFilesRecursive dirs
+    let packages = map (takeBaseName &&& id) $ filter ((==) ".txt" . takeExtension) files
+    cabals <- mapM parseCabal $ filter ((==) ".cabal" . takeExtension) files
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
             dir <- liftIO $ canonicalizePath $ takeDirectory file
