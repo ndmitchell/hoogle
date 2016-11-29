@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #196, make --local look for .cabal files as well
     Fix up Frege documentation generation
 5.0.5
     #193, support multiple --local flags
