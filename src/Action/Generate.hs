@@ -5,15 +5,14 @@ module Action.Generate(actionGenerate) where
 import Data.List.Extra
 import System.FilePath
 import System.Directory.Extra
+import System.IO.Extra
 import Data.Tuple.Extra
 import Control.Exception.Extra
 import Data.IORef
 import Data.Maybe
-import qualified Data.ByteString as S
 import qualified Data.Set as Set
 import qualified Data.Map as Map
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import Control.Monad.Extra
 import Data.Monoid
 import System.Console.CmdArgs.Verbosity
@@ -35,7 +34,6 @@ import General.Store
 import General.Timing
 import General.Str
 import System.Mem
-import System.IO
 import GHC.Stats
 import Action.CmdLine
 import General.Conduit
@@ -143,8 +141,8 @@ readHaskellDirs timing settings dirs = do
            ,Set.fromList $ map fst packages, source)
   where
     parseCabal fp = do
-        src <- S.readFile fp
-        let pkg = readCabal settings (T.unpack (T.decodeUtf8 src))
+        src <- readFileUTF8' fp
+        let pkg = readCabal settings src
         return (takeBaseName fp, pkg)
 
 readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
