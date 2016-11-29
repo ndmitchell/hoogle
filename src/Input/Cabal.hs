@@ -4,7 +4,7 @@
 module Input.Cabal(
     Package(..),
     parseCabalTarball, readGhcPkg,
-    packagePopularity
+    packagePopularity, readCabal
     ) where
 
 import Input.Settings
