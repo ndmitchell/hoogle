@@ -104,7 +104,7 @@ replyServer log local store cdn home htmlDir scope = \Input{..} -> case inputURL
         let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
         let alive = fromRational $ toRational $ (now `diffUTCTime` spawned) / (24 * 60 * 60)
         let s = show errs ++ " errors since yesterday, running for " ++ showDP 2 alive ++ " days."
-        return $ if errs == 0 && alive < 1.5 then OutputString $ lstrPack $ "Happy. " ++ s else OutputFail $ lstrPack $ "Sad. " ++ s
+        return $ if errs == 0 && alive < 1.5 then OutputText $ lstrPack $ "Happy. " ++ s else OutputFail $ lstrPack $ "Sad. " ++ s
     ["log"] -> do
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
@@ -112,7 +112,7 @@ replyServer log local store cdn home htmlDir scope = \Input{..} -> case inputURL
         stats <- getGCStatsEnabled
         if stats then do
             x <- getGCStats
-            return $ OutputString $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
+            return $ OutputText $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
          else
             return $ OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
     "file":xs | local -> do
