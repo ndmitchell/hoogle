@@ -85,14 +85,14 @@ replyServer log local store cdn home htmlDir scope = \Input{..} -> case inputURL
         let (q2, results) = search store q
         let body = showResults local inputArgs q2 $ dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
-            Nothing | qSource /= [] -> fmap OutputString $ templateRender templateIndex $ map (second str)
+            Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions qScope)
                         ,("body",body)
                         ,("title",unwords qSource ++ " - Hoogle")
                         ,("search",unwords $ grab "hoogle")
                         ,("robots",if any isQueryScope q then "none" else "index")]
-                    | otherwise -> OutputString <$> templateRender templateHome []
-            Just "body" -> OutputString <$> if null qSource then templateRender templateEmpty [] else return $ lstrPack body
+                    | otherwise -> OutputHTML <$> templateRender templateHome []
+            Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else return $ lstrPack body
             Just "json" -> return $ OutputJSON $ JSON.encode $ take 100 results
             Just m -> return $ OutputFail $ lstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
