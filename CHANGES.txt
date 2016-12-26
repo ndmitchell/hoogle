@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #200, make sure the content-type is set properly
 5.0.6
     #196, make --local look for .cabal files as well
     Fix up Frege documentation generation
