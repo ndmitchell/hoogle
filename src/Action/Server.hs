@@ -233,7 +233,7 @@ action_server_test sample database = do
         log <- logNone
         dataDir <- getDataDir
         let q === want = do
-                OutputString (lstrUnpack -> res) <- replyServer log False store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
+                OutputHTML (lstrUnpack -> res) <- replyServer log False store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
         if sample then
             "Wife" === "<b>type family</b>"
