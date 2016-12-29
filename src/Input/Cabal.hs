@@ -16,7 +16,9 @@ import Control.Exception
 import Control.Monad
 import System.IO.Extra
 import General.Str
-import System.Process
+import System.Exit
+import qualified System.Process.ByteString as BS
+import qualified Data.ByteString.UTF8 as UTF8
 import System.Directory
 import Data.Char
 import Data.Maybe
@@ -74,13 +76,16 @@ packagePopularity cbl = (errs, Map.map length good)
 readGhcPkg :: Settings -> IO (Map.Map String Package)
 readGhcPkg settings = do
     topdir <- findExecutable "ghc-pkg"
-    stdout <- readProcess "ghc-pkg" ["dump"] ""
+    -- important to use BS process reading so it's in Binary format, see #194
+    (exit, stdout, stderr) <- BS.readProcessWithExitCode "ghc-pkg" ["dump"] mempty
+    when (exit /= ExitSuccess) $
+        fail $ "Error when reading from ghc-pkg, " ++ show exit ++ "\n" ++ UTF8.toString stderr
     let g (stripPrefix "$topdir" -> Just x) | Just t <- topdir = takeDirectory t ++ x
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
     let f ((stripPrefix "name: " -> Just x):xs) = Just (x, fixer $ readCabal settings $ unlines xs)
         f xs = Nothing
-    return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines stdout
+    return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
 
 
 -- | Given a tarball of Cabal files, parse the latest version of each package.

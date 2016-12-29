@@ -74,6 +74,7 @@ library
         mmap,
         old-locale,
         process,
+        process-extras,
         resourcet,
         tar,
         template-haskell,
