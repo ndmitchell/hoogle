@@ -36,6 +36,7 @@ data CmdLine
         ,insecure :: Bool
         ,include :: [String]
         ,local_ :: [FilePath]
+        ,haddock_ :: Maybe FilePath
         ,debug :: Bool
         ,language :: Language
         }
@@ -45,6 +46,7 @@ data CmdLine
         ,cdn :: String
         ,logs :: FilePath
         ,local :: Bool
+        ,haddock :: Maybe FilePath
         ,language :: Language
         ,scope :: String
         ,home :: String
@@ -112,6 +114,7 @@ generate = Generate
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
     ,local_ = def &= opt "" &= help "Index local packages"
+    ,haddock_ = def &= help "Use local haddocks"
     ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"
 
@@ -120,6 +123,7 @@ server = Server
     ,cdn = "" &= typ "URL" &= help "URL prefix to use"
     ,logs = "" &= opt "log.txt" &= typFile &= help "File to log requests to (defaults to stdout)"
     ,local = False &= help "Allow following file:// links, restricts to 127.0.0.1  Set --host explicitely (including to '*' for any host) to override the localhost-only behaviour"
+    ,haddock = def &= help "Serve local haddocks from a specified directory"
     ,scope = def &= help "Default scope to start with"
     ,home = "http://hoogle.haskell.org" &= typ "URL" &= help "Set the URL linked to by the Hoogle logo."
     ,host = "" &= help "Set the host to bind on (e.g., an ip address; '!4' for ipv4-only; '!6' for ipv6-only; default: '*' for any host)."
