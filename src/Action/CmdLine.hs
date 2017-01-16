@@ -36,7 +36,7 @@ data CmdLine
         ,insecure :: Bool
         ,include :: [String]
         ,local_ :: [FilePath]
-        ,haddock_ :: Maybe FilePath
+        ,haddock :: Maybe FilePath
         ,debug :: Bool
         ,language :: Language
         }
@@ -114,7 +114,7 @@ generate = Generate
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
     ,local_ = def &= opt "" &= help "Index local packages"
-    ,haddock_ = def &= help "Use local haddocks"
+    ,haddock = def &= help "Use local haddocks"
     ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"
 

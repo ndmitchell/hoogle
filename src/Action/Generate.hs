@@ -197,7 +197,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
     (cbl, want, source) <- case language of
-        Haskell | Just dir <- haddock_ -> readHaskellHaddock timing settings dir
+        Haskell | Just dir <- haddock -> readHaskellHaddock timing settings dir
                 | [""] <- local_ -> readHaskellGhcpkg timing settings
                 | [] <- local_ -> readHaskellOnline timing settings download
                 | otherwise -> readHaskellDirs timing settings local_
