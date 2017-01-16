@@ -6,6 +6,7 @@ import Data.List.Extra
 import System.FilePath
 import Control.Exception
 import Control.DeepSeq
+import System.Directory
 import Data.Tuple.Extra
 import qualified Language.Javascript.JQuery as JQuery
 import qualified Language.Javascript.Flot as Flot
@@ -53,8 +54,9 @@ actionServer cmd@Server{..} = do
     putStrLn . showDuration =<< time
     evaluate spawned
     dataDir <- getDataDir
+    haddock <- mapM canonicalizePath haddock
     withSearch database $ \store ->
-        server log cmd $ replyServer log local store cdn home (dataDir </> "html") scope
+        server log cmd $ replyServer log local haddock store cdn home (dataDir </> "html") scope
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -63,7 +65,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
         dataDir <- getDataDir
-        let op = replyServer log False store "" "" (dataDir </> "html") scope
+        let op = replyServer log False Nothing store "" "" (dataDir </> "html") scope
         replicateM_ repeat_ $ forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
@@ -74,8 +76,8 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 spawned :: UTCTime
 spawned = unsafePerformIO getCurrentTime
 
-replyServer :: Log -> Bool -> StoreRead -> String -> String -> FilePath -> String -> Input -> IO Output
-replyServer log local store cdn home htmlDir scope = \Input{..} -> case inputURL of
+replyServer :: Log -> Bool -> Maybe FilePath -> StoreRead -> String -> String -> FilePath -> String -> Input -> IO Output
+replyServer log local haddock store cdn home htmlDir scope Input{..} = case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
@@ -83,7 +85,7 @@ replyServer log local store cdn home htmlDir scope = \Input{..} -> case inputURL
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
-        let body = showResults local inputArgs q2 $ dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
+        let body = showResults local haddock inputArgs q2 $ dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions qScope)
@@ -115,6 +117,9 @@ replyServer log local store cdn home htmlDir scope = \Input{..} -> case inputURL
             return $ OutputText $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
          else
             return $ OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
+    "haddock":xs | Just x <- haddock -> do
+        let file = intercalate "/" $ filter (not . (== "..")) (x:xs)
+        return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
     "file":xs | local -> do
         let x = ['/' | not isWindows] ++ intercalate "/" xs
         return $ OutputFile $ x ++ (if hasTrailingPathSeparator x then "index.html" else "")
@@ -145,8 +150,8 @@ dedupeTake n key = f [] Map.empty
             where k = key x
 
 
-showResults :: Bool -> [(String, String)] -> [Query] -> [[Target]] -> String
-showResults local args query results = unlines $
+showResults :: Bool -> Maybe FilePath -> [(String, String)] -> [Query] -> [[Target]] -> String
+showResults local haddock args query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"
     ,"<ul id=left>"
     ,"<li><b>Packages</b></li>"] ++
@@ -154,8 +159,8 @@ showResults local args query results = unlines $
     ["</ul>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
-     "<div class=ans><a href=\"" ++ showURL local targetURL ++ "\">" ++ displayItem query targetItem ++ "</a></div>" ++
-     "<div class=from>" ++ showFroms local is  ++ "</div>" ++
+     "<div class=ans><a href=\"" ++ showURL local haddock targetURL ++ "\">" ++ displayItem query targetItem ++ "</a></div>" ++
+     "<div class=from>" ++ showFroms local haddock is  ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
      "</div>"
     | is@(Target{..}:_) <- results]
@@ -177,17 +182,18 @@ itemCategories xs =
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
-showFroms :: Bool -> [Target] -> String
-showFroms local xs = intercalate ", " $ for pkgs $ \p ->
+showFroms :: Bool -> Maybe FilePath -> [Target] -> String
+showFroms local haddock xs = intercalate ", " $ for pkgs $ \p ->
     let ms = filter ((==) p . targetPackage) xs
-    in unwords ["<a href=\"" ++ showURL local b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
+    in unwords ["<a href=\"" ++ showURL local haddock b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
     where
         remod Target{..} = do (a,_) <- targetModule; return (a,targetURL)
         pkgs = nubOrd $ map targetPackage xs
 
-showURL :: Bool -> URL -> String
-showURL True (stripPrefix "file:///" -> Just x) = "file/" ++ x
-showURL _ x = x
+showURL :: Bool -> Maybe FilePath -> URL -> String
+showURL _ (Just _) x = "haddock" ++ x
+showURL True _ (stripPrefix "file:///" -> Just x) = "file/" ++ x
+showURL _ _ x = x
 
 
 -------------------------------------------------------------
@@ -233,7 +239,7 @@ action_server_test sample database = do
         log <- logNone
         dataDir <- getDataDir
         let q === want = do
-                OutputHTML (lstrUnpack -> res) <- replyServer log False store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
+                OutputHTML (lstrUnpack -> res) <- replyServer log False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
         if sample then
             "Wife" === "<b>type family</b>"

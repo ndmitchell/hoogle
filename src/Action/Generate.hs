@@ -170,6 +170,23 @@ readHaskellGhcpkg timing settings = do
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
 
+readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellHaddock timing settings docBaseDir = do
+    cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
+    let source =
+            forM_ (Map.toList cbl) $ \(name, p@Package{..}) -> do
+                let docs = docDir name p
+                    file = docBaseDir </> docs </> name <.> "txt"
+                whenM (liftIO $ doesFileExist file) $ do
+                    src <- liftIO $ strReadFile file
+                    let url = ['/' | not $ all isPathSeparator $ take 1 docs] ++
+                              replace "\\" "/" (addTrailingPathSeparator docs)
+                    yield (name, url, lstrFromChunks [src])
+    cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
+                    in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
+    return (cbl, Map.keysSet cbl, source)
+
+    where docDir name Package{..} = name ++ "-" ++ T.unpack packageVersion
 
 actionGenerate :: CmdLine -> IO ()
 actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
@@ -180,7 +197,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
     (cbl, want, source) <- case language of
-        Haskell | [""] <- local_ -> readHaskellGhcpkg timing settings
+        Haskell | Just dir <- haddock_ -> readHaskellHaddock timing settings dir
+                | [""] <- local_ -> readHaskellGhcpkg timing settings
                 | [] <- local_ -> readHaskellOnline timing settings download
                 | otherwise -> readHaskellDirs timing settings local_
         Frege | [] <- local_ -> readFregeOnline timing download
