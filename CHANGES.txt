@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+5.0.9
     #202, add --haddock functionality
 5.0.8
     #194, make --local work regardless of code page
