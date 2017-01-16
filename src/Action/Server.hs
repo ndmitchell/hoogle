@@ -54,7 +54,7 @@ actionServer cmd@Server{..} = do
     putStrLn . showDuration =<< time
     evaluate spawned
     dataDir <- getDataDir
-    haddock <- mapM canonicalizePath haddock
+    haddock <- maybe (return Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
         server log cmd $ replyServer log local haddock store cdn home (dataDir </> "html") scope
 
