@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #206, put newer versions of a package first
 5.0.9
     #202, add --haddock functionality
 5.0.8

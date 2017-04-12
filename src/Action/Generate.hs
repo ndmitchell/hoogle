@@ -128,7 +128,11 @@ readHaskellOnline timing settings download = do
 readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
 readHaskellDirs timing settings dirs = do
     files <- concatMapM listFilesRecursive dirs
-    let packages = map (takeBaseName &&& id) $ filter ((==) ".txt" . takeExtension) files
+    -- We reverse/sort the list because of #206
+    -- Two identical package names with different versions might be foo-2.0 and foo-1.0
+    -- We never distinguish on versions, so they are considered equal when reodering
+    -- So put 2.0 first in the list and rely on stable sorting. A bit of a hack.
+    let packages = map (takeBaseName &&& id) $ reverse $ sort $ filter ((==) ".txt" . takeExtension) files
     cabals <- mapM parseCabal $ filter ((==) ".cabal" . takeExtension) files
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
