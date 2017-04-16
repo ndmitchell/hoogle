@@ -1,0 +1,7 @@
+@url http://eghmitchell.co.uk/
+@package emily
+@version 1.2
+
+module Mitchell
+@url #a_wife
+type family Wife (a :: Mother)

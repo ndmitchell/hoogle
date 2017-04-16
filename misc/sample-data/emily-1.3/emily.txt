@@ -1,8 +1,9 @@
 @url http://eghmitchell.com/
 @package emily
+@version 1.3
 
-@url Mitchell.html
 module Mitchell
 
 @url #a_wife
 type family Wife (a :: Mother)
+paleo :: Bool
