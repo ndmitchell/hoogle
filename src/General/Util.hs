@@ -16,6 +16,7 @@ module General.Util(
     Average, toAverage, fromAverage,
     inRanges,
     readMaybe,
+    parseTrailingVersion,
     exitFail,
     prettyTable,
     ghcApiVersion,
@@ -321,6 +322,16 @@ hackageDeclURL typesig x = "#" ++ (if typesig then "v" else "t") ++ ":" ++ conca
         isLegal c = isAscii c && isAlphaNum c
 
 
+parseTrailingVersion :: String -> (String, [Int])
+parseTrailingVersion = (reverse *** reverse) . f . reverse
+    where
+        f xs | (ver@(_:_),sep:xs) <- span isDigit xs
+             , sep == '-' || sep == '.'
+             , (a, b) <- f xs
+             = (a, Prelude.read (reverse ver) : b)
+        f xs = (xs, [])
+
+
 -- | Equivalent to any (`inRange` x) xs, but more efficient
 inRanges :: Ix a => [(a,a)] -> (a -> Bool)
 inRanges xs = \x -> maybe False (`inRange` x) $ Map.lookupLE x mp
@@ -344,3 +355,8 @@ general_util_test = do
         splitPair "-" "module-" === ("module","")
     testing_ "General.Util.inRanges" $ do
         quickCheck $ \(x :: Int8) xs -> inRanges xs x == any (`inRange` x) xs
+    testing "General.Util.parseTrailingVersion" $ do
+        let a === b = if a == b then putChar '.' else error $ show (a,b)
+        parseTrailingVersion "shake-0.15.2" === ("shake",[0,15,2])
+        parseTrailingVersion "test-of-stuff1" === ("test-of-stuff1",[])
+

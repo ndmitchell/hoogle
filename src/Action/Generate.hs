@@ -15,6 +15,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import Control.Monad.Extra
 import Data.Monoid
+import Data.Ord
 import System.Console.CmdArgs.Verbosity
 import Prelude
 
@@ -132,7 +133,8 @@ readHaskellDirs timing settings dirs = do
     -- Two identical package names with different versions might be foo-2.0 and foo-1.0
     -- We never distinguish on versions, so they are considered equal when reodering
     -- So put 2.0 first in the list and rely on stable sorting. A bit of a hack.
-    let packages = map (takeBaseName &&& id) $ reverse $ sort $ filter ((==) ".txt" . takeExtension) files
+    let order a = second Down $ parseTrailingVersion a
+    let packages = map (takeBaseName &&& id) $ sortOn (map order . splitDirectories) $ filter ((==) ".txt" . takeExtension) files
     cabals <- mapM parseCabal $ filter ((==) ".cabal" . takeExtension) files
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ strReadFile file
