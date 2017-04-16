@@ -53,7 +53,7 @@ writeTags store keep extra xs = do
 
     storeWrite store Completions $ join0 $
         takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
-        map ("package:"++) (sortOn lower $ filter keep $ map fst packages) ++
+        map ("package:"++) (sortOn lower $ nubOrd $ filter keep $ map fst packages) ++
         map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p, fst ex /= "set"])
     where
         addRange :: [(String, [(Maybe TargetId,a)])] -> [(String, (TargetId, TargetId))]
