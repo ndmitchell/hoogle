@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+5.0.10
     #205, change how the link URL is computed
     #206, put newer versions of a package first
 5.0.9
