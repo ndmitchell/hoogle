@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #205, change how the link URL is computed
     #206, put newer versions of a package first
 5.0.9
     #202, add --haddock functionality

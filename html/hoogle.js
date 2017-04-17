@@ -251,7 +251,7 @@ $(function(){
 function searchPlugin()
 {
     var url = $("link[rel=search]").attr("href");
-    if (url.substring(0, prefixUrl.length) != prefixUrl)
+    if (url.indexOf('://') === -1 || url.indexOf('//') !== 0 )
         url = prefixUrl + url;
     window.external.AddSearchProvider(url);
 }
