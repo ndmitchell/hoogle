@@ -1,7 +1,7 @@
 
 -- | High level Hoogle API
 module Hoogle(
-    Database, withDatabase, searchDatabase,
+    Database, withDatabase, searchDatabase, defaultDatabaseLocation,
     Target(..), URL,
     hoogle
     ) where
@@ -26,6 +26,10 @@ newtype Database = Database StoreRead
 -- | Load a database from a file.
 withDatabase :: NFData a => FilePath -> (Database -> IO a) -> IO a
 withDatabase file act = storeReadFile file $ act . Database
+
+-- | The default location of a database
+defaultDatabaseLocation :: IO FilePath
+defaultDatabaseLocation = defaultDatabaseLang Haskell
 
 -- | Search a database, given a query string, produces a list of results.
 searchDatabase :: Database -> String -> [Target]

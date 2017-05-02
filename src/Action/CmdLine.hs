@@ -2,7 +2,8 @@
 {-# OPTIONS_GHC -fno-warn-missing-fields -fno-cse #-}
 
 module Action.CmdLine(
-    CmdLine(..), Language(..), getCmdLine,
+    CmdLine(..), Language(..),
+    getCmdLine, defaultDatabaseLang,
     defaultGenerate,
     whenLoud, whenNormal
     ) where
@@ -69,14 +70,18 @@ data CmdLine
         }
       deriving (Data,Typeable,Show)
 
+defaultDatabaseLang :: Language -> IO FilePath
+defaultDatabaseLang lang = do
+    dir <- getAppUserDataDirectory "hoogle"
+    return $ dir </> "default-" ++ lower (show lang) ++ "-" ++ showVersion version ++ ".hoo"
+
 getCmdLine :: [String] -> IO CmdLine
 getCmdLine args = do
     args <- withArgs args $ cmdArgsRun cmdLineMode
 
     -- fill in the default database
     args <- if database args /= "" then return args else do
-        dir <- getAppUserDataDirectory "hoogle"
-        return $ args{database=dir </> "default-" ++ lower (show $ language args) ++ "-" ++ showVersion version ++ ".hoo"}
+        db <- defaultDatabaseLang $ language args; return args{database=db}
 
     -- fix up people using Hoogle 4 instructions
     args <- case args of
