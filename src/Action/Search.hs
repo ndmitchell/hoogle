@@ -57,7 +57,6 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
                                   _ -> error $ "Expected a type signature, got: " ++ x
             putStr $ unlines $ searchTypesDebug store (parseType $ unwords query) (map parseType compare_)
 
-    where unHTML = unescapeHTML . innerTextHTML
 
 addCounter :: [String] -> [String]
 addCounter = zipWith (\i x -> show i ++ ") " ++ x) [1..]
