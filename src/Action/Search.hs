@@ -1,6 +1,9 @@
 {-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module Action.Search(actionSearch, withSearch, search, action_search_test) where
+module Action.Search(actionSearch, withSearch, search,
+                    targetInfo,
+                    targetResultDisplay,
+                    action_search_test) where
 
 import Control.Monad.Extra
 import Control.DeepSeq
@@ -32,23 +35,14 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
         if null compare_ then do
             (q, res) <- return $ search store $ parseQuery $ unwords query
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
-            let disp Target{..} = unwords $
-                    fmap fst (maybeToList targetModule) ++
-                    [targetItem] ++
-                    ["-- " ++ targetURL | link]
-            let (shown, hidden) = splitAt count $ nubOrd $ map disp res
+            let (shown, hidden) = splitAt count $ nubOrd $ map (targetResultDisplay link) res
             if null res then
                 putStrLn "No results found"
              else if info then do
-                let Target{..} = head res
-                putStrLn (unHTML targetItem)
-                let packageModule = map fst $ catMaybes [targetPackage, targetModule]
-                unless (null packageModule) $ do
-                    putStrLn (unwords packageModule)
-                putStrLn (unHTML targetDocs)
+                 putStr $ targetInfo $ head res
              else do
                 let toShow = if numbers && not info then addCounter shown else shown
-                putStr $ unlines $ map unHTML toShow
+                putStr $ unlines toShow
                 when (hidden /= []) $ do
                     whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
         else do
@@ -57,6 +51,21 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
                                   _ -> error $ "Expected a type signature, got: " ++ x
             putStr $ unlines $ searchTypesDebug store (parseType $ unwords query) (map parseType compare_)
 
+-- | Returns the details printed out when hoogle --info is called
+targetInfo :: Target -> String
+targetInfo Target{..} = 
+    unlines $ [ unHTML targetItem ] ++
+              [ unwords packageModule | not $ null packageModule] ++
+              [ unHTML targetDocs ]
+            where packageModule = map fst $ catMaybes [targetPackage, targetModule]
+
+-- | Returns the Target formatted as an item to display in the results
+-- | Bool argument decides whether links are shown
+targetResultDisplay :: Bool -> Target -> String
+targetResultDisplay link Target{..} = unHTML $ unwords $
+        fmap fst (maybeToList targetModule) ++
+        [targetItem] ++
+        ["-- " ++ targetURL | link]
 
 addCounter :: [String] -> [String]
 addCounter = zipWith (\i x -> show i ++ ") " ++ x) [1..]

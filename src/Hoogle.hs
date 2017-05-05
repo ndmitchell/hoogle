@@ -4,7 +4,8 @@ module Hoogle(
     Database, withDatabase, searchDatabase, defaultDatabaseLocation,
     Target(..), URL,
     hoogle,
-    unHTML
+    targetInfo,
+    targetResultDisplay
     ) where
 
 import Control.DeepSeq (NFData)
