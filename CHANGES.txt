@@ -1,5 +1,7 @@
 Changelog for Hoogle
 
+5.0.12
+    #210, expose targetInfo and targetSearchDisplay
 5.0.11
     #209, add a defaultDatabaseLocation function
 5.0.10
