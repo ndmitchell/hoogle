@@ -11,7 +11,7 @@ module General.Util(
     showUTCTime,
     strict,
     withs,
-    escapeHTML, unescapeHTML, innerTextHTML, tag, tag_,
+    escapeHTML, unescapeHTML, innerTextHTML, unHTML, tag, tag_,
     takeSortOn,
     Average, toAverage, fromAverage,
     inRanges,
@@ -179,6 +179,9 @@ innerTextHTML :: String -> String
 innerTextHTML ('<':xs) = innerTextHTML $ drop 1 $ dropWhile (/= '>') xs
 innerTextHTML (x:xs) = x : innerTextHTML xs
 innerTextHTML [] = []
+
+unHTML :: String -> String
+unHTML = unescapeHTML . innerTextHTML
 
 isUpper1 (x:xs) = isUpper x
 isUpper1 _ = False
