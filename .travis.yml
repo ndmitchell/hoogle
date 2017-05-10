@@ -1,11 +1,10 @@
+sudo: required
 env:
-# - GHCVER=7.2.2 # not supported by haskell-src-exts
-# - GHCVER=7.4.2 # not supported by Warp
- - GHCVER=7.6.3
- - GHCVER=7.8.4
- - GHCVER=7.10.3
- - GHCVER=8.0.2
- - GHCVER=head
+- GHCVER=7.6.3
+- GHCVER=7.8.4
+- GHCVER=7.10.3
+- GHCVER=8.0.2
+- GHCVER=head
 
 script:
- - wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --no-check-certificate --quiet | sh
+- wget https://raw.github.com/ndmitchell/neil/master/travis.sh -O - --quiet | sh
