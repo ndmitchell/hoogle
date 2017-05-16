@@ -67,7 +67,7 @@ Note the quotes, otherwise you will redirect the output to the file [b].
 To ensure you have data files for the Hackage modules, you will first need to
 type:
 
-    hoogle data
+    hoogle generate
 
 Which will download and build Hoogle databases.
 
