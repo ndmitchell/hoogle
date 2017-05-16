@@ -118,7 +118,7 @@ generate = Generate
     {download = def &= help "Download all files from the web"
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
-    ,local_ = def &= opt "" &= help "Index local packages"
+    ,local_ = def &= opt "" &= help "Index local packages and link to local haddock docs"
     ,haddock = def &= help "Use local haddocks"
     ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"
