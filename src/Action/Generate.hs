@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-} -- getGCStats became getRTSStats
 
 module Action.Generate(actionGenerate) where
 
