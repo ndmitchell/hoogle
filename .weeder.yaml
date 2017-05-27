@@ -2,3 +2,8 @@
   - name: Weeds exported
   # Constructors, for completeness
   - identifier: [IAlias, IName]
+
+- message:
+  - name: Redundant build-depends entry
+  # Only required for GHC 7.8 and below
+  - depends: old-locale

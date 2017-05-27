@@ -66,6 +66,7 @@ library
         directory,
         extra >= 1.4,
         filepath,
+        old-locale,
         haskell-src-exts >= 1.18 && < 1.20,
         http-conduit,
         http-types,
