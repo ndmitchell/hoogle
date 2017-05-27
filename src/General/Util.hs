@@ -6,12 +6,12 @@ module General.Util(
     fromDeclHead, fromContext, fromIParen, fromInstHead,
     tarballReadFiles,
     isUpper1, isAlpha1,
-    splitPair, joinPair,
-    testing, testing_, testEq,
+    joinPair,
+    testing, testEq,
     showUTCTime,
     strict,
     withs,
-    escapeHTML, unescapeHTML, innerTextHTML, unHTML, tag, tag_,
+    escapeHTML, unescapeHTML, unHTML, tag, tag_,
     takeSortOn,
     Average, toAverage, fromAverage,
     inRanges,
@@ -21,7 +21,7 @@ module General.Util(
     prettyTable,
     ghcApiVersion,
     hackagePackageURL, hackageModuleURL, hackageDeclURL, ghcModuleURL,
-    minimum', maximum', minimumBy', maximumBy',
+    minimum', maximum',
     general_util_test
     ) where
 

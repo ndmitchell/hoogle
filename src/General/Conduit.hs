@@ -4,10 +4,10 @@
 module General.Conduit(
     module Data.Conduit, MonadIO, liftIO,
     sourceList, sinkList, sourceLStr,
-    foldC, mapC, mapMaybeC, mapAccumC, filterC, concatC,
+    mapC, mapAccumC, filterC,
     mapMC, mapAccumMC,
     (|$|), pipelineC, groupOnLastC,
-    zipFromC, linesC, linesCR
+    zipFromC, linesCR
     ) where
 
 import Data.Conduit
@@ -23,11 +23,8 @@ import General.Str
 import Prelude
 
 
-concatC = C.concat
 mapC = C.map
 mapMC = C.mapM
-foldC = C.fold
-mapMaybeC = C.mapMaybe
 mapAccumC f = C.mapAccum (\x a -> a `seq` f a x)
 mapAccumMC f = C.mapAccumM (\x a -> a `seq` f a x)
 filterC = C.filter

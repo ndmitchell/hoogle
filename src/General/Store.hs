@@ -2,7 +2,7 @@
 
 module General.Store(
     Typeable, Stored,
-    intSize, intFromBS, intToBS, encodeBS, decodeBS,
+    intSize, intFromBS, intToBS, encodeBS,
     StoreWrite, storeWriteFile, storeWrite, storeWritePart,
     StoreRead, storeReadFile, storeRead,
     Jagged, jaggedFromList, jaggedAsk,

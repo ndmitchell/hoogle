@@ -72,7 +72,6 @@ library
         js-flot,
         js-jquery,
         mmap,
-        old-locale,
         process,
         process-extras,
         resourcet,
