@@ -109,7 +109,7 @@ resolveTag store x = case x of
     IsExact -> (Just IsExact, [])
     IsPackage -> (Just IsPackage, map (dupe . fst) $ V.toList packageIds)
     IsModule -> (Just IsModule, map (dupe . fst) $ V.toList moduleIds)
-    EqPackage (BS.pack . lower -> val)
+    EqPackage (BS.pack -> val)
         -- look for people who are an exact prefix, sort by remaining length, if there are ties, pick the first one
         | res@(_:_) <- [(BS.length x, (i,x)) | (i,x) <- zip [0..] $ split0 packageNames, val `BS.isPrefixOf` x]
             -> let (i,x) = snd $ minimumBy (compare `on` fst) res in (Just $ EqPackage $ BS.unpack x, [packageIds V.! i])
