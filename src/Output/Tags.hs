@@ -149,12 +149,14 @@ filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
           redo q = q
 
 
-filterTags2 ts qs = \i -> not (negq i) && (noRestrict || posq i)
+filterTags2 ts qs = \i -> not (negq i) && (noPosRestrict || posq i)
     where (posq,negq) = both inRanges (pos,neg)
           (pos, neg) = both (map snd) $ partition fst xs
           xs = concat $ catMaybes restrictions
           restrictions = map getRestriction qs
-          noRestrict = all isNothing restrictions
+          noPosRestrict = all pred restrictions
+          pred Nothing = True
+          pred (Just xs') = all (not . fst) xs'
           getRestriction :: Query -> Maybe [(Bool,(TargetId, TargetId))]
           getRestriction (QueryScope sense cat val) = do
             tag <- parseTag cat val
