@@ -144,7 +144,7 @@ filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
     where fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs
           exact = Just IsExact `elem` [parseTag a b | QueryScope True a b <- qs]
           redo (QueryScope sense cat val)
-              | Just (k,v) <- fmap showTag $ fst . resolveTag ts <$> parseTag cat val = QueryScope sense k v
+              | Just (k,v) <- fmap (showTag . fst . resolveTag ts) $ parseTag cat val = QueryScope sense k v
               | otherwise = QueryNone $ ['-' | not sense] ++ cat ++ ":" ++ val
           redo q = q
 
