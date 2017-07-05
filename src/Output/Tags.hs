@@ -113,7 +113,7 @@ resolveTag store x = case x of
     EqPackage orig@(BS.pack -> val)
         -- look for people who are an exact prefix, sort by remaining length, if there are ties, pick the first one
         | res@(_:_) <- [(BS.length x, (i,x)) | (i,x) <- zip [0..] $ split0 packageNames, val `BS.isPrefixOf` x]
-            -> let (i,x) = snd $ minimumBy (compare `on` fst) res in (EqPackage $ BS.unpack x, Just $ [packageIds V.! i])
+            -> let (i,x) = snd $ minimumBy (compare `on` fst) res in (EqPackage $ BS.unpack x, Just [packageIds V.! i])
         | otherwise -> (EqPackage orig , Just [])
     EqModule x -> (EqModule x, Just $ map (moduleIds V.!) $ findIndices (eqModule $ lower x) $ split0 moduleNames)
     EqCategory cat val -> (EqCategory cat val, Just $ concat
