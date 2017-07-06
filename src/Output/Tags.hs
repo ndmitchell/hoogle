@@ -151,17 +151,17 @@ filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
 
 filterTags2 ts qs = \i -> not (negq i) && (noPosRestrict || posq i)
     where (posq,negq) = both inRanges (pos,neg)
-          (pos, neg) = both (map snd) $ partition fst xs
-          xs = concat $ catMaybes restrictions
-          restrictions = map getRestriction qs
+          (pos, neg) = both (concatMap snd) $ partition fst xs
+          xs = catMaybes restrictions
           noPosRestrict = all pred restrictions
+          restrictions = map getRestriction qs
           pred Nothing = True
-          pred (Just xs') = all (not . fst) xs'
-          getRestriction :: Query -> Maybe [(Bool,(TargetId, TargetId))]
+          pred (Just (sense, _)) = not sense
+          getRestriction :: Query -> Maybe (Bool,[(TargetId, TargetId)])
           getRestriction (QueryScope sense cat val) = do
             tag <- parseTag cat val
             ranges <- snd $ resolveTag ts tag
-            return $ map (sense,) ranges
+            return (sense, ranges)
 
 
 -- | Given a search which has no type or string in it, run the query on the tag bits.
