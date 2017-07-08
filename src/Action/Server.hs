@@ -86,7 +86,8 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
-        let body = showResults local haddock inputArgs q2 $ dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
+        let body = showResults local haddock (filter ((/= "mode") . fst) inputArgs) q2 $
+                dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions qScope)
