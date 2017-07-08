@@ -30,7 +30,7 @@ int text_search_bound(char* xs)
 
     for (char* cs = xs; ; cs++)
     {
-        char c = *cs;
+        unsigned char c = *cs;
         if (c == 0)
         {
             if (cs[1] == 0) break;
