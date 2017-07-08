@@ -50,7 +50,7 @@ Ever feel like having access to hoogle whilst messing around in GHCi? It's relat
 The following will install hoogle as a shell command, and configure GHCi to have a command ":hoogle":
 
 * <tt>cabal install hoogle</tt>
-* <tt>echo >> ~/.ghci ':def hoogle \x -> return $ ":!hoogle \"" ++ x ++ "\""'</tt>
+* <tt>echo >> ~/.ghci ':def hoogle \x -> return $ ":!hoogle " ++ x'</tt>
 
 NB. the above wraps the argument in quotes before passing to the shell command, so there is no need to supply quotes; eg.
 
