@@ -22,6 +22,7 @@ import Query
 import Input.Item
 import Action.CmdLine
 import General.Util
+import Debug.Trace
 
 
 -- -- generate all
@@ -80,8 +81,8 @@ withSearch database act = do
 
 search :: StoreRead -> [Query] -> ([Query], [Target])
 search store qs = runIdentity $ do
-    (qs, exact, filt, list) <- return $ applyTags store qs
-    is <- case (filter isQueryName qs, filter isQueryType qs) of
+    (qs, exact, filt, list) <- return $ applyTags store $ traceShowId qs
+    is <- case (filter isQueryName qs, filter isQueryType $ traceShowId qs) of
         ([], [] ) -> return list
         ([], t:_) -> return $ searchTypes store $ hseToSig $ fromQueryType t
         (xs, [] ) -> return $ searchNames store exact $ map fromQueryName xs
@@ -94,6 +95,11 @@ search store qs = runIdentity $ do
 
 action_search_test :: Bool -> FilePath -> IO ()
 action_search_test sample database = testing "Action.Search.search" $ withSearch database $ \store -> do
+    let noResults a = do
+          res <- return $ snd $ search store (parseQuery a)
+          case res of
+              [] -> putChar '.'
+              _ -> error $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res) ++ "\n expected none"
     let a ==$ f = do
             res <- return $ snd $ search store (parseQuery a)
             case res of
@@ -112,6 +118,8 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "Prelude" === hackage "base/docs/Prelude.html"
         "map" === hackage "base/docs/Prelude.html#v:map"
         "map package:base" === hackage "base/docs/Prelude.html#v:map"
+        noResults "map package:package-not-in-db"
+        noResults "map module:Module.Not.In.Db"
         "True" === hackage "base/docs/Prelude.html#v:True"
         "Bool" === hackage "base/docs/Prelude.html#t:Bool"
         "String" === hackage "base/docs/Prelude.html#t:String"

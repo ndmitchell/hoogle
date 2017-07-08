@@ -103,7 +103,7 @@ showTag (EqCategory k v) = (k,v)
 ---------------------------------------------------------------------
 -- TAG SEMANTICS
 
--- | Given a tag, find the ranges of identifiers it covers(if it restricts the range)
+-- | Given a tag, find the ranges of identifiers it covers (if it restricts the range)
 -- An empty range means an empty result, while a Nothing means a search on the entire range
 resolveTag :: StoreRead -> Tag -> (Tag, Maybe [(TargetId,TargetId)])
 resolveTag store x = case x of
