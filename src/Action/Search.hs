@@ -22,8 +22,6 @@ import Query
 import Input.Item
 import Action.CmdLine
 import General.Util
-import Debug.Trace
-
 
 -- -- generate all
 -- @tagsoup -- generate tagsoup
@@ -81,8 +79,8 @@ withSearch database act = do
 
 search :: StoreRead -> [Query] -> ([Query], [Target])
 search store qs = runIdentity $ do
-    (qs, exact, filt, list) <- return $ applyTags store $ traceShowId qs
-    is <- case (filter isQueryName qs, filter isQueryType $ traceShowId qs) of
+    (qs, exact, filt, list) <- return $ applyTags store  qs
+    is <- case (filter isQueryName qs, filter isQueryType qs) of
         ([], [] ) -> return list
         ([], t:_) -> return $ searchTypes store $ hseToSig $ fromQueryType t
         (xs, [] ) -> return $ searchNames store exact $ map fromQueryName xs
