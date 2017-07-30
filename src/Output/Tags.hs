@@ -103,19 +103,20 @@ showTag (EqCategory k v) = (k,v)
 ---------------------------------------------------------------------
 -- TAG SEMANTICS
 
--- | Given a tag, find the ranges of identifiers it covers
-resolveTag :: StoreRead -> Tag -> (Maybe Tag, [(TargetId,TargetId)])
+-- | Given a tag, find the ranges of identifiers it covers (if it restricts the range)
+-- An empty range means an empty result, while a Nothing means a search on the entire range
+resolveTag :: StoreRead -> Tag -> (Tag, Maybe [(TargetId,TargetId)])
 resolveTag store x = case x of
-    IsExact -> (Just IsExact, [])
-    IsPackage -> (Just IsPackage, map (dupe . fst) $ V.toList packageIds)
-    IsModule -> (Just IsModule, map (dupe . fst) $ V.toList moduleIds)
-    EqPackage (BS.pack . lower -> val)
+    IsExact -> (IsExact, Nothing)
+    IsPackage -> (IsPackage, Just $ map (dupe . fst) $ V.toList packageIds)
+    IsModule -> (IsModule, Just $ map (dupe . fst) $ V.toList moduleIds)
+    EqPackage orig@(BS.pack -> val)
         -- look for people who are an exact prefix, sort by remaining length, if there are ties, pick the first one
         | res@(_:_) <- [(BS.length x, (i,x)) | (i,x) <- zip [0..] $ split0 packageNames, val `BS.isPrefixOf` x]
-            -> let (i,x) = snd $ minimumBy (compare `on` fst) res in (Just $ EqPackage $ BS.unpack x, [packageIds V.! i])
-        | otherwise -> (Nothing, [])
-    EqModule x -> (Just $ EqModule x, map (moduleIds V.!) $ findIndices (eqModule $ lower x) $ split0 moduleNames)
-    EqCategory cat val -> (Just $ EqCategory cat val, concat
+            -> let (i,x) = snd $ minimumBy (compare `on` fst) res in (EqPackage $ BS.unpack x, Just [packageIds V.! i])
+        | otherwise -> (EqPackage orig , Just [])
+    EqModule x -> (EqModule x, Just $ map (moduleIds V.!) $ findIndices (eqModule $ lower x) $ split0 moduleNames)
+    EqCategory cat val -> (EqCategory cat val, Just $ concat
         [ V.toList $ jaggedAsk categoryIds i
         | i <- elemIndices (BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames])
     where
@@ -143,21 +144,30 @@ filterTags ts qs = (map redo qs, exact, \i -> all ($ i) fs)
     where fs = map (filterTags2 ts . snd) $ groupSort $ map (scopeCategory &&& id) $ filter isQueryScope qs
           exact = Just IsExact `elem` [parseTag a b | QueryScope True a b <- qs]
           redo (QueryScope sense cat val)
-              | Just (k,v) <- fmap showTag $ fst . resolveTag ts =<< parseTag cat val = QueryScope sense k v
+              | Just (k,v) <- fmap (showTag . fst . resolveTag ts) $ parseTag cat val = QueryScope sense k v
               | otherwise = QueryNone $ ['-' | not sense] ++ cat ++ ":" ++ val
           redo q = q
 
 
-filterTags2 ts qs = \i -> not (negq i) && (null pos || posq i)
+filterTags2 ts qs = \i -> not (negq i) && (noPosRestrict || posq i)
     where (posq,negq) = both inRanges (pos,neg)
-          (pos, neg) = both (map snd) $ partition fst $ concatMap f qs
-          f (QueryScope sense cat val) = map (sense,) $ maybe [] (snd . resolveTag ts) $ parseTag cat val
+          (pos, neg) = both (concatMap snd) $ partition fst xs
+          xs = catMaybes restrictions
+          noPosRestrict = all pred restrictions
+          restrictions = map getRestriction qs
+          pred Nothing = True
+          pred (Just (sense, _)) = not sense
+          getRestriction :: Query -> Maybe (Bool,[(TargetId, TargetId)])
+          getRestriction (QueryScope sense cat val) = do
+            tag <- parseTag cat val
+            ranges <- snd $ resolveTag ts tag
+            return (sense, ranges)
 
 
 -- | Given a search which has no type or string in it, run the query on the tag bits.
 --   Using for things like IsModule, EqCategory etc.
 searchTags :: StoreRead -> [Query] -> [TargetId]
 searchTags ts qs
-    | x:xs <- [map fst $ maybe [] (snd . resolveTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
+    | x:xs <- [map fst $ maybe [] (fromMaybe [] . snd . resolveTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
     = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
-searchTags ts _ = map fst $ snd $ resolveTag ts IsPackage
+searchTags ts _ = map fst $ fromMaybe [] $  snd $ resolveTag ts IsPackage
