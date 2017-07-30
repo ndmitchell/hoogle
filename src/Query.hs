@@ -73,7 +73,10 @@ lexer x | Just s <- (bs !!) <$> findIndex (`isPrefixOf` x) bs = s : lexer (drop 
     where bs = zipWith (++) openBrackets shutBrackets ++ openBrackets ++ shutBrackets
 lexer (x:xs)
     | isSpace x = " " : lexer (dropWhile isSpace xs)
-    | isAlpha x || x == '_' = let (a,b) = span (\x -> isAlphaNum x || x `elem` "_'#-") xs in (x:a) : lexer b
+    | isAlpha x || x == '_' =
+        let (a,b) = span (\x -> isAlphaNum x || x `elem` "_'#-") xs
+            (a1,a2) = spanEnd (== '-') a
+        in (x:a1) : lexer (a2 ++ b)
     | isSym x = let (a,b) = span isSym xs in (x:a) : lexer b
     | x == ',' = "," : lexer xs
     | otherwise = lexer xs -- drop invalid bits
@@ -192,6 +195,7 @@ query_test = testing "Query.parseQuery" $ do
     "Int#" === name "Int#"
     "concat map" === name "concat" . name "map"
     "a -> b" === typ "a -> b"
+    "a->b" === typ "a -> b"
     "(a b)" === typ "(a b)"
     "map :: a -> b" === typ "a -> b"
     "+Data.Map map" === scope True "module" "Data.Map" . name "map"
