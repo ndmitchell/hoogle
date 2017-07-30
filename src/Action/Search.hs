@@ -23,7 +23,6 @@ import Input.Item
 import Action.CmdLine
 import General.Util
 
-
 -- -- generate all
 -- @tagsoup -- generate tagsoup
 -- @tagsoup filter -- search the tagsoup package
@@ -80,7 +79,7 @@ withSearch database act = do
 
 search :: StoreRead -> [Query] -> ([Query], [Target])
 search store qs = runIdentity $ do
-    (qs, exact, filt, list) <- return $ applyTags store qs
+    (qs, exact, filt, list) <- return $ applyTags store  qs
     is <- case (filter isQueryName qs, filter isQueryType qs) of
         ([], [] ) -> return list
         ([], t:_) -> return $ searchTypes store $ hseToSig $ fromQueryType t
@@ -94,6 +93,11 @@ search store qs = runIdentity $ do
 
 action_search_test :: Bool -> FilePath -> IO ()
 action_search_test sample database = testing "Action.Search.search" $ withSearch database $ \store -> do
+    let noResults a = do
+          res <- return $ snd $ search store (parseQuery a)
+          case res of
+              [] -> putChar '.'
+              _ -> error $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res) ++ "\n expected none"
     let a ==$ f = do
             res <- return $ snd $ search store (parseQuery a)
             case res of
@@ -112,6 +116,8 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "Prelude" === hackage "base/docs/Prelude.html"
         "map" === hackage "base/docs/Prelude.html#v:map"
         "map package:base" === hackage "base/docs/Prelude.html#v:map"
+        noResults "map package:package-not-in-db"
+        noResults "map module:Module.Not.In.Db"
         "True" === hackage "base/docs/Prelude.html#v:True"
         "Bool" === hackage "base/docs/Prelude.html#t:Bool"
         "String" === hackage "base/docs/Prelude.html#t:String"
