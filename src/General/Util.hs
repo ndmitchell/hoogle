@@ -19,7 +19,6 @@ module General.Util(
     parseTrailingVersion,
     exitFail,
     prettyTable,
-    ghcApiVersion,
     hackagePackageURL, hackageModuleURL, hackageDeclURL, ghcModuleURL,
     minimum', maximum',
     general_util_test
@@ -56,9 +55,6 @@ import Prelude
 
 -- | A URL, complete with a @https:@ prefix.
 type URL = String
-
-ghcApiVersion :: String
-ghcApiVersion = "8.0.1"
 
 exitFail :: String -> IO ()
 exitFail msg = do

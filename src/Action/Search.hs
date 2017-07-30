@@ -143,7 +143,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "Ord a => [a] -> [a]" === hackage "base/docs/Data-List.html#v:sort"
         "ShakeOptions -> Int" === hackage "shake/docs/Development-Shake.html#v:shakeThreads"
         "is:module" === hackage "base/docs/Prelude.html"
-        "visibleDataCons" === ("https://downloads.haskell.org/~ghc/" ++ ghcApiVersion ++ "/docs/html/libraries/ghc-" ++ ghcApiVersion ++ "/TyCon.html#v:visibleDataCons")
+        "visibleDataCons" === hackage "ghc/docs/TyCon.html#v:visibleDataCons"
 
         let tags = completionTags store
         let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
