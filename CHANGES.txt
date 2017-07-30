@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #217, fix the mode tag propagating to child links
 5.0.12
     #210, expose targetInfo and targetSearchDisplay
 5.0.11
