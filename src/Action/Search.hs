@@ -1,9 +1,11 @@
 {-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
-module Action.Search(actionSearch, withSearch, search,
-                    targetInfo,
-                    targetResultDisplay,
-                    action_search_test) where
+module Action.Search
+    (actionSearch, withSearch, search
+    ,targetInfo
+    ,targetResultDisplay
+    ,action_search_test
+    ) where
 
 import Control.Monad.Extra
 import Control.DeepSeq
