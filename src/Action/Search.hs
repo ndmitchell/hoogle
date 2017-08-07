@@ -144,7 +144,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         -- FIXME: "author:Neil-M" === hackage "filepath"
         -- FIXME: "Data.Se.insert" === hackage "containers/docs/Data-Set.html#v:insert"
         "set:-haskell-platform author:Neil-Mitchell" === hackage "safe"
-        "author:Neil-Mitchell category:Development" === hackage "hlint"
+        "author:Neil-Mitchell category:Development" === hackage "derive"
         "( )" ==$ flip seq True -- used to segfault
         "( -is:exact) package:base=" ==$ flip seq True
         "(a -> b) -> [a] -> [b]" === hackage "base/docs/Prelude.html#v:map"
