@@ -227,20 +227,22 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 let packages = [ fakePackage name $ "Not in Stackage, so not searched.\n" ++ T.unpack packageSynopsis
                                | (name,Package{..}) <- Map.toList cbl, name `Set.notMember` want]
 
-                (seen, xs) <- runConduit $
+                xs <- runConduit $
                     source =$=
                     filterC (flip Set.member want . fst3) =$=
-                        ((fmap Set.fromList $ mapC fst3 =$= sinkList) |$|
-                        (((zipFromC 1 =$= consume) >> when (null include) (sourceList packages))
-                            =$= pipelineC 10 (items =$= sinkList)))
-                putStrLn ""
-
-                let missing = [x | x <- Set.toList $ want `Set.difference` seen
-                                 , fmap packageLibrary (Map.lookup x cbl) /= Just False]
-                whenNormal $ when (missing /= []) $ do
-                    putStrLn $ "Packages missing documentation: " ++ unwords (sortOn lower missing)
-                when (Set.null seen) $
-                    exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
+                    void ((|$|)
+                        (zipFromC 1 =$= consume)
+                        (do seen <- fmap Set.fromList $ mapC fst3 =$= sinkList
+                            when (null include) $ sourceList packages
+                            let missing = [x | x <- Set.toList $ want `Set.difference` seen
+                                             , fmap packageLibrary (Map.lookup x cbl) /= Just False]
+                            liftIO $ putStrLn ""
+                            liftIO $ whenNormal $ when (missing /= []) $ do
+                                putStrLn $ "Packages missing documentation: " ++ unwords (sortOn lower missing)
+                            liftIO $ when (Set.null seen) $
+                                exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
+                            ))
+                    =$= pipelineC 10 (items =$= sinkList)
 
                 itemWarn <- readIORef itemWarn
                 when (itemWarn > 0) $
