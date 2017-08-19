@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #222, make sure all packages appear in the search
 5.0.13
     #219, treat the query "a->b" the same as "a -> b"
     #215, if a specified module/package is missing, give no results

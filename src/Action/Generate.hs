@@ -224,16 +224,13 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                         parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body
 
             writeItems store $ \items -> do
-                let packages = [ fakePackage name $ "Not in Stackage, so not searched.\n" ++ T.unpack packageSynopsis
-                               | (name,Package{..}) <- Map.toList cbl, name `Set.notMember` want]
-
                 xs <- runConduit $
                     source =$=
                     filterC (flip Set.member want . fst3) =$=
                     void ((|$|)
                         (zipFromC 1 =$= consume)
                         (do seen <- fmap Set.fromList $ mapC fst3 =$= sinkList
-                            when (null include) $ sourceList packages
+
                             let missing = [x | x <- Set.toList $ want `Set.difference` seen
                                              , fmap packageLibrary (Map.lookup x cbl) /= Just False]
                             liftIO $ putStrLn ""
@@ -241,6 +238,18 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                                 putStrLn $ "Packages missing documentation: " ++ unwords (sortOn lower missing)
                             liftIO $ when (Set.null seen) $
                                 exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
+
+                            -- synthesise things for Cabal packages that are missing docs
+                            forM_ (Map.toList cbl) $ \(name, Package{..}) -> do
+                                let ret prefix = yield $ fakePackage name $ prefix ++ trim (T.unpack packageSynopsis)
+                                if name `Set.member` want then
+                                    (if packageLibrary
+                                        then ret "Documentation not found, so not searched.\n"
+                                        else ret "Executable only. ")
+                                else if null include then
+                                    ret "Not on Stackage, so not searched.\n"
+                                else
+                                    return ()
                             ))
                     =$= pipelineC 10 (items =$= sinkList)
 
