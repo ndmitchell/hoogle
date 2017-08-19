@@ -10,7 +10,7 @@ Install GHC, git and zlib (a required library).
 
 	add-apt-repository -y ppa:hvr/ghc
 	apt-get update
-	apt-get install ghc-7.8.4 cabal-install-1.18 happy-1.19.4 alex-3.1.3
+	apt-get install ghc-8.2.1 cabal-install-1.24 happy-1.19.4 alex-3.1.3
 	apt-get install git
 	apt-get install zlib1g-dev
 
