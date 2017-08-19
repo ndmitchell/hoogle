@@ -11,7 +11,6 @@ import Control.Exception.Extra
 import Data.Time.Clock
 import Data.Time.Format
 import System.FilePath
-import System.Locale
 
 
 -- APPROACH
