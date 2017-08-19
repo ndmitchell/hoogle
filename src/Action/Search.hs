@@ -152,6 +152,9 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "ShakeOptions -> Int" === hackage "shake/docs/Development-Shake.html#v:shakeThreads"
         "is:module" === hackage "base/docs/Prelude.html"
         "visibleDataCons" === hackage "ghc/docs/TyCon.html#v:visibleDataCons"
+        "sparkle" === hackage "sparkle" -- library without Hoogle docs
+        "weeder" === hackage "weeder" -- executable in Stackage
+        "supero" === hackage "supero"
 
         let tags = completionTags store
         let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
