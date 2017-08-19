@@ -47,9 +47,6 @@ import Foreign.Storable
 import Data.Int
 import System.IO
 import System.Exit
-#if __GLASGOW_HASKELL__< 710
-import System.Locale
-#endif
 import Prelude
 
 
