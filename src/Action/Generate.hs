@@ -239,8 +239,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                             liftIO $ when (Set.null seen) $
                                 exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
 
-                            -- synthesise things for Cabal packages that are missing docs
-                            forM_ (Map.toList cbl) $ \(name, Package{..}) -> do
+                            -- synthesise things for Cabal packages that are not documented
+                            forM_ (Map.toList cbl) $ \(name, Package{..}) -> when (name `Set.notMember` seen) $ do
                                 let ret prefix = yield $ fakePackage name $ prefix ++ trim (T.unpack packageSynopsis)
                                 if name `Set.member` want then
                                     (if packageLibrary
