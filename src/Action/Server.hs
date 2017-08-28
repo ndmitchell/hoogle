@@ -172,8 +172,8 @@ showResults local haddock args query results = unlines $
                 (a,[]) -> a ++ [("hoogle",x)]
                 (a,(_,x1):b) -> a ++ [("hoogle",x1 ++ " " ++ x)] ++ b
 
-        f cat val = "<a class='minus' href='" ++ add ("-" ++ cat ++ ":" ++ val) ++ "'></a>" ++
-                    "<a class='plus' href='" ++ add (cat ++ ":" ++ val) ++ "'>" ++
+        f cat val = "<a class=\"minus\" href=\"" ++ add ("-" ++ cat ++ ":" ++ val) ++ "\"></a>" ++
+                    "<a class=\"plus\" href=\"" ++ add (cat ++ ":" ++ val) ++ "\">" ++
                     (if cat == "package" then "" else cat ++ ":") ++ val ++ "</a>"
 
 

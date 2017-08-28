@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #223, don't break on foldl'
     #222, make sure all packages appear in the search
 5.0.13
     #219, treat the query "a->b" the same as "a -> b"
