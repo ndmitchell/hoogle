@@ -156,6 +156,7 @@ escapeHTML = concatMap f
         f '>' = "&gt;"
         f '&' = "&amp;"
         f '\"' = "&quot;"
+        f '\'' = "&apos;"
         f  x  = [x]
 
 -- | Only guarantees to be the inverse of escapeHTML
