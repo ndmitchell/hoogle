@@ -16,7 +16,7 @@ import Data.List.Extra
 import Data.Version
 import Paths_hoogle(version)
 
-data Language = Haskell | Frege deriving (Data,Typeable,Show,Eq,Enum,Bounded)
+data Language = Haskell | Frege | FlowType deriving (Data,Typeable,Show,Eq,Enum,Bounded)
 
 data CmdLine
     = Search
