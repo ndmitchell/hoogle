@@ -133,6 +133,7 @@ I was unaware of any similar tools before starting development, and no other too
 * [Google](http://www.google.com/), the leader in online search
 * [Hayoo](http://holumbus.fh-wedel.de/hayoo/hayoo.html), similar to Hoogle, but with less focus on type search
 * [Krugle](http://www.krugle.com/), search code, but no Haskell :(
+* [Cloogle](https://cloogle.org), for the [Clean](http://clean.cs.ru.nl) language
 
 
 ## Acknowledgements
