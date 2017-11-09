@@ -25,6 +25,7 @@
 - ignore: {name: "Use <$>"}
 - ignore: {name: "Avoid lambda"}
 - ignore: {name: "Redundant bracket"}
+- ignore: {name: "Use lambda-case"}
 
 
 # Specify additional command line arguments
