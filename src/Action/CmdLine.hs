@@ -55,6 +55,7 @@ data CmdLine
         ,https :: Bool
         ,cert :: FilePath
         ,key :: FilePath
+        ,resrc :: Maybe FilePath
         }
     | Replay
         {logs :: FilePath
@@ -135,6 +136,7 @@ server = Server
     ,https = def &= help "Start an https server (use --cert and --key to specify paths to the .pem files)"
     ,cert = "cert.pem" &= typFile &= help "Path to the certificate pem file (when running an https server)"
     ,key = "key.pem" &= typFile &= help "Path to the key pem file (when running an https server)"
+    ,resrc = def &= help "Override data directory paths"
     } &= help "Start a Hoogle server"
 
 replay = Replay

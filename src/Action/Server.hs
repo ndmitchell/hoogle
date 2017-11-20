@@ -54,7 +54,9 @@ actionServer cmd@Server{..} = do
         \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
     putStrLn . showDuration =<< time
     evaluate spawned
-    dataDir <- getDataDir
+    dataDir <- case resrc of
+      Just d -> return d
+      Nothing -> getDataDir
     haddock <- maybe (return Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
         server log cmd $ replyServer log local haddock store cdn home (dataDir </> "html") scope
