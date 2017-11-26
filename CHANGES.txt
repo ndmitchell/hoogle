@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #228, add --datadir for overriding data directory on servers
     #223, don't break on foldl'
     #222, make sure all packages appear in the search
 5.0.13
