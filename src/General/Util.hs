@@ -43,7 +43,6 @@ import Data.Time.Format
 import Control.DeepSeq
 import Control.Exception.Extra
 import Test.QuickCheck
-import Foreign.Storable
 import Data.Int
 import System.IO
 import System.Exit
@@ -235,14 +234,6 @@ strict act = do
     case res of
         Left e -> do msg <- showException e; evaluate $ rnf msg; error msg
         Right v -> do evaluate $ rnf v; return v
-
--- I would like to use the storable-tuple package, but it's not in Stackage
-instance forall a b . (Storable a, Storable b) => Storable (a,b) where
-    sizeOf x = sizeOf (fst x) + sizeOf (snd x)
-    alignment x = alignment (fst x) `max` alignment (snd x) -- dodgy, but enough for my purposes
-    peekByteOff ptr pos = liftM2 (,) (peekByteOff ptr pos) (peekByteOff ptr $ pos + sizeOf (undefined :: a))
-    pokeByteOff ptr pos (a,b) = pokeByteOff ptr pos a >> pokeByteOff ptr (pos + sizeOf (undefined :: a)) b
-
 
 data Average a = Average !a !Int deriving Show -- a / b
 

@@ -76,6 +76,7 @@ library
         process,
         process-extras,
         resourcet,
+        storable-tuple,
         tar,
         template-haskell,
         text,

@@ -6,6 +6,7 @@ import Data.Function
 import Data.List.Extra
 import Data.Tuple.Extra
 import Data.Maybe
+import Foreign.Storable.Tuple()
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Vector.Storable as V
