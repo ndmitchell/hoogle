@@ -73,7 +73,6 @@ library
         js-flot,
         js-jquery,
         mmap,
-        process,
         process-extras,
         resourcet,
         storable-tuple,
