@@ -67,7 +67,7 @@ library
         extra >= 1.4,
         filepath,
         old-locale,
-        haskell-src-exts >= 1.18 && < 1.20,
+        haskell-src-exts >= 1.20 && < 1.21,
         http-conduit,
         http-types,
         js-flot,

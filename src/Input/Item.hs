@@ -178,7 +178,7 @@ hseToSig = tyForall
             TVar a b -> TVar a (b ++ [ty y])
         ty (TyVar _ x) = TVar (fromName x) []
         ty (TyCon _ x) = TCon (fromQName x) []
-        ty (TyInfix an a b c) = ty $ let ap = TyApp an in TyCon an b `ap` a `ap` c
+        ty (TyInfix an a (UnpromotedName _ b) c) = ty $ let ap = TyApp an in TyCon an b `ap` a `ap` c
         ty (TyKind _ x _) = ty x
         ty (TyBang _ _ _ x) = ty x
         ty (TyParen _ x) = ty x
