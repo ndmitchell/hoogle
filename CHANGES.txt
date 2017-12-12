@@ -1,128 +1,128 @@
 Changelog for Hoogle
 
     Allow haskell-src-exts-1.20
-5.0.14
+5.0.14, released 2017-11-28
     #228, add --datadir for overriding data directory on servers
     #223, don't break on foldl'
     #222, make sure all packages appear in the search
-5.0.13
+5.0.13, released 2017-07-30
     #219, treat the query "a->b" the same as "a -> b"
     #215, if a specified module/package is missing, give no results
     #220, start on port 8080 by default
     Rely on the fact ghc API is now on Hackage
     #217, fix the mode tag propagating to child links
-5.0.12
+5.0.12, released 2017-05-06
     #210, expose targetInfo and targetSearchDisplay
-5.0.11
+5.0.11, released 2017-05-02
     #209, add a defaultDatabaseLocation function
-5.0.10
+5.0.10, released 2017-04-17
     #205, change how the link URL is computed
     #206, put newer versions of a package first
-5.0.9
+5.0.9, released 2017-01-16
     #202, add --haddock functionality
-5.0.8
+5.0.8, released 2016-12-29
     #194, make --local work regardless of code page
-5.0.7
+5.0.7, released 2016-12-27
     #200, make sure the content-type is set properly
-5.0.6
+5.0.6, released 2016-11-30
     #196, make --local look for .cabal files as well
     Fix up Frege documentation generation
-5.0.5
+5.0.5, released 2016-11-24
     #193, support multiple --local flags
     #195, add --home flag to server mode
     Allow haskell-src-exts-1.19
-5.0.4
+5.0.4, released 2016-09-11
     #184, use file URLs for local docs
     #183, make --local look for .txt files recursively
-5.0.3
+5.0.3, released 2016-08-28
     #181, use the proper network constraints
     Avoid deprecated Aeson modules
-5.0.2
+5.0.2, released 2016-07-25
     Move to haskell-src-exts-1.18
-5.0.1
+5.0.1, released 2016-07-12
     #178, support the --link argument
     #178, add module names to results on the command line
     #177, require containers 0.5 or above
-5.0
+5.0, released 2016-06-24
     #172, make sure --local links work on Linux
     #116, store data files in getAppUserDataDirectory by default
     G472, be robust to corrupt Hoogle files
     G521, make sure it works with inverted color preferences
     Rewrite from scratch
-4.2.38
+4.2.38, released 2015-01-28
     #96, allow certicate verification failures
     #95, allow a higher version of Cabal on older GHCs
-4.2.37
+4.2.37, released 2015-01-13
     #94, GHC 7.10 support
-4.2.36
+4.2.36, released 2014-10-12
     #85, add support for missing type constructors
-4.2.35
+4.2.35, released 2014-09-15
     Allow haskell-src-exts-1.16
-4.2.34
+4.2.34, released 2014-07-09
     Add defaultDatabaseLocation
-4.2.33
+4.2.33, released 2014-06-15
     Allow WAI-3.0
-4.2.32
+4.2.32, released 2014-04-14
     Allow haskell-src-exts-1.15
-4.2.31
+4.2.31, released 2014-04-03
     #61, support conduit-1.1
-4.2.30
+4.2.30, released 2014-03-23
     #57, support QuickCheck-2.7
-4.2.29
+4.2.29, released 2014-02-23
     #55, if reading as UTF8 fails, explicitly try Latin1
     Add QuickCheck as a dependency
     Change createDatabase to also save the file
     Disable rank feature
     Remove running a hoogle query without converting the database
     Ignore packages without documentation to hoogle data
-4.2.28
+4.2.28, released 2014-01-03
     Upgrade to shake-0.11
     #49, update "hoogle data" to be incremental
-4.2.27
+4.2.27, released 2014-01-01
     Rewrite how "hoogle data" works
     #45, if you are building all, also depend on default
     #47, switch to using Shake to build the recipes
     Add a dependency on Shake
-4.2.26
+4.2.26, released 2013-12-10
     Fix omission of the Test file
-4.2.25
+4.2.25, released 2013-12-09
     Fix timestamps in .tar.gz dist file
-4.2.24
+4.2.24, released 2013-12-08
     Allow WAI 2.0
     Fix the Keyword generator
-4.2.23
+4.2.23, released 2013-09-29
     Improvements to Haddock conversion
-4.2.22
+4.2.22, released 2013-09-29
     Download Hoogle data from the old Hackage server
-4.2.21
+4.2.21, released 2013-09-01
     #25, make the tarball pass the tests
     #26, GHC 7.8 compatibility
     Ensure alias resolution is bottom-up and recursive
-4.2.20
+4.2.20, released 2013-08-25
     #619, do not depend on unix on Windows
-4.2.19
+4.2.19, released 2013-08-20
     Fix version bounds
-4.2.18
+4.2.18, released 2013-08-20
     Allow bytestring-0.9
-4.2.17
+4.2.17, released 2013-08-20
     Upgrade to haskell-src-exts-1.14
     Visual redesign
     Require bytestring-0.10 or above, due to NFData instances
     Add NFData instance to Database
-4.2.16
+4.2.16, released 2013-02-21
     Remove lots of explicit upper bounds
-4.2.15
+4.2.15, released 2013-01-29
     Allow http-types-0.8
     Allow case-insensitive-1.0
     Support --local for GHC docs
     #568, rewrite Haddock links in --local
-4.2.14
+4.2.14, released 2012-11-06
     Switch license from GPL to BSD3
     GHC 7.6 fixes
     ##4, Allow Cabal-1.16.*
-4.2.13
+4.2.13, released 2012-08-18
     Allow cmdargs-0.10.*
-4.2.12
+4.2.12, released 2012-07-15
     Allow conduit-0.5, wai-1.3 and warp-1.3
     Upgrade to http-types-0.7.*
     In embedded mode, don't hijack the URL bar or title
@@ -132,41 +132,41 @@ Changelog for Hoogle
     Improve iPhone support
     Update the copyright year in the footer
     Double the speed of hoogle server responses
-4.2.11
+4.2.11, released 2012-04-05
     Allow transformers-0.3
     Allow conduit-0.4, wai-1.2 and warp-1.2
     Allow haskell-src-exts-1.12 and 1.13
-4.2.10
+4.2.10, released 2012-03-04
     #533, be paranoid when parsing Cabal files
-4.2.9
+4.2.9, released 2012-03-01
     Upgrade to WAI-1.1 and Warp-1.1
     #525, don't rely on a redirect to find files
     Allow Cabal-1.14
-4.2.8
+4.2.8, released 2011-11-27
     Allow cmdargs-0.9
     Fix setting the global read flags and unsetting them properly
     Allow case-insensitive-0.4.*
     Make data --local have a good default on Linux
     Make server --local work on Windows
     #407, rewrite OpenSearch plugin to work regardless of the server
-4.2.7
+4.2.7, released 2011-09-03
     Allow cmdargs-0.8
-4.2.6
+4.2.6, released 2011-08-12
     Permit GHC 7.2
     Allow case-insensitive-0.3.*
     Fix bug when searching for toString in the embed mode
     Make --redownload work on the tarballs
-4.2.5
+4.2.5, released 2011-06-12
     Fix hyperlinks to symbols (i.e. &&) in Haddock
-4.2.4
+4.2.4, released 2011-05-26
     #434, use either wget or curl to download the files
     Allow haskell-src-exts 1.11.*
     Upgrade to cmdargs==0.7.*
-4.2.3
+4.2.3, released 2011-05-01
     Generate database for ghc internals
     Give an error if the database is the wrong version
     Add -fno-cse, to make cmdargs work (was losing args annotations)
-4.2.2
+4.2.2, released 2011-04-25
     Upgrade to WAI==0.4.* and Warp==0.4.*
     Allow parsec 3, since various people have reported it works
     Default module URL's correctly when not on Hackage
@@ -183,14 +183,14 @@ Changelog for Hoogle
     Make package matching case insensitive
     #372, add features to improve module name search
     Make module name searching case insensitive
-4.2.1
+4.2.1, released 2011-01-26
     Fix for pattern match failure when searching for "to"
     Fix for not sending text/html when serving local files
     Eliminate the --nostdin flag, now unnecessary
     Change to use WAI/Warp instead of HTTP and custom server
     Fix a bug, didn't ever show Waiting... on the real website
     Make embed work in IE8
-4.2
+4.2, released 2011-01-23
     Make the CGI interface send the right number of newlines
     Accept prefix and suffix web parameters
     Eliminate isBlankQuery, make Query a Monoid
@@ -201,7 +201,7 @@ Changelog for Hoogle
     Ignore some whitespace in the input file
     Work around a cabal bug, include jquery.cookie.js
     Add ?version=xxx to .css and .js, to make it auto refresh
-4.1.5
+4.1.5, released 2011-01-16
     #399, rehabilitate mode=suggest
     Stop mode=suggest failing entirely, now cleanly gives no answers
     Combine --web and --webmode
@@ -212,24 +212,24 @@ Changelog for Hoogle
     #54, rework packages, entries and keywords
     #87, make all database files lowercase
     Various javascript/ajax enhancements
-4.1.4
+4.1.4, released 2011-01-15
     Running data on Posix sets all files to global read/execute
     Relax haskell-src-exts to allow 1.10.1
     Rework the web page display further
-4.1.3
+4.1.3, released 2011-01-09
     Read and write all database files in UTF8
     #391, add tar -xzf when extracting from the tarball
     Change search results display, packages/modules on separate line
     Exclude haskellN* from the platform, they are in base
     Add --nostdin to server mode, to support running with nohup
     Loosen dependencies for tagsoup (typo'd it before)
-4.1.2
+4.1.2, released 2010-12-19
     Loosen dependencies for tagsoup and HTTP (but not parsec)
     Avoid self circular dependencies
-4.1.1
+4.1.1, released 2010-12-18
     #195, include all the necessary resources to run as a server
     When in server mode, be more robust to errors
-4.1
+4.1, released 2010-12-18
     #320, make sure system is found
     #146, preserve forall's in everywhere
     #186, switch to using haskell-src-exts to parse input files
@@ -247,5 +247,5 @@ Changelog for Hoogle
     #51, test mode now does what test and testfile did
     #66, turn Hoogle into a library
     Add --server flag, to run as a server
-4.0.7
+4.0.7, released 2009-07-19
     Start of changelog
