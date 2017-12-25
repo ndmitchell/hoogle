@@ -29,7 +29,7 @@ import Control.Applicative
 import Data.List.Extra
 import Data.Char
 import Data.Either.Extra
-import Data.Monoid
+import Data.Semigroup
 import Data.Tuple.Extra
 import Control.Monad.Extra
 import qualified Data.ByteString.Lazy as LBS
@@ -243,9 +243,12 @@ toAverage x = Average x 1
 fromAverage :: Fractional a => Average a -> a
 fromAverage (Average a b) = a / fromIntegral b
 
+instance Num a => Semigroup (Average a) where
+    Average x1 x2 <> Average y1 y2 = Average (x1+y1) (x2+y2)
+
 instance Num a => Monoid (Average a) where
     mempty = Average 0 0
-    mappend (Average x1 x2) (Average y1 y2) = Average (x1+y1) (x2+y2)
+    mappend = (<>)
 
 
 readMaybe :: Read a => String -> Maybe a
@@ -346,4 +349,3 @@ general_util_test = do
         let a === b = if a == b then putChar '.' else error $ show (a,b)
         parseTrailingVersion "shake-0.15.2" === ("shake",[0,15,2])
         parseTrailingVersion "test-of-stuff1" === ("test-of-stuff1",[])
-
