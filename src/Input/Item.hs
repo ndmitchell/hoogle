@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, ViewPatterns #-}
+{-# LANGUAGE CPP, GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveFunctor, ViewPatterns #-}
 {-# LANGUAGE RecordWildCards, OverloadedStrings, PatternGuards, ScopedTypeVariables #-}
 
 -- | Types used to generate the input.
@@ -178,7 +178,11 @@ hseToSig = tyForall
             TVar a b -> TVar a (b ++ [ty y])
         ty (TyVar _ x) = TVar (fromName x) []
         ty (TyCon _ x) = TCon (fromQName x) []
+#if !defined(MIN_VERSION_haskell_src_exts) || MIN_VERSION_haskell_src_exts(1,20,0)
         ty (TyInfix an a (UnpromotedName _ b) c) = ty $ let ap = TyApp an in TyCon an b `ap` a `ap` c
+#else
+        ty (TyInfix an a b c) = ty $ let ap = TyApp an in TyCon an b `ap` a `ap` c
+#endif
         ty (TyKind _ x _) = ty x
         ty (TyBang _ _ _ x) = ty x
         ty (TyParen _ x) = ty x
