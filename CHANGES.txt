@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #232, allow haskell-src-exts-1.18-1.20
 5.0.15, released 2017-12-12
     Allow haskell-src-exts-1.20
 5.0.14, released 2017-11-28
