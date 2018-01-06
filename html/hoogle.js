@@ -251,7 +251,9 @@ $(function(){
 function searchPlugin()
 {
     var url = $("link[rel=search]").attr("href");
-    if (url.indexOf('://') === -1 || url.indexOf('//') !== 0 )
+    //  If neither scheme(http(s)://) nor DSN prefix(//) is in URL then we
+    //  should add prefix.
+    if (url.indexOf('://') === -1 && url.indexOf('//') !== 0)
         url = prefixUrl + url;
     window.external.AddSearchProvider(url);
 }
