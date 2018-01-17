@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Add lower bounds for time and bytestring
     #234, allow http-conduit-0.15
 5.0.16, released 2018-01-03
     #232, allow haskell-src-exts-1.18-1.20
