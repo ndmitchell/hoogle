@@ -68,7 +68,7 @@ library
         filepath,
         old-locale,
         haskell-src-exts >= 1.18 && < 1.21,
-        http-conduit,
+        http-conduit < 2.3,
         http-types,
         js-flot,
         js-jquery,
