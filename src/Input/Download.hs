@@ -35,4 +35,4 @@ downloadFile insecure file url = withSocketsDo $ do
     manager <- C.newManager $ C.mkManagerSettings (TLSSettingsSimple insecure False False) Nothing
     runResourceT $ do
         response <- C.http request manager
-        C.responseBody response C.$$+- sinkFile file
+        C.responseBody response C.$$ sinkFile file
