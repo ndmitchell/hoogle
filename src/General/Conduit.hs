@@ -12,6 +12,7 @@ module General.Conduit(
 
 import Data.Conduit
 import Data.Conduit.List as C
+import Data.Conduit.Binary as C
 import Data.Maybe
 import Control.Applicative
 import Control.Monad.Extra
@@ -52,23 +53,8 @@ groupOnLastC op = do
                 f k2 v2
 
 
--- | I use this version as in older versions of Conduit the equivalent is O(n^2).
---   https://github.com/snoyberg/conduit/pull/209
-linesC :: Monad m => Conduit Str m Str
-linesC = loop []
-    where
-        loop acc = await >>= maybe (finish acc) (go acc)
-
-        finish acc = unless (BS.null final) (yield final)
-            where final = BS.concat $ reverse acc
-
-        go acc more = case BS.uncons second of
-            Just (_, second') -> yield (BS.concat $ reverse $ first:acc) >> go [] second'
-            Nothing -> loop $ more:acc
-            where (first, second) = BS.break (== '\n') more
-
 linesCR :: Monad m => Conduit Str m Str
-linesCR = linesC =$= mapC f
+linesCR = C.lines =$= mapC f
     where f x | Just (x, '\r') <- BS.unsnoc x = x
               | otherwise = x
 
