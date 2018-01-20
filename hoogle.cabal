@@ -15,7 +15,7 @@ description:
     or by approximate type signature.
 homepage:           http://hoogle.haskell.org/
 bug-reports:        https://github.com/ndmitchell/hoogle/issues
-tested-with:        GHC==8.2.1, GHC==8.0.2, GHC==7.10.3
+tested-with:        GHC==8.2.2, GHC==8.0.2, GHC==7.10.3
 extra-doc-files:
     README.md
     CHANGES.txt
