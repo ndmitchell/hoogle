@@ -126,7 +126,8 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
         return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
     "file":xs | local -> do
         let x = ['/' | not isWindows] ++ intercalate "/" xs
-        return $ OutputFile $ x ++ (if hasTrailingPathSeparator x then "index.html" else "")
+        outputFile <- readFile $ x ++ (if hasTrailingPathSeparator x then "index.html" else "")
+        return $ OutputText $ lstrPack $ replace "file:///" "file/" outputFile
     xs ->
         -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
         return $ OutputFile $ joinPath $ htmlDir : filter (not . all (== '.')) xs
