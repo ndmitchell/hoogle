@@ -125,9 +125,15 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
         let file = intercalate "/" $ filter (not . (== "..")) (x:xs)
         return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
     "file":xs | local -> do
-        let x = ['/' | not isWindows] ++ intercalate "/" xs
-        outputFile <- readFile $ x ++ (if hasTrailingPathSeparator x then "index.html" else "")
-        return $ OutputText $ lstrPack $ replace "file:///" "file/" outputFile
+        let x = ['/' | not isWindows] ++ intercalate "/" (dropWhile null xs)
+        let file = x ++ (if hasTrailingPathSeparator x then "index.html" else "")
+        if takeExtension file /= ".html" then
+            return $ OutputFile file
+         else do
+            src <- readFile file
+            -- Haddock incorrectly generates file:// on Windows, when it should be file:///
+            -- so replace on file:// and drop all leading empty paths above
+            return $ OutputHTML $ lstrPack $ replace "file://" "/file/" src
     xs ->
         -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
         return $ OutputFile $ joinPath $ htmlDir : filter (not . all (== '.')) xs
