@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #238, only identify the database by the first three version components
     #236, in --local mode replace file:// links in Haddock pages
 5.0.17, released 2018-01-17
     Add lower bounds for time and bytestring

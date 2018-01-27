@@ -35,8 +35,9 @@ import Data.Char
 import Paths_hoogle
 import Prelude
 
--- ensure the string is always 25 chars long, so version numbers don't change its size
-verString = BS.pack $ take 25 $ "HOOGLE-" ++ showVersion version ++ repeat ' '
+-- Ensure the string is always 25 chars long, so version numbers don't change its size
+-- Only use the first two components of the version number to identify the database
+verString = BS.pack $ take 25 $ "HOOGLE-" ++ showVersion (trimVersion 3 version) ++ repeat ' '
 
 ---------------------------------------------------------------------
 -- SERIALISATION HELPERS

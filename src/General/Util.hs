@@ -17,6 +17,7 @@ module General.Util(
     inRanges,
     readMaybe,
     parseTrailingVersion,
+    trimVersion,
     exitFail,
     prettyTable,
     hackagePackageURL, hackageModuleURL, hackageDeclURL, ghcModuleURL,
@@ -43,6 +44,7 @@ import Data.Time.Format
 import Control.DeepSeq
 import Control.Exception.Extra
 import Test.QuickCheck
+import Data.Version
 import Data.Int
 import System.IO
 import System.Exit
@@ -311,6 +313,9 @@ hackageDeclURL typesig x = "#" ++ (if typesig then "v" else "t") ++ ":" ++ conca
         isLegal '.' = True
         isLegal c = isAscii c && isAlphaNum c
 
+
+trimVersion :: Int -> Version -> Version
+trimVersion i v = v{versionBranch = take 3 $ versionBranch v}
 
 parseTrailingVersion :: String -> (String, [Int])
 parseTrailingVersion = (reverse *** reverse) . f . reverse

@@ -14,6 +14,7 @@ import System.Environment
 import System.FilePath
 import Data.List.Extra
 import Data.Version
+import General.Util
 import Paths_hoogle(version)
 
 data Language = Haskell | Frege deriving (Data,Typeable,Show,Eq,Enum,Bounded)
@@ -74,7 +75,7 @@ data CmdLine
 defaultDatabaseLang :: Language -> IO FilePath
 defaultDatabaseLang lang = do
     dir <- getAppUserDataDirectory "hoogle"
-    return $ dir </> "default-" ++ lower (show lang) ++ "-" ++ showVersion version ++ ".hoo"
+    return $ dir </> "default-" ++ lower (show lang) ++ "-" ++ showVersion (trimVersion 3 version) ++ ".hoo"
 
 getCmdLine :: [String] -> IO CmdLine
 getCmdLine args = do
