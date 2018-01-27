@@ -71,6 +71,10 @@ type:
 
 Which will download and build Hoogle databases.
 
+## Command Line UI
+
+There is a terminal/curses based UI available through [`cabal install bhoogle`](https://hackage.haskell.org/package/bhoogle).
+
 ## Chrome Integration
 
 **As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](http://haskell.org/hoogle/) in Chrome, right-click in the Hoogle search field and select "Add as a search engine...". Give it a keyword such as "h".
