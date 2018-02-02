@@ -31,7 +31,7 @@ downloadInput timing insecure download dir name url = do
 
 downloadFile :: Bool -> FilePath -> String -> IO ()
 downloadFile insecure file url = withSocketsDo $ do
-    request <- C.parseUrl url
+    let request = C.parseRequest_ url
     manager <- C.newManager $ C.mkManagerSettings (TLSSettingsSimple insecure False False) Nothing
     runResourceT $ do
         response <- C.http request manager
