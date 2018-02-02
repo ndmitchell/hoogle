@@ -1,11 +1,10 @@
-{-# OPTIONS_GHC -w #-}
 
 module Paths_hoogle where
 
-import Data.Version(Version(..))
+import Data.Version.Extra
 
 version :: Version
-version = Version {versionBranch = [0,0], versionTags = ["dev"]}
+version = makeVersion [0,0]
 
 getDataDir :: IO FilePath
 getDataDir = return "."
