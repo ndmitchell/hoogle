@@ -37,7 +37,7 @@ inputItem (url:pkg:modu:typ:self:docs) = targetExpandURL $
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory
-writeItems :: StoreWrite -> (Conduit (Maybe Target, item) IO (Maybe TargetId, item) -> IO a) -> IO a
+writeItems :: StoreWrite -> (ConduitM (Maybe Target, item) (Maybe TargetId, item) IO () -> IO a) -> IO a
 writeItems store act = act $ do
     void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case target of
         Nothing -> return (pos, (Nothing, item))

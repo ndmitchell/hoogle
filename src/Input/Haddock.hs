@@ -27,10 +27,10 @@ fakePackage :: String -> String -> (Maybe Target, [Item])
 fakePackage name desc = (Just $ Target (hackagePackageURL name) Nothing Nothing "package" (renderPackage name) desc, [IPackage name])
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => (String -> m ()) -> URL -> LStr -> Producer m (Maybe Target, [Item])
-parseHoogle warning url body = sourceLStr body =$= linesCR =$= zipFromC 1 =$= parserC warning =$= hierarchyC url =$= mapC (\x -> rnf x `seq` x)
+parseHoogle :: Monad m => (String -> m ()) -> URL -> LStr -> ConduitM i (Maybe Target, [Item]) m ()
+parseHoogle warning url body = sourceLStr body .| linesCR .| zipFromC 1 .| parserC warning .| hierarchyC url .| mapC (\x -> rnf x `seq` x)
 
-parserC :: Monad m => (String -> m ()) -> Conduit (Int, Str) m (Target, Entry)
+parserC :: Monad m => (String -> m ()) -> ConduitM (Int, Str) (Target, Entry) m ()
 parserC warning = f [] ""
     where
         f com url = do

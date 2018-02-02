@@ -218,18 +218,18 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
-            let consume :: Conduit (Int, (String, URL, LStr)) IO (Maybe Target, [Item])
+            let consume :: ConduitM (Int, (String, URL, LStr)) (Maybe Target, [Item]) IO ()
                 consume = awaitForever $ \(i, (pkg, url, body)) -> do
                     timedOverwrite timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body
 
             writeItems store $ \items -> do
                 xs <- runConduit $
-                    source =$=
-                    filterC (flip Set.member want . fst3) =$=
+                    source .|
+                    filterC (flip Set.member want . fst3) .|
                     void ((|$|)
-                        (zipFromC 1 =$= consume)
-                        (do seen <- fmap Set.fromList $ mapC fst3 =$= sinkList
+                        (zipFromC 1 .| consume)
+                        (do seen <- fmap Set.fromList $ mapC fst3 .| sinkList
 
                             let missing = [x | x <- Set.toList $ want `Set.difference` seen
                                              , fmap packageLibrary (Map.lookup x cbl) /= Just False]
@@ -251,7 +251,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                                 else
                                     return ()
                             ))
-                    =$= pipelineC 10 (items =$= sinkList)
+                    .| pipelineC 10 (items .| sinkList)
 
                 itemWarn <- readIORef itemWarn
                 when (itemWarn > 0) $

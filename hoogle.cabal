@@ -58,7 +58,7 @@ library
         binary,
         bytestring >= 0.10.2.0,
         cmdargs,
-        conduit,
+        conduit >= 1.2.8,
         conduit-extra,
         connection,
         containers >= 0.5,
