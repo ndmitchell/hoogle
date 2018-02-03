@@ -13,7 +13,6 @@ import Data.Conduit
 import Data.Conduit.List as C
 import Data.Conduit.Binary as C
 import Data.Maybe
-import Data.Void
 import Control.Applicative
 import Control.Monad.Extra
 import Control.Exception
@@ -21,6 +20,7 @@ import qualified Data.ByteString.Char8 as BS
 import Control.Concurrent.Extra hiding (yield)
 import Control.Monad.IO.Class
 import General.Str
+import Data.Void
 import Prelude
 
 
