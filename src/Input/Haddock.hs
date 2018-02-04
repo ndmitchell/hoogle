@@ -60,7 +60,7 @@ reformat :: [Str] -> String
 reformat = unlines . map strUnpack
 
 
-hierarchyC :: Monad m => URL -> Conduit (Target, Entry) m (Maybe Target, [Item])
+hierarchyC :: Monad m => URL -> ConduitM (Target, Entry) (Maybe Target, [Item]) m ()
 hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
     where
         f (pkg, mod) (t, EPackage x) = ((Just (x, url), Nothing), (Just t{targetURL=url}, [IPackage x]))
