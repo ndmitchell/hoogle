@@ -9,6 +9,7 @@ module General.Conduit(
     zipFromC, linesCR
     ) where
 
+import Data.Void
 import Data.Conduit
 import Data.Conduit.List as C
 import Data.Conduit.Binary as C
@@ -20,7 +21,6 @@ import qualified Data.ByteString.Char8 as BS
 import Control.Concurrent.Extra hiding (yield)
 import Control.Monad.IO.Class
 import General.Str
-import Data.Void
 import Prelude
 
 
