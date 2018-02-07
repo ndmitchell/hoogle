@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, PatternGuards, TemplateHaskell #-}
+{-# LANGUAGE RecordWildCards, PatternGuards, TemplateHaskell, CPP #-}
 
 
 -- | Module for reading settings files.
@@ -53,7 +53,12 @@ readFileSettings file backup = do
 loadSettings :: IO Settings
 loadSettings = do
     dataDir <- getDataDir
+#ifdef PROFILE
+    -- profiling and TemplateHaskell don't play well
+    let backup = ""
+#else
     let backup = $(runIO (readFileUTF8 "misc/settings.txt") >>= lift)
+#endif
     src <- readFileSettings (dataDir </> "misc/settings.txt") backup
     return $ createSettings src
 

@@ -1,17 +1,11 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, CPP, ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, ViewPatterns, RecordWildCards #-}
 
 module General.Web(
     Input(..), Output(..), readInput, server
     ) where
 
--- #define PROFILE
-
--- For some reason, profiling stops working if I import warp
--- Tracked as https://github.com/yesodweb/wai/issues/311
-#ifndef PROFILE
 import Network.Wai.Handler.Warp hiding (Port, Handle)
 import Network.Wai.Handler.WarpTLS
-#endif
 
 import Action.CmdLine
 import Network.Wai.Logger
@@ -59,9 +53,6 @@ instance NFData Output where
 
 
 server :: Log -> CmdLine -> (Input -> IO Output) -> IO ()
-#ifdef PROFILE
-server _ _ _ = return ()
-#else
 server log Server{..} act = do
     let
         host' = fromString $
@@ -101,4 +92,3 @@ server log Server{..} act = do
                 OutputHTML msg -> responseLBS status200 [("content-type","text/html")] msg
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
-#endif
