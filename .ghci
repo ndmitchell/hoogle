@@ -13,7 +13,7 @@
 :{
 :def time_ \xs -> return $ unlines
         [":!mkdir dist\\obj\\prof"
-        ,":!ghc -prof -rtsopts -auto-all -caf-all -O2 -fno-state-hack -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o"
+        ,":!ghc -prof -rtsopts -fprof-auto -fprof-cafs -O2 -fno-state-hack -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o"
         ,":!dist\\obj\\prof\\main +RTS -p -T -RTS " ++ xs]
 :}
 :{
@@ -24,7 +24,7 @@
 :{
 :def space \xs -> return $ unlines
         [":!mkdir dist\\obj\\prof"
-        ,":!ghc -fno-state-hack -prof -rtsopts -auto-all -caf-all -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o && " ++
+        ,":!ghc -fno-state-hack -prof -rtsopts -fprof-auto -fprof-cafs -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o && " ++
          "dist\\obj\\prof\\main +RTS -xt -hc -T -RTS " ++ xs ++ " && " ++
          "hp2ps -c main.hp && " ++
          "start main.ps"]
