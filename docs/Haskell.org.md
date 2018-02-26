@@ -57,7 +57,10 @@ Certificates were generated using:
 
 	sudo certbot certonly -d hoogle.haskell.org --standalone --preferred-challenges http --http-01-port 8080
 
-After first running `pkill hoogle`.
+After first running `pkill hoogle`. The resulting files live at:
+
+* `/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem`
+* `/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem`
 
 ## Alternatives and notes
 
