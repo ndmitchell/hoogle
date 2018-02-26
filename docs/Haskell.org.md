@@ -51,6 +51,14 @@ Then configure updating every day at 8pm. Add a Cron job by using `crontab -e` a
 
 Currently monitored with [uptimerobot.com](http://uptimerobot.com/).
 
+## SSH
+
+Certificates were generated using:
+
+	sudo certbot certonly -d hoogle.haskell.org --standalone --preferred-challenges http --http-01-port 8080
+
+After first running `pkill hoogle`.
+
 ## Alternatives and notes
 
 At some point I added the line `/swapfile none swap sw 0 0` to the bottom of `/etc/fstab`. Not sure if that is required or not.
