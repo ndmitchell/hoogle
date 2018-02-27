@@ -57,7 +57,7 @@ main = do
             "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
             "--log=../../log-frege.txt +RTS -T -N2 >> ../../out-frege.txt 2>&1 &"
         ignore $ echo system_ "pkill rdr2tls"
-        echo system_ $
+        echo system_
             "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444"
         writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=haskell.hoo --port=8080 --log=../../log.txt >> ../../out.txt &\n"
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
