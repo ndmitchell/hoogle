@@ -47,7 +47,8 @@ main = do
         ignore $ echo system_ "pkill hoogle"
         echo system_ $
             "hoogle_datadir=. " ++
-            "nohup " ++ exe ++ " server --database=haskell.hoo --port=8080 " ++
+            "nohup " ++ exe ++ " server --database=haskell.hoo --port=8443 " ++
+            "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
             "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
             "--log=../../log.txt +RTS -T -N4 >> ../../out.txt 2>&1 &"
         echo system_ $
@@ -57,6 +58,8 @@ main = do
             "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
             "--log=../../log-frege.txt +RTS -T -N2 >> ../../out-frege.txt 2>&1 &"
         ignore $ echo system_ "pkill rdr2tls"
+        echo system_
+            "nohup rdr2tls --port=8080 --path=hoogle.haskell.org"
         echo system_
             "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444"
         writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=haskell.hoo --port=8080 --log=../../log.txt >> ../../out.txt &\n"
