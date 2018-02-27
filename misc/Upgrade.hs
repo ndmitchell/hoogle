@@ -49,13 +49,13 @@ main = do
             "hoogle_datadir=. " ++
             "nohup " ++ exe ++ " server --database=haskell.hoo --port=8443 " ++
             "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
-            "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
+            "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
             "--log=../../log.txt +RTS -T -N4 >> ../../out.txt 2>&1 &"
         echo system_ $
             "hoogle_datadir=. " ++
             "nohup " ++ exe ++ " server --database=frege.hoo --port=8444 " ++
             "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
-            "--cdn=//cdn.rawgit.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
+            "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
             "--log=../../log-frege.txt +RTS -T -N2 >> ../../out-frege.txt 2>&1 &"
         ignore $ echo system_ "pkill rdr2tls"
         echo system_
