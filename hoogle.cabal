@@ -59,7 +59,7 @@ library
         bytestring >= 0.10.2.0,
         cmdargs,
         conduit >= 1.2.8,
-        conduit-extra,
+        conduit-extra >= 1.2.3.2,
         connection,
         containers >= 0.5,
         deepseq,
