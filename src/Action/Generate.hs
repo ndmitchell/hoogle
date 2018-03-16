@@ -95,7 +95,7 @@ generate output metadata  = undefined
 
 type Download = String -> URL -> IO FilePath
 
-readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
 readHaskellOnline timing settings download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
@@ -123,7 +123,7 @@ readHaskellOnline timing settings download = do
     return (cbl, want, source)
 
 
-readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
 readHaskellDirs timing settings dirs = do
     files <- concatMapM listFilesRecursive dirs
     -- We reverse/sort the list because of #206
@@ -148,7 +148,7 @@ readHaskellDirs timing settings dirs = do
         let pkg = readCabal settings src
         return (takeBaseName fp, pkg)
 
-readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
 readFregeOnline timing download = do
     frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
     let source = do
@@ -157,7 +157,7 @@ readFregeOnline timing download = do
     return (Map.empty, Set.singleton "frege", source)
 
 
-readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
 readHaskellGhcpkg timing settings = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
@@ -173,7 +173,7 @@ readHaskellGhcpkg timing settings = do
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
 
-readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map String Package, Set.Set String, Source IO (String, URL, LStr))
+readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
 readHaskellHaddock timing settings docBaseDir = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
