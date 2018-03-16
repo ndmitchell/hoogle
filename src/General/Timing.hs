@@ -8,7 +8,6 @@ import Data.IORef
 import Control.Monad.Extra
 import System.IO
 import General.Util
-import GHC.Stats
 import Control.Monad.IO.Class
 
 
@@ -67,8 +66,7 @@ timedEx overwrite Timing{..} msg act = do
     let time = end - start
     liftIO $ modifyIORef timingStore ((msg,time):)
 
-    stats <- liftIO getRTSStatsEnabled
-    s <- if not stats then return "" else do RTSStats{..} <- liftIO getRTSStats; return $ " (" ++ showMb max_mem_in_use_bytes ++ ")"
+    s <- maybe "" (\x -> " (" ++ x ++ ")") <$> liftIO getStatsPeakAllocBytes
     undo2 <- out $ showDuration time ++ s
 
     old <- liftIO $ readIORef timingOverwrite

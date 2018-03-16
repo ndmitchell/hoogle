@@ -22,7 +22,6 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import System.IO.Unsafe
 import Numeric.Extra
-import GHC.Stats
 import System.Info.Extra
 
 import Output.Tags
@@ -114,12 +113,10 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
     ["stats"] -> do
-        stats <- getRTSStatsEnabled
-        if stats then do
-            x <- getRTSStats
-            return $ OutputText $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
-         else
-            return $ OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
+        stats <- getStatsDebug
+        return $ case stats of
+            Nothing -> OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
+            Just x -> OutputText $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
     "haddock":xs | Just x <- haddock -> do
         let file = intercalate "/" $ filter (not . (== "..")) (x:xs)
         return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")

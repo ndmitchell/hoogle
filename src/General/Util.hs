@@ -20,7 +20,7 @@ module General.Util(
     trimVersion,
     exitFail,
     prettyTable,
-    showMb,
+    getStatsPeakAllocBytes, getStatsCurrentLiveBytes, getStatsDebug,
     hackagePackageURL, hackageModuleURL, hackageDeclURL, ghcModuleURL,
     minimum', maximum',
     general_util_test
@@ -49,14 +49,61 @@ import Data.Version
 import Data.Int
 import System.IO
 import System.Exit
+import System.Mem
+import GHC.Stats
 import Prelude
 
 
 -- | A URL, complete with a @https:@ prefix.
 type URL = String
 
+#if __GLASGOW_HASKELL__ >= 802
+#define RTS_STATS 1
+#endif
+
 showMb :: (Show a, Integral a) => a -> String
+#if RTS_STATS
+showMb x = show x ++ "Mb"
+#else
 showMb x = show (x `mod` (1024*1024)) ++ "Mb"
+#endif
+
+
+#if RTS_STATS
+withRTSStats :: (RTSStats -> a) -> IO (Maybe a)
+withRTSStats f = ifM getRTSStatsEnabled (Just . f <$> getRTSStats) (return Nothing)
+#else
+withGCStats :: (GCStats -> a) -> IO (Maybe a)
+withGCStats f = ifM getGCStatsEnabled (Just . f <$> getGCStats) (return Nothing)
+#endif
+
+getStatsCurrentLiveBytes :: IO (Maybe String)
+getStatsCurrentLiveBytes = do
+    performGC
+#if RTS_STATS
+    withRTSStats $ showMb . gcdetails_live_bytes . gc
+#else
+    withGCStats $ showMb . currentBytesUsed
+#endif
+
+getStatsPeakAllocBytes :: IO (Maybe String)
+getStatsPeakAllocBytes = do
+#if RTS_STATS
+    withRTSStats $ showMb . max_mem_in_use_bytes
+#else
+    withGCStats $ showMb . peakMegabytesAllocated
+#endif
+
+getStatsDebug :: IO (Maybe String)
+getStatsDebug = do
+    let dump = replace ", " "\n" . takeWhile (/= '}') . drop 1 . dropWhile (/= '{') . show
+#if RTS_STATS
+    withRTSStats dump
+#else
+    withGCStats dump
+#endif
+
+
 
 exitFail :: String -> IO ()
 exitFail msg = do

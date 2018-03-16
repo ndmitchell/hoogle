@@ -34,8 +34,6 @@ import General.Util
 import General.Store
 import General.Timing
 import General.Str
-import System.Mem
-import GHC.Stats
 import Action.CmdLine
 import General.Conduit
 
@@ -194,7 +192,6 @@ actionGenerate :: CmdLine -> IO ()
 actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
-    rtsStats <- getRTSStatsEnabled
 
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
@@ -257,19 +254,18 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                     putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
                 return [(a,b) | (a,bs) <- xs, b <- bs]
 
-        itemsMemory <- if not rtsStats then return 0 else do performGC; RTSStats{..} <- getRTSStats; return max_live_bytes
+        itemsMemory <- getStatsCurrentLiveBytes
         xs <- timed timing "Reodering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both T.unpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 
-        when rtsStats $ do
-            stats@RTSStats{..} <- getRTSStats
-            x <- getVerbosity
-            when (x >= Loud) $
-                print stats
-            when (x >= Normal) $ do
-                putStrLn $ "Peak of " ++ showMb max_mem_in_use_bytes ++ ", " ++ showMb itemsMemory ++ " for items"
+        x <- getVerbosity
+        when (x >= Loud) $
+            maybe (return ()) print =<< getStatsDebug
+        when (x >= Normal) $ do
+            whenJustM getStatsPeakAllocBytes $ \x ->
+                putStrLn $ "Peak of " ++ x ++ ", " ++ fromMaybe "unknown" itemsMemory ++ " for items"
 
     when debug $
         writeFile (database `replaceExtension` "store") $ unlines stats
