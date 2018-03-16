@@ -1,5 +1,6 @@
 sudo: required
 env:
+- GHCVER=7.10.3
 - GHCVER=8.0.2
 - GHCVER=8.2.2
 - GHCVER=8.4.1

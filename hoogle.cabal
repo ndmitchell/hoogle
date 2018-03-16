@@ -15,7 +15,7 @@ description:
     or by approximate type signature.
 homepage:           http://hoogle.haskell.org/
 bug-reports:        https://github.com/ndmitchell/hoogle/issues
-tested-with:        GHC==8.4.1, GHC==8.2.2, GHC==8.0.2
+tested-with:        GHC==8.4.1, GHC==8.2.2, GHC==8.0.2, GHC==7.10.3
 extra-doc-files:
     README.md
     CHANGES.txt
@@ -54,7 +54,7 @@ library
     build-depends:
         QuickCheck,
         aeson,
-        base >= 4.9 && < 5,
+        base > 4 && < 5,
         binary,
         bytestring >= 0.10.2.0,
         cmdargs,
