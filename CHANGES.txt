@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #245, add support for GHC 8.4
     #245, remove support for GHC 7.10
 5.0.17.1, released 2018-01-27
     #238, only identify the database by the first three version components

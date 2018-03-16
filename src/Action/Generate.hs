@@ -1,5 +1,4 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-} -- getGCStats became getRTSStats in GHC 8.2
 
 module Action.Generate(actionGenerate) where
 
@@ -195,7 +194,7 @@ actionGenerate :: CmdLine -> IO ()
 actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
-    gcStats <- getGCStatsEnabled
+    rtsStats <- getRTSStatsEnabled
 
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
@@ -258,19 +257,19 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                     putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
                 return [(a,b) | (a,bs) <- xs, b <- bs]
 
-        itemsMb <- if not gcStats then return 0 else do performGC; GCStats{..} <- getGCStats; return $ currentBytesUsed `div` (1024*1024)
+        itemsMemory <- if not rtsStats then return 0 else do performGC; RTSStats{..} <- getRTSStats; return max_live_bytes
         xs <- timed timing "Reodering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both T.unpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 
-        when gcStats $ do
-            stats@GCStats{..} <- getGCStats
+        when rtsStats $ do
+            stats@RTSStats{..} <- getRTSStats
             x <- getVerbosity
             when (x >= Loud) $
                 print stats
             when (x >= Normal) $ do
-                putStrLn $ "Peak of " ++ show peakMegabytesAllocated ++ "Mb, " ++ show itemsMb ++ "Mb for items"
+                putStrLn $ "Peak of " ++ showMb max_mem_in_use_bytes ++ ", " ++ showMb itemsMemory ++ " for items"
 
     when debug $
         writeFile (database `replaceExtension` "store") $ unlines stats

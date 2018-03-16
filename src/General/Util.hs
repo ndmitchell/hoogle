@@ -20,6 +20,7 @@ module General.Util(
     trimVersion,
     exitFail,
     prettyTable,
+    showMb,
     hackagePackageURL, hackageModuleURL, hackageDeclURL, ghcModuleURL,
     minimum', maximum',
     general_util_test
@@ -53,6 +54,9 @@ import Prelude
 
 -- | A URL, complete with a @https:@ prefix.
 type URL = String
+
+showMb :: (Show a, Integral a) => a -> String
+showMb x = show (x `mod` (1024*1024)) ++ "Mb"
 
 exitFail :: String -> IO ()
 exitFail msg = do

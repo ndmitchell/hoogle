@@ -1,5 +1,4 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-} -- getGCStats became getRTSStats in GHC 8.2
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
 
@@ -115,9 +114,9 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
     ["stats"] -> do
-        stats <- getGCStatsEnabled
+        stats <- getRTSStatsEnabled
         if stats then do
-            x <- getGCStats
+            x <- getRTSStats
             return $ OutputText $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
          else
             return $ OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"

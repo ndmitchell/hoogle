@@ -1,5 +1,4 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-} -- getGCStats became getRTSStats in GHC 8.2
 
 module General.Timing(Timing, withTiming, timed, timedOverwrite) where
 
@@ -68,8 +67,8 @@ timedEx overwrite Timing{..} msg act = do
     let time = end - start
     liftIO $ modifyIORef timingStore ((msg,time):)
 
-    stats <- liftIO getGCStatsEnabled
-    s <- if not stats then return "" else do GCStats{..} <- liftIO getGCStats; return $ " (" ++ show peakMegabytesAllocated ++ "Mb)"
+    stats <- liftIO getRTSStatsEnabled
+    s <- if not stats then return "" else do RTSStats{..} <- liftIO getRTSStats; return $ " (" ++ showMb max_mem_in_use_bytes ++ ")"
     undo2 <- out $ showDuration time ++ s
 
     old <- liftIO $ readIORef timingOverwrite
