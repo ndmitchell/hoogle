@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Fix the reported memory sizes
 5.0.17.2, released 2018-03-16
     Remove support for GHC 7.10
     Require conduit-1.3.0

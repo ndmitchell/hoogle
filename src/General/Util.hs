@@ -63,9 +63,9 @@ type URL = String
 
 showMb :: (Show a, Integral a) => a -> String
 #if RTS_STATS
-showMb x = show x ++ "Mb"
+showMb x = show (x `div` (1024*1024)) ++ "Mb"
 #else
-showMb x = show (x `mod` (1024*1024)) ++ "Mb"
+showMb x = show x ++ "Mb"
 #endif
 
 
