@@ -130,7 +130,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "Action package:shake" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
         "Action package:shake set:stackage" === "https://hackage.haskell.org/package/shake/docs/Development-Shake.html#t:Action"
         "map -package:base" ==$ \x -> not $ "/base/" `isInfixOf` x
-        "<>" === hackage "base/docs/Data-Monoid.html#v:-60--62-"
+        "<>" === hackage "base/docs/Prelude.html#v:-60--62-"
         "Data.Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
         "Set.insert" === hackage "containers/docs/Data-Set.html#v:insert"
         "Prelude.mapM_" === hackage "base/docs/Prelude.html#v:mapM_"
