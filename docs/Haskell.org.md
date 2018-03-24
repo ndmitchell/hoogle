@@ -6,26 +6,26 @@ The machine `hoogle.haskell.org` is located at `104.130.162.85` and runs the Hoo
 
 ### As `root`
 
-Install GHC, git and zlib (a required library).
+Install `ghc`, `git` and `zlib` (a required library).
 
-	add-apt-repository -y ppa:hvr/ghc
-	apt-get update
-	apt-get install ghc-8.2.2 cabal-install-1.24 happy-1.19.4 alex-3.1.3
-	apt-get install git
-	apt-get install zlib1g-dev
+    add-apt-repository -y ppa:hvr/ghc
+    apt-get update
+    apt-get install ghc-8.2.2 cabal-install-1.24 happy-1.19.4 alex-3.1.3
+    apt-get install git
+    apt-get install zlib1g-dev
 
 Create a swap file using the instructions [originally from here](https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-14-04):
 
-	fallocate -l 4G /swapfile
-	chmod 600 /swapfile
-	mkswap /swapfile
-	swapon /swapfile
+    fallocate -l 4G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
 
 Remap port 80 to 8080 so non-privileged processes can talk on port 80, using the instructions [originally from here](http://unix.stackexchange.com/questions/10735/linux-allowing-an-user-to-listen-to-a-port-below-1024/10791#10791):
 
-	modprobe ip_tables
-	echo 'ip_tables' >> /etc/modules
-	iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080
+    modprobe ip_tables
+    echo 'ip_tables' >> /etc/modules
+    iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080
 
 Create the user `www` configured for SSH access.
 
@@ -33,16 +33,16 @@ Create the user `www` configured for SSH access.
 
 Add the GHC/Cabal binaries to the `$PATH` in the `~/.profile`.
 
-	export PATH=/home/www/.cabal/bin:/opt/ghc/7.8.4/bin:/opt/cabal/1.18/bin:/opt/happy/1.19.4/bin:/opt/alex/3.1.3/bin:$PATH
+    export PATH=/home/www/.cabal/bin:/opt/ghc/7.8.4/bin:/opt/cabal/1.18/bin:/opt/happy/1.19.4/bin:/opt/alex/3.1.3/bin:$PATH
 
 Create a shell script `update.sh`:
 
-	cd /home/www
-	wget https://raw.githubusercontent.com/ndmitchell/hoogle/master/misc/Upgrade.hs -O - --no-check-certificate --quiet | runhaskell
+    cd /home/www
+    wget https://raw.githubusercontent.com/ndmitchell/hoogle/master/misc/Upgrade.hs -O - --no-check-certificate --quiet | runhaskell
 
 Then configure updating every day at 8pm. Add a Cron job by using `crontab -e` and adding the line:
 
-	0 20 * * * bash -l /home/www/update.sh > /home/www/update.txt 2>&1
+    0 20 * * * bash -l /home/www/update.sh > /home/www/update.txt 2>&1
 
 ## Monitoring
 
@@ -55,7 +55,7 @@ Currently monitored with [uptimerobot.com](http://uptimerobot.com/).
 
 Certificates were generated using:
 
-	sudo certbot certonly -d hoogle.haskell.org --standalone --preferred-challenges http --http-01-port 8080
+    sudo certbot certonly -d hoogle.haskell.org --standalone --preferred-challenges http --http-01-port 8080
 
 After first running `pkill hoogle`. The resulting files live at:
 
