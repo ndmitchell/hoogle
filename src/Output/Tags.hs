@@ -81,11 +81,13 @@ data Tag = IsExact | IsPackage | IsModule | EqPackage String | EqModule String |
 
 parseTag :: String -> String -> Maybe Tag
 parseTag k v
-    | k ~~ "is", v ~~ "exact" = Just IsExact
-    | k ~~ "is", v ~~ "package" = Just IsPackage
-    | k ~~ "is", v ~~ "module" = Just IsModule
-    | k ~~ "package", v /= "" = Just $ EqPackage v
-    | k ~~ "module", v /= "" = Just $ EqModule v
+    | k ~~ "is" = case () of
+        _ | v ~~ "exact" -> Just IsExact
+          | v ~~ "package" -> Just IsPackage
+          | v ~~ "module" -> Just IsModule
+          | otherwise -> Nothing
+    | k ~~ "package" = if v == "" then Nothing else Just $ EqPackage v
+    | k ~~ "module" = if v == "" then Nothing else Just $ EqModule v
     | v /= "" = Just $ EqCategory k v
     | otherwise = Nothing
     where
