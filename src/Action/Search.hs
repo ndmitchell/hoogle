@@ -54,7 +54,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
 
 -- | Returns the details printed out when hoogle --info is called
 targetInfo :: Target -> String
-targetInfo Target{..} = 
+targetInfo Target{..} =
     unlines $ [ unHTML targetItem ] ++
               [ unwords packageModule | not $ null packageModule] ++
               [ unHTML targetDocs ]
@@ -117,6 +117,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "base" === hackage "base"
         "Prelude" === hackage "base/docs/Prelude.html"
         "map" === hackage "base/docs/Prelude.html#v:map"
+        "map is:ping" === hackage "base/docs/Prelude.html#v:map"
         "map package:base" === hackage "base/docs/Prelude.html#v:map"
         noResults "map package:package-not-in-db"
         noResults "map module:Module.Not.In.Db"
