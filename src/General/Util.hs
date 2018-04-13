@@ -200,26 +200,6 @@ tarballReadFiles file = f . Tar.read . GZip.decompress <$> LBS.readFile file
         f (Fail e) = error $ "tarballReadFiles on " ++ file ++ ", " ++ show e
 
 
--- | Take a piece of text and escape all the HTML special bits
-escapeHTML :: String -> String
-escapeHTML = concatMap f
-    where
-        f '<' = "&lt;"
-        f '>' = "&gt;"
-        f '&' = "&amp;"
-        f '\"' = "&quot;"
-        f  x  = [x]
-
--- | Only guarantees to be the inverse of escapeHTML
-unescapeHTML :: String -> String
-unescapeHTML ('&':xs)
-    | Just xs <- stripPrefix "lt;" xs = '<' : unescapeHTML xs
-    | Just xs <- stripPrefix "gt;" xs = '>' : unescapeHTML xs
-    | Just xs <- stripPrefix "amp;" xs = '&' : unescapeHTML xs
-    | Just xs <- stripPrefix "quot;" xs = '\"' : unescapeHTML xs
-unescapeHTML (x:xs) = x : unescapeHTML xs
-unescapeHTML [] = []
-
 innerTextHTML :: String -> String
 innerTextHTML ('<':xs) = innerTextHTML $ drop 1 $ dropWhile (/= '>') xs
 innerTextHTML (x:xs) = x : innerTextHTML xs
