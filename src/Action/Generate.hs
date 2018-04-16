@@ -125,7 +125,7 @@ readHaskellDirs timing settings dirs = do
     files <- concatMapM listFilesRecursive dirs
     -- We reverse/sort the list because of #206
     -- Two identical package names with different versions might be foo-2.0 and foo-1.0
-    -- We never distinguish on versions, so they are considered equal when reodering
+    -- We never distinguish on versions, so they are considered equal when reordering
     -- So put 2.0 first in the list and rely on stable sorting. A bit of a hack.
     let order a = second Down $ parseTrailingVersion a
     let packages = map (takeBaseName &&& id) $ sortOn (map order . splitDirectories) $ filter ((==) ".txt" . takeExtension) files
@@ -255,7 +255,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 return [(a,b) | (a,bs) <- xs, b <- bs]
 
         itemsMemory <- getStatsCurrentLiveBytes
-        xs <- timed timing "Reodering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
+        xs <- timed timing "Reordering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both T.unpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
