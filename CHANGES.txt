@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+5.0.17.3, released 2018-04-17
     Require extra-1.6.6
     Fix the reported memory sizes
 5.0.17.2, released 2018-03-16
