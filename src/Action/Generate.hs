@@ -192,6 +192,7 @@ actionGenerate :: CmdLine -> IO ()
 actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
+    whenLoud $ putStrLn $ "Generating files to " ++ takeDirectory database
 
     download <- return $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
