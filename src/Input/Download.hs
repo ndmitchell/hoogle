@@ -11,7 +11,6 @@ import Network.Connection
 import qualified Data.Conduit as C
 import General.Util
 import General.Timing
-import Network
 import Control.Monad.Trans.Resource
 
 
@@ -29,7 +28,7 @@ downloadInput timing insecure download dir name url = do
     return file
 
 downloadFile :: Bool -> FilePath -> String -> IO ()
-downloadFile insecure file url = withSocketsDo $ do
+downloadFile insecure file url = do
     let request = C.parseRequest_ url
     manager <- C.newManager $ C.mkManagerSettings (TLSSettingsSimple insecure False False) Nothing
     runResourceT $ do
