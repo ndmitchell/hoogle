@@ -204,6 +204,10 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         Frege | [] <- local_ -> readFregeOnline timing download
               | otherwise -> errorIO "No support for local Frege databases"
     let (cblErrs, popularity) = packagePopularity cbl
+
+    -- mtl is more popular than transformers, despite having dodgy docs, which is a shame, so we hack it
+    popularity <- return $ Map.adjust (max $ 1 + Map.findWithDefault 0 "mtl" popularity) "transformers" popularity
+
     want <- return $ if include /= [] then Set.fromList include else want
 
     (stats, _) <- storeWriteFile database $ \store -> do
