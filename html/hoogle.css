@@ -304,6 +304,11 @@ docs may be in one of three states:
 .doc, .doc a {
     color: #888;
 }
+.doc h1, .doc h2, .doc h3, .doc h4, .doc h5, .doc h6 {
+    font-size: 11px;
+    display: inline;
+    padding: 0px;
+}
 
 .open, .shut {padding-left: 13px;}
 .open {background-image: url(less_gray.png);}
