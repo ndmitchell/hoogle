@@ -38,7 +38,7 @@ Add the GHC/Cabal binaries to the `$PATH` in the `~/.profile`.
 Create a shell script `update.sh`:
 
     cd /home/www
-    wget https://raw.githubusercontent.com/ndmitchell/hoogle/master/misc/Upgrade.hs -O - --no-check-certificate --quiet | runhaskell
+    wget https://raw.githubusercontent.com/ndmitchell/hoogle/master/misc/Upgrade.hs -O - --quiet | runhaskell
 
 Then configure updating every day at 8pm. Add a Cron job by using `crontab -e` and adding the line:
 
@@ -53,11 +53,14 @@ Currently monitored with [uptimerobot.com](http://uptimerobot.com/).
 
 ## SSH
 
-Certificates were generated using:
+To renew the certificates do (will result in ~15 minutes downtime):
 
+    pkill hoogle
+    pkill rdr2tls
     sudo certbot certonly -d hoogle.haskell.org --standalone --preferred-challenges http --http-01-port 8080
+    sh update.sh
 
-After first running `pkill hoogle`. The resulting files live at:
+The sudo command should be run from the `root` login, the rest from the `www` login. The resulting files live at:
 
 * `/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem`
 * `/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem`
