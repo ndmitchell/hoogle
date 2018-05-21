@@ -4,7 +4,7 @@ The development branch for Hoogle version 5. The current released version lives 
 
 ----------
 
-**This page describes how Hoogle 5 might work, and has not yet been fully implemented.** 
+**This page describes how Hoogle 5 might work, and has not yet been fully implemented.**
 
 ----------
 
