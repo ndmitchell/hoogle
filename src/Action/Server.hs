@@ -97,7 +97,17 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
                         ,("robots",if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
             Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else return $ lstrPack body
-            Just "json" -> return $ OutputJSON $ JSON.encode $ take 100 results
+            Just "json" ->
+              let argRead :: Read a => String -> a -> a
+                  argRead key def = fromMaybe def $
+                    readMaybe =<< lookup key inputArgs
+                  -- 1 means don't drop anything, if it's less than 1 ignore it
+                  start :: Int
+                  start = max 0 $ (argRead "start" 1) - 1
+                  -- by default it returns 100 entries
+                  count :: Int
+                  count = argRead "count" 100
+              in pure $ OutputJSON $ JSON.encode $ take count $ drop start results
             Just m -> return $ OutputFail $ lstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
