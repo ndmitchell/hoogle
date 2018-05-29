@@ -106,7 +106,7 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
                   start = max 0 $ (argRead "start" 1) - 1
                   -- by default it returns 100 entries
                   count :: Int
-                  count = argRead "count" 100
+                  count = min 500 $ argRead "count" 100
               in pure $ OutputJSON $ JSON.encode $ take count $ drop start results
             Just m -> return $ OutputFail $ lstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
