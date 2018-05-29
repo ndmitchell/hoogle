@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    #253, adds JSON pagination from query parameters
     Make sure <h1> works well in doc snippets
     #251, make sure transformers is more popular than mtl
     Require network-uri >= 2.6, don't require network
