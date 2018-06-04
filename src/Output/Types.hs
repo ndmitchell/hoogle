@@ -143,7 +143,7 @@ writeNames store debug inst xs = do
 --   Aim for something with a count of p to be at position (p / pmax) linear interp over the range
 spreadNames :: [(a, Int)] -> [(a, Name)]
 spreadNames [] = []
-spreadNames (reverse . sortOn snd -> xs@((_,limit):_)) = check $ f (99 + fromIntegral (length xs)) maxBound xs
+spreadNames (sortOn (negate . snd) -> xs@((_,limit):_)) = check $ f (99 + fromIntegral (length xs)) maxBound xs
     where
         check xs | all (isCon . snd) xs && length (nubOrd $ map snd xs) == length xs = xs
                  | otherwise = error "Invalid spreadNames"

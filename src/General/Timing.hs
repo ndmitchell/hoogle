@@ -33,7 +33,7 @@ withTiming file f = do
         -- Expecting unrecorded of ~2s
         -- Most of that comes from the pipeline - we get occasional 0.01 between items as one flushes
         -- Then at the end there is ~0.5 while the final item flushes
-        xs <- return $ reverse $ sortOn snd $ ("Unrecorded", total - sum (map snd xs)) : xs
+        xs <- return $ sortOn (negate . snd) $ ("Unrecorded", total - sum (map snd xs)) : xs
         writeFile file $ unlines $ prettyTable 2 "Secs" xs
     putStrLn $ "Took " ++ showDuration total
     return res
