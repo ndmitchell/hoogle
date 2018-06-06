@@ -37,7 +37,7 @@ main = do
         echo system_ "git clone https://github.com/ndmitchell/hoogle.git ."
         sha1 <- trim <$> echo systemOutput_ "git rev-parse HEAD"
         echo system_ "cabal update"
-        echo system_ "cabal install --only-dependencies"
+        echo system_ "cabal install --only-dependencies --upgrade-dependencies"
         echo system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
         echo system_ "cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
