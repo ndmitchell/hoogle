@@ -75,11 +75,11 @@ logAddEntry Log{..} user question taken err = do
 -- Summary collapsed
 data Summary = Summary
     {summaryDate :: Day
-    ,summaryUsers :: Int
-    ,summaryUses :: Int
-    ,summarySlowest :: Double
-    ,summaryAverage :: Double
-    ,summaryErrors :: Int
+    ,summaryUsers :: {-# UNPACK #-} !Int
+    ,summaryUses :: {-# UNPACK #-} !Int
+    ,summarySlowest :: {-# UNPACK #-} !Double
+    ,summaryAverage :: {-# UNPACK #-} !Double
+    ,summaryErrors :: {-# UNPACK #-} !Int
     }
 
 -- Summary accumulating
