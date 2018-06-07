@@ -28,7 +28,7 @@ instance Ord IString where
 instance Show IString where show = fromIString
 instance Read IString where readsPrec _ x = [(toIString x,"")]
 instance IsString IString where fromString = toIString
-instance NFData IString where rnf (IString _ _ _) = () -- we force the string at construction time
+instance NFData IString where rnf IString{} = () -- we force the string at construction time
 
 {-# NOINLINE istrings #-}
 istrings :: IORef (Map.Map Fdn.String IString)
