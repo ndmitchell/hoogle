@@ -78,7 +78,7 @@ data Summary = Summary
     ,summaryUsers :: {-# UNPACK #-} !Int
     ,summaryUses :: {-# UNPACK #-} !Int
     ,summarySlowest :: {-# UNPACK #-} !Double
-    ,summaryAverage :: {-# UNPACK #-} !Double
+    ,summaryAverage :: {-# UNPACK #-} !(Average Double)
     ,summaryErrors :: {-# UNPACK #-} !Int
     }
 
@@ -104,7 +104,7 @@ instance Monoid SummaryI where
     mappend = (<>)
 
 summarize :: Day -> SummaryI -> Summary
-summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest (fromAverage iAverage) iErrors
+summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest iAverage iErrors
 
 parseLogLine :: (String -> Bool) -> LBS.ByteString -> Maybe (Day, SummaryI)
 parseLogLine interesting (LBS.words -> time:user:dur:query:err)

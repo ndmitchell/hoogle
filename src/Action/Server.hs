@@ -275,5 +275,5 @@ displayLog xs = "[" ++ intercalate "," (map f xs) ++ "]"
     where
         f Summary{..} = "{date:" ++ show (showGregorian summaryDate) ++
                         ",users:" ++ show summaryUsers ++ ",uses:" ++ show summaryUses ++
-                        ",slowest:" ++ show summarySlowest ++ ",average:" ++ show summaryAverage ++
+                        ",slowest:" ++ show summarySlowest ++ ",average:" ++ show (fromAverage summaryAverage) ++
                         ",errors:" ++ show summaryErrors ++ "}"
