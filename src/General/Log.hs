@@ -107,6 +107,8 @@ instance Monoid SummaryI where
 summarize :: Day -> SummaryI -> Summary
 summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest iAverage iErrors
 
+-- This noinline solves a massive memory leak at -O2, and I have no idea why
+{-# NOINLINE parseLogLine #-}
 parseLogLine :: (String -> Bool) -> LBS.ByteString -> Maybe (Day, SummaryI)
 parseLogLine interesting (LBS.words -> time:user:dur:query:err)
     | user /= LBS.pack "-"
