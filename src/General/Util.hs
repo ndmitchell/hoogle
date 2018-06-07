@@ -268,7 +268,7 @@ strict act = do
         Left e -> do msg <- showException e; evaluate $ rnf msg; error msg
         Right v -> do evaluate $ rnf v; return v
 
-data Average a = Average {-# UNPACK #-} !a {-# UNPACK #-} !Int deriving Show -- a / b
+data Average a = Average !a {-# UNPACK #-} !Int deriving Show -- a / b
 
 toAverage :: a -> Average a
 toAverage x = Average x 1

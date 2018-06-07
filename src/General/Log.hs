@@ -9,11 +9,12 @@ import Control.Concurrent.Extra
 import Control.Applicative
 import System.Directory
 import System.IO
+import Data.Hashable
 import Data.Time.Calendar
 import Data.Time.Clock
 import Numeric.Extra
 import Control.Monad.Extra
-import qualified Data.Set as Set
+import qualified Data.IntSet as Set
 import qualified Data.Map.Strict as Map
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Semigroup
@@ -63,7 +64,7 @@ logAddEntry Log{..} user question taken err = do
     time <- getCurrentTime
     let add v = atomicModifyIORef logCurrent $ \mp -> (Map.alter (Just . maybe v (<> v)) (utctDay time) mp, ())
     if logInteresting question then
-        add $ SummaryI (Set.singleton user) 1 taken (toAverage taken) (if isJust err then 1 else 0)
+        add $ SummaryI (Set.singleton $ hash $ LBS.pack user) 1 taken (toAverage taken) (if isJust err then 1 else 0)
      else if isJust err then
         add mempty{iErrors=1}
      else
@@ -84,7 +85,7 @@ data Summary = Summary
 
 -- Summary accumulating
 data SummaryI = SummaryI
-    {iUsers :: !(Set.Set String) -- number of distinct users
+    {iUsers :: !Set.IntSet -- number of distinct users
     ,iUses :: !Int -- number of uses
     ,iSlowest :: !Double -- slowest result
     ,iAverage :: !(Average Double) -- average result
@@ -111,7 +112,7 @@ parseLogLine interesting (LBS.words -> time:user:dur:query:err)
     | user /= LBS.pack "-"
     , Just [a, b, c] <- fmap (map fst) $ mapM LBS.readInt $ LBS.split '-' $ LBS.takeWhile (/= 'T') time
     = Just (fromGregorian (fromIntegral a) b c, SummaryI
-        (if use then Set.singleton $ LBS.unpack user else Set.empty)
+        (if use then Set.singleton $ hash user else Set.empty)
         (if use then 1 else 0)
         (if use then dur2 else 0)
         (toAverage $ if use then dur2 else 0)
