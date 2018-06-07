@@ -26,6 +26,7 @@ Remap port 80 to 8080 so non-privileged processes can talk on port 80, using the
     modprobe ip_tables
     echo 'ip_tables' >> /etc/modules
     iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 8080
+    iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 8443
 
 Create the user `www` configured for SSH access.
 
