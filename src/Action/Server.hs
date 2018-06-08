@@ -197,12 +197,12 @@ itemCategories xs =
     [("is","exact")] ++
     [("is","package") | any ((==) "package" . targetType) xs] ++
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
-    nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
+    nubOrd [("package",strUnpack p) | Just (p,_) <- map targetPackage xs]
 
 showFroms :: Bool -> Maybe FilePath -> [Target] -> String
 showFroms local haddock xs = intercalate ", " $ for pkgs $ \p ->
     let ms = filter ((==) p . targetPackage) xs
-    in unwords ["<a href=\"" ++ showURL local haddock b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
+    in unwords ["<a href=\"" ++ showURL local haddock b ++ "\">" ++ strUnpack a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
     where
         remod Target{..} = do (a,_) <- targetModule; return (a,targetURL)
         pkgs = nubOrd $ map targetPackage xs

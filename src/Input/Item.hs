@@ -71,11 +71,11 @@ prettySig Sig{..} =
 -- ITEMS
 
 data Item
-    = IPackage String
-    | IModule String
+    = IPackage PkgName
+    | IModule ModName
     | IName Str
     | ISignature (Sig IString)
-    | IAlias String [IString] (Sig IString)
+    | IAlias Str [IString] (Sig IString)
     | IInstance (Sig IString)
       deriving (Show,Eq,Ord,Typeable,Data)
 
@@ -87,10 +87,10 @@ instance NFData Item where
     rnf (IAlias a b c) = rnf (a,b,c)
     rnf (IInstance a) = rnf a
 
-itemName :: Item -> Maybe String
+itemName :: Item -> Maybe Str
 itemName (IPackage x) = Just x
 itemName (IModule x) = Just x
-itemName (IName x) = Just $ strUnpack x
+itemName (IName x) = Just x
 itemName (ISignature _) = Nothing
 itemName (IAlias x _ _) = Just x
 itemName (IInstance _) = Nothing
@@ -107,8 +107,8 @@ instance Show TargetId where
 -- | A location of documentation.
 data Target = Target
     {targetURL :: URL -- ^ URL where this thing is located
-    ,targetPackage :: Maybe (String, URL) -- ^ Name and URL of the package it is in (Nothing if it is a package)
-    ,targetModule :: Maybe (String, URL) -- ^ Name and URL of the module it is in (Nothing if it is a package or module)
+    ,targetPackage :: Maybe (PkgName, URL) -- ^ Name and URL of the package it is in (Nothing if it is a package)
+    ,targetModule :: Maybe (ModName, URL) -- ^ Name and URL of the module it is in (Nothing if it is a package or module)
     ,targetType :: String -- ^ One of package, module or empty string
     ,targetItem :: String -- ^ HTML span of the item, using <0> for the name and <1> onwards for arguments
     ,targetDocs :: String -- ^ HTML documentation to show, a sequence of block level elements
@@ -128,7 +128,7 @@ instance ToJSON Target where
       ]
       where
         maybeNamedURL m = maybe emptyObject namedURL m
-        namedURL (name, url) = object [("name" :: T.Text, toJSON name), ("url" :: T.Text, toJSON url)]
+        namedURL (name, url) = object [("name" :: T.Text, toJSON $ strUnpack name), ("url" :: T.Text, toJSON url)]
 
 
 targetExpandURL :: Target -> Target
@@ -143,14 +143,14 @@ targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const m
                  | otherwise = a ++ b
 
 
-splitIPackage, splitIModule :: [(a, Item)] -> [(String, [(a, Item)])]
+splitIPackage, splitIModule :: [(a, Item)] -> [(Str, [(a, Item)])]
 splitIPackage = splitUsing $ \x -> case snd x of IPackage x -> Just x; _ -> Nothing
 splitIModule = splitUsing $ \x -> case snd x of IModule x -> Just x; _ -> Nothing
 
-splitUsing :: (a -> Maybe String) -> [a] -> [(String, [a])]
+splitUsing :: (a -> Maybe Str) -> [a] -> [(Str, [a])]
 splitUsing f = repeatedly $ \(x:xs) ->
     let (a,b) = break (isJust . f) xs
-    in ((fromMaybe "" $ f x, x:a), b)
+    in ((fromMaybe mempty $ f x, x:a), b)
 
 
 ---------------------------------------------------------------------
@@ -197,6 +197,6 @@ hseToSig = tyForall
 
 hseToItem :: Decl a -> [Item]
 hseToItem (TypeSig _ names ty) = ISignature (toIString <$> hseToSig ty) : map (IName . strPack . fromName) names
-hseToItem (TypeDecl _ (fromDeclHead -> (name, bind)) rhs) = [IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)]
+hseToItem (TypeDecl _ (fromDeclHead -> (name, bind)) rhs) = [IAlias (strPack $ fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)]
 hseToItem (InstDecl an _ (fromIParen -> IRule _ _ ctx (fromInstHead -> (name, args))) _) = [IInstance $ fmap toIString $ hseToSig $ TyForall an Nothing ctx $ applyType (TyCon an name) args]
 hseToItem x = map (IName . strPack) $ declNames x

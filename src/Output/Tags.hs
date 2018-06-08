@@ -39,26 +39,26 @@ data Completions a where Completions :: Completions BStr0 deriving Typeable
     -- a list of things to complete to, interspersed with \0
 
 
-writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> [(Maybe TargetId, Item)] -> IO ()
+writeTags :: StoreWrite -> (PkgName -> Bool) -> (PkgName -> [(String,String)]) -> [(Maybe TargetId, Item)] -> IO ()
 writeTags store keep extra xs = do
     let splitPkg = splitIPackage xs
     let packages = addRange splitPkg
-    storeWrite store Packages (bstr0Join $ map fst packages, V.fromList $ map snd packages)
+    storeWrite store Packages (bstr0Join $ map (strUnpack . fst) packages, V.fromList $ map snd packages)
 
     let categories = map (first snd . second reverse) $ Map.toList $ Map.fromListWith (++)
             [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
     storeWrite store Categories (bstr0Join $ map fst categories, jaggedFromList $ map snd categories)
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
-    storeWrite store Modules (bstr0Join $ map (lower . fst) modules, V.fromList $ map snd modules)
+    storeWrite store Modules (bstr0Join $ map (lower . strUnpack . fst) modules, V.fromList $ map snd modules)
 
     storeWrite store Completions $ bstr0Join $
         takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
-        map ("package:"++) (sortOn lower $ nubOrd $ filter keep $ map fst packages) ++
+        map ("package:"++) (sortOn lower $ map strUnpack $ nubOrd $ filter keep $ map fst packages) ++
         map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p, fst ex /= "set"])
     where
-        addRange :: [(String, [(Maybe TargetId,a)])] -> [(String, (TargetId, TargetId))]
-        addRange xs = [(a, (minimum' is, maximum' is)) | (a,b) <- xs, let is = mapMaybe fst b, a /= "", is /= []]
+        addRange :: [(Str, [(Maybe TargetId,a)])] -> [(Str, (TargetId, TargetId))]
+        addRange xs = [(a, (minimum' is, maximum' is)) | (a,b) <- xs, let is = mapMaybe fst b, not $ strNull a, is /= []]
 
         weightTag ("set",x) = fromMaybe 0.9 $ lookup x [("stackage",0.0),("haskell-platform",0.1)]
         weightTag ("package",x) = 1

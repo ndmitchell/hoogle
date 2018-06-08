@@ -17,13 +17,13 @@ import General.Str
 
 
 -- | An entry in the Hoogle DB
-data Entry = EPackage String
-           | EModule String
+data Entry = EPackage PkgName
+           | EModule ModName
            | EDecl (Decl ())
              deriving (Data,Typeable,Show)
 
 
-fakePackage :: String -> String -> (Maybe Target, [Item])
+fakePackage :: PkgName -> String -> (Maybe Target, [Item])
 fakePackage name desc = (Just $ Target (hackagePackageURL name) Nothing Nothing "package" (renderPackage name) desc, [IPackage name])
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
@@ -80,8 +80,8 @@ hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
         orIfNull x y = if null x then y else x
 
 
-renderPackage x = "<b>package</b> <span class=name><0>" ++ escapeHTML x ++ "</0></span>"
-renderModule (breakEnd (== '.') -> (pre,post)) = "<b>module</b> " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
+renderPackage x = "<b>package</b> <span class=name><0>" ++ escapeHTML (strUnpack x) ++ "</0></span>"
+renderModule (breakEnd (== '.') . strUnpack -> (pre,post)) = "<b>module</b> " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
 
 
 renderItem :: Entry -> String
@@ -109,11 +109,11 @@ renderItem = keyword . focus
 
 parseLine :: String -> Either String [Entry]
 parseLine x@('@':str) = case a of
-        "package" | [b] <- words b, b /= "" -> Right [EPackage b]
+        "package" | [b] <- words b, b /= "" -> Right [EPackage $ strPack b]
         "version" -> Right []
         _ -> Left $ "unknown attribute: " ++ x
     where (a,b) = word1 str
-parseLine (stripPrefix "module " -> Just x) = Right [EModule x]
+parseLine (stripPrefix "module " -> Just x) = Right [EModule $ strPack x]
 parseLine x | Just x <- readItem x = case x of
     TypeSig a bs c -> Right [EDecl (TypeSig a [b] c) | b <- bs]
     x -> Right [EDecl x]
@@ -163,8 +163,8 @@ unGADT (GDataDecl a b c d _  [] e) = DataDecl a b c d [] e
 unGADT x = x
 
 prettyItem :: Entry -> String
-prettyItem (EPackage x) = "package " ++ x
-prettyItem (EModule x) = "module " ++ x
+prettyItem (EPackage x) = "package " ++ strUnpack x
+prettyItem (EModule x) = "module " ++ strUnpack x
 prettyItem (EDecl x) = pretty x
 
 

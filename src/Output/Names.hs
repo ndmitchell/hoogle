@@ -38,8 +38,8 @@ writeNames store xs = do
     storeWrite store NamesText b
 
 itemNamePart :: Item -> [String]
-itemNamePart (IModule x) = [last $ splitOn "." x]
-itemNamePart x = maybeToList $ itemName x
+itemNamePart (IModule x) = [last $ splitOn "." $ strUnpack x]
+itemNamePart x = maybeToList $ strUnpack <$> itemName x
 
 searchNames :: StoreRead -> Bool -> [String] -> [TargetId]
 -- very important to not search for [" "] or [] since the output buffer is too small

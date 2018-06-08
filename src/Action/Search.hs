@@ -24,6 +24,7 @@ import Query
 import Input.Item
 import Action.CmdLine
 import General.Util
+import General.Str
 
 -- -- generate all
 -- @tagsoup -- generate tagsoup
@@ -56,15 +57,15 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
 targetInfo :: Target -> String
 targetInfo Target{..} =
     unlines $ [ unHTML targetItem ] ++
-              [ unwords packageModule | not $ null packageModule] ++
+              [ unwords $ packageModule | not $ null packageModule] ++
               [ unHTML targetDocs ]
-            where packageModule = map fst $ catMaybes [targetPackage, targetModule]
+            where packageModule = map (strUnpack . fst) $ catMaybes [targetPackage, targetModule]
 
 -- | Returns the Target formatted as an item to display in the results
 -- | Bool argument decides whether links are shown
 targetResultDisplay :: Bool -> Target -> String
 targetResultDisplay link Target{..} = unHTML $ unwords $
-        fmap fst (maybeToList targetModule) ++
+        fmap (strUnpack . fst) (maybeToList targetModule) ++
         [targetItem] ++
         ["-- " ++ targetURL | link]
 

@@ -114,8 +114,8 @@ readHaskellOnline timing settings download = do
 
     let source = do
             tar <- liftIO $ tarballReadFiles hoogles
-            forM_ tar $ \(takeBaseName -> name, src) ->
-                yield (strPack name, hackagePackageURL name, src)
+            forM_ tar $ \(strPack . takeBaseName -> name, src) ->
+                yield (name, hackagePackageURL name, src)
     return (cbl, want, source)
 
 
@@ -261,8 +261,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 return [(a,b) | (a,bs) <- xs, b <- bs]
 
         itemsMemory <- getStatsCurrentLiveBytes
-        xs <- timed timing "Reordering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup (strPack s) popularity) xs
-        timed timing "Writing tags" $ writeTags store (\s -> strPack s `Set.member` want) (\x -> maybe [] (map (both strUnpack) . packageTags) $ Map.lookup (strPack x) cbl) xs
+        xs <- timed timing "Reordering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
+        timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both strUnpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 

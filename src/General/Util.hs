@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
 
 module General.Util(
-    PkgName,
+    PkgName, ModName,
     URL,
     pretty, parseMode, applyType, applyFun1, unapplyFun, fromName, fromQName, fromTyVarBind, declNames, isTypeSig,
     fromDeclHead, fromContext, fromIParen, fromInstHead,
@@ -57,6 +57,7 @@ import Prelude
 
 
 type PkgName = Str
+type ModName = Str
 
 -- | A URL, complete with a @https:@ prefix.
 type URL = String
@@ -326,14 +327,14 @@ minimum' :: Ord a => [a] -> a
 minimum' = minimumBy' compare
 
 
-hackagePackageURL :: String -> URL
-hackagePackageURL x = "https://hackage.haskell.org/package/" ++ x
+hackagePackageURL :: PkgName -> URL
+hackagePackageURL x = "https://hackage.haskell.org/package/" ++ strUnpack x
 
-hackageModuleURL :: String -> URL
+hackageModuleURL :: ModName -> URL
 hackageModuleURL x = "/docs/" ++ ghcModuleURL x
 
-ghcModuleURL :: String -> URL
-ghcModuleURL x = replace "." "-" x ++ ".html"
+ghcModuleURL :: ModName -> URL
+ghcModuleURL x = replace "." "-" (strUnpack x) ++ ".html"
 
 hackageDeclURL :: Bool -> String -> URL
 hackageDeclURL typesig x = "#" ++ (if typesig then "v" else "t") ++ ":" ++ concatMap f x
