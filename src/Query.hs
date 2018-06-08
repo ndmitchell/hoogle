@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
+{-# OPTIONS_GHC -O0 #-} -- otherwise it takes a lot of memory to compile on the haskell.org server
 
 module Query(
     Query(..), isQueryName, isQueryType, isQueryScope,
