@@ -266,7 +266,7 @@ strict act = do
     res <- try_ act
     case res of
         Left e -> do msg <- showException e; evaluate $ rnf msg; error msg
-        Right v -> do evaluate $ rnf v; return v
+        Right v -> evaluate $ force v
 
 data Average a = Average !a {-# UNPACK #-} !Int deriving Show -- a / b
 

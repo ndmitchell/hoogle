@@ -78,7 +78,7 @@ server log Server{..} act = do
         putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
         let pay = Input (map Text.unpack $ pathInfo req)
                         [(bstrUnpack a, maybe "" bstrUnpack b) | (a,b) <- queryString req]
-        (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ rnf s; return s
+        (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ force s
         res <- either (fmap Left . showException) (return . Right) res
         logAddEntry log (showSockAddr $ remoteHost req)
             (BS.unpack $ rawPathInfo req <> rawQueryString req) time (either Just (const Nothing) res)

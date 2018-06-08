@@ -99,8 +99,8 @@ parseCabalTarball :: Settings -> FilePath -> IO (Map.Map String Package)
 parseCabalTarball settings tarfile = do
     res <- runConduit $
         (sourceList =<< liftIO (tarballReadFiles tarfile)) .|
-        mapC (first takeBaseName) .| groupOnLastC fst .| mapMC (\x -> do evaluate $ rnf x; return x) .|
-        pipelineC 10 (mapC (second $ readCabal settings . lbstrUnpack) .| mapMC (\x -> do evaluate $ rnf x; return x) .| sinkList)
+        mapC (first takeBaseName) .| groupOnLastC fst .| mapMC (evaluate . force) .|
+        pipelineC 10 (mapC (second $ readCabal settings . lbstrUnpack) .| mapMC (evaluate . force) .| sinkList)
     return $ Map.fromList res
 
 
