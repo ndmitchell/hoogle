@@ -57,7 +57,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
 targetInfo :: Target -> String
 targetInfo Target{..} =
     unlines $ [ unHTML targetItem ] ++
-              [ unwords $ packageModule | not $ null packageModule] ++
+              [ unwords packageModule | not $ null packageModule] ++
               [ unHTML targetDocs ]
             where packageModule = map (strUnpack . fst) $ catMaybes [targetPackage, targetModule]
 
