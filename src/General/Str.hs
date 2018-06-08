@@ -25,13 +25,12 @@ newtype Str = Str {fromStr :: Fdn.String}
     deriving (Data,Typeable,Eq,Ord,Semigroup,Monoid)
 
 instance Show Str where show = strUnpack
+instance NFData Str where rnf x = x `seq` ()
+
 
 type BStr = BS.ByteString
 
 type LBStr = LBS.ByteString
-
-instance NFData Str where
-    rnf x = x `seq` ()
 
 
 strPack :: String -> Str
