@@ -2,7 +2,7 @@
 
 -- | Module for reading Cabal files.
 module Input.Cabal(
-    Package(..),
+    PackageName, Package(..),
     parseCabalTarball, readGhcPkg,
     packagePopularity, readCabal
     ) where
@@ -39,7 +39,7 @@ data Package = Package
     ,packageLibrary :: {-# UNPACK #-} !Bool -- ^ True if the package provides a library (False if it is only an executable with no API)
     ,packageSynopsis :: !Str -- ^ The synposis, grabbed from the top section.
     ,packageVersion :: !Str -- ^ The version, grabbed from the top section.
-    ,packageDepends :: [Str] -- ^ The list of packages that this package directly depends on.
+    ,packageDepends :: [PackageName] -- ^ The list of packages that this package directly depends on.
     ,packageDocs :: Maybe FilePath -- ^ Directory where the documentation is located
     } deriving Show
 
@@ -61,21 +61,22 @@ instance NFData Package where
 
 -- | Given a set of packages, return the popularity of each package, along with any warnings
 --   about packages imported but not found.
-packagePopularity :: Map.Map String Package -> ([String], Map.Map String Int)
-packagePopularity cbl = (errs, Map.map length good)
+packagePopularity :: Map.Map PackageName Package -> ([String], Map.Map PackageName Int)
+packagePopularity cbl = mp `seq` (errs, mp)
     where
-        errs =  [ user ++ ".cabal: Import of non-existant package " ++ name ++
+        mp = Map.map length good
+        errs =  [ strUnpack user ++ ".cabal: Import of non-existant package " ++ strUnpack name ++
                           (if null rest then "" else ", also imported by " ++ show (length rest) ++ " others")
                 | (name, user:rest) <- Map.toList bad]
         (good, bad)  = Map.partitionWithKey (\k _ -> k `Map.member` cbl) $
-            Map.fromListWith (++) [(strUnpack b,[a]) | (a,bs) <- Map.toList cbl, b <- packageDepends bs]
+            Map.fromListWith (++) [(b,[a]) | (a,bs) <- Map.toList cbl, b <- packageDepends bs]
 
 
 ---------------------------------------------------------------------
 -- READERS
 
 -- | Run 'ghc-pkg' and get a list of packages which are installed.
-readGhcPkg :: Settings -> IO (Map.Map String Package)
+readGhcPkg :: Settings -> IO (Map.Map PackageName Package)
 readGhcPkg settings = do
     topdir <- findExecutable "ghc-pkg"
     -- important to use BS process reading so it's in Binary format, see #194
@@ -85,13 +86,13 @@ readGhcPkg settings = do
     let g (stripPrefix "$topdir" -> Just x) | Just t <- topdir = takeDirectory t ++ x
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
-    let f ((stripPrefix "name: " -> Just x):xs) = Just (x, fixer $ readCabal settings $ unlines xs)
+    let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack x, fixer $ readCabal settings $ unlines xs)
         f xs = Nothing
     return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
 
 
 -- | Given a tarball of Cabal files, parse the latest version of each package.
-parseCabalTarball :: Settings -> FilePath -> IO (Map.Map String Package)
+parseCabalTarball :: Settings -> FilePath -> IO (Map.Map PackageName Package)
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal
@@ -100,7 +101,7 @@ parseCabalTarball settings tarfile = do
     res <- runConduit $
         (sourceList =<< liftIO (tarballReadFiles tarfile)) .|
         mapC (first takeBaseName) .| groupOnLastC fst .| mapMC (evaluate . force) .|
-        pipelineC 10 (mapC (second $ readCabal settings . lbstrUnpack) .| mapMC (evaluate . force) .| sinkList)
+        pipelineC 10 (mapC (strPack *** readCabal settings . lbstrUnpack) .| mapMC (evaluate . force) .| sinkList)
     return $ Map.fromList res
 
 

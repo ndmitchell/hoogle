@@ -1,6 +1,7 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, CPP, ScopedTypeVariables #-}
 
 module General.Util(
+    PackageName,
     URL,
     pretty, parseMode, applyType, applyFun1, unapplyFun, fromName, fromQName, fromTyVarBind, declNames, isTypeSig,
     fromDeclHead, fromContext, fromIParen, fromInstHead,
@@ -51,8 +52,11 @@ import System.IO
 import System.Exit
 import System.Mem
 import GHC.Stats
+import General.Str
 import Prelude
 
+
+type PackageName = Str
 
 -- | A URL, complete with a @https:@ prefix.
 type URL = String

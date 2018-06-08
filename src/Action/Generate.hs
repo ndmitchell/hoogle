@@ -91,7 +91,7 @@ generate output metadata  = undefined
 
 type Download = String -> URL -> IO FilePath
 
-readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
+readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
 readHaskellOnline timing settings download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
@@ -99,12 +99,12 @@ readHaskellOnline timing settings download = do
     hoogles  <- download "haskell-hoogle.tar.gz" "https://hackage.haskell.org/packages/hoogle.tar.gz"
 
     -- peakMegabytesAllocated = 2
-    setStackage <- setStackage stackage
-    setPlatform <- setPlatform platform
-    setGHC <- setGHC platform
+    setStackage <- Set.map strPack <$> setStackage stackage
+    setPlatform <- Set.map strPack <$> setPlatform platform
+    setGHC <- Set.map strPack <$> setGHC platform
 
     cbl <- timed timing "Reading Cabal" $ parseCabalTarball settings cabals
-    let want = Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
+    let want = Set.insert (strPack "ghc") $ Set.unions [setStackage, setPlatform, setGHC]
     cbl <- return $ flip Map.mapWithKey cbl $ \name p ->
         p{packageTags =
             [(strPack "set",strPack "included-with-ghc") | name `Set.member` setGHC] ++
@@ -115,11 +115,11 @@ readHaskellOnline timing settings download = do
     let source = do
             tar <- liftIO $ tarballReadFiles hoogles
             forM_ tar $ \(takeBaseName -> name, src) ->
-                yield (name, hackagePackageURL name, src)
+                yield (strPack name, hackagePackageURL name, src)
     return (cbl, want, source)
 
 
-readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
+readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
 readHaskellDirs timing settings dirs = do
     files <- concatMapM listFilesRecursive dirs
     -- We reverse/sort the list because of #206
@@ -127,7 +127,7 @@ readHaskellDirs timing settings dirs = do
     -- We never distinguish on versions, so they are considered equal when reordering
     -- So put 2.0 first in the list and rely on stable sorting. A bit of a hack.
     let order a = second Down $ parseTrailingVersion a
-    let packages = map (takeBaseName &&& id) $ sortOn (map order . splitDirectories) $ filter ((==) ".txt" . takeExtension) files
+    let packages = map (strPack . takeBaseName &&& id) $ sortOn (map order . splitDirectories) $ filter ((==) ".txt" . takeExtension) files
     cabals <- mapM parseCabal $ filter ((==) ".cabal" . takeExtension) files
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ bstrReadFile file
@@ -142,23 +142,23 @@ readHaskellDirs timing settings dirs = do
     parseCabal fp = do
         src <- readFileUTF8' fp
         let pkg = readCabal settings src
-        return (takeBaseName fp, pkg)
+        return (strPack $ takeBaseName fp, pkg)
 
-readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
+readFregeOnline :: Timing -> Download -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
 readFregeOnline timing download = do
     frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
     let source = do
             src <- liftIO $ bstrReadFile frege
-            yield ("frege", "http://google.com/", lbstrFromChunks [src])
-    return (Map.empty, Set.singleton "frege", source)
+            yield (strPack "frege", "http://google.com/", lbstrFromChunks [src])
+    return (Map.empty, Set.singleton $ strPack "frege", source)
 
 
-readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
+readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
 readHaskellGhcpkg timing settings = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
             forM_ (Map.toList cbl) $ \(name,Package{..}) -> whenJust packageDocs $ \docs -> do
-                let file = docs </> name <.> "txt"
+                let file = docs </> strUnpack name <.> "txt"
                 whenM (liftIO $ doesFileExist file) $ do
                     src <- liftIO $ bstrReadFile file
                     docs <- liftIO $ canonicalizePath docs
@@ -169,13 +169,13 @@ readHaskellGhcpkg timing settings = do
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
 
-readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
+readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
 readHaskellHaddock timing settings docBaseDir = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
             forM_ (Map.toList cbl) $ \(name, p@Package{..}) -> do
-                let docs = docDir name p
-                    file = docBaseDir </> docs </> name <.> "txt"
+                let docs = docDir (strUnpack name) p
+                    file = docBaseDir </> docs </> (strUnpack name) <.> "txt"
                 whenM (liftIO $ doesFileExist file) $ do
                     src <- liftIO $ bstrReadFile file
                     let url = ['/' | not $ all isPathSeparator $ take 1 docs] ++
@@ -205,9 +205,9 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     let (cblErrs, popularity) = packagePopularity cbl
 
     -- mtl is more popular than transformers, despite having dodgy docs, which is a shame, so we hack it
-    popularity <- return $ Map.adjust (max $ 1 + Map.findWithDefault 0 "mtl" popularity) "transformers" popularity
+    popularity <- return $ Map.adjust (max $ 1 + Map.findWithDefault 0 (strPack "mtl") popularity) (strPack "transformers") popularity
 
-    want <- return $ if include /= [] then Set.fromList include else want
+    want <- return $ if include /= [] then Set.fromList $ map strPack include else want
     want <- return $ if count == 0 then want else Set.fromList $ take count $ Set.toList want
 
     (stats, _) <- storeWriteFile database $ \store -> do
@@ -219,8 +219,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
-            let consume :: ConduitM (Int, (String, URL, LBStr)) (Maybe Target, [Item]) IO ()
-                consume = awaitForever $ \(i, (pkg, url, body)) -> do
+            let consume :: ConduitM (Int, (PackageName, URL, LBStr)) (Maybe Target, [Item]) IO ()
+                consume = awaitForever $ \(i, (strUnpack -> pkg, url, body)) -> do
                     timedOverwrite timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body
 
@@ -230,8 +230,10 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                     filterC (flip Set.member want . fst3) .|
                     void ((|$|)
                         (zipFromC 1 .| consume)
-                        (do seen <- fmap Set.fromList $ mapC fst3 .| sinkList
+                        (do -- seen <- fmap Set.fromList $ mapC fst3 .| sinkList
+                            return ()
 
+{-
                             let missing = [x | x <- Set.toList $ want `Set.difference` seen
                                              , fmap packageLibrary (Map.lookup x cbl) /= Just False]
                             liftIO $ putStrLn ""
@@ -239,7 +241,6 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                                 putStrLn $ "Packages missing documentation: " ++ unwords (sortOn lower missing)
                             liftIO $ when (Set.null seen) $
                                 exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
-
                             -- synthesise things for Cabal packages that are not documented
                             forM_ (Map.toList cbl) $ \(name, Package{..}) -> when (name `Set.notMember` seen) $ do
                                 let ret prefix = yield $ fakePackage name $ prefix ++ trim (strUnpack packageSynopsis)
@@ -250,7 +251,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                                 else if null include then
                                     ret "Not on Stackage, so not searched.\n"
                                 else
-                                    return ()
+                                    return () -}
                             ))
                     .| pipelineC 10 (items .| sinkList)
 
@@ -260,8 +261,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                 return [(a,b) | (a,bs) <- xs, b <- bs]
 
         itemsMemory <- getStatsCurrentLiveBytes
-        xs <- timed timing "Reordering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
-        timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both strUnpack) . packageTags) $ Map.lookup x cbl) xs
+        xs <- timed timing "Reordering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup (strPack s) popularity) xs
+        timed timing "Writing tags" $ writeTags store (\s -> strPack s `Set.member` want) (\x -> maybe [] (map (both strUnpack) . packageTags) $ Map.lookup (strPack x) cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 
