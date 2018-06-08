@@ -35,7 +35,7 @@ istrings = unsafePerformIO $ newIORef Map.empty
 fromIString :: IString -> Str
 fromIString (IString _ x) = x
 
-toIString :: String -> IString
-toIString (strPack -> !x) = unsafePerformIO $ atomicModifyIORef istrings $ \mp -> case Map.lookup x mp of
+toIString :: Str -> IString
+toIString x = unsafePerformIO $ atomicModifyIORef' istrings $ \mp -> case Map.lookup x mp of
     Just v -> (mp, v)
     Nothing -> let res = IString (Map.size mp) x in (Map.insert x res mp, res)

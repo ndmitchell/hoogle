@@ -196,7 +196,7 @@ hseToSig = tyForall
 
 
 hseToItem :: Decl a -> [Item]
-hseToItem (TypeSig _ names ty) = ISignature (toIString <$> hseToSig ty) : map (IName . strPack . fromName) names
-hseToItem (TypeDecl _ (fromDeclHead -> (name, bind)) rhs) = [IAlias (strPack $ fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)]
-hseToItem (InstDecl an _ (fromIParen -> IRule _ _ ctx (fromInstHead -> (name, args))) _) = [IInstance $ fmap toIString $ hseToSig $ TyForall an Nothing ctx $ applyType (TyCon an name) args]
+hseToItem (TypeSig _ names ty) = ISignature (toIString . strPack <$> hseToSig ty) : map (IName . strPack . fromName) names
+hseToItem (TypeDecl _ (fromDeclHead -> (name, bind)) rhs) = [IAlias (strPack $ fromName name) (map (toIString . strPack . fromName . fromTyVarBind) bind) (toIString . strPack <$> hseToSig rhs)]
+hseToItem (InstDecl an _ (fromIParen -> IRule _ _ ctx (fromInstHead -> (name, args))) _) = [IInstance $ fmap (toIString . strPack) $ hseToSig $ TyForall an Nothing ctx $ applyType (TyCon an name) args]
 hseToItem x = map (IName . strPack) $ declNames x
