@@ -37,6 +37,7 @@ data CmdLine
         ,database :: FilePath
         ,insecure :: Bool
         ,include :: [String]
+        ,count :: Int
         ,local_ :: [FilePath]
         ,haddock :: Maybe FilePath
         ,debug :: Bool
@@ -121,6 +122,7 @@ generate = Generate
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
     ,local_ = def &= opt "" &= help "Index local packages and link to local haddock docs"
+    ,count = 0 &= name "n" &= help "Maximum number of packages to index (defaults to all)"
     ,haddock = def &= help "Use local haddocks"
     ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"
