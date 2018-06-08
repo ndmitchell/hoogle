@@ -230,15 +230,12 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                     filterC (flip Set.member want . fst3) .|
                     void ((|$|)
                         (zipFromC 1 .| consume)
-                        (do -- seen <- fmap Set.fromList $ mapC fst3 .| sinkList
-                            return ()
-
-{-
+                        (do seen <- fmap Set.fromList $ mapC fst3 .| sinkList
                             let missing = [x | x <- Set.toList $ want `Set.difference` seen
                                              , fmap packageLibrary (Map.lookup x cbl) /= Just False]
                             liftIO $ putStrLn ""
                             liftIO $ whenNormal $ when (missing /= []) $ do
-                                putStrLn $ "Packages missing documentation: " ++ unwords (sortOn lower missing)
+                                putStrLn $ "Packages missing documentation: " ++ unwords (sortOn lower $ map strUnpack missing)
                             liftIO $ when (Set.null seen) $
                                 exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
                             -- synthesise things for Cabal packages that are not documented
@@ -251,7 +248,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                                 else if null include then
                                     ret "Not on Stackage, so not searched.\n"
                                 else
-                                    return () -}
+                                    return ()
                             ))
                     .| pipelineC 10 (items .| sinkList)
 
