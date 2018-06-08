@@ -39,7 +39,7 @@ main = do
         echo system_ "cabal update"
         echo system_ "cabal install --only-dependencies --upgrade-dependencies --force-reinstalls"
         echo system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
-        echo system_ "cabal build"
+        echo system_ "GHCRTS=-M1G cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M1G -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M1G -T -N2"
