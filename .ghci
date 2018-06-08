@@ -25,7 +25,6 @@
 :def space \xs -> return $ unlines
         [":!mkdir dist\\obj\\prof"
         ,":!ghc -fno-state-hack -prof -rtsopts -fprof-auto -fprof-cafs -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o && " ++
-         "dist\\obj\\prof\\main +RTS -xt -L50 -hc -T -RTS " ++ xs ++ " && " ++
-         "hp2ps -c main.hp && " ++
-         "start main.ps"]
+         "dist\\obj\\prof\\main +RTS -xt -L100 -hc -T -RTS " ++ xs ++ " && " ++
+         "hp2pretty main.hp"]
 :}
