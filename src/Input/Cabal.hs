@@ -2,7 +2,7 @@
 
 -- | Module for reading Cabal files.
 module Input.Cabal(
-    PackageName, Package(..),
+    PkgName, Package(..),
     parseCabalTarball, readGhcPkg,
     packagePopularity, readCabal
     ) where
@@ -39,7 +39,7 @@ data Package = Package
     ,packageLibrary :: !Bool -- ^ True if the package provides a library (False if it is only an executable with no API)
     ,packageSynopsis :: !Str -- ^ The synposis, grabbed from the top section.
     ,packageVersion :: !Str -- ^ The version, grabbed from the top section.
-    ,packageDepends :: [PackageName] -- ^ The list of packages that this package directly depends on.
+    ,packageDepends :: [PkgName] -- ^ The list of packages that this package directly depends on.
     ,packageDocs :: Maybe FilePath -- ^ Directory where the documentation is located
     } deriving Show
 
@@ -61,7 +61,7 @@ instance NFData Package where
 
 -- | Given a set of packages, return the popularity of each package, along with any warnings
 --   about packages imported but not found.
-packagePopularity :: Map.Map PackageName Package -> ([String], Map.Map PackageName Int)
+packagePopularity :: Map.Map PkgName Package -> ([String], Map.Map PkgName Int)
 packagePopularity cbl = mp `seq` (errs, mp)
     where
         mp = Map.map length good
@@ -76,7 +76,7 @@ packagePopularity cbl = mp `seq` (errs, mp)
 -- READERS
 
 -- | Run 'ghc-pkg' and get a list of packages which are installed.
-readGhcPkg :: Settings -> IO (Map.Map PackageName Package)
+readGhcPkg :: Settings -> IO (Map.Map PkgName Package)
 readGhcPkg settings = do
     topdir <- findExecutable "ghc-pkg"
     -- important to use BS process reading so it's in Binary format, see #194
@@ -92,7 +92,7 @@ readGhcPkg settings = do
 
 
 -- | Given a tarball of Cabal files, parse the latest version of each package.
-parseCabalTarball :: Settings -> FilePath -> IO (Map.Map PackageName Package)
+parseCabalTarball :: Settings -> FilePath -> IO (Map.Map PkgName Package)
 -- items are stored as:
 -- QuickCheck/2.7.5/QuickCheck.cabal
 -- QuickCheck/2.7.6/QuickCheck.cabal

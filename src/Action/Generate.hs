@@ -91,7 +91,7 @@ generate output metadata  = undefined
 
 type Download = String -> URL -> IO FilePath
 
-readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
+readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellOnline timing settings download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
@@ -119,7 +119,7 @@ readHaskellOnline timing settings download = do
     return (cbl, want, source)
 
 
-readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
+readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellDirs timing settings dirs = do
     files <- concatMapM listFilesRecursive dirs
     -- We reverse/sort the list because of #206
@@ -144,7 +144,7 @@ readHaskellDirs timing settings dirs = do
         let pkg = readCabal settings src
         return (strPack $ takeBaseName fp, pkg)
 
-readFregeOnline :: Timing -> Download -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
+readFregeOnline :: Timing -> Download -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readFregeOnline timing download = do
     frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
     let source = do
@@ -153,7 +153,7 @@ readFregeOnline timing download = do
     return (Map.empty, Set.singleton $ strPack "frege", source)
 
 
-readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
+readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellGhcpkg timing settings = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
@@ -169,7 +169,7 @@ readHaskellGhcpkg timing settings = do
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
 
-readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map PackageName Package, Set.Set PackageName, ConduitT () (PackageName, URL, LBStr) IO ())
+readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellHaddock timing settings docBaseDir = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
@@ -219,7 +219,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
-            let consume :: ConduitM (Int, (PackageName, URL, LBStr)) (Maybe Target, [Item]) IO ()
+            let consume :: ConduitM (Int, (PkgName, URL, LBStr)) (Maybe Target, [Item]) IO ()
                 consume = awaitForever $ \(i, (strUnpack -> pkg, url, body)) -> do
                     timedOverwrite timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body
