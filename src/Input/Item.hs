@@ -23,8 +23,7 @@ import Foreign.Storable
 import Control.DeepSeq
 import Data.Data
 import General.Util
-import qualified Foundation as Fdn
-import Data.String
+import General.Str
 import General.IString
 import Prelude
 import Data.Aeson.Types
@@ -74,7 +73,7 @@ prettySig Sig{..} =
 data Item
     = IPackage String
     | IModule String
-    | IName Fdn.String
+    | IName Str
     | ISignature (Sig IString)
     | IAlias String [IString] (Sig IString)
     | IInstance (Sig IString)
@@ -91,7 +90,7 @@ instance NFData Item where
 itemName :: Item -> Maybe String
 itemName (IPackage x) = Just x
 itemName (IModule x) = Just x
-itemName (IName x) = Just $ Fdn.toList x
+itemName (IName x) = Just $ strUnpack x
 itemName (ISignature _) = Nothing
 itemName (IAlias x _ _) = Just x
 itemName (IInstance _) = Nothing
@@ -197,7 +196,7 @@ hseToSig = tyForall
 
 
 hseToItem :: Decl a -> [Item]
-hseToItem (TypeSig _ names ty) = ISignature (toIString <$> hseToSig ty) : map (IName . fromString . fromName) names
+hseToItem (TypeSig _ names ty) = ISignature (toIString <$> hseToSig ty) : map (IName . strPack . fromName) names
 hseToItem (TypeDecl _ (fromDeclHead -> (name, bind)) rhs) = [IAlias (fromName name) (map (toIString . fromName . fromTyVarBind) bind) (toIString <$> hseToSig rhs)]
 hseToItem (InstDecl an _ (fromIParen -> IRule _ _ ctx (fromInstHead -> (name, args))) _) = [IInstance $ fmap toIString $ hseToSig $ TyForall an Nothing ctx $ applyType (TyCon an name) args]
-hseToItem x = map (IName . fromString) $ declNames x
+hseToItem x = map (IName . strPack) $ declNames x

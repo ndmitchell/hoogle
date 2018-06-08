@@ -23,6 +23,8 @@ import Data.String
 newtype Str = Str {fromStr :: Fdn.String}
     deriving (Data,Typeable,Eq,Ord)
 
+instance Show Str where show = strUnpack
+
 type BStr = BS.ByteString
 
 type LBStr = LBS.ByteString
