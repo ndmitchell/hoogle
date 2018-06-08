@@ -8,13 +8,12 @@ module General.IString(
 import Data.Data
 import Data.IORef
 import Control.DeepSeq
-import Data.String
-import qualified Foundation as Fdn
+import General.Str
 import qualified Data.Map as Map
 import System.IO.Unsafe
 
 
-data IString = IString {-# UNPACK #-} !Int !Fdn.String String
+data IString = IString {-# UNPACK #-} !Int !Str String
     deriving (Data,Typeable)
 
 instance Eq IString where
@@ -26,18 +25,17 @@ instance Ord IString where
         | otherwise = compare x2 y2
 
 instance Show IString where show = fromIString
-instance Read IString where readsPrec _ x = [(toIString x,"")]
-instance IsString IString where fromString = toIString
 instance NFData IString where rnf IString{} = () -- we force the string at construction time
 
+
 {-# NOINLINE istrings #-}
-istrings :: IORef (Map.Map Fdn.String IString)
+istrings :: IORef (Map.Map Str IString)
 istrings = unsafePerformIO $ newIORef Map.empty
 
 fromIString :: IString -> String
 fromIString (IString _ _ x) = x
 
 toIString :: String -> IString
-toIString (fromString -> !x) = unsafePerformIO $ atomicModifyIORef istrings $ \mp -> case Map.lookup x mp of
+toIString (strPack -> !x) = unsafePerformIO $ atomicModifyIORef istrings $ \mp -> case Map.lookup x mp of
     Just v -> (mp, v)
-    Nothing -> let res = IString (Map.size mp) x (Fdn.toList x) in (Map.insert x res mp, res)
+    Nothing -> let res = IString (Map.size mp) x (strUnpack x) in (Map.insert x res mp, res)

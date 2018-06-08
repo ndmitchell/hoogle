@@ -1,24 +1,41 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable #-}
 
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe
 module General.Str(
+    Str, strPack, strUnpack,
     BStr, bstrPack, bstrUnpack, bstrReadFile, bstrSplitInfix, bstrNull, bstrStripPrefix, bstrTrimStart,
     LBStr, lbstrPack, lbstrUnpack, lbstrToChunks, lbstrFromChunks,
     BStr0, bstr0Join, bstr0Split
     ) where
 
+import qualified Foundation as Fdn
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.UTF8 as US
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as LUS
+import Control.DeepSeq
 import Data.Char
+import Data.Data
 import Data.List
+import Data.String
 
+
+newtype Str = Str {fromStr :: Fdn.String}
+    deriving (Data,Typeable,Eq,Ord)
 
 type BStr = BS.ByteString
 
 type LBStr = LBS.ByteString
 
+instance NFData Str where
+    rnf x = x `seq` ()
+
+
+strPack :: String -> Str
+strPack = Str . fromString
+
+strUnpack :: Str -> String
+strUnpack = Fdn.toList . fromStr
 
 bstrPack :: String -> BStr
 bstrPack = US.fromString
