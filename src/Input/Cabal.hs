@@ -23,7 +23,6 @@ import System.Directory
 import Data.Char
 import Data.Maybe
 import Data.Tuple.Extra
-import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import General.Util
 import General.Conduit
@@ -36,21 +35,21 @@ import Prelude
 
 -- | A representation of a Cabal package.
 data Package = Package
-    {packageTags :: [(T.Text, T.Text)] -- ^ The Tag information, e.g. (category,Development) (author,Neil Mitchell).
-    ,packageLibrary :: Bool -- ^ True if the package provides a library (False if it is only an executable with no API)
-    ,packageSynopsis :: T.Text -- ^ The synposis, grabbed from the top section.
-    ,packageVersion :: T.Text -- ^ The version, grabbed from the top section.
-    ,packageDepends :: [T.Text] -- ^ The list of packages that this package directly depends on.
+    {packageTags :: [(Str, Str)] -- ^ The Tag information, e.g. (category,Development) (author,Neil Mitchell).
+    ,packageLibrary :: {-# UNPACK #-} !Bool -- ^ True if the package provides a library (False if it is only an executable with no API)
+    ,packageSynopsis :: !Str -- ^ The synposis, grabbed from the top section.
+    ,packageVersion :: !Str -- ^ The version, grabbed from the top section.
+    ,packageDepends :: [Str] -- ^ The list of packages that this package directly depends on.
     ,packageDocs :: Maybe FilePath -- ^ Directory where the documentation is located
     } deriving Show
 
 instance Semigroup Package where
     Package x1 x2 x3 x4 x5 x6 <> Package y1 y2 y3 y4 y5 y6 =
         Package (x1++y1) (x2||y2) (one x3 y3) (one x4 y4) (nubOrd $ x5 ++ y5) (x6 `mplus` y6)
-        where one a b = if T.null a then b else a
+        where one a b = if strNull a then b else a
 
 instance Monoid Package where
-    mempty = Package [] True T.empty T.empty [] Nothing
+    mempty = Package [] True mempty mempty [] Nothing
     mappend = (<>)
 
 instance NFData Package where
@@ -69,7 +68,7 @@ packagePopularity cbl = (errs, Map.map length good)
                           (if null rest then "" else ", also imported by " ++ show (length rest) ++ " others")
                 | (name, user:rest) <- Map.toList bad]
         (good, bad)  = Map.partitionWithKey (\k _ -> k `Map.member` cbl) $
-            Map.fromListWith (++) [(T.unpack b,[a]) | (a,bs) <- Map.toList cbl, b <- packageDepends bs]
+            Map.fromListWith (++) [(strUnpack b,[a]) | (a,bs) <- Map.toList cbl, b <- packageDepends bs]
 
 
 ---------------------------------------------------------------------
@@ -116,15 +115,15 @@ readCabal Settings{..} src = Package{..}
         ask x = Map.findWithDefault [] x mp
 
         packageDepends =
-            map T.pack $ nubOrd $ filter (/= "") $
+            map strPack $ nubOrd $ filter (/= "") $
             map (intercalate "-" . takeWhile (all isAlpha . take 1) . splitOn "-" . fst . word1) $
             concatMap (split (== ',')) (ask "build-depends") ++ concatMap words (ask "depends")
-        packageVersion = T.pack $ head $ dropWhile null (ask "version") ++ ["0.0"]
-        packageSynopsis = T.pack $ unwords $ words $ unwords $ ask "synopsis"
+        packageVersion = strPack $ head $ dropWhile null (ask "version") ++ ["0.0"]
+        packageSynopsis = strPack $ unwords $ words $ unwords $ ask "synopsis"
         packageLibrary = "library" `elem` map (lower . trim) (lines src)
         packageDocs = listToMaybe $ ask "haddock-html"
 
-        packageTags = map (both T.pack) $ nubOrd $ concat
+        packageTags = map (both strPack) $ nubOrd $ concat
             [ map (head xs,) $ concatMap cleanup $ concatMap ask xs
             | xs <- [["license"],["category"],["author","maintainer"]]]
 

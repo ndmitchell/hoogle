@@ -12,7 +12,6 @@ import Data.IORef
 import Data.Maybe
 import qualified Data.Set as Set
 import qualified Data.Map as Map
-import qualified Data.Text as T
 import Control.Monad.Extra
 import Data.Monoid
 import Data.Ord
@@ -108,9 +107,9 @@ readHaskellOnline timing settings download = do
     let want = Set.insert "ghc" $ Set.unions [setStackage, setPlatform, setGHC]
     cbl <- return $ flip Map.mapWithKey cbl $ \name p ->
         p{packageTags =
-            [(T.pack "set",T.pack "included-with-ghc") | name `Set.member` setGHC] ++
-            [(T.pack "set",T.pack "haskell-platform") | name `Set.member` setPlatform] ++
-            [(T.pack "set",T.pack "stackage") | name `Set.member` setStackage] ++
+            [(strPack "set",strPack "included-with-ghc") | name `Set.member` setGHC] ++
+            [(strPack "set",strPack "haskell-platform") | name `Set.member` setPlatform] ++
+            [(strPack "set",strPack "stackage") | name `Set.member` setStackage] ++
             packageTags p}
 
     let source = do
@@ -137,7 +136,7 @@ readHaskellDirs timing settings dirs = do
             yield (name, url, lbstrFromChunks [src])
     return (Map.union
                 (Map.fromList cabals)
-                (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages)
+                (Map.fromList $ map ((,mempty{packageTags=[(strPack "set",strPack "all")]}) . fst) packages)
            ,Set.fromList $ map fst packages, source)
   where
     parseCabal fp = do
@@ -166,7 +165,7 @@ readHaskellGhcpkg timing settings = do
                     let url = "file://" ++ ['/' | not $ all isPathSeparator $ take 1 docs] ++
                               replace "\\" "/" (addTrailingPathSeparator docs)
                     yield (name, url, lbstrFromChunks [src])
-    cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
+    cbl <- return $ let ts = map (both strPack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
 
@@ -182,11 +181,11 @@ readHaskellHaddock timing settings docBaseDir = do
                     let url = ['/' | not $ all isPathSeparator $ take 1 docs] ++
                               replace "\\" "/" (addTrailingPathSeparator docs)
                     yield (name, url, lbstrFromChunks [src])
-    cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
+    cbl <- return $ let ts = map (both strPack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
 
-    where docDir name Package{..} = name ++ "-" ++ T.unpack packageVersion
+    where docDir name Package{..} = name ++ "-" ++ strUnpack packageVersion
 
 actionGenerate :: CmdLine -> IO ()
 actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
@@ -243,7 +242,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
                             -- synthesise things for Cabal packages that are not documented
                             forM_ (Map.toList cbl) $ \(name, Package{..}) -> when (name `Set.notMember` seen) $ do
-                                let ret prefix = yield $ fakePackage name $ prefix ++ trim (T.unpack packageSynopsis)
+                                let ret prefix = yield $ fakePackage name $ prefix ++ trim (strUnpack packageSynopsis)
                                 if name `Set.member` want then
                                     (if packageLibrary
                                         then ret "Documentation not found, so not searched.\n"
@@ -262,7 +261,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
         itemsMemory <- getStatsCurrentLiveBytes
         xs <- timed timing "Reordering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
-        timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both T.unpack) . packageTags) $ Map.lookup x cbl) xs
+        timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both strUnpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 

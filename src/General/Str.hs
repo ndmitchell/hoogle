@@ -1,8 +1,8 @@
-{-# LANGUAGE PatternGuards, DeriveDataTypeable #-}
+{-# LANGUAGE PatternGuards, DeriveDataTypeable, GeneralizedNewtypeDeriving #-}
 
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe
 module General.Str(
-    Str, strPack, strUnpack,
+    Str, strPack, strUnpack, strNull,
     BStr, bstrPack, bstrUnpack, bstrReadFile, bstrSplitInfix, bstrNull, bstrStripPrefix, bstrTrimStart,
     LBStr, lbstrPack, lbstrUnpack, lbstrToChunks, lbstrFromChunks,
     BStr0, bstr0Join, bstr0Split
@@ -17,11 +17,12 @@ import Control.DeepSeq
 import Data.Char
 import Data.Data
 import Data.List
+import Data.Semigroup
 import Data.String
 
 
 newtype Str = Str {fromStr :: Fdn.String}
-    deriving (Data,Typeable,Eq,Ord)
+    deriving (Data,Typeable,Eq,Ord,Semigroup,Monoid)
 
 instance Show Str where show = strUnpack
 
@@ -38,6 +39,9 @@ strPack = Str . fromString
 
 strUnpack :: Str -> String
 strUnpack = Fdn.toList . fromStr
+
+strNull :: Str -> Bool
+strNull = Fdn.null
 
 bstrPack :: String -> BStr
 bstrPack = US.fromString
