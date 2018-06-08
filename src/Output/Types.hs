@@ -31,6 +31,7 @@ import Prelude
 import Input.Item
 import General.Store
 import General.IString
+import General.Str
 import General.Util
 
 
@@ -134,7 +135,7 @@ writeNames store debug inst xs = do
     let names = spreadNames $ Map.toList freq
     debug "names" $ unlines [s ++ " = " ++ show n ++ " (" ++ show (freq Map.! s) ++ " uses)" | (s,n) <- names]
     names <- return $ sortOn fst names
-    storeWrite store TypesNames (BS.pack $ intercalate "\0" $ map fst names, V.fromList $ map snd names)
+    storeWrite store TypesNames (bstr0Join $ map fst names, V.fromList $ map snd names)
     let mp2 = Map.fromAscList names
     return $ Names $ \x -> Map.lookup x mp2
 

@@ -31,7 +31,7 @@ data NamesText a where NamesText :: NamesText BS.ByteString deriving Typeable
 writeNames :: StoreWrite -> [(Maybe TargetId, Item)] -> IO ()
 writeNames store xs = do
     let (ids, strs) = unzip [(i, [' ' | isUpper1 name] ++ lower name) | (Just i, x) <- xs, name <- itemNamePart x]
-    let b = BS.intercalate (BS.pack "\0") (map bstrPack strs) `BS.append` BS.pack "\0\0"
+    let b = bstr0Join $ strs ++ ["",""]
     bound <- BS.unsafeUseAsCString b $ \ptr -> text_search_bound ptr
     storeWrite store NamesSize $ fromIntegral bound
     storeWrite store NamesItems $ V.fromList ids
