@@ -56,7 +56,7 @@ library
         directory,
         extra >= 1.6.6,
         filepath,
-        foundation,
+        foundation >= 0.0.13,
         old-locale,
         hashable,
         haskell-src-exts >= 1.18 && < 1.21,
