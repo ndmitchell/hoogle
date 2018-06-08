@@ -41,7 +41,7 @@ strUnpack :: Str -> String
 strUnpack = Fdn.toList . fromStr
 
 strNull :: Str -> Bool
-strNull = Fdn.null
+strNull = Fdn.null . fromStr
 
 bstrPack :: String -> BStr
 bstrPack = US.fromString
