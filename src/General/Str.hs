@@ -19,6 +19,7 @@ import Data.Data
 import Data.List
 import Data.Semigroup
 import Data.String
+import Prelude
 
 
 newtype Str = Str {fromStr :: Fdn.String}
