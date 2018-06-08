@@ -90,7 +90,7 @@ lbstrPack = LUS.fromString
 type BStr0 = BStr
 
 bstr0Join :: [String] -> BStr0
-bstr0Join = LBS.toStrict . LBS.pack . intercalate "\0"
+bstr0Join = LBS.toStrict . LUS.fromString . intercalate "\0"
 
 bstr0Split :: BStr0 -> [BStr]
 bstr0Split = BS.split '\0'
