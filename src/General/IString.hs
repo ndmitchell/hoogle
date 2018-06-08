@@ -13,18 +13,18 @@ import qualified Data.Map as Map
 import System.IO.Unsafe
 
 
-data IString = IString {-# UNPACK #-} !Int !Str String
+data IString = IString {-# UNPACK #-} !Int !Str
     deriving (Data,Typeable)
 
 instance Eq IString where
-    IString x _ _ == IString y _ _ = x == y
+    IString x _ == IString y _ = x == y
 
 instance Ord IString where
-    compare (IString x1 x2 _) (IString y1 y2 _)
+    compare (IString x1 x2) (IString y1 y2)
         | x1 == y1 = EQ
         | otherwise = compare x2 y2
 
-instance Show IString where show = fromIString
+instance Show IString where show = strUnpack . fromIString
 instance NFData IString where rnf IString{} = () -- we force the string at construction time
 
 
@@ -32,10 +32,10 @@ instance NFData IString where rnf IString{} = () -- we force the string at const
 istrings :: IORef (Map.Map Str IString)
 istrings = unsafePerformIO $ newIORef Map.empty
 
-fromIString :: IString -> String
-fromIString (IString _ _ x) = x
+fromIString :: IString -> Str
+fromIString (IString _ x) = x
 
 toIString :: String -> IString
 toIString (strPack -> !x) = unsafePerformIO $ atomicModifyIORef istrings $ \mp -> case Map.lookup x mp of
     Just v -> (mp, v)
-    Nothing -> let res = IString (Map.size mp) x (strUnpack x) in (Map.insert x res mp, res)
+    Nothing -> let res = IString (Map.size mp) x in (Map.insert x res mp, res)

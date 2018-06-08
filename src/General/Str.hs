@@ -2,7 +2,7 @@
 
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe
 module General.Str(
-    Str, strPack, strUnpack, strNull, strCopy,
+    Str, strPack, strUnpack, strNull, strCopy, strCons,
     BStr, bstrPack, bstrUnpack, bstrReadFile, bstrSplitInfix, bstrNull, bstrStripPrefix, bstrTrimStart,
     LBStr, lbstrPack, lbstrUnpack, lbstrToChunks, lbstrFromChunks,
     BStr0, bstr0Join, bstr0Split
@@ -40,6 +40,9 @@ strPack = Str . fromString
 
 strUnpack :: Str -> String
 strUnpack = Fdn.toList . fromStr
+
+strCons :: Char -> Str -> Str
+strCons c = Str . Fdn.cons c . fromStr
 
 strCopy :: Str -> Str
 strCopy = Str . Fdn.copy . fromStr

@@ -50,7 +50,7 @@ searchTypes :: StoreRead -> Sig String -> [TargetId]
 searchTypes store q =
         concatMap (expandDuplicates $ readDuplicates store) $
         searchFingerprints store names 100 $
-        lookupNames names name0 q
+        lookupNames names name0 $ fmap strPack q
         -- map unknown fields to name0, i.e. _
     where
         names = readNames store
@@ -60,7 +60,7 @@ searchTypesDebug :: StoreRead -> (String, Sig String) -> [(String, Sig String)] 
 searchTypesDebug store query answers = intercalate [""] $
     f False "Query" query : zipWith (\i -> f True ("Answer " ++ show i)) [1..] answers
     where
-        qsig = lookupNames names name0 $ snd query
+        qsig = lookupNames names name0 $ strPack <$> snd query
         names = readNames store
 
         f match name (raw, sig) =
@@ -72,7 +72,7 @@ searchTypesDebug store query answers = intercalate [""] $
             ["Cost: " ++ maybe "X, no match" show (matchFingerprint qsig fp)
             ,"Explain: " ++ showExplain (matchFingerprintDebug qsig fp)]
             where
-                sn = lookupNames names name0 sig
+                sn = lookupNames names name0 $ strPack <$> sig
                 fp = toFingerprint sn
 
                 showExplain = intercalate ", " . map g . sortOn (either (const minBound) (negate . snd))
@@ -83,7 +83,7 @@ searchTypesDebug store query answers = intercalate [""] $
 ---------------------------------------------------------------------
 -- NAME/CTOR INFORMATION
 
-data TypesNames a where TypesNames :: TypesNames (BS.ByteString, V.Vector Name) deriving Typeable
+data TypesNames a where TypesNames :: TypesNames (BStr0, V.Vector Name) deriving Typeable
 
 -- Must be a unique Name per String.
 -- First 0-99 are variables, rest are constructors.
@@ -109,33 +109,33 @@ popularityName :: Name -> Double
 popularityName (Name n) | isVar $ Name n = error "Can't call popularityName on a Var"
                         | otherwise = fromIntegral (n - 100) / fromIntegral (maxBound - 100 :: Word16)
 
-newtype Names = Names {lookupName :: String -> Maybe Name}
+newtype Names = Names {lookupName :: Str -> Maybe Name}
 
-lookupNames :: Names -> Name -> Sig String -> Sig Name
+lookupNames :: Names -> Name -> Sig Str -> Sig Name
 lookupNames Names{..} def (Sig ctx typ) = Sig (map f ctx) (map g typ)
     where
-        vars = nubOrd $ "_" : [x | Ctx _ x <- ctx] ++ [x | TVar x _ <- universeBi typ]
+        vars = nubOrd $ strPack "_" : [x | Ctx _ x <- ctx] ++ [x | TVar x _ <- universeBi typ]
         var x = Name $ min 99 $ fromIntegral $ fromMaybe (error "lookupNames") $ elemIndex x vars
         con = fromMaybe def . lookupName
 
-        f (Ctx a b) = Ctx (con $ '~':a) (var b)
+        f (Ctx a b) = Ctx (con $ strCons '~' a) (var b)
         g (TCon x xs) = TCon (con x) $ map g xs
         g (TVar x xs) = TVar (var x) $ map g xs
 
 
-writeNames :: StoreWrite -> (String -> String -> IO ()) -> Map.Map String Int -> [Sig String] -> IO Names
+writeNames :: StoreWrite -> (String -> String -> IO ()) -> Map.Map Str Int -> [Sig Str] -> IO Names
 writeNames store debug inst xs = do
-    let sigNames (Sig ctx typ) = nubOrd ['~':x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
+    let sigNames (Sig ctx typ) = nubOrd [strCons '~' x | Ctx x _ <- ctx] ++ nubOrd [x | TCon x _ <- universeBi typ]
 
     -- want to rank highly instances that have a lot of types, and a lot of definitions
     -- eg Eq is used and defined a lot. Constructor is used in 3 places but defined a lot.
-    let freq :: Map.Map String Int = -- how many times each identifier occurs
-            Map.unionWith (\typ sig -> sig + min sig typ) (Map.mapKeysMonotonic ('~':) inst) $
+    let freq :: Map.Map Str Int = -- how many times each identifier occurs
+            Map.unionWith (\typ sig -> sig + min sig typ) (Map.mapKeysMonotonic (strCons '~') inst) $
             Map.fromListWith (+) $ map (,1::Int) $ concatMap sigNames xs
     let names = spreadNames $ Map.toList freq
-    debug "names" $ unlines [s ++ " = " ++ show n ++ " (" ++ show (freq Map.! s) ++ " uses)" | (s,n) <- names]
+    debug "names" $ unlines [strUnpack s ++ " = " ++ show n ++ " (" ++ show (freq Map.! s) ++ " uses)" | (s,n) <- names]
     names <- return $ sortOn fst names
-    storeWrite store TypesNames (bstr0Join $ map fst names, V.fromList $ map snd names)
+    storeWrite store TypesNames (bstr0Join $ map (strUnpack . fst) names, V.fromList $ map snd names)
     let mp2 = Map.fromAscList names
     return $ Names $ \x -> Map.lookup x mp2
 
@@ -163,8 +163,8 @@ spreadNames (sortOn (negate . snd) -> xs@((_,limit):_)) = check $ f (99 + fromIn
 commonNameThreshold = 1024
 
 readNames :: StoreRead -> Names
-readNames store = Names $ \x -> Map.lookup (BS.pack x) mp
-    where mp = Map.fromAscList $ zip (BS.split '\0' s) $ V.toList n
+readNames store = Names $ \x -> Map.lookup (bstrPack $ strUnpack x) mp
+    where mp = Map.fromAscList $ zip (bstr0Split s) $ V.toList n
           (s, n) = storeRead store TypesNames
 
 
