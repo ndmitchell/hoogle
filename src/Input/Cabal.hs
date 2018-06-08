@@ -35,12 +35,12 @@ import Prelude
 
 -- | A representation of a Cabal package.
 data Package = Package
-    {packageTags :: [(Str, Str)] -- ^ The Tag information, e.g. (category,Development) (author,Neil Mitchell).
+    {packageTags :: ![(Str, Str)] -- ^ The Tag information, e.g. (category,Development) (author,Neil Mitchell).
     ,packageLibrary :: !Bool -- ^ True if the package provides a library (False if it is only an executable with no API)
     ,packageSynopsis :: !Str -- ^ The synposis, grabbed from the top section.
     ,packageVersion :: !Str -- ^ The version, grabbed from the top section.
-    ,packageDepends :: [PkgName] -- ^ The list of packages that this package directly depends on.
-    ,packageDocs :: Maybe FilePath -- ^ Directory where the documentation is located
+    ,packageDepends :: ![PkgName] -- ^ The list of packages that this package directly depends on.
+    ,packageDocs :: !(Maybe FilePath) -- ^ Directory where the documentation is located
     } deriving Show
 
 instance Semigroup Package where
