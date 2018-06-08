@@ -35,6 +35,7 @@ import General.Timing
 import General.Str
 import Action.CmdLine
 import General.Conduit
+import Control.DeepSeq
 
 {-
 
@@ -232,7 +233,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                     filterC (flip Set.member want . fst3) .|
                     void ((|$|)
                         (zipFromC 1 .| consume)
-                        (do seen <- fmap Set.fromList $ mapC fst3 .| sinkList
+                        (do seen <- fmap Set.fromList $ mapMC (evaluate . force . strCopy . fst3) .| sinkList
                             let missing = [x | x <- Set.toList $ want `Set.difference` seen
                                              , fmap packageLibrary (Map.lookup x cbl) /= Just False]
                             liftIO $ putStrLn ""

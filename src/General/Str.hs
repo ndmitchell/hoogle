@@ -2,13 +2,14 @@
 
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe
 module General.Str(
-    Str, strPack, strUnpack, strNull,
+    Str, strPack, strUnpack, strNull, strCopy,
     BStr, bstrPack, bstrUnpack, bstrReadFile, bstrSplitInfix, bstrNull, bstrStripPrefix, bstrTrimStart,
     LBStr, lbstrPack, lbstrUnpack, lbstrToChunks, lbstrFromChunks,
     BStr0, bstr0Join, bstr0Split
     ) where
 
 import qualified Foundation as Fdn
+import qualified Foundation.Collection as Fdn
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.UTF8 as US
 import qualified Data.ByteString.Lazy.Char8 as LBS
@@ -39,6 +40,9 @@ strPack = Str . fromString
 
 strUnpack :: Str -> String
 strUnpack = Fdn.toList . fromStr
+
+strCopy :: Str -> Str
+strCopy = Str . Fdn.copy . fromStr
 
 strNull :: Str -> Bool
 strNull = Fdn.null . fromStr
