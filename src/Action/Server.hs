@@ -96,7 +96,7 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
                         ,("search",unwords $ grab "hoogle")
                         ,("robots",if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
-            Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else return $ lstrPack body
+            Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else return $ lbstrPack body
             Just "json" ->
               let argRead :: Read a => String -> a -> a
                   argRead key def = fromMaybe def $
@@ -108,7 +108,7 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
                   count :: Int
                   count = min 500 $ argRead "count" 100
               in pure $ OutputJSON $ JSON.encode $ take count $ drop start results
-            Just m -> return $ OutputFail $ lstrPack $ "Mode " ++ m ++ " not (currently) supported"
+            Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["plugin","jquery.flot.time.js"] -> OutputFile <$> Flot.file Flot.FlotTime
@@ -118,15 +118,15 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
         let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
         let alive = fromRational $ toRational $ (now `diffUTCTime` spawned) / (24 * 60 * 60)
         let s = show errs ++ " errors since yesterday, running for " ++ showDP 2 alive ++ " days."
-        return $ if errs == 0 && alive < 1.5 then OutputText $ lstrPack $ "Happy. " ++ s else OutputFail $ lstrPack $ "Sad. " ++ s
+        return $ if errs == 0 && alive < 1.5 then OutputText $ lbstrPack $ "Happy. " ++ s else OutputFail $ lbstrPack $ "Sad. " ++ s
     ["log"] -> do
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
     ["stats"] -> do
         stats <- getStatsDebug
         return $ case stats of
-            Nothing -> OutputFail $ lstrPack "GHC Statistics is not enabled, restart with +RTS -T"
-            Just x -> OutputText $ lstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
+            Nothing -> OutputFail $ lbstrPack "GHC Statistics is not enabled, restart with +RTS -T"
+            Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
     "haddock":xs | Just x <- haddock -> do
         let file = intercalate "/" $ filter (not . (== "..")) (x:xs)
         return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
@@ -139,12 +139,12 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
             src <- readFile file
             -- Haddock incorrectly generates file:// on Windows, when it should be file:///
             -- so replace on file:// and drop all leading empty paths above
-            return $ OutputHTML $ lstrPack $ replace "file://" "/file/" src
+            return $ OutputHTML $ lbstrPack $ replace "file://" "/file/" src
     xs ->
         -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
         return $ OutputFile $ joinPath $ htmlDir : filter (not . all (== '.')) xs
     where
-        str = templateStr . lstrPack
+        str = templateStr . lbstrPack
         tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- completionTags store]
         params = map (second str)
             [("cdn",cdn)
@@ -256,7 +256,7 @@ action_server_test sample database = do
         log <- logNone
         dataDir <- getDataDir
         let q === want = do
-                OutputHTML (lstrUnpack -> res) <- replyServer log False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
+                OutputHTML (lbstrUnpack -> res) <- replyServer log False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
         if sample then
             "Wife" === "<b>type family</b>"

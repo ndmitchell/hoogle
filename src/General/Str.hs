@@ -2,9 +2,9 @@
 
 -- | ByteString wrappers which don't require special imports and are all UTF8 safe
 module General.Str(
-    Str, strPack, strUnpack, strReadFile, strSplitInfix, strNull, strStripPrefix, strTrimStart,
-    LStr, lstrPack, lstrUnpack, lstrToChunks, lstrFromChunks,
-    Str0, join0, split0
+    BStr, bstrPack, bstrUnpack, bstrReadFile, bstrSplitInfix, bstrNull, bstrStripPrefix, bstrTrimStart,
+    LBStr, lbstrPack, lbstrUnpack, lbstrToChunks, lbstrFromChunks,
+    BStr0, bstr0Join, bstr0Split
     ) where
 
 import qualified Data.ByteString.Char8 as BS
@@ -15,55 +15,55 @@ import Data.Char
 import Data.List
 
 
-type Str = BS.ByteString
+type BStr = BS.ByteString
 
-type LStr = LBS.ByteString
+type LBStr = LBS.ByteString
 
 
-strPack :: String -> Str
-strPack = US.fromString
+bstrPack :: String -> BStr
+bstrPack = US.fromString
 
-strUnpack :: Str -> String
-strUnpack = US.toString
+bstrUnpack :: BStr -> String
+bstrUnpack = US.toString
 
-strReadFile :: FilePath -> IO Str
-strReadFile = BS.readFile
+bstrReadFile :: FilePath -> IO BStr
+bstrReadFile = BS.readFile
 
-strSplitInfix :: Str -> Str -> Maybe (Str, Str)
-strSplitInfix needle haystack
+bstrSplitInfix :: BStr -> BStr -> Maybe (BStr, BStr)
+bstrSplitInfix needle haystack
     | (a,b) <- BS.breakSubstring needle haystack
     , not $ BS.null b
     = Just (a, BS.drop (BS.length needle) b)
-strSplitInfix _ _ = Nothing
+bstrSplitInfix _ _ = Nothing
 
-strNull :: Str -> Bool
-strNull = BS.null
+bstrNull :: BStr -> Bool
+bstrNull = BS.null
 
-strStripPrefix :: Str -> Str -> Maybe Str
-strStripPrefix needle x
+bstrStripPrefix :: BStr -> BStr -> Maybe BStr
+bstrStripPrefix needle x
     | BS.isPrefixOf needle x = Just $ BS.drop (BS.length needle) x
     | otherwise = Nothing
 
-strTrimStart :: Str -> Str
-strTrimStart = BS.dropWhile isSpace
+bstrTrimStart :: BStr -> BStr
+bstrTrimStart = BS.dropWhile isSpace
 
-lstrToChunks :: LStr -> [Str]
-lstrToChunks = LBS.toChunks
+lbstrToChunks :: LBStr -> [BStr]
+lbstrToChunks = LBS.toChunks
 
-lstrFromChunks :: [Str] -> LStr
-lstrFromChunks = LBS.fromChunks
+lbstrFromChunks :: [BStr] -> LBStr
+lbstrFromChunks = LBS.fromChunks
 
-lstrUnpack :: LStr -> String
-lstrUnpack = LUS.toString
+lbstrUnpack :: LBStr -> String
+lbstrUnpack = LUS.toString
 
-lstrPack :: String -> LStr
-lstrPack = LUS.fromString
+lbstrPack :: String -> LBStr
+lbstrPack = LUS.fromString
 
 
-type Str0 = Str
+type BStr0 = BStr
 
-join0 :: [String] -> Str0
-join0 = BS.pack . intercalate "\0"
+bstr0Join :: [String] -> BStr0
+bstr0Join = BS.pack . intercalate "\0"
 
-split0 :: Str0 -> [Str]
-split0 = BS.split '\0'
+bstr0Split :: BStr0 -> [BStr]
+bstr0Split = BS.split '\0'

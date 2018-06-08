@@ -27,21 +27,21 @@ fakePackage :: String -> String -> (Maybe Target, [Item])
 fakePackage name desc = (Just $ Target (hackagePackageURL name) Nothing Nothing "package" (renderPackage name) desc, [IPackage name])
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
-parseHoogle :: Monad m => (String -> m ()) -> URL -> LStr -> ConduitM i (Maybe Target, [Item]) m ()
+parseHoogle :: Monad m => (String -> m ()) -> URL -> LBStr -> ConduitM i (Maybe Target, [Item]) m ()
 parseHoogle warning url body = sourceLStr body .| linesCR .| zipFromC 1 .| parserC warning .| hierarchyC url .| mapC (\x -> rnf x `seq` x)
 
-parserC :: Monad m => (String -> m ()) -> ConduitM (Int, Str) (Target, Entry) m ()
+parserC :: Monad m => (String -> m ()) -> ConduitM (Int, BStr) (Target, Entry) m ()
 parserC warning = f [] ""
     where
         f com url = do
             x <- await
             whenJust x $ \(i,s) -> case () of
-                _ | Just s <- strStripPrefix "-- | " s -> f [s] url
-                  | Just s <- strStripPrefix "--" s -> f (if null com then [] else strTrimStart s : com) url
-                  | Just s <- strStripPrefix "@url " s -> f com (strUnpack s)
-                  | strNull $ strTrimStart s -> f [] ""
+                _ | Just s <- bstrStripPrefix "-- | " s -> f [s] url
+                  | Just s <- bstrStripPrefix "--" s -> f (if null com then [] else bstrTrimStart s : com) url
+                  | Just s <- bstrStripPrefix "@url " s -> f com (bstrUnpack s)
+                  | bstrNull $ bstrTrimStart s -> f [] ""
                   | otherwise -> do
-                        case parseLine $ fixLine $ strUnpack s of
+                        case parseLine $ fixLine $ bstrUnpack s of
                             Left y -> lift $ warning $ show i ++ ":" ++ y
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
@@ -56,8 +56,8 @@ typeItem _ = ""
 
 
 -- FIXME: used to be in two different modules, now does and then undoes lots of stuff
-reformat :: [Str] -> String
-reformat = unlines . map strUnpack
+reformat :: [BStr] -> String
+reformat = unlines . map bstrUnpack
 
 
 hierarchyC :: Monad m => URL -> ConduitM (Target, Entry) (Maybe Target, [Item]) m ()

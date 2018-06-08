@@ -101,7 +101,7 @@ parseCabalTarball settings tarfile = do
     res <- runConduit $
         (sourceList =<< liftIO (tarballReadFiles tarfile)) .|
         mapC (first takeBaseName) .| groupOnLastC fst .| mapMC (\x -> do evaluate $ rnf x; return x) .|
-        pipelineC 10 (mapC (second $ readCabal settings . lstrUnpack) .| mapMC (\x -> do evaluate $ rnf x; return x) .| sinkList)
+        pipelineC 10 (mapC (second $ readCabal settings . lbstrUnpack) .| mapMC (\x -> do evaluate $ rnf x; return x) .| sinkList)
     return $ Map.fromList res
 
 

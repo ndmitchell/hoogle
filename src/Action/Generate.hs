@@ -92,7 +92,7 @@ generate output metadata  = undefined
 
 type Download = String -> URL -> IO FilePath
 
-readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
+readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
 readHaskellOnline timing settings download = do
     stackage <- download "haskell-stackage.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
@@ -120,7 +120,7 @@ readHaskellOnline timing settings download = do
     return (cbl, want, source)
 
 
-readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
+readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
 readHaskellDirs timing settings dirs = do
     files <- concatMapM listFilesRecursive dirs
     -- We reverse/sort the list because of #206
@@ -131,10 +131,10 @@ readHaskellDirs timing settings dirs = do
     let packages = map (takeBaseName &&& id) $ sortOn (map order . splitDirectories) $ filter ((==) ".txt" . takeExtension) files
     cabals <- mapM parseCabal $ filter ((==) ".cabal" . takeExtension) files
     let source = forM_ packages $ \(name, file) -> do
-            src <- liftIO $ strReadFile file
+            src <- liftIO $ bstrReadFile file
             dir <- liftIO $ canonicalizePath $ takeDirectory file
             let url = "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ replace "\\" "/" dir ++ "/"
-            yield (name, url, lstrFromChunks [src])
+            yield (name, url, lbstrFromChunks [src])
     return (Map.union
                 (Map.fromList cabals)
                 (Map.fromList $ map ((,mempty{packageTags=[(T.pack "set",T.pack "all")]}) . fst) packages)
@@ -145,32 +145,32 @@ readHaskellDirs timing settings dirs = do
         let pkg = readCabal settings src
         return (takeBaseName fp, pkg)
 
-readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
+readFregeOnline :: Timing -> Download -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
 readFregeOnline timing download = do
     frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
     let source = do
-            src <- liftIO $ strReadFile frege
-            yield ("frege", "http://google.com/", lstrFromChunks [src])
+            src <- liftIO $ bstrReadFile frege
+            yield ("frege", "http://google.com/", lbstrFromChunks [src])
     return (Map.empty, Set.singleton "frege", source)
 
 
-readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
+readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
 readHaskellGhcpkg timing settings = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
             forM_ (Map.toList cbl) $ \(name,Package{..}) -> whenJust packageDocs $ \docs -> do
                 let file = docs </> name <.> "txt"
                 whenM (liftIO $ doesFileExist file) $ do
-                    src <- liftIO $ strReadFile file
+                    src <- liftIO $ bstrReadFile file
                     docs <- liftIO $ canonicalizePath docs
                     let url = "file://" ++ ['/' | not $ all isPathSeparator $ take 1 docs] ++
                               replace "\\" "/" (addTrailingPathSeparator docs)
-                    yield (name, url, lstrFromChunks [src])
+                    yield (name, url, lbstrFromChunks [src])
     cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
 
-readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LStr) IO ())
+readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map String Package, Set.Set String, ConduitT () (String, URL, LBStr) IO ())
 readHaskellHaddock timing settings docBaseDir = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
     let source =
@@ -178,10 +178,10 @@ readHaskellHaddock timing settings docBaseDir = do
                 let docs = docDir name p
                     file = docBaseDir </> docs </> name <.> "txt"
                 whenM (liftIO $ doesFileExist file) $ do
-                    src <- liftIO $ strReadFile file
+                    src <- liftIO $ bstrReadFile file
                     let url = ['/' | not $ all isPathSeparator $ take 1 docs] ++
                               replace "\\" "/" (addTrailingPathSeparator docs)
-                    yield (name, url, lstrFromChunks [src])
+                    yield (name, url, lbstrFromChunks [src])
     cbl <- return $ let ts = map (both T.pack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     return (cbl, Map.keysSet cbl, source)
@@ -220,7 +220,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
             itemWarn <- newIORef 0
             let warning msg = do modifyIORef itemWarn succ; hPutStrLn warnings msg
 
-            let consume :: ConduitM (Int, (String, URL, LStr)) (Maybe Target, [Item]) IO ()
+            let consume :: ConduitM (Int, (String, URL, LBStr)) (Maybe Target, [Item]) IO ()
                 consume = awaitForever $ \(i, (pkg, url, body)) -> do
                     timedOverwrite timing ("[" ++ show i ++ "/" ++ show (Set.size want) ++ "] " ++ pkg) $
                         parseHoogle (\msg -> warning $ pkg ++ ":" ++ msg) url body

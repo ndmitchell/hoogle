@@ -53,13 +53,13 @@ groupOnLastC op = do
                 f k2 v2
 
 
-linesCR :: Monad m => ConduitM Str Str m ()
+linesCR :: Monad m => ConduitM BStr BStr m ()
 linesCR = C.lines .| mapC f
     where f x | Just (x, '\r') <- BS.unsnoc x = x
               | otherwise = x
 
-sourceLStr :: Monad m => LStr -> ConduitM i Str m ()
-sourceLStr = sourceList . lstrToChunks
+sourceLStr :: Monad m => LBStr -> ConduitM i BStr m ()
+sourceLStr = sourceList . lbstrToChunks
 
 
 pipelineC :: Int -> ConduitM o Void IO r -> ConduitM o Void IO r

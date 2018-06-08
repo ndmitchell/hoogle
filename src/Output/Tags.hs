@@ -23,19 +23,19 @@ import General.Str
 
 -- matches (a,b) if i >= a && i <= b
 
-data Packages a where Packages :: Packages (Str0, V.Vector (TargetId, TargetId)) deriving Typeable
+data Packages a where Packages :: Packages (BStr0, V.Vector (TargetId, TargetId)) deriving Typeable
     -- list of packages, sorted by popularity, lowercase, interspersed with \0
     -- for each index in PackageNames, the first is the module item, any in the bounds are in that package
 
-data Modules a where Modules :: Modules (Str0, V.Vector (TargetId, TargetId)) deriving Typeable
+data Modules a where Modules :: Modules (BStr0, V.Vector (TargetId, TargetId)) deriving Typeable
     -- list of modules, sorted by popularity, not unique, lowercase, interspersed with \0
     -- for each index in ModuleNames, the first is the module item, any in the bounds are in that module
 
-data Categories a where Categories :: Categories (Str0, Jagged (TargetId, TargetId)) deriving Typeable
+data Categories a where Categories :: Categories (BStr0, Jagged (TargetId, TargetId)) deriving Typeable
     -- list of categories, sorted by name, interspersed with \0
     -- for each index in CategoryNames, a range of items containing a category, first item is a package
 
-data Completions a where Completions :: Completions Str0 deriving Typeable
+data Completions a where Completions :: Completions BStr0 deriving Typeable
     -- a list of things to complete to, interspersed with \0
 
 
@@ -43,16 +43,16 @@ writeTags :: StoreWrite -> (String -> Bool) -> (String -> [(String,String)]) -> 
 writeTags store keep extra xs = do
     let splitPkg = splitIPackage xs
     let packages = addRange splitPkg
-    storeWrite store Packages (join0 $ map fst packages, V.fromList $ map snd packages)
+    storeWrite store Packages (bstr0Join $ map fst packages, V.fromList $ map snd packages)
 
     let categories = map (first snd . second reverse) $ Map.toList $ Map.fromListWith (++)
             [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
-    storeWrite store Categories (join0 $ map fst categories, jaggedFromList $ map snd categories)
+    storeWrite store Categories (bstr0Join $ map fst categories, jaggedFromList $ map snd categories)
 
     let modules = addRange $ concatMap (splitIModule . snd) splitPkg
-    storeWrite store Modules (join0 $ map (lower . fst) modules, V.fromList $ map snd modules)
+    storeWrite store Modules (bstr0Join $ map (lower . fst) modules, V.fromList $ map snd modules)
 
-    storeWrite store Completions $ join0 $
+    storeWrite store Completions $ bstr0Join $
         takeWhile ("set:" `isPrefixOf`) (map fst categories) ++
         map ("package:"++) (sortOn lower $ nubOrd $ filter keep $ map fst packages) ++
         map (joinPair ":") (sortOn (weightTag &&& both lower) $ nubOrd [ex | (p,_) <- packages, keep p, ex <- extra p, fst ex /= "set"])
@@ -71,7 +71,7 @@ writeTags store keep extra xs = do
 -- SIMPLE SELECTORS
 
 completionTags :: StoreRead -> [String]
-completionTags store = map BS.unpack $ split0 $ storeRead store Completions
+completionTags store = map BS.unpack $ bstr0Split $ storeRead store Completions
 
 
 ---------------------------------------------------------------------
@@ -115,13 +115,13 @@ resolveTag store x = case x of
     IsModule -> (IsModule, Just $ map (dupe . fst) $ V.toList moduleIds)
     EqPackage orig@(BS.pack -> val)
         -- look for people who are an exact prefix, sort by remaining length, if there are ties, pick the first one
-        | res@(_:_) <- [(BS.length x, (i,x)) | (i,x) <- zip [0..] $ split0 packageNames, val `BS.isPrefixOf` x]
+        | res@(_:_) <- [(BS.length x, (i,x)) | (i,x) <- zip [0..] $ bstr0Split packageNames, val `BS.isPrefixOf` x]
             -> let (i,x) = snd $ minimumBy (compare `on` fst) res in (EqPackage $ BS.unpack x, Just [packageIds V.! i])
         | otherwise -> (EqPackage orig , Just [])
-    EqModule x -> (EqModule x, Just $ map (moduleIds V.!) $ findIndices (eqModule $ lower x) $ split0 moduleNames)
+    EqModule x -> (EqModule x, Just $ map (moduleIds V.!) $ findIndices (eqModule $ lower x) $ bstr0Split moduleNames)
     EqCategory cat val -> (EqCategory cat val, Just $ concat
         [ V.toList $ jaggedAsk categoryIds i
-        | i <- elemIndices (BS.pack (cat ++ ":" ++ val)) $ split0 categoryNames])
+        | i <- elemIndices (BS.pack (cat ++ ":" ++ val)) $ bstr0Split categoryNames])
     where
         eqModule x | Just x <- stripPrefix "." x, Just x <- stripSuffix "." x = (==) (BS.pack x)
                    | Just x <- stripPrefix "." x = BS.isPrefixOf $ BS.pack x
