@@ -112,13 +112,16 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["plugin","jquery.flot.time.js"] -> OutputFile <$> Flot.file Flot.FlotTime
+
     ["canary"] -> do
         now <- getCurrentTime
         summ <- logSummary log
         let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
         let alive = fromRational $ toRational $ (now `diffUTCTime` spawned) / (24 * 60 * 60)
-        let s = show errs ++ " errors since yesterday, running for " ++ showDP 2 alive ++ " days."
-        return $ if errs == 0 && alive < 1.5 then OutputText $ lbstrPack $ "Happy. " ++ s else OutputFail $ lbstrPack $ "Sad. " ++ s
+        return $ (if errs == 0 && alive < 1.5 then OutputText else OutputFail) $ lbstrPack $
+            "Errors " ++ (if errs == 0 then "good" else "bad") ++ ": " ++ show errs ++ " in the last 24 hours.\n" ++
+            "Updates " ++ (if alive < 1.5 then "good" else "bad") ++ ": Last updated " ++ showDP 2 alive ++ " days ago.\n"
+
     ["log"] -> do
         log <- displayLog <$> logSummary log
         OutputHTML <$> templateRender templateLog [("data",str log)]
