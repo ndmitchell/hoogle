@@ -24,6 +24,7 @@
 - ignore: {name: "Evaluate"}
 - ignore: {name: "Use <$>"}
 - ignore: {name: "Avoid lambda"}
+- ignore: {name: "Avoid lambda using `infix`"}
 - ignore: {name: "Redundant bracket"}
 - ignore: {name: "Use lambda-case"}
 
