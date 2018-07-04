@@ -9,6 +9,7 @@ html {
 body {
     margin: 0px;
     padding: 0px;
+    padding-bottom: 4em;
     font-family: sans-serif;
     font-size: 13px;
     position: relative;
@@ -28,10 +29,6 @@ a:hover {
 a {
     color: #C4451D;
     text-decoration: none;
-}
-
-.push {
-    height: 4em;
 }
 
 /********************************************************************
