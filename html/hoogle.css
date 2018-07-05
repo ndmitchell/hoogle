@@ -11,8 +11,13 @@ body {
     padding: 0px;
     font-family: sans-serif;
     font-size: 13px;
-    position: relative;
-    min-height: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#body {
+    flex-grow: 1;
 }
 
 a img {
@@ -30,16 +35,11 @@ a {
     text-decoration: none;
 }
 
-.push {
-    height: 4em;
-}
-
 /********************************************************************
 *  TOP - LINKS AND SEARCH
 */
 
 #links {
-    position: relative;
     background: none repeat scroll 0 0 #293845;
     border-top: 5px solid #4E6272;
     color: #DDDDDD;
@@ -166,8 +166,6 @@ form {
     color: #666666;
     width: 100%;
     padding: 1.3em 0;
-    position: absolute;
-    bottom: 0;
     text-align: center;
 }
 
