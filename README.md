@@ -1,6 +1,15 @@
 # Hoogle [![Hackage version](https://img.shields.io/hackage/v/hoogle.svg?label=Hackage)](https://hackage.haskell.org/package/hoogle) [![Stackage version](https://www.stackage.org/package/hoogle/badge/nightly?label=Stackage)](https://www.stackage.org/package/hoogle) [![Linux Build Status](https://img.shields.io/travis/ndmitchell/hoogle/master.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hoogle) [![Windows Build Status](https://img.shields.io/appveyor/ci/ndmitchell/hoogle/master.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hoogle)
 
-The development branch for Hoogle version 5. The current released version lives on the `hoogle4` branch. For details of the current state and future direction see [this blog post](http://neilmitchell.blogspot.co.uk/2015/01/hoogle-5-is-coming.html).
+## Hoogle 4 vs Hoogle 5
+
+Hoogle is in the middle of a transition from version 4 to version 5.
+
+Hoogle 4 is at https://www.haskell.org/hoogle/. It searches the [Haskell platform](https://www.haskell.org/platform/contents.html) as-of 2013. It has good type search.
+
+Hoogle 5 is at https://hoogle.haskell.org/ and on Hackage, so will be obtained by `cabal install hoogle`. It searches [Stackage](https://www.stackage.org/) and is updated daily. It has weaker type search, with various tickets to improve that.
+
+## Other stuff (somewhat outdated)
+
 
 ----------
 
