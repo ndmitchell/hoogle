@@ -39,8 +39,7 @@ main = do
         echo system_ "cabal update"
         echo system_ "cabal install --only-dependencies --upgrade-dependencies --force-reinstalls --ghc-options=\"+RTS -M700M\""
         echo system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
-        echo system "cabal build" -- expected to fail, for reasons I don't understand
-        echo system_ "cabal build"
+        echo system_ "GHCRTS=-M700M cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M900M -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M900M -T -N2"
