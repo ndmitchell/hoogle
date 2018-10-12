@@ -24,10 +24,6 @@ import System.FilePath
 main :: IO ()
 main = do
     createDirectoryIfMissing True "hoogle-upgrade"
-    dirs <- filterM doesDirectoryExist =<< listContents "hoogle-upgrade"
-    forM_ (dropEnd 10 $ sort dirs) $ \dir -> do
-        putStrLn $ "Cleaning " ++ dir ++ "..."
-        removeDirectoryRecursive dir
 
     now <- getCurrentTime
     let dir = "hoogle-upgrade/" ++ formatTime defaultTimeLocale "%Y-%m-%dT%H-%M-%S" now
@@ -64,6 +60,12 @@ main = do
             "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444 >> ../../out-frege-rdr2tls.txt 2>&1 &"
         writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=haskell.hoo --port=8080 --log=../../log.txt >> ../../out.txt &\n"
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
+
+    dirs <- filterM doesDirectoryExist =<< listContents "hoogle-upgrade"
+    forM_ (dropEnd 10 $ sort dirs) $ \dir -> do
+        putStrLn $ "Cleaning " ++ dir ++ "..."
+        removeDirectoryRecursive dir
+
     putStrLn "Successfully upgraded"
 
 
