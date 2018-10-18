@@ -203,7 +203,7 @@ itemCategories xs =
     nubOrd [("package",strUnpack p) | Just (p,_) <- map targetPackage xs]
 
 showFroms :: Bool -> Maybe FilePath -> [Target] -> String
-showFroms local haddock xs = intercalate ", " $ for pkgs $ \p ->
+showFroms local haddock xs = intercalate ", " $ (flip map) pkgs $ \p ->
     let ms = filter ((==) p . targetPackage) xs
     in unwords ["<a href=\"" ++ showURL local haddock b ++ "\">" ++ strUnpack a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
     where
