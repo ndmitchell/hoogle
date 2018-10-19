@@ -64,7 +64,11 @@ searchTypes store q = take nMatches (concat [ search qry' | variant <- variants,
         nMatches = 100
         qry = lookupNames names name0 (strPack <$> q) -- map unknown fields to name0, i.e. _
         names = readNames store
-        search = concatMap (expandDuplicates $ readDuplicates store) . searchTypeMatch store names nMatches
+        search = concatMap (expandDuplicates $ readDuplicates store) . searchTypeMatch db getSig arrow nMatches
+        db  = zip (readSignatureIndex store)
+                  (V.toList $ storeRead store TypesFingerprints :: [Fingerprint])
+        getSig = readSignatureAt store
+        arrow = lookupCtor store names "->"
 
         -- Different variations on the search query. Each variation is run in turn until we've gathered
         -- 100 hits or run out of variations to try.
@@ -360,33 +364,41 @@ writeSignatures store xs = do
     v <- V.freeze v
     storeWrite store TypesSigPositions v
 
-readSignatures :: StoreRead -> [Sig Name]
-readSignatures store = go splitters bs
-  where tsps = V.toList $ storeRead store TypesSigPositions
-        splitters = map (BS.splitAt . fromIntegral) tsps
-        bs   = storeRead store TypesSigData
-        go [] _ = []
-        go (s:ss) bytes = let (part, rest) = s bytes
-                          in decodeBS part : go ss rest
+type SigLoc = (Word32, Word32)
+
+readSignatureIndex :: StoreRead -> [SigLoc] -- (offset,size) pairs for each field
+readSignatureIndex store = zip offsets (V.toList sizes)
+  where sizes   = storeRead store TypesSigPositions
+        offsets = V.toList $ V.prescanl' (+) 0 sizes
+
+readSignatureAt :: StoreRead -> SigLoc -> Sig Name
+readSignatureAt store (offset, size) = decodeBS (BS.take (fromIntegral size)
+                                                 $ snd
+                                                 $ BS.splitAt (fromIntegral offset) bs)
+  where
+    bs = storeRead store TypesSigData
 
 ---------------------------------------------------------------------
 -- TYPE SEARCH
 
-searchTypeMatch :: StoreRead -> Names -> Int -> Sig Name -> [Int]
-searchTypeMatch store names n sig =
+searchTypeMatch :: [(SigLoc, Fingerprint)]
+                -> (SigLoc -> Sig Name)
+                -> Name
+                -> Int
+                -> Sig Name
+                -> [Int]
+searchTypeMatch db getSig arrow n sig =
     map snd $ takeSortOn fst n
-      [ (500 * v + fv, i) | (fv, (i, s, f)) <- bestByFingerprint
-                          , v  <- maybeToList (test s f)]
+      [ (500 * v + fv, i) | (fv, (i, sigIdx, f)) <- bestByFingerprint
+                          , v  <- maybeToList (test $ getSig sigIdx)]
     where bestByFingerprint = takeSortOn fst (max 5000 n)
-            [ (fv, (i, s, f)) | (i, s, f) <- zip3 [0..] sigs fs
-                             , fv <- maybeToList (matchFingerprint sig f) ]
-          sigs = readSignatures store
-          fs   = V.toList $ storeRead store TypesFingerprints :: [Fingerprint]
+            [ (fv, (i, sigIdx, f)) | (i, (sigIdx, f)) <- zip [0..] db
+                                   , fv <- maybeToList (matchFp f) ]
+          matchFp = matchFingerprint sig
           test = matchType arrow sig
-          arrow = lookupCtor store names "->"
 
-matchType :: Name -> Sig Name -> Sig Name -> Fingerprint -> Maybe Int
-matchType arr qry ans fp = unWork <$> lhs `matches` rhs
+matchType :: Name -> Sig Name -> Sig Name -> Maybe Int
+matchType arr qry ans = unWork <$> lhs `matches` rhs
     where
       lhs = (toTyp arr qry, sigCtx qry)
       rhs = (toTyp arr ans, sigCtx ans)
