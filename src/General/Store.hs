@@ -1,9 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable  #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE PatternGuards       #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE DeriveDataTypeable, GADTs, PatternGuards, RecordWildCards,
+             ScopedTypeVariables, ViewPatterns #-}
 
 module General.Store(
     Typeable, Stored,
@@ -68,9 +64,9 @@ decodeBS = decode . LBS.fromStrict
 
 -- each atom name is either unique (a scope) or "" (a list entry)
 data Atom = Atom
-    {atomType     :: String -- Type that the atom contains (for sanity checking)
+    {atomType :: String -- Type that the atom contains (for sanity checking)
     ,atomPosition :: {-# UNPACK #-} !Int -- Position at which the atom starts in the file
-    ,atomSize     :: {-# UNPACK #-} !Int -- Number of bytes the value takes up
+    ,atomSize :: {-# UNPACK #-} !Int -- Number of bytes the value takes up
     } deriving Show
 
 instance Binary Atom where
@@ -100,9 +96,9 @@ instance forall a . (Typeable a, Storable a) => Stored (V.Vector a) where
 -- WRITE OUT
 
 data SW = SW
-    {swHandle   :: Handle -- Immutable handle I write to
+    {swHandle :: Handle -- Immutable handle I write to
     ,swPosition :: !Int -- Position within swHandle
-    ,swAtoms    :: [(String, Atom)] -- List of pieces, in reverse
+    ,swAtoms :: [(String, Atom)] -- List of pieces, in reverse
     }
 
 newtype StoreWrite = StoreWrite (IORef SW)
@@ -163,9 +159,9 @@ storeWriteAtom (StoreWrite ref) (show . typeOf -> key) part (ptr, len) = do
 -- READ OUT
 
 data StoreRead = StoreRead
-    {srFile  :: FilePath
-    ,srLen   :: Int
-    ,srPtr   :: Ptr ()
+    {srFile :: FilePath
+    ,srLen :: Int
+    ,srPtr :: Ptr ()
     ,srAtoms :: Map.Map String Atom
     }
 

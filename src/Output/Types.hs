@@ -1,13 +1,6 @@
-{-# LANGUAGE BangPatterns               #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE DeriveFunctor              #-}
-{-# LANGUAGE GADTs                      #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE TupleSections              #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE BangPatterns, DeriveDataTypeable, DeriveFunctor, GADTs,
+             GeneralizedNewtypeDeriving, LambdaCase, RecordWildCards,
+             ScopedTypeVariables, TupleSections, ViewPatterns #-}
 
 module Output.Types(writeTypes, searchTypes, searchFingerprintsDebug) where
 
@@ -114,7 +107,7 @@ searchFingerprintsDebug store query answers = intercalate [""] $
                 fp = toFingerprint sn
 
                 showExplain = intercalate ", " . map g . sortOn (either (const minBound) (negate . snd))
-                g (Left s)       = "X " ++ s
+                g (Left s) = "X " ++ s
                 g (Right (s, x)) = show x ++ " " ++ s
 
 
@@ -276,7 +269,7 @@ writeFingerprints :: StoreWrite -> [Sig Name] -> IO ()
 writeFingerprints store xs = storeWrite store TypesFingerprints $ V.fromList $ map toFingerprint xs
 
 data MatchFingerprint a ma = MatchFingerprint
-    {mfpAdd  :: a -> a -> a
+    {mfpAdd :: a -> a -> a
     ,mfpAddM :: ma -> ma -> ma
     ,mfpJust :: a -> ma
     ,mfpCost :: String -> Int -> a
