@@ -52,12 +52,21 @@ writeTypes store debug xs = do
     writeSignatures store xs
 
 searchTypes :: StoreRead -> Sig String -> [TargetId]
-searchTypes store q = take nMatches (concat [ search qry' | variant <- variants, qry' <- variant qry ])
+searchTypes store q =
+    take nMatches (concat [ search fps qry' | variantClass <- variants
+                                            , fpSig <- case head variantClass qry of
+                                                          (f:_) -> [f]
+                                                          []    -> []
+                                            , let fps = bestByFingerprint db nMatches fpSig
+                                            , variant <- variantClass
+                                            , qry' <- variant qry
+                                            ])
     where
         nMatches = 100
         qry = lookupNames names name0 (strPack <$> q) -- map unknown fields to name0, i.e. _
         names = readNames store
-        search = concatMap (expandDuplicates $ readDuplicates store) . searchTypeMatch db getSig arrow nMatches
+        search fps sig = concatMap (expandDuplicates $ readDuplicates store)
+                         $ searchTypeMatch fps getSig arrow nMatches sig
         db  = zip (readSignatureIndex store)
                   (V.toList $ storeRead store TypesFingerprints :: [Fingerprint])
         getSig = readSignatureAt store
@@ -65,7 +74,10 @@ searchTypes store q = take nMatches (concat [ search qry' | variant <- variants,
 
         -- Different variations on the search query. Each variation is run in turn until we've gathered
         -- 100 hits or run out of variations to try.
-        variants = [ pure, permuted, partial, partial >=> permuted ]
+        -- As an optimization, these are grouped by variants that have the same fingerprint, saving
+        -- redundant scans through the fingerprint data.
+        variants = [ [ pure, permuted ],
+                     [ partial, partial >=> permuted ] ]
 
         -- Permute the arguments of a two-argument query.
         permuted qq = case sigTy qq of
@@ -374,21 +386,24 @@ readSignatureAt store (offset, size) = decodeBS (BS.take (fromIntegral size)
 ---------------------------------------------------------------------
 -- TYPE SEARCH
 
-searchTypeMatch :: [(SigLoc, Fingerprint)]
+searchTypeMatch :: [ (Int, (Int, SigLoc, Fingerprint)) ]
                 -> (SigLoc -> Sig Name)
                 -> Name
                 -> Int
                 -> Sig Name
                 -> [Int]
-searchTypeMatch db getSig arrow n sig =
+searchTypeMatch possibilities getSig arrow n sig =
     map snd $ takeSortOn fst n
-      [ (500 * v + fv, i) | (fv, (i, sigIdx, f)) <- bestByFingerprint
-                          , v  <- maybeToList (test $ getSig sigIdx)]
-    where bestByFingerprint = takeSortOn fst (max 5000 n)
-            [ (fv, (i, sigIdx, f)) | (i, (sigIdx, f)) <- zip [0..] db
-                                   , fv <- maybeToList (matchFp f) ]
-          matchFp = matchFingerprint sig
-          test = matchType arrow sig
+      [ (500 * v + fv, i) | (fv, (i, sigIdx, f)) <- possibilities
+                          , v  <- maybeToList (matchType arrow sig $ getSig sigIdx)]
+
+bestByFingerprint :: [(SigLoc, Fingerprint)] -> Int -> Sig Name -> [ (Int, (Int, SigLoc, Fingerprint)) ]
+bestByFingerprint db n sig =
+  takeSortOn fst (max 5000 n)
+    [ (fv, (i, sigIdx, f)) | (i, (sigIdx, f)) <- zip [0..] db
+                           , fv <- maybeToList (matchFp f) ]
+  where
+    matchFp = matchFingerprint sig
 
 matchType :: Name -> Sig Name -> Sig Name -> Maybe Int
 matchType arr qry ans = unWork <$> lhs `matches` rhs
