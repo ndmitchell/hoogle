@@ -53,7 +53,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             let parseType x = case parseQuery x of
                                   [QueryType t] -> (pretty t, hseToSig t)
                                   _ -> error $ "Expected a type signature, got: " ++ x
-            putStr $ unlines $ searchTypesDebug store (parseType $ unwords query) (map parseType compare_)
+            putStr $ unlines $ searchFingerprintsDebug store (parseType $ unwords query) (map parseType compare_)
 
 -- | Returns the details printed out when hoogle --info is called
 targetInfo :: Target -> String

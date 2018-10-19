@@ -58,19 +58,40 @@ writeTypes store debug xs = do
     writeFingerprints store xs
     writeSignatures store xs
 
-
 searchTypes :: StoreRead -> Sig String -> [TargetId]
-searchTypes store q =
-        concatMap (expandDuplicates $ readDuplicates store) $
-        searchFingerprints store names 100 $
-        lookupNames names name0 $ fmap strPack q
-        -- map unknown fields to name0, i.e. _
+searchTypes store q = take nMatches (concat [ search qry' | variant <- variants, qry' <- variant qry ])
     where
+        nMatches = 100
+        qry = lookupNames names name0 (strPack <$> q) -- map unknown fields to name0, i.e. _
         names = readNames store
+        search = concatMap (expandDuplicates $ readDuplicates store) . searchTypeMatch store names nMatches
 
+        -- Different variations on the search query. Each variation is run in turn until we've gathered
+        -- 100 hits or run out of variations to try.
+        variants = [ pure, permuted, partial, partial >=> permuted ]
 
-searchTypesDebug :: StoreRead -> (String, Sig String) -> [(String, Sig String)] -> [String]
-searchTypesDebug store query answers = intercalate [""] $
+        -- Permute the arguments of a two-argument query.
+        permuted qq = case sigTy qq of
+            [a1, a2, r] -> [ qq { sigTy = [a2, a1, r] } ]
+            _           -> []
+
+        -- Add a `Maybe` to the query's result type.
+        partial  qq = case sigTy qq of
+            []  -> []
+            tys -> [ qq { sigTy = init tys ++ [TCon maybeCtor [last tys]] } ]
+
+        maybeCtor = lookupCtor store names "Maybe"
+
+lookupCtor :: StoreRead -> Names -> String -> Name
+lookupCtor store names c =
+    case sigTy (lookupNames names name0 s) of
+        [TCon n _] -> n
+        _          -> name0
+    where
+      s = strPack <$> Sig { sigCtx = [], sigTy = [TCon c []] }
+
+searchFingerprintsDebug :: StoreRead -> (String, Sig String) -> [(String, Sig String)] -> [String]
+searchFingerprintsDebug store query answers = intercalate [""] $
     f False "Query" query : zipWith (\i -> f True ("Answer " ++ show i)) [1..] answers
     where
         qsig = lookupNames names name0 $ strPack <$> snd query
@@ -328,7 +349,6 @@ searchFingerprints store names n sig = map snd $ takeSortOn fst n [(v, i) | (i,f
     where fs = V.toList $ storeRead store TypesFingerprints :: [Fingerprint]
           test = matchFingerprint sig
 
-
 ---------------------------------------------------------------------
 -- SIGNATURES
 
@@ -344,3 +364,257 @@ writeSignatures store xs = do
         VM.write v i $ fromIntegral $ BS.length b
     v <- V.freeze v
     storeWrite store TypesSigPositions v
+
+readSignatures :: StoreRead -> [Sig Name]
+readSignatures store = go splitters bs
+  where tsps = V.toList $ storeRead store TypesSigPositions
+        splitters = map (BS.splitAt . fromIntegral) tsps
+        bs   = storeRead store TypesSigData
+        go [] _ = []
+        go (s:ss) bytes = let (part, rest) = s bytes
+                          in decodeBS part : go ss rest
+
+---------------------------------------------------------------------
+-- TYPE SEARCH
+
+searchTypeMatch :: StoreRead -> Names -> Int -> Sig Name -> [Int]
+searchTypeMatch store names n sig =
+    map snd $ takeSortOn fst n $
+      [ (500 * v + fv, i) | (fv, (i, s, f)) <- bestByFingerprint
+                          , v  <- maybeToList (test s f)]
+    where bestByFingerprint = takeSortOn fst (max 5000 n) $
+            [ (fv, (i, s, f)) | (i, s, f) <- zip3 [0..] sigs fs
+                             , fv <- maybeToList (matchFingerprint sig f) ]
+          sigs = readSignatures store
+          fs   = V.toList $ storeRead store TypesFingerprints :: [Fingerprint]
+          test = matchType arrow sig
+          arrow = lookupCtor store names "->"
+
+matchType :: Name -> Sig Name -> Sig Name -> Fingerprint -> Maybe Int
+matchType arr qry ans fp = unWork <$> lhs `matches` rhs
+    where
+      lhs = (toTyp arr qry, sigCtx qry)
+      rhs = (toTyp arr ans, sigCtx ans)
+
+-- Check if two types-with-context match, returning the amount of work
+-- needed to create the match.
+matches :: (Typ Name, [Ctx Name]) -> (Typ Name, [Ctx Name]) -> Maybe Work
+matches (lhs, lctx) (rhs, rctx) = runST $ evalStateT (getWork go) (Work 0)
+  where
+    go :: forall s. StateT Work (ST s) Bool
+    go = do
+        -- Try to unify the answer type with the query type.
+        (qry, qryC) <- lift (refTyp True  lhs lctx)
+        (ans, ansC) <- lift (refTyp False rhs rctx)
+        unifyTyp qry ans >>= \case
+            False -> return False
+            True  -> do
+                -- Normalize constraints
+                let normalize (Ctx c a) = lift (Ctx <$> getName c <*> getName a)
+                qryNCs <- Set.fromList <$> (mapM normalize qryC)
+                ansNCs <- Set.fromList <$> (mapM normalize ansC)
+
+                nqry <- lift $ normalizeTy qry
+                nans <- lift $ normalizeTy ans
+
+                -- Discharge constraints; remove any answer-constraint that is also a query-constraint,
+                -- and then remove any remaining answer-constraint that is constraining a concrete type.
+                -- TODO: keep constrained concrete types but weight them differently if they correspond
+                --       to a known instance (e.g. free if we know the instance, rather expensive otherwise).
+                let addl = filter isAbstract (Set.toList $ ansNCs `Set.difference` qryNCs)
+                    isAbstract (Ctx c a) = isVar a
+                    disch = filter (not . isAbstract) (Set.toList $ ansNCs `Set.difference` qryNCs)
+
+                workDelta (Work (3 * length addl))
+
+                return True
+
+    getWork action = action >>= \case
+        True  -> Just <$> get
+        False -> return Nothing
+
+    normalizeTy = \case
+        TyVar n tys -> TyVar <$> getName n <*> mapM normalizeTy tys
+        TyCon n tys -> TyCon <$> getName n <*> mapM normalizeTy tys
+        TyFun args retn -> TyFun <$> mapM normalizeTy args <*> normalizeTy retn
+
+
+-- A slight variation on 'Ty', with a special term for functions.
+data Typ n
+    = TyFun [Typ n] (Typ n)
+    | TyCon n [Typ n]
+    | TyVar n [Typ n]
+  deriving (Eq, Ord, Functor)
+
+-- Rebuild a little bit of recursion-schemes machinery for Typ.
+data TypF n t
+    = TyFunF [t] t
+    | TyConF n [t]
+    | TyVarF n [t]
+  deriving (Eq, Ord, Functor)
+
+unroll :: Typ n -> TypF n (Typ n)
+unroll = \case
+    TyFun args retn -> TyFunF args retn
+    TyCon n tys     -> TyConF n tys
+    TyVar n tys     -> TyVarF n tys
+
+roll :: TypF n (Typ n) -> Typ n
+roll = \case
+    TyFunF args retn -> TyFun args retn
+    TyConF n tys     -> TyCon n tys
+    TyVarF n tys     -> TyVar n tys
+
+foldTy :: (TypF n a -> a) -> Typ n -> a
+foldTy phi = phi . fmap (foldTy phi) . unroll
+
+prettyTyp :: Show n => Typ n -> String
+prettyTyp = \case
+    TyFun typs res -> "<" ++ intercalate ", " (map prettyTyp typs) ++ "; " ++ prettyTyp res ++ ">"
+    TyCon n args -> intercalate " " (show n : map prettyTyp args)
+    TyVar n args -> intercalate " " (show n : map prettyTyp args)
+
+-- Convert a Sig to a Typ.
+toTyp :: Name -> Sig Name -> Typ Name
+toTyp arrow Sig{..} = case sigTy of
+    [] -> error "no types?"
+    tys -> let args = init tys
+               retn = last tys
+           in TyFun (map toTy args) (toTy retn)
+  where
+    toTy = \case
+      TCon n []   | n == arrow -> TyCon n [] -- empty function type?!
+      TCon n tys | n == arrow -> TyFun (map toTy (init tys)) (toTy $ last tys)
+      TCon n tys -> TyCon n (map toTy tys)
+      TVar n tys -> TyVar n (map toTy tys)
+
+
+---------------------------------------------------------------------
+-- UNIFICATION
+
+-- A union-find data structure for names
+
+type NameRef s = STRef s (NameInfo s)
+
+data NameInfo s =
+    NameInfo { niParent :: !(Maybe (NameRef s))
+             , niRank   :: !Int
+             , niName   :: !Name
+             , niFree   :: !Bool
+             }
+  deriving Eq
+
+-- Find the name of the equivalence class's (current) representative.
+getName :: NameRef s -> ST s Name
+getName ref = do
+    rep <- findRep ref
+    niName <$> readSTRef rep
+
+-- Create a new name reference from a name. @fixed == True@ means
+-- that the reference cannot be unified with any other fixed refs.
+newNameInfo :: Bool -> Name -> ST s (STRef s (NameInfo s))
+newNameInfo fixed n = newSTRef $
+  NameInfo { niParent = Nothing
+           , niRank   = 0
+           , niName   = n
+           , niFree   = not fixed && isVar n
+           }
+
+-- The "find" part of union-find, with path compression.
+findRep :: NameRef s -> ST s (NameRef s)
+findRep ref = do
+    ni <- readSTRef ref
+    case niParent ni of
+        Nothing -> return ref
+        Just p  -> do
+            root <- findRep p
+            writeSTRef ref (ni { niParent = Just root })
+            return root
+
+-- The "union" part of union-find, with union-by-rank.
+-- Each unification is given a cost of 1 work unit.
+unifyName :: NameRef s -> NameRef s -> StateT Work (ST s) Bool
+unifyName lhs rhs = do
+    lhs' <- lift $ findRep lhs
+    rhs' <- lift $ findRep rhs
+    lInfo <- lift $ readSTRef lhs'
+    rInfo <- lift $ readSTRef rhs'
+    let lFree = niFree lInfo
+        rFree = niFree rInfo
+        lName = niName lInfo
+        rName = niName rInfo
+    let ok = lFree || rFree || lName == rName
+    when (ok && lInfo /= rInfo) $ do
+        -- Union by rank, except prefer concrete names over type variables.
+        workDelta (Work 1)
+        let lRank = niRank lInfo
+            rRank = niRank rInfo
+        let (root, child) = if not lFree || lRank <= rRank
+                            then (lhs', rhs')
+                            else (rhs', lhs')
+        lift $ modifySTRef' child (\n -> n { niParent = Just root })
+        when (lRank == rRank) $ lift $ modifySTRef' root (\n -> n { niRank = lRank + 1 })
+
+    return ok
+
+-- Allocate new references for each name that appears in the type and context.
+refTyp :: Bool -> Typ Name -> [Ctx Name] -> ST s (Typ (NameRef s), [Ctx (NameRef s)])
+refTyp fixed t cs =
+    evalStateT go (Map.fromList [])
+  where
+    go = do
+        ty  <- mkRefs t
+        ctx <- forM cs $ \(Ctx c a) -> Ctx <$> getRef c <*> getRef a
+        return (ty, ctx)
+
+    mkRefs = foldTy $ \case
+        TyVarF n args    -> TyVar <$> getRef n <*> sequence args
+        TyConF n args    -> TyCon <$> getRef n <*> sequence args
+        TyFunF args retn -> TyFun <$> sequence args <*> retn
+
+    getRef n = do
+        known <- get
+        case Map.lookup n known of
+            Just ref -> return ref
+            Nothing  -> do
+                ref <- lift (newNameInfo fixed n)
+                put (Map.insert n ref known)
+                return ref
+
+-- Unify two types.
+unifyTyp :: Typ (NameRef s) -> Typ (NameRef s) -> StateT Work (ST s) Bool
+unifyTyp lhs rhs = case (lhs, rhs) of
+    (TyCon n tys, TyVar n' tys') | length tys == length tys' -> do
+            ok <- unifyName n n'
+            if not ok
+              then return False
+              else and <$> mapM (uncurry unifyTyp) (zip tys tys')
+
+    (TyCon n tys, TyCon n' tys') | length tys == length tys' -> do
+            ok <- unifyName n n'
+            if not ok
+              then return False
+              else and <$> mapM (uncurry unifyTyp) (zip tys tys')
+
+    (TyVar n tys, TyVar n' tys') | length tys == length tys' -> do
+            ok <- unifyName n n'
+            if not ok
+              then return False
+              else and <$> mapM (uncurry unifyTyp) (zip tys tys')
+
+    (TyFun args ret, TyFun args' ret') | length args == length args' -> do
+            ok <- unifyTyp ret ret'
+            if not ok
+              then return False
+              else and <$> mapM (\(x,y) -> unifyTyp x y) (zip args args')
+
+    _ -> return False
+
+-- The total cost of a unification operation.
+newtype Work = Work Int
+
+unWork :: Work -> Int
+unWork (Work w) = w
+
+workDelta :: Monad m => Work -> StateT Work m ()
+workDelta (Work dw) = modify' (\(Work w) -> Work (w + dw))
