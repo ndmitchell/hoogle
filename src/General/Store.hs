@@ -1,39 +1,44 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards, ViewPatterns, DeriveDataTypeable, GADTs #-}
+{-# LANGUAGE DeriveDataTypeable  #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE PatternGuards       #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 module General.Store(
     Typeable, Stored,
-    intSize, intFromBS, intToBS, encodeBS,
+    intSize, intFromBS, intToBS, encodeBS, decodeBS,
     StoreWrite, storeWriteFile, storeWrite, storeWritePart,
     StoreRead, storeReadFile, storeRead,
     Jagged, jaggedFromList, jaggedAsk,
     ) where
 
-import Data.IORef.Extra
-import System.IO.Extra
-import Data.Typeable
-import qualified Data.Map as Map
-import qualified Data.Vector.Storable as V
-import qualified Data.ByteString.Char8 as BS
+import           Control.Applicative
+import           Control.DeepSeq
+import           Control.Exception
+import           Control.Monad.Extra
+import           Data.Binary
+import qualified Data.ByteString.Char8  as BS
+import qualified Data.ByteString.Lazy   as LBS
 import qualified Data.ByteString.Unsafe as BS
-import qualified Data.ByteString.Lazy as LBS
-import Foreign.C.String
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.ForeignPtr
-import Control.Monad.Extra
-import Control.Exception
-import Numeric.Extra
-import Data.Binary
-import Data.List.Extra
-import System.IO.MMap
-import Control.Applicative
-import System.IO.Unsafe
-import General.Util
-import Control.DeepSeq
-import Data.Version
-import Data.Char
-import Paths_hoogle
-import Prelude
+import           Data.Char
+import           Data.IORef.Extra
+import           Data.List.Extra
+import qualified Data.Map               as Map
+import           Data.Typeable
+import qualified Data.Vector.Storable   as V
+import           Data.Version
+import           Foreign.C.String
+import           Foreign.ForeignPtr
+import           Foreign.Ptr
+import           Foreign.Storable
+import           General.Util
+import           Numeric.Extra
+import           Paths_hoogle
+import           Prelude
+import           System.IO.Extra
+import           System.IO.MMap
+import           System.IO.Unsafe
 
 -- Ensure the string is always 25 chars long, so version numbers don't change its size
 -- Only use the first two components of the version number to identify the database
@@ -63,9 +68,9 @@ decodeBS = decode . LBS.fromStrict
 
 -- each atom name is either unique (a scope) or "" (a list entry)
 data Atom = Atom
-    {atomType :: String -- Type that the atom contains (for sanity checking)
+    {atomType     :: String -- Type that the atom contains (for sanity checking)
     ,atomPosition :: {-# UNPACK #-} !Int -- Position at which the atom starts in the file
-    ,atomSize :: {-# UNPACK #-} !Int -- Number of bytes the value takes up
+    ,atomSize     :: {-# UNPACK #-} !Int -- Number of bytes the value takes up
     } deriving Show
 
 instance Binary Atom where
@@ -95,9 +100,9 @@ instance forall a . (Typeable a, Storable a) => Stored (V.Vector a) where
 -- WRITE OUT
 
 data SW = SW
-    {swHandle :: Handle -- Immutable handle I write to
+    {swHandle   :: Handle -- Immutable handle I write to
     ,swPosition :: !Int -- Position within swHandle
-    ,swAtoms :: [(String, Atom)] -- List of pieces, in reverse
+    ,swAtoms    :: [(String, Atom)] -- List of pieces, in reverse
     }
 
 newtype StoreWrite = StoreWrite (IORef SW)
@@ -158,9 +163,9 @@ storeWriteAtom (StoreWrite ref) (show . typeOf -> key) part (ptr, len) = do
 -- READ OUT
 
 data StoreRead = StoreRead
-    {srFile :: FilePath
-    ,srLen :: Int
-    ,srPtr :: Ptr ()
+    {srFile  :: FilePath
+    ,srLen   :: Int
+    ,srPtr   :: Ptr ()
     ,srAtoms :: Map.Map String Atom
     }
 

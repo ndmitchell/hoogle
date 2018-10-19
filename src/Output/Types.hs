@@ -1,7 +1,15 @@
-{-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables #-}
-{-# LANGUAGE DeriveDataTypeable, GeneralizedNewtypeDeriving, BangPatterns, GADTs #-}
+{-# LANGUAGE BangPatterns               #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TupleSections              #-}
+{-# LANGUAGE ViewPatterns               #-}
 
-module Output.Types(writeTypes, searchTypes, searchTypesDebug) where
+module Output.Types(writeTypes, searchTypes, searchFingerprintsDebug) where
 
 {-
 Approach:
@@ -10,29 +18,34 @@ A quick search finds the most promising 100 fingerprints
 A slow search ranks the 100 items, excluding some
 -}
 
-import qualified Data.Map.Strict as Map
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.Vector.Storable as V
-import qualified Data.Vector.Storable.Mutable as VM
-import Data.Binary
-import Data.Maybe
-import Data.List.Extra
-import Data.Tuple.Extra
-import Data.Generics.Uniplate.Data
-import Data.Data
-import System.FilePath
-import System.IO.Extra
-import Control.Monad.Extra
-import Foreign.Storable
-import Control.Applicative
-import Numeric.Extra
-import Prelude
+import           Control.Applicative
+import           Control.Monad.Extra
+import           Control.Monad.ST
+import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.State.Strict
+import           Data.Binary                      hiding (get, put)
+import qualified Data.ByteString.Char8            as BS
+import           Data.Data
+import           Data.Generics.Uniplate.Data
+import           Data.List.Extra
+import qualified Data.Map.Strict                  as Map
+import           Data.Maybe
+import qualified Data.Set                         as Set
+import           Data.STRef
+import           Data.Tuple.Extra
+import qualified Data.Vector.Storable             as V
+import qualified Data.Vector.Storable.Mutable     as VM
+import           Foreign.Storable
+import           Numeric.Extra
+import           Prelude
+import           System.FilePath
+import           System.IO.Extra
 
-import Input.Item
-import General.Store
-import General.IString
-import General.Str
-import General.Util
+import           General.IString
+import           General.Store
+import           General.Str
+import           General.Util
+import           Input.Item
 
 
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
@@ -76,7 +89,7 @@ searchTypesDebug store query answers = intercalate [""] $
                 fp = toFingerprint sn
 
                 showExplain = intercalate ", " . map g . sortOn (either (const minBound) (negate . snd))
-                g (Left s) = "X " ++ s
+                g (Left s)       = "X " ++ s
                 g (Right (s, x)) = show x ++ " " ++ s
 
 
@@ -238,13 +251,12 @@ writeFingerprints :: StoreWrite -> [Sig Name] -> IO ()
 writeFingerprints store xs = storeWrite store TypesFingerprints $ V.fromList $ map toFingerprint xs
 
 data MatchFingerprint a ma = MatchFingerprint
-    {mfpAdd :: a -> a -> a
+    {mfpAdd  :: a -> a -> a
     ,mfpAddM :: ma -> ma -> ma
     ,mfpJust :: a -> ma
     ,mfpCost :: String -> Int -> a
     ,mfpMiss :: String -> ma
     }
-
 
 matchFingerprint :: Sig Name -> Fingerprint -> Maybe Int
 matchFingerprint = matchFingerprintEx MatchFingerprint{..}

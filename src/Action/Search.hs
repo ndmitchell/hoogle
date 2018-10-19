@@ -1,4 +1,6 @@
-{-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Action.Search
     (actionSearch, withSearch, search
@@ -7,24 +9,24 @@ module Action.Search
     ,action_search_test
     ) where
 
-import Control.Monad.Extra
-import Control.DeepSeq
-import Data.Maybe
-import qualified Data.Set as Set
-import Data.List.Extra
-import Data.Functor.Identity
-import System.Directory
+import           Control.DeepSeq
+import           Control.Monad.Extra
+import           Data.Functor.Identity
+import           Data.List.Extra
+import           Data.Maybe
+import qualified Data.Set              as Set
+import           System.Directory
 
-import Output.Items
-import Output.Tags
-import Output.Names
-import Output.Types
-import General.Store
-import Query
-import Input.Item
-import Action.CmdLine
-import General.Util
-import General.Str
+import           Action.CmdLine
+import           General.Store
+import           General.Str
+import           General.Util
+import           Input.Item
+import           Output.Items
+import           Output.Names
+import           Output.Tags
+import           Output.Types
+import           Query
 
 -- -- generate all
 -- @tagsoup -- generate tagsoup
