@@ -379,10 +379,10 @@ readSignatures store = go splitters bs
 
 searchTypeMatch :: StoreRead -> Names -> Int -> Sig Name -> [Int]
 searchTypeMatch store names n sig =
-    map snd $ takeSortOn fst n $
+    map snd $ takeSortOn fst n
       [ (500 * v + fv, i) | (fv, (i, s, f)) <- bestByFingerprint
                           , v  <- maybeToList (test s f)]
-    where bestByFingerprint = takeSortOn fst (max 5000 n) $
+    where bestByFingerprint = takeSortOn fst (max 5000 n)
             [ (fv, (i, s, f)) | (i, s, f) <- zip3 [0..] sigs fs
                              , fv <- maybeToList (matchFingerprint sig f) ]
           sigs = readSignatures store
@@ -471,8 +471,8 @@ foldTy phi = phi . fmap (foldTy phi) . unroll
 prettyTyp :: Show n => Typ n -> String
 prettyTyp = \case
     TyFun typs res -> "<" ++ intercalate ", " (map prettyTyp typs) ++ "; " ++ prettyTyp res ++ ">"
-    TyCon n args -> intercalate " " (show n : map prettyTyp args)
-    TyVar n args -> intercalate " " (show n : map prettyTyp args)
+    TyCon n args -> unwords (show n : map prettyTyp args)
+    TyVar n args -> unwords (show n : map prettyTyp args)
 
 -- Convert a Sig to a Typ.
 toTyp :: Name -> Sig Name -> Typ Name
@@ -588,25 +588,25 @@ unifyTyp lhs rhs = case (lhs, rhs) of
             ok <- unifyName n n'
             if not ok
               then return False
-              else and <$> mapM (uncurry unifyTyp) (zip tys tys')
+              else and <$> zipWithM unifyTyp tys tys'
 
     (TyCon n tys, TyCon n' tys') | length tys == length tys' -> do
             ok <- unifyName n n'
             if not ok
               then return False
-              else and <$> mapM (uncurry unifyTyp) (zip tys tys')
+              else and <$> zipWithM unifyTyp tys tys'
 
     (TyVar n tys, TyVar n' tys') | length tys == length tys' -> do
             ok <- unifyName n n'
             if not ok
               then return False
-              else and <$> mapM (uncurry unifyTyp) (zip tys tys')
+              else and <$> zipWithM unifyTyp tys tys'
 
     (TyFun args ret, TyFun args' ret') | length args == length args' -> do
             ok <- unifyTyp ret ret'
             if not ok
               then return False
-              else and <$> mapM (\(x,y) -> unifyTyp x y) (zip args args')
+              else and <$> zipWithM unifyTyp args args'
 
     _ -> return False
 
