@@ -344,11 +344,6 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
                                             floor $ (p*common) + ((1-p)*rare)
 
 
-searchFingerprints :: StoreRead -> Names -> Int -> Sig Name -> [Int]
-searchFingerprints store names n sig = map snd $ takeSortOn fst n [(v, i) | (i,f) <- zip [0..] fs, Just v <- [test f]]
-    where fs = V.toList $ storeRead store TypesFingerprints :: [Fingerprint]
-          test = matchFingerprint sig
-
 ---------------------------------------------------------------------
 -- SIGNATURES
 
@@ -423,7 +418,6 @@ matches (lhs, lctx) (rhs, rctx) = runST $ evalStateT (getWork go) (Work 0)
                 --       to a known instance (e.g. free if we know the instance, rather expensive otherwise).
                 let addl = filter isAbstract (Set.toList $ ansNCs `Set.difference` qryNCs)
                     isAbstract (Ctx c a) = isVar a
-                    disch = filter (not . isAbstract) (Set.toList $ ansNCs `Set.difference` qryNCs)
 
                 workDelta (Work (3 * length addl))
 
@@ -459,20 +453,14 @@ unroll = \case
     TyCon n tys     -> TyConF n tys
     TyVar n tys     -> TyVarF n tys
 
-roll :: TypF n (Typ n) -> Typ n
-roll = \case
-    TyFunF args retn -> TyFun args retn
-    TyConF n tys     -> TyCon n tys
-    TyVarF n tys     -> TyVar n tys
-
 foldTy :: (TypF n a -> a) -> Typ n -> a
 foldTy phi = phi . fmap (foldTy phi) . unroll
 
-prettyTyp :: Show n => Typ n -> String
-prettyTyp = \case
-    TyFun typs res -> "<" ++ intercalate ", " (map prettyTyp typs) ++ "; " ++ prettyTyp res ++ ">"
-    TyCon n args -> unwords (show n : map prettyTyp args)
-    TyVar n args -> unwords (show n : map prettyTyp args)
+instance Show n => Show (Typ n) where
+    show = foldTy $ \case
+        TyFunF typs res -> "<" ++ intercalate ", " typs ++ "; " ++ res ++ ">"
+        TyConF n args -> unwords (show n : args)
+        TyVarF n args -> unwords (show n : args)
 
 -- Convert a Sig to a Typ.
 toTyp :: Name -> Sig Name -> Typ Name
