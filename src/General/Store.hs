@@ -9,32 +9,32 @@ module General.Store(
     Jagged, jaggedFromList, jaggedAsk,
     ) where
 
-import           Control.Applicative
-import           Control.DeepSeq
-import           Control.Exception
-import           Control.Monad.Extra
-import           Data.Binary
-import qualified Data.ByteString.Char8  as BS
-import qualified Data.ByteString.Lazy   as LBS
+import Control.Applicative
+import Control.DeepSeq
+import Control.Exception
+import Control.Monad.Extra
+import Data.Binary
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as LBS
 import qualified Data.ByteString.Unsafe as BS
-import           Data.Char
-import           Data.IORef.Extra
-import           Data.List.Extra
-import qualified Data.Map               as Map
-import           Data.Typeable
-import qualified Data.Vector.Storable   as V
-import           Data.Version
-import           Foreign.C.String
-import           Foreign.ForeignPtr
-import           Foreign.Ptr
-import           Foreign.Storable
-import           General.Util
-import           Numeric.Extra
-import           Paths_hoogle
-import           Prelude
-import           System.IO.Extra
-import           System.IO.MMap
-import           System.IO.Unsafe
+import Data.Char
+import Data.IORef.Extra
+import Data.List.Extra
+import qualified Data.Map as Map
+import Data.Typeable
+import qualified Data.Vector.Storable as V
+import Data.Version
+import Foreign.C.String
+import Foreign.ForeignPtr
+import Foreign.Ptr
+import Foreign.Storable
+import General.Util
+import Numeric.Extra
+import Paths_hoogle
+import Prelude
+import System.IO.Extra
+import System.IO.MMap
+import System.IO.Unsafe
 
 -- Ensure the string is always 25 chars long, so version numbers don't change its size
 -- Only use the first two components of the version number to identify the database

@@ -11,34 +11,34 @@ A quick search finds the most promising 100 fingerprints
 A slow search ranks the 100 items, excluding some
 -}
 
-import           Control.Applicative
-import           Control.Monad.Extra
-import           Control.Monad.ST
-import           Control.Monad.Trans.Class
-import           Control.Monad.Trans.State.Strict
-import           Data.Binary                      hiding (get, put)
-import qualified Data.ByteString.Char8            as BS
-import           Data.Data
-import           Data.Generics.Uniplate.Data
-import           Data.List.Extra
-import qualified Data.Map.Strict                  as Map
-import           Data.Maybe
-import qualified Data.Set                         as Set
-import           Data.STRef
-import           Data.Tuple.Extra
-import qualified Data.Vector.Storable             as V
-import qualified Data.Vector.Storable.Mutable     as VM
-import           Foreign.Storable
-import           Numeric.Extra
-import           Prelude
-import           System.FilePath
-import           System.IO.Extra
+import Control.Applicative
+import Control.Monad.Extra
+import Control.Monad.ST
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.State.Strict
+import Data.Binary hiding (get, put)
+import qualified Data.ByteString.Char8 as BS
+import Data.Data
+import Data.Generics.Uniplate.Data
+import Data.List.Extra
+import qualified Data.Map.Strict as Map
+import Data.Maybe
+import qualified Data.Set as Set
+import Data.STRef
+import Data.Tuple.Extra
+import qualified Data.Vector.Storable as V
+import qualified Data.Vector.Storable.Mutable as VM
+import Foreign.Storable
+import Numeric.Extra
+import Prelude
+import System.FilePath
+import System.IO.Extra
 
-import           General.IString
-import           General.Store
-import           General.Str
-import           General.Util
-import           Input.Item
+import General.IString
+import General.Store
+import General.Str
+import General.Util
+import Input.Item
 
 
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
