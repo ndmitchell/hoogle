@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards, ScopedTypeVariables, TupleSections #-}
 
 module Action.Search
     (actionSearch, withSearch, search
@@ -7,24 +7,24 @@ module Action.Search
     ,action_search_test
     ) where
 
-import Control.Monad.Extra
 import Control.DeepSeq
+import Control.Monad.Extra
+import Data.Functor.Identity
+import Data.List.Extra
 import Data.Maybe
 import qualified Data.Set as Set
-import Data.List.Extra
-import Data.Functor.Identity
 import System.Directory
 
-import Output.Items
-import Output.Tags
-import Output.Names
-import Output.Types
-import General.Store
-import Query
-import Input.Item
 import Action.CmdLine
-import General.Util
+import General.Store
 import General.Str
+import General.Util
+import Input.Item
+import Output.Items
+import Output.Names
+import Output.Tags
+import Output.Types
+import Query
 
 -- -- generate all
 -- @tagsoup -- generate tagsoup
@@ -51,7 +51,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             let parseType x = case parseQuery x of
                                   [QueryType t] -> (pretty t, hseToSig t)
                                   _ -> error $ "Expected a type signature, got: " ++ x
-            putStr $ unlines $ searchTypesDebug store (parseType $ unwords query) (map parseType compare_)
+            putStr $ unlines $ searchFingerprintsDebug store (parseType $ unwords query) (map parseType compare_)
 
 -- | Returns the details printed out when hoogle --info is called
 targetInfo :: Target -> String

@@ -1,0 +1,99 @@
+Todo list re: concrete test cases
+
+[ ] Make this todo list into a test suite.
+
+[-] "(a -> [a]) -> [a] -> [a]"
+    [-] should find `concatMap`
+        [X] should find `concatMap` first
+	[ ] should find `concatMap` *from base* first
+    [X] should give `(=<<)` next
+    [X] should give `(>>=)` later on?
+
+[X] "[a] -> Maybe a"
+    [X] should find `listToMaybe` first
+    [X] should find `headMay` in top 10
+
+[-] "a -> [a]"
+    [X] should find `repeat` in top 10
+    [X] should find `singleton` in top 10
+    [-] should find `return` and `pure`
+        [ ] ...in top 10
+    [ ] should have lower search rank for QuickCheck, HaXml hits
+    [X] should *not* match `head`, `last`
+    
+[X] "[a] -> a"
+    [X] should find `head` in top 5
+    [X] should find `last` in top 5
+    [X] should *not* match `repeat`
+
+[X] "[Char] -> Char"
+    [X] should match `head`, `last`
+    [X] should *not* match `mconcat` in top 20
+
+[-] "a -> b"
+    [X] should *not* match `id`
+    [X] should find `unsafeCoerce`
+    [-] should find `coerce`
+        [ ] ...in top 5
+
+[ ] "String -> (Char -> Maybe Char) -> Maybe String" (c/o @ndrssmn)
+    [ ] should match `traverse`
+    [ ] should match `forM`
+    [ ] should match `mapM`
+
+[X] "a -> [(a,b)] -> b" (ndmitchell's favorite example)
+    [X] should not match `zip`
+    [X] should match "lookup :: Eq a => a -> [(a,b)] -> Maybe a"
+    [X] should match `pairsToFunction`
+
+[-] "[(a,b)] -> a -> b" (ndmitchell's favorite example, revisited)
+    [X] should not match `zip`
+    [X] should match "lookup :: Eq a => a -> [(a,b)] -> Maybe a"
+    [X] should match `pairsToFunction`
+
+[ ] "(a -> b -> c) -> (a -> b) -> a -> a"
+    [ ] should match `ap`
+    [ ] should match `(<*>)`
+
+[-] "(a -> m b) -> t a -> m (t b)" (GitHub issue #218)
+    [X] should find `traverse`
+    [X] should find `mapM`
+    [X] should find `forM`
+    [-] should find `mapConcurrently`
+        [ ] ...but rank it after `traverse` and `mapM`
+
+[X] "m (m a) -> m a" (GitHub issue #252)
+    [X] should find `join` as top hit
+
+[X] "String -> Int" (GitHub issue #242)
+    [X] should not find `cursorUpCode :: Int -> String`
+
+[X] "(a -> b) -> f a -> f b" (GitHub issue #213)
+    [X] should find `fmap` as top hit
+    [X] should find `(<$>)`
+    [X] should find `(<&>)`
+    
+[-] GitHub issue #180
+    [X] "a -> b" should not give `id`
+    [-] "IO a -> m a"
+        [X] should find `liftIO`
+	[ ] ...as top hit
+    [-] "a -> m a"
+        [X] should find `pure` and `return`
+	[ ] ...as top hit
+    [X] "(a -> a) -> k -> Map k a -> Map k a" should give `adjust`.
+
+[-] GitHub issue #127
+    [-] "Int -> Integer"
+        [X] should match `toInteger`
+	[X] ...in top 10
+	[ ] ...as top hit.
+    [-] "Integer -> Int"
+        [X] should match `fromInteger`
+	[X] ...in top 10
+	[ ] ...as top hit
+
+[X] "[Parser a] -> Parser a" (GitHub issue #90)
+    [X] should find `choice`
+      
+    
