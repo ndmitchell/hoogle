@@ -58,7 +58,7 @@ main = do
             "nohup rdr2tls --port=8080 --path=hoogle.haskell.org >> ../../out-rdr2tls.txt 2>&1 &"
         echo system_
             "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444 >> ../../out-frege-rdr2tls.txt 2>&1 &"
-        writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=haskell.hoo --port=8080 --log=../../log.txt >> ../../out.txt &\n"
+        writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=haskell.hoo --port=8080 --log=../../log.txt +RTS -I0 >> ../../out.txt &\n"
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
 
     dirs <- filterM doesDirectoryExist =<< listContents "hoogle-upgrade"
