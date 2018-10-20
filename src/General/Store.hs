@@ -1,39 +1,40 @@
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, PatternGuards, ViewPatterns, DeriveDataTypeable, GADTs #-}
+{-# LANGUAGE DeriveDataTypeable, GADTs, PatternGuards, RecordWildCards,
+             ScopedTypeVariables, ViewPatterns #-}
 
 module General.Store(
     Typeable, Stored,
-    intSize, intFromBS, intToBS, encodeBS,
+    intSize, intFromBS, intToBS, encodeBS, decodeBS,
     StoreWrite, storeWriteFile, storeWrite, storeWritePart,
     StoreRead, storeReadFile, storeRead,
     Jagged, jaggedFromList, jaggedAsk,
     ) where
 
-import Data.IORef.Extra
-import System.IO.Extra
-import Data.Typeable
-import qualified Data.Map as Map
-import qualified Data.Vector.Storable as V
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.Unsafe as BS
-import qualified Data.ByteString.Lazy as LBS
-import Foreign.C.String
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.ForeignPtr
-import Control.Monad.Extra
-import Control.Exception
-import Numeric.Extra
-import Data.Binary
-import Data.List.Extra
-import System.IO.MMap
 import Control.Applicative
-import System.IO.Unsafe
-import General.Util
 import Control.DeepSeq
-import Data.Version
+import Control.Exception
+import Control.Monad.Extra
+import Data.Binary
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Unsafe as BS
 import Data.Char
+import Data.IORef.Extra
+import Data.List.Extra
+import qualified Data.Map as Map
+import Data.Typeable
+import qualified Data.Vector.Storable as V
+import Data.Version
+import Foreign.C.String
+import Foreign.ForeignPtr
+import Foreign.Ptr
+import Foreign.Storable
+import General.Util
+import Numeric.Extra
 import Paths_hoogle
 import Prelude
+import System.IO.Extra
+import System.IO.MMap
+import System.IO.Unsafe
 
 -- Ensure the string is always 25 chars long, so version numbers don't change its size
 -- Only use the first two components of the version number to identify the database
