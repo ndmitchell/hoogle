@@ -171,11 +171,9 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "supero" === hackage "supero"
 
         query "(a -> [a]) -> [a] -> [a]"
-            [ TopHit   ("concatMap" `inModule` "GHC.OldList")
-            , KnownFailure "GitHub issue #267" $
-                  ("concatMap" `inModule` "Prelude") `AppearsBefore` ("concatMap" `inModule` "GHC.OldList")
-            , InTop 5  ("(=<<)"      `inPackage` "base")
-            , InTop 50 ("(>>=)"      `inPackage` "base")
+            [ TopHit   ("concatMap" `inPackage` "base")
+            , InTop 10 ("(=<<)" `inPackage` "base")
+            , InTop 50 ("(>>=)" `inPackage` "base")
             ]
         query "[a] -> Maybe a"
             [ TopHit  ("listToMaybe" `inModule` "Data.Maybe")
@@ -187,7 +185,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             , DoesNotFind ("head"      `inPackage` "base")
             , DoesNotFind ("last"      `inPackage` "base")
             , InTop 50    ("pure"      `inPackage` "base")
-            , InTop 50    ("return"    `inPackage` "base")
+            , InTop 100   ("return"    `inPackage` "base")
             , KnownFailure "GitHub issue #267" $
                   ("pure" `inPackage` "base") `AppearsBefore` ("shrinkNothing" `inModule` "Test.QuickCheck")
             , KnownFailure "GitHub issue #267" $
@@ -208,7 +206,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             [ TopHit ("unsafeCoerce" `inModule` "Unsafe.Coerce")
             , DoesNotFind ("id" `inPackage` "base") -- see GitHub issue #180
             , KnownFailure "GitHub issue #268" $
-                  InTop 500 ("coerce" `inModule` "Data.Coerce")
+                  InTop 20 ("coerce" `inModule` "Data.Coerce")
             , KnownFailure "GitHub issue #268" $
                   InTop 5   ("coerce" `inModule` "Data.Coerce")
             ]
@@ -221,13 +219,11 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
                   InTop 10 ("forM" `inPackage` "base")
             ]
         query "a -> [(a,b)] -> b"
-            [ InTop 3 ("lookup" `inPackage` "base")
-            , InTop 3 ("pairsToFunction" `inPackage` "leancheck")
+            [ TopHit  ("lookup" `inPackage` "base")
             , DoesNotFind ("zip" `inPackage` "base")
             ]
         query "[(a,b)] -> a -> b"
-            [ InTop 3 ("lookup" `inPackage` "base")
-            , InTop 3 ("pairsToFunction" `inPackage` "leancheck")
+            [ TopHit ("lookup" `inPackage` "base")
             , DoesNotFind ("zip" `inPackage` "base")
             ]
         query "(a -> m b) -> t a -> m (t b)" -- see GitHub issue #218
@@ -253,14 +249,16 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             [ TopHit ("fmap" `inPackage` "base")
             ]
         query "(a -> b) -> Maybe a -> Maybe b"
-            [ TopHit ("fmap" `inPackage` "base")
+            [ InTop 3 ("fmap" `inPackage` "base")
             ]
         query "IO a -> m a" -- see GitHub issue #180
-            [ InTop 3 ("liftIO" `inPackage` "base")
+            [ InTop 50 ("liftIO" `inPackage` "base")
+            , KnownFailure "GitHub issue #180" $
+                  InTop 3 ("liftIO" `inPackage` "base")
             ]
         query "a -> m a" -- see GitHub issue #180
             [ InTop 20 ("pure" `inPackage` "base")
-            , InTop 30 ("return" `inPackage` "base")
+            , InTop 50 ("return" `inPackage` "base")
             , KnownFailure "GitHub issue #267" $
                   InTop 3 ("pure" `inPackage` "base")
             , KnownFailure "GitHub issue #267" $
@@ -270,12 +268,12 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             [ TopHit ("adjust" `inPackage` "containers")
             ]
         query "Int -> Integer" -- see GitHub issue #127
-            [ InTop 10 ("toInteger" `inPackage` "base")
+            [ InTop 40 ("toInteger" `inPackage` "base")
             , KnownFailure "GitHub issue #127" $
                   TopHit ("toInteger" `inPackage` "base")
             ]
         query "Integer -> Int" -- see GitHub issue #127
-            [ InTop 10 ("fromInteger" `inPackage` "base")
+            [ InTop 40 ("fromInteger" `inPackage` "base")
             , KnownFailure "GitHub issue #127" $
                   TopHit ("fromInteger" `inPackage` "base")
             ]
