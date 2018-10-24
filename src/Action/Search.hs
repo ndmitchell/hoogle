@@ -107,9 +107,6 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
                 _ -> error $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res)
     let a === b = a ==$ (== b)
 
-    let top n a b = return $ isJust $ find ((== b) . targetURL) $ take n $ snd $ search store (parseQuery a)
-        doesNotFind a b = not . top 1000 a b
-
     let query :: String -> [ExpectedQueryResult] -> IO ()
         query a qrs = let results = snd (search store (parseQuery a))
                       in forM_ qrs $ \qr -> case matchQR qr results of
