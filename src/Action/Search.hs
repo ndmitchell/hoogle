@@ -275,8 +275,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
                   TopHit ("fromInteger" `inPackage` "base")
             ]
         query "[Parser a] -> Parser a" -- see GitHub issue #90
-            [ TopHit ("choice" `inPackage` "HCodecs")
-            , InTop 10 ("choice" `inPackage` "attoparsec")
+            [ InTop 10 ("choice" `inPackage` "attoparsec")
             ]
 
         let tags = completionTags store
