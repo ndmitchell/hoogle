@@ -130,6 +130,21 @@ instance ToJSON Target where
         maybeNamedURL m = maybe emptyObject namedURL m
         namedURL (name, url) = object [("name" :: T.Text, toJSON $ strUnpack name), ("url" :: T.Text, toJSON url)]
 
+instance FromJSON Target where
+  parseJSON = withObject "target" $ \o ->
+    Target <$> o .: ("url" :: T.Text)
+           <*> maybeNamedURL ("package" :: T.Text) o
+           <*> maybeNamedURL ("module" :: T.Text) o
+           <*> o .: ("type" :: T.Text)
+           <*> o .: ("item" :: T.Text)
+           <*> o .: ("docs" :: T.Text)
+    where maybeNamedURL na p = do
+              maybeObj <- p .:? na
+              case maybeObj of Nothing -> return Nothing
+                               Just q -> do
+                                  name <- q .: ("name" :: T.Text)
+                                  url  <- q .: ("url" :: T.Text)
+                                  return $ Just (strPack name, url)
 
 targetExpandURL :: Target -> Target
 targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const mod) <$> targetModule}
