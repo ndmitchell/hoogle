@@ -7,7 +7,7 @@ module Input.Item(
     Item(..), itemName,
     Target(..), targetExpandURL, TargetId(..),
     splitIPackage, splitIModule,
-    hseToSig, hseToItem
+    hseToSig, hseToItem, item_test
     ) where
 
 import Numeric
@@ -26,8 +26,10 @@ import General.Util
 import General.Str
 import General.IString
 import Prelude
+import qualified Data.Aeson as J
 import Data.Aeson.Types
 import qualified Data.Text as T
+import Test.QuickCheck
 ---------------------------------------------------------------------
 -- TYPES
 
@@ -131,20 +133,32 @@ instance ToJSON Target where
         namedURL (name, url) = object [("name" :: T.Text, toJSON $ strUnpack name), ("url" :: T.Text, toJSON url)]
 
 instance FromJSON Target where
-  parseJSON = withObject "target" $ \o ->
+  parseJSON = withObject "Target" $ \o ->
     Target <$> o .: ("url" :: T.Text)
-           <*> maybeNamedURL ("package" :: T.Text) o
-           <*> maybeNamedURL ("module" :: T.Text) o
+           <*> o `namedUrl` ("package" :: T.Text)
+           <*> o `namedUrl` ("module" :: T.Text)
            <*> o .: ("type" :: T.Text)
            <*> o .: ("item" :: T.Text)
            <*> o .: ("docs" :: T.Text)
-    where maybeNamedURL na p = do
-              maybeObj <- p .:? na
-              case maybeObj of Nothing -> return Nothing
-                               Just q -> do
-                                  name <- q .: ("name" :: T.Text)
-                                  url  <- q .: ("url" :: T.Text)
-                                  return $ Just (strPack name, url)
+    where namedUrl o' n = do
+             mObj <- o' .: n
+             if null mObj then return Nothing
+                        else do
+                           pkName <- mObj .: ("name" :: T.Text)
+                           pkUrl  <- mObj .: ("url" :: T.Text)
+                           return $ Just (strPack pkName ,pkUrl)
+
+instance Arbitrary Target where
+  arbitrary = Target <$> a
+                     <*> mNurl
+                     <*> mNurl
+                     <*> a
+                     <*> a
+                     <*> a
+    where a = arbitrary
+          mNurl = do
+            oneof [return Nothing
+                 , Just <$> liftA2 (,) (strPack <$> a) a]
 
 targetExpandURL :: Target -> Target
 targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const mod) <$> targetModule}
@@ -167,6 +181,11 @@ splitUsing f = repeatedly $ \(x:xs) ->
     let (a,b) = break (isJust . f) xs
     in ((fromMaybe mempty $ f x, x:a), b)
 
+item_test :: IO ()
+item_test = testing "Input.Item.Target JSON (encode . decode = id) " $ do
+  quickCheck $ \(t :: Target) -> case J.eitherDecode $ J.encode t of
+    (Left  e ) -> False
+    (Right t') -> t == t'
 
 ---------------------------------------------------------------------
 -- HSE CONVERSION
