@@ -25,6 +25,7 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ withTempFile $ \sample 
     input_haddock_test
     query_test
     action_server_test_
+    item_test
     putStrLn ""
 
     putStrLn "Sample database tests"
