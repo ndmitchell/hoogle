@@ -221,7 +221,7 @@ showURL _ _ x = x
 
 highlightItem :: [Query] -> String -> String
 highlightItem qs x
-    | Just (pre,x) <- stripInfix "<0>" x, Just (name,post) <- stripInfix "</0>" x = pre ++ highlight (unescapeHTML name) ++ post
+    | Just (pre,x) <- stripInfix "<s0>" x, Just (name,post) <- stripInfix "</s0>" x = pre ++ highlight (unescapeHTML name) ++ post
     | otherwise = x
     where
         highlight = concatMap (\xs@((b,_):_) -> let s = escapeHTML $ map snd xs in if b then "<b>" ++ s ++ "</b>" else s) .
@@ -239,19 +239,19 @@ displayItem = highlightItem
 action_server_test_ :: IO ()
 action_server_test_ = do
     testing "Action.Server.displayItem" $ do
-        let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<0>" "" . replace "</0>" ""
+        let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<s0>" "" . replace "</s0>" ""
             contract = replace "{" "" . replace "}" ""
         let q === s | displayItem (parseQuery q) (contract s) == expand s = putChar '.'
                     | otherwise = error $ show (q,s,displayItem (parseQuery q) (contract s))
-        "test" === "<0>my{Test}</0> :: Int -&gt; test"
-        "new west" === "<0>{newest}_{new}</0> :: Int"
-        "+*" === "(<0>{+*}&amp;</0>) :: Int"
-        "+<" === "(<0>&gt;{+&lt;}</0>) :: Int"
-        "foo" === "<i>data</i> <0>{Foo}d</0>"
-        "foo" === "<i>type</i> <0>{Foo}d</0>"
-        "foo" === "<i>type family</i> <0>{Foo}d</0>"
-        "foo" === "<i>module</i> Foo.Bar.<0>F{Foo}</0>"
-        "foo" === "<i>module</i> <0>{Foo}o</0>"
+        "test" === "<s0>my{Test}</s0> :: Int -&gt; test"
+        "new west" === "<s0>{newest}_{new}</s0> :: Int"
+        "+*" === "(<s0>{+*}&amp;</s0>) :: Int"
+        "+<" === "(<s0>&gt;{+&lt;}</s0>) :: Int"
+        "foo" === "<i>data</i> <s0>{Foo}d</s0>"
+        "foo" === "<i>type</i> <s0>{Foo}d</s0>"
+        "foo" === "<i>type family</i> <s0>{Foo}d</s0>"
+        "foo" === "<i>module</i> Foo.Bar.<s0>F{Foo}</s0>"
+        "foo" === "<i>module</i> <s0>{Foo}o</s0>"
 
 action_server_test :: Bool -> FilePath -> IO ()
 action_server_test sample database = do

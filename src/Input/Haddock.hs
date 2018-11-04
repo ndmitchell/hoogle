@@ -80,8 +80,8 @@ hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
         orIfNull x y = if null x then y else x
 
 
-renderPackage x = "<b>package</b> <span class=name><0>" ++ escapeHTML (strUnpack x) ++ "</0></span>"
-renderModule (breakEnd (== '.') . strUnpack -> (pre,post)) = "<b>module</b> " ++ escapeHTML pre ++ "<span class=name><0>" ++ escapeHTML post ++ "</0></span>"
+renderPackage x = "<b>package</b> <span class=name><s0>" ++ escapeHTML (strUnpack x) ++ "</s0></span>"
+renderModule (breakEnd (== '.') . strUnpack -> (pre,post)) = "<b>module</b> " ++ escapeHTML pre ++ "<span class=name><s0>" ++ escapeHTML post ++ "</s0></span>"
 
 
 renderItem :: Entry -> String
@@ -104,7 +104,7 @@ renderItem = keyword . focus
         focus (EDecl x) = pretty x
 
         highlight :: String -> String
-        highlight x = "<0>" ++ escapeHTML x ++ "</0>"
+        highlight x = "<s0>" ++ escapeHTML x ++ "</s0>"
 
 
 parseLine :: String -> Either String [Entry]
