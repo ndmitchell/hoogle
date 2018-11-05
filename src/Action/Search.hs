@@ -11,6 +11,7 @@ import Control.DeepSeq
 import Control.Monad.Extra
 import Data.Functor.Identity
 import Data.List.Extra
+import qualified Data.Map as Map
 import Data.Maybe
 import qualified Data.Set as Set
 import System.Directory
@@ -108,7 +109,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
     let a === b = a ==$ (== b)
 
     let query :: String -> [ExpectedQueryResult] -> IO ()
-        query a qrs = let results = snd (search store (parseQuery a))
+        query a qrs = let results = deDup $ snd (search store (parseQuery a))
                       in forM_ qrs $ \qr -> case matchQR qr results of
                                               Success           -> putChar '.'
                                               ExpectedFailure   -> putChar 'o'
@@ -197,7 +198,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             ]
         query "[Char] -> Char"
             [ InTop 10 ("head" `inPackage` "base")
-            , RanksBelow 20 ("mconcat" `inPackage` "base")
+            , RanksBelow 10 ("mconcat" `inPackage` "base")
             ]
         query "a -> b"
             [ TopHit ("unsafeCoerce" `inModule` "Unsafe.Coerce")
@@ -314,12 +315,12 @@ data TestResult
     | ExpectedFailure
     | UnexpectedSuccess
 
-matchQR :: ExpectedQueryResult -> [Target] -> TestResult
+matchQR :: ExpectedQueryResult -> [[Target]] -> TestResult
 matchQR qr res = case qr of
-    TopHit tm        -> success $ any (runTargetMatcher tm) (take 1 res)
-    InTop n tm       -> success $ any (runTargetMatcher tm) (take n res)
-    RanksBelow n tm  -> success $ any (runTargetMatcher tm) (drop n res)
-    DoesNotFind tm   -> success $ not $ any (runTargetMatcher tm) res
+    TopHit tm        -> success $ any (runTargetMatcher tm) (concat $ take 1 res)
+    InTop n tm       -> success $ any (runTargetMatcher tm) (concat $ take n res)
+    RanksBelow n tm  -> success $ any (runTargetMatcher tm) (concat $ drop n res)
+    DoesNotFind tm   -> success $ not $ any (runTargetMatcher tm) (concat res)
     AppearsBefore tm tm' -> success $ ( (<) <$> matchIdx tm <*> matchIdx tm' ) == Just True
     NoHits           -> success $ null res
     KnownFailure _ qr' -> case matchQR qr' res of
@@ -329,7 +330,7 @@ matchQR qr res = case qr of
         UnexpectedSuccess -> Failure
   where
     success p = if p then Success else Failure
-    matchIdx tm = fmap fst $ find (runTargetMatcher tm . snd) (zip [0..] res)
+    matchIdx tm = fmap fst $ find (runTargetMatcher tm . snd) (zip [0..] $ concat res)
 
 data TargetMatcher
     = MatchFunctionInModule  String String
@@ -354,4 +355,17 @@ inModule = MatchFunctionInModule
 
 inPackage :: String -> String -> TargetMatcher
 inPackage = MatchFunctionInPackage
+
+-- Group duplicated targets (e.g. re-exports) together.
+deDup :: [Target] -> [[Target]]
+deDup tgts = Map.elems (Map.fromList $ Map.elems tgtMap)
+  where
+    tgtMap :: Map.Map Target (Int, [Target])
+    tgtMap = Map.fromListWith (\(n, ts) (n', ts') -> (min n n', ts ++ ts'))
+             $ map (\(n,t) -> (simple t, (n, [t]))) (zip [0..] tgts)
+
+    simple :: Target -> Target
+    simple t = t { targetURL = "", targetPackage = Nothing, targetModule = Nothing }
+
+
 
