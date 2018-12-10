@@ -1,9 +1,9 @@
 sudo: required
 env:
-- GHCVER=8.0.2
-- GHCVER=8.2.2
-- GHCVER=8.4.4
-- GHCVER=8.6.3
+- GHCVER=8.0
+- GHCVER=8.2
+- GHCVER=8.4
+- GHCVER=8.6
 - GHCVER=head
 
 script:
