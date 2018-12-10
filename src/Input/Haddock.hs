@@ -139,7 +139,7 @@ readItem x -- newtype
     , ParseOk (DataDecl an _ b c d e) <- fmap unGADT $ myParseDecl $ "data " ++ x
     = Just $ DataDecl an (NewType ()) b c d e
 readItem x -- constructors
-    | ParseOk (GDataDecl _ _ _ _ _ [GadtDecl s name _ ty] _) <- myParseDecl $ "data Data where " ++ x
+    | ParseOk (GDataDecl _ _ _ _ _ [GadtDecl s name _ _ _ ty] _) <- myParseDecl $ "data Data where " ++ x
     , let f (TyBang _ _ _ (TyParen _ x@TyApp{})) = x
           f (TyBang _ _ _ x) = x
           f x = x

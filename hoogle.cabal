@@ -59,7 +59,7 @@ library
         foundation >= 0.0.13,
         old-locale,
         hashable,
-        haskell-src-exts >= 1.18 && < 1.21,
+        haskell-src-exts >= 1.21 && < 1.22,
         http-conduit >= 2.3,
         http-types,
         js-flot,

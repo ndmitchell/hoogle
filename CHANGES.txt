@@ -1,5 +1,6 @@
 Changelog for Hoogle
 
+    Require haskell-src-exts-1.21
     #271, added FromJSON instance for Target
     #253, adds JSON pagination from query parameters
     Make sure <h1> works well in doc snippets
