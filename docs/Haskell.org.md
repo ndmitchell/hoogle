@@ -14,7 +14,7 @@ Install `ghc`, `git` and `zlib` (a required library).
     apt-get install git
     apt-get install zlib1g-dev
 
-Create a swap file using the instructions [originally from here](https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-14-04):
+Create a swap file using the instructions [originally from here](https://tecadmin.net/enable-swap-on-ubuntu/):
 
     fallocate -l 4G /swapfile
     chmod 600 /swapfile
