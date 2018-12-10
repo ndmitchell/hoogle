@@ -11,10 +11,22 @@
         ,":!dist\\obj\\o2\\main +RTS -T -N2 -RTS " ++ xs]
 :}
 :{
+:def opt1 \xs -> return $ unlines
+        [":!mkdir dist\\obj\\o1"
+        ,":!ghc -O1 -fno-state-hack -isrc --make src/Paths.hs Main -threaded -outputdir dist/obj/o1 -o dist/obj/o1/main -rtsopts cbits/text_search.o"
+        ,":!dist\\obj\\o1\\main +RTS -T -N2 -RTS " ++ xs]
+:}
+:{
+:def opt0 \xs -> return $ unlines
+        [":!mkdir dist\\obj\\o0"
+        ,":!ghc -O0 -fno-state-hack -isrc --make src/Paths.hs Main -threaded -outputdir dist/obj/o0 -o dist/obj/o0/main -rtsopts cbits/text_search.o"
+        ,":!dist\\obj\\o0\\main +RTS -T -N2 -RTS " ++ xs]
+:}
+:{
 :def time_ \xs -> return $ unlines
         [":!mkdir dist\\obj\\prof"
         ,":!ghc -prof -rtsopts -fprof-auto -fprof-cafs -O2 -fno-state-hack -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o"
-        ,":!dist\\obj\\prof\\main +RTS -p -T -RTS " ++ xs]
+        ,":!dist\\obj\\prof\\main +RTS -P -T -RTS " ++ xs]
 :}
 :{
 :def time \xs -> return $ unlines
@@ -25,6 +37,6 @@
 :def space \xs -> return $ unlines
         [":!mkdir dist\\obj\\prof"
         ,":!ghc -fno-state-hack -prof -rtsopts -fprof-auto -fprof-cafs -isrc -DPROFILE --make src/Paths.hs Main -outputdir dist/obj/prof -o dist/obj/prof/main cbits/text_search.o && " ++
-         "dist\\obj\\prof\\main +RTS -xt -L100 -hc -T -RTS " ++ xs ++ " && " ++
+         "dist\\obj\\prof\\main +RTS -xt -L1000 -h -T -RTS " ++ xs ++ " && " ++
          "hp2pretty main.hp"]
 :}
