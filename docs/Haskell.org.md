@@ -34,7 +34,7 @@ Create the user `www` configured for SSH access.
 
 Add the GHC/Cabal binaries to the `$PATH` in the `~/.profile`.
 
-    export PATH=/home/www/.cabal/bin:/opt/ghc/7.8.4/bin:/opt/cabal/1.18/bin:/opt/happy/1.19.4/bin:/opt/alex/3.1.3/bin:$PATH
+    export PATH=/home/www/.cabal/bin:/opt/ghc/8.6.3/bin:/opt/cabal/1.18/bin:/opt/happy/1.19.4/bin:/opt/alex/3.1.3/bin:$PATH
 
 Create a shell script `update.sh`:
 
