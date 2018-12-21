@@ -10,7 +10,7 @@ Install `ghc`, `git` and `zlib` (a required library).
 
     add-apt-repository -y ppa:hvr/ghc
     apt-get update
-    apt-get install ghc-8.2.2 cabal-install-1.24 happy-1.19.4 alex-3.1.3
+    apt-get install ghc-8.6.3 cabal-install-1.24 happy-1.19.4 alex-3.1.3
     apt-get install git
     apt-get install zlib1g-dev
 
@@ -47,7 +47,7 @@ Then configure updating every day at 8pm. Add a Cron job by using `crontab -e` a
 
 ## Monitoring
 
-* `df -h`, check there is sufficient disk space.
+* `df -h`, check there is sufficient disk space, `ncdu` to clean it up.
 * `top`, see what is running.
 
 Currently monitored with [uptimerobot.com](http://uptimerobot.com/).
