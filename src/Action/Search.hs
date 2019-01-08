@@ -186,10 +186,8 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             , InTop 100   ("return"    `inPackage` "base")
             , KnownFailure "GitHub issue #267" $
                   ("pure" `inPackage` "base") `AppearsBefore` ("shrinkNothing" `inModule` "Test.QuickCheck")
-            , KnownFailure "GitHub issue #267" $
-                  InTop 10 ("pure"   `inPackage` "base")
-            , KnownFailure "GitHub issue #267" $
-                  InTop 10 ("return" `inPackage` "base")
+            , InTop 10 ("pure"   `inPackage` "base")
+            , InTop 10 ("return" `inPackage` "base")
             ]
         query "[a] -> a"
             [ InTop 10 ("head" `inPackage` "base")
@@ -217,11 +215,15 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
                   InTop 10 ("forM" `inPackage` "base")
             ]
         query "a -> [(a,b)] -> b"
-            [ TopHit  ("lookup" `inPackage` "base")
+            [ KnownFailure "GitHub issue #267" $
+                  TopHit  ("lookup" `inPackage` "base")
+            , InTop 3 ("lookup" `inPackage` "base")
             , DoesNotFind ("zip" `inPackage` "base")
             ]
         query "[(a,b)] -> a -> b"
-            [ TopHit ("lookup" `inPackage` "base")
+            [ KnownFailure "GitHub issue #267" $
+                  TopHit ("lookup" `inPackage` "base")
+            , InTop 3 ("lookup" `inPackage` "base")
             , DoesNotFind ("zip" `inPackage` "base")
             ]
         query "(a -> m b) -> t a -> m (t b)" -- see GitHub issue #218
@@ -257,8 +259,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         query "a -> m a" -- see GitHub issue #180
             [ InTop 20 ("pure" `inPackage` "base")
             , InTop 50 ("return" `inPackage` "base")
-            , KnownFailure "GitHub issue #267" $
-                  InTop 3 ("pure" `inPackage` "base")
+            , InTop 3 ("pure" `inPackage` "base")
             , KnownFailure "GitHub issue #267" $
                   InTop 3 ("return" `inPackage` "base")
             ]
