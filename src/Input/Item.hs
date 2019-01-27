@@ -109,8 +109,8 @@ instance Show TargetId where
 -- | A location of documentation.
 data Target = Target
     {targetURL :: URL -- ^ URL where this thing is located
-    ,targetPackage :: Maybe (PkgName, URL) -- ^ Name and URL of the package it is in (Nothing if it is a package)
-    ,targetModule :: Maybe (ModName, URL) -- ^ Name and URL of the module it is in (Nothing if it is a package or module)
+    ,targetPackage :: Maybe (String, URL) -- ^ Name and URL of the package it is in (Nothing if it is a package)
+    ,targetModule :: Maybe (String, URL) -- ^ Name and URL of the module it is in (Nothing if it is a package or module)
     ,targetType :: String -- ^ One of package, module or empty string
     ,targetItem :: String -- ^ HTML span of the item, using @\<s0\>@ for the name and @\<s1\>@ onwards for arguments
     ,targetDocs :: String -- ^ HTML documentation to show, a sequence of block level elements
@@ -130,7 +130,7 @@ instance ToJSON Target where
       ]
       where
         maybeNamedURL m = maybe emptyObject namedURL m
-        namedURL (name, url) = object [("name" :: T.Text, toJSON $ strUnpack name), ("url" :: T.Text, toJSON url)]
+        namedURL (name, url) = object [("name" :: T.Text, toJSON name), ("url" :: T.Text, toJSON url)]
 
 instance FromJSON Target where
   parseJSON = withObject "Target" $ \o ->
@@ -146,7 +146,7 @@ instance FromJSON Target where
                         else do
                            pkName <- mObj .: ("name" :: T.Text)
                            pkUrl  <- mObj .: ("url" :: T.Text)
-                           return $ Just (strPack pkName ,pkUrl)
+                           return $ Just (pkName, pkUrl)
 
 instance Arbitrary Target where
   arbitrary = Target <$> a
@@ -158,7 +158,7 @@ instance Arbitrary Target where
     where a = arbitrary
           mNurl = do
             oneof [return Nothing
-                 , Just <$> liftA2 (,) (strPack <$> a) a]
+                 , Just <$> liftA2 (,) a a]
 
 targetExpandURL :: Target -> Target
 targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const mod) <$> targetModule}

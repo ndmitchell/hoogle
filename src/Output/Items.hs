@@ -4,7 +4,6 @@ module Output.Items(writeItems, lookupItem, listItems) where
 
 import Control.Monad
 import Data.List.Extra
-import Data.Tuple.Extra
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as UTF8
@@ -23,8 +22,8 @@ data Items a where Items :: Items BS.ByteString deriving Typeable
 outputItem :: Target -> [String]
 outputItem Target{..} =
     [if null targetURL then "." else targetURL
-    ,maybe "." (joinPair " " . first strUnpack) targetPackage
-    ,maybe "." (joinPair " " . first strUnpack) targetModule
+    ,maybe "." (joinPair " ") targetPackage
+    ,maybe "." (joinPair " ") targetModule
     ,if null targetType then "." else targetType
     ,targetItem] ++
     replace [""] ["."] (lines targetDocs)
@@ -34,7 +33,7 @@ inputItem (url:pkg:modu:typ:self:docs) = targetExpandURL $
     Target (if url == "." then "" else url) (f pkg) (f modu) (if typ == "." then "" else typ) self (unlines $ replace ["."] [""] docs)
     where
         f "." = Nothing
-        f x = Just (first strPack $ word1 x)
+        f x = Just $ word1 x
 
 -- write all the URLs, docs and enough info to pretty print it to a result
 -- and replace each with an identifier (index in the space) - big reduction in memory

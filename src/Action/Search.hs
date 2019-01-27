@@ -18,7 +18,6 @@ import System.Directory
 
 import Action.CmdLine
 import General.Store
-import General.Str
 import General.Util
 import Input.Item
 import Output.Items
@@ -60,13 +59,13 @@ targetInfo Target{..} =
     unlines $ [ unHTML targetItem ] ++
               [ unwords packageModule | not $ null packageModule] ++
               [ unHTML targetDocs ]
-            where packageModule = map (strUnpack . fst) $ catMaybes [targetPackage, targetModule]
+            where packageModule = map fst $ catMaybes [targetPackage, targetModule]
 
 -- | Returns the Target formatted as an item to display in the results
 -- | Bool argument decides whether links are shown
 targetResultDisplay :: Bool -> Target -> String
 targetResultDisplay link Target{..} = unHTML $ unwords $
-        fmap (strUnpack . fst) (maybeToList targetModule) ++
+        map fst (maybeToList targetModule) ++
         [targetItem] ++
         ["-- " ++ targetURL | link]
 
@@ -345,10 +344,10 @@ showTM = \case
 runTargetMatcher :: TargetMatcher -> Target -> Bool
 runTargetMatcher matcher Target{..} = case matcher of
     MatchFunctionInModule f m ->
-        Just m == fmap (strUnpack . fst) targetModule
+        Just m == fmap fst targetModule
         && f `isPrefixOf` unHTML targetItem
     MatchFunctionInPackage f m ->
-        Just m == fmap (strUnpack . fst) targetPackage
+        Just m == fmap fst targetPackage
         && f `isPrefixOf` unHTML targetItem
 
 inModule :: String -> String -> TargetMatcher
@@ -367,6 +366,3 @@ deDup tgts = Map.elems (Map.fromList $ Map.elems tgtMap)
 
     simple :: Target -> Target
     simple t = t { targetURL = "", targetPackage = Nothing, targetModule = Nothing }
-
-
-
