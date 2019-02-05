@@ -116,7 +116,7 @@ Contributions are most welcome. Hoogle is written in Haskell 98 + Heirarchical M
 
 # Background
 
-Hoogle work is licensed under the [GPL version 2.0](https://github.com/ndmitchell/hoogle/blob/master/docs/LICENSE). Any patches are assumed to be dual licensed under the BSD license and the GPL, to allow re-licensing Hoogle under the BSD license in future, if that proves beneficial to the Haskell community. The work is intended to be helpful, open and free. If the license doesn't meet your needs then talk to me.
+Hoogle work is licensed under the [BSD-3-Clause license](https://github.com/ndmitchell/hoogle/blob/master/docs/LICENSE).
 
 ## Theoretical Foundations
 
