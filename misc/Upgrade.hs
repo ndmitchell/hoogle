@@ -40,7 +40,7 @@ main = do
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M900M -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M900M -T -N2"
         createDirectoryIfMissing True "daml"
-        echo system_ $ "curl https://docs.daml.com/packages/daml-stdlib-doc/static/base.txt --output daml/base.txt"
+        echo system_ "curl https://docs.daml.com/packages/daml-stdlib-doc/static/base.txt --output daml/base.txt"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=daml.hoo --local=daml +RTS -M900M -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " test --database=haskell.hoo"
         ignore $ echo system_ "pkill hoogle"
