@@ -39,6 +39,9 @@ main = do
         let exe = normalise "dist/build/hoogle/hoogle"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M900M -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M900M -T -N2"
+        createDirectoryIfMissing True "daml"
+        echo system_ $ "curl https://docs.daml.com/packages/daml-stdlib-doc/static/base.txt --output daml/base.txt"
+        echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=daml.hoo --local=daml +RTS -M900M -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " test --database=haskell.hoo"
         ignore $ echo system_ "pkill hoogle"
         echo system_ $
@@ -53,11 +56,19 @@ main = do
             "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
             "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
             "--log=../../log-frege.txt +RTS -T -N2 >> ../../out-frege.txt 2>&1 &"
+        echo system_ $
+            "hoogle_datadir=. " ++
+            "nohup " ++ exe ++ " server --database=daml.hoo --port=8445 " ++
+            "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
+            "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
+            "--log=../../log-daml.txt +RTS -T -N2 >> ../../out-daml.txt 2>&1 &"
         ignore $ echo system_ "pkill rdr2tls"
         echo system_
             "nohup rdr2tls --port=8080 --path=hoogle.haskell.org >> ../../out-rdr2tls.txt 2>&1 &"
         echo system_
             "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444 >> ../../out-frege-rdr2tls.txt 2>&1 &"
+        echo system_
+            "nohup rdr2tls --port=8082 --path=hoogle.haskell.org:8445 >> ../../out-daml-rdr2tls.txt 2>&1 &"
         writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=haskell.hoo --port=8080 --log=../../log.txt +RTS -I0 >> ../../out.txt &\n"
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
 
