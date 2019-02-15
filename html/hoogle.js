@@ -72,7 +72,10 @@ $(function(){
 
     function hit(){
         if (!instant) return;
-        function getScope(){return $scope && $scope.val() !== "set:stackage" ? $scope.val() : "";}
+        function getScope(){
+            var v = $scope ? $scope.val() : "";
+            return v == null || v == "set:stackage" ? "" : v;
+        }
 
         var nowHoogle = $hoogle.val();
         var nowScope = getScope();
