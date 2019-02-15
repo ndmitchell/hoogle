@@ -381,7 +381,7 @@ function cache(maxElems)
         {
             contents["#" + key] = val;
         },
-        
+
         ask: function(key)
         {
             return contents["#" + key];
