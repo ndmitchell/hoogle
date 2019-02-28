@@ -13,6 +13,7 @@ module General.Util(
     strict,
     withs,
     escapeHTML, unescapeHTML, unHTML, tag, tag_,
+    escapeURL,
     takeSortOn,
     Average, toAverage, fromAverage,
     inRanges,
@@ -212,6 +213,11 @@ innerTextHTML [] = []
 
 unHTML :: String -> String
 unHTML = unescapeHTML . innerTextHTML
+
+escapeURL :: String -> String
+escapeURL = concatMap $ \x ->
+    if (isAscii x && isAlphaNum x) || x `elem` "-_.~" then [x]
+    else '%' : showHex (ord x) ""
 
 isUpper1 (x:xs) = isUpper x
 isUpper1 _ = False

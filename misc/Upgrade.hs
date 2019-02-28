@@ -49,7 +49,7 @@ main = do
             "nohup " ++ exe ++ " server --database=haskell.hoo --port=8443 " ++
             "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
             "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
-            "--log=../../log.txt +RTS -T -N4 >> ../../out.txt 2>&1 &"
+            "--log=../../log.txt --links +RTS -T -N4 >> ../../out.txt 2>&1 &"
         echo system_ $
             "hoogle_datadir=. " ++
             "nohup " ++ exe ++ " server --database=frege.hoo --port=8444 " ++

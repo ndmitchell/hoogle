@@ -57,7 +57,7 @@ actionServer cmd@Server{..} = do
         Nothing -> getDataDir
     haddock <- maybe (return Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
-        server log cmd $ replyServer log local haddock store cdn home (dataDir </> "html") scope
+        server log cmd $ replyServer log local links haddock store cdn home (dataDir </> "html") scope
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -66,7 +66,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
         dataDir <- getDataDir
-        let op = replyServer log False Nothing store "" "" (dataDir </> "html") scope
+        let op = replyServer log False False Nothing store "" "" (dataDir </> "html") scope
         replicateM_ repeat_ $ forM_ qs $ \x -> do
             res <- op x
             evaluate $ rnf res
@@ -77,8 +77,8 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
 spawned :: UTCTime
 spawned = unsafePerformIO getCurrentTime
 
-replyServer :: Log -> Bool -> Maybe FilePath -> StoreRead -> String -> String -> FilePath -> String -> Input -> IO Output
-replyServer log local haddock store cdn home htmlDir scope Input{..} = case inputURL of
+replyServer :: Log -> Bool -> Bool -> Maybe FilePath -> StoreRead -> String -> String -> FilePath -> String -> Input -> IO Output
+replyServer log local links haddock store cdn home htmlDir scope Input{..} = case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
@@ -86,7 +86,7 @@ replyServer log local haddock store cdn home htmlDir scope Input{..} = case inpu
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
-        let body = showResults local haddock (filter ((/= "mode") . fst) inputArgs) q2 $
+        let body = showResults local links haddock (filter ((/= "mode") . fst) inputArgs) q2 $
                 dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" $ reverse inputArgs of
             Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex $ map (second str)
@@ -170,8 +170,8 @@ dedupeTake n key = f [] Map.empty
             where k = key x
 
 
-showResults :: Bool -> Maybe FilePath -> [(String, String)] -> [Query] -> [[Target]] -> String
-showResults local haddock args query results = unlines $
+showResults :: Bool -> Bool -> Maybe FilePath -> [(String, String)] -> [Query] -> [[Target]] -> String
+showResults local links haddock args query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"
     ,"<ul id=left>"
     ,"<li><b>Packages</b></li>"] ++
@@ -179,12 +179,20 @@ showResults local haddock args query results = unlines $
     ["</ul>"] ++
     ["<p>No results found</p>" | null results] ++
     ["<div class=result>" ++
-     "<div class=ans><a href=\"" ++ showURL local haddock targetURL ++ "\">" ++ displayItem query targetItem ++ "</a></div>" ++
-     "<div class=from>" ++ showFroms local haddock is  ++ "</div>" ++
+     "<div class=ans>" ++
+        "<a href=\"" ++ showURL local haddock targetURL ++ "\">" ++ displayItem query targetItem ++ "</a>" ++
+        (if not links then "" else "<div class=links><a href='" ++ useLink is ++ "'>Uses</a></div>") ++
+     "</div>" ++
+     "<div class=from>" ++ showFroms local haddock is ++ "</div>" ++
      "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
      "</div>"
     | is@(Target{..}:_) <- results]
     where
+        useLink ts@(t:_)=
+            "https://codesearch.aelve.com/haskell/search?query=" ++ escapeURL (extractName $ targetItem t) ++
+            "&filter=" ++ intercalate "|" (mapMaybe (fmap fst . targetModule) ts) ++
+            "&precise=on"
+
         add x = escapeHTML $ ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
                 (a,[]) -> a ++ [("hoogle",x)]
@@ -193,6 +201,15 @@ showResults local haddock args query results = unlines $
         f cat val = "<a class=\"minus\" href=\"" ++ add ("-" ++ cat ++ ":" ++ val) ++ "\"></a>" ++
                     "<a class=\"plus\" href=\"" ++ add (cat ++ ":" ++ val) ++ "\">" ++
                     (if cat == "package" then "" else cat ++ ":") ++ val ++ "</a>"
+
+
+-- find the <span class=name>X</span> bit
+extractName :: String -> String
+extractName x
+    | Just (_, x) <- stripInfix "<span class=name>" x
+    , Just (x, _) <- stripInfix "</span>" x
+    = unHTML x
+extractName x = x
 
 
 itemCategories :: [Target] -> [(String,String)]
@@ -259,7 +276,7 @@ action_server_test sample database = do
         log <- logNone
         dataDir <- getDataDir
         let q === want = do
-                OutputHTML (lbstrUnpack -> res) <- replyServer log False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
+                OutputHTML (lbstrUnpack -> res) <- replyServer log False False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
         if sample then
             "Wife" === "<b>type family</b>"

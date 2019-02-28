@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    Add --links flag to integrate with https://codesearch.aelve.com/
 5.0.17.5, released 2019-01-27
 *   #285, remove accidental API break in 5.0.17.4
     Lots of improvements in type search

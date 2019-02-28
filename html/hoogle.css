@@ -262,6 +262,15 @@ a.dull, a.dull:hover {
     color: #C4451D;
 }
 
+.links {
+    float: right;
+    color: #CCCCCC;
+}
+.links a {
+    color: #888;
+    font-size: 12px;
+}
+
 .c0{background-color: #fcc;}
 .c1{background-color: #cfc;}
 .c2{background-color: #ccf;}
