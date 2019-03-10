@@ -133,7 +133,6 @@ $(function(){
 
 function newReal()
 {
-    $hoogle.focus();
     $hoogle.select();
     var $body = $("#body");
 
