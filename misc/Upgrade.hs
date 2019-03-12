@@ -5,6 +5,7 @@ import Data.List.Extra
 import Control.Monad
 import Control.Applicative
 import System.Directory.Extra
+import System.Environment
 import Data.Time.Clock
 import System.Process.Extra
 import Control.Exception.Extra
@@ -23,12 +24,17 @@ import System.FilePath
 -- write out a file in your directory called downgrade.sh, to do a quick downgrade if necessary
 main :: IO ()
 main = do
+    args <- getArgs
+    let new = "--new" `elem` args -- set on the new Hoogle server setup
+
     createDirectoryIfMissing True "hoogle-upgrade"
 
     now <- getCurrentTime
     let dir = "hoogle-upgrade/" ++ formatTime defaultTimeLocale "%Y-%m-%dT%H-%M-%S" now
     now <- createDirectoryIfMissing True dir
     withCurrentDirectory dir $ do
+
+        -- Compile source
         putStrLn $ "Upgrading into " ++ dir
         echo system_ "git clone https://github.com/ndmitchell/hoogle.git ."
         sha1 <- trim <$> echo systemOutput_ "git rev-parse HEAD"
@@ -37,39 +43,35 @@ main = do
         echo system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
         echo system_ "GHCRTS=-M700M cabal build"
         let exe = normalise "dist/build/hoogle/hoogle"
+
+        -- Compile databases
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M900M -T -N2"
+        echo system_ $ "hoogle_datadir=. " ++ exe ++ " test --database=haskell.hoo"
+
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M900M -T -N2"
+
         createDirectoryIfMissing True "daml"
         echo system_ "curl https://docs.daml.com/hoogle_db/base.txt --output daml/base.txt"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=daml.hoo --local=daml +RTS -M900M -T -N2"
-        echo system_ $ "hoogle_datadir=. " ++ exe ++ " test --database=haskell.hoo"
+
         ignore $ echo system_ "pkill hoogle"
-        echo system_ $
-            "hoogle_datadir=. " ++
-            "nohup " ++ exe ++ " server --database=haskell.hoo --port=8443 " ++
-            "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
-            "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
-            "--log=../../log.txt --links +RTS -T -N4 >> ../../out.txt 2>&1 &"
-        echo system_ $
-            "hoogle_datadir=. " ++
-            "nohup " ++ exe ++ " server --database=frege.hoo --port=8444 " ++
-            "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
-            "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
-            "--log=../../log-frege.txt +RTS -T -N2 >> ../../out-frege.txt 2>&1 &"
-        echo system_ $
-            "hoogle_datadir=. " ++
-            "nohup " ++ exe ++ " server --database=daml.hoo --port=8445 " ++
-            "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem " ++
-            "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
-            "--log=../../log-daml.txt +RTS -T -N2 >> ../../out-daml.txt 2>&1 &"
-        ignore $ echo system_ "pkill rdr2tls"
-        echo system_
-            "nohup rdr2tls --port=8080 --path=hoogle.haskell.org >> ../../out-rdr2tls.txt 2>&1 &"
-        echo system_
-            "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444 >> ../../out-frege-rdr2tls.txt 2>&1 &"
-        echo system_
-            "nohup rdr2tls --port=8082 --path=hoogle.haskell.org:8445 >> ../../out-daml-rdr2tls.txt 2>&1 &"
-        writeFile "downgrade.sh" "pkill hoogle\nnohup dist/build/hoogle/hoogle server --database=haskell.hoo --port=8080 --log=../../log.txt +RTS -I0 >> ../../out.txt &\n"
+        let hoogle database port log links = echo system_ $
+                "hoogle_datadir=. " ++
+                "nohup " ++ exe ++ " server --database=" ++ database ++ " " ++
+                "--port=" ++ show (if new then 50021 + port else 8443 + port) ++ " " ++
+                (if new then "" else "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem ") ++
+                "--cdn=//rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
+                "--log=../../log" ++ log ++ ".txt " ++ (if links then "--links " else "") ++ " +RTS -T -N4 >> ../../out" ++ log ++ ".txt 2>&1 &"
+        hoogle "haskell.hoo" 0 "" True
+        hoogle "frege.hoo" 1 "-frege" False
+        hoogle "daml.hoo" 2 "-daml" False
+
+        unless new $ do
+            ignore $ echo system_ "pkill rdr2tls"
+            echo system_ "nohup rdr2tls --port=8080 --path=hoogle.haskell.org >> ../../out-rdr2tls.txt 2>&1 &"
+            echo system_ "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444 >> ../../out-frege-rdr2tls.txt 2>&1 &"
+            echo system_ "nohup rdr2tls --port=8082 --path=hoogle.haskell.org:8445 >> ../../out-daml-rdr2tls.txt 2>&1 &"
+
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
 
     dirs <- filterM doesDirectoryExist =<< listContents "hoogle-upgrade"
