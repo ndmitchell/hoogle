@@ -25,7 +25,7 @@ import System.FilePath
 main :: IO ()
 main = do
     args <- getArgs
-    let new = "--new" `elem` args -- set on the new Hoogle server setup
+    let new = "--old" `notElem` args -- are we using new Hoogle server setup
 
     createDirectoryIfMissing True "hoogle-upgrade"
 
