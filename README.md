@@ -1,4 +1,4 @@
-# Hoogle [![Hackage version](https://img.shields.io/hackage/v/hoogle.svg?label=Hackage)](https://hackage.haskell.org/package/hoogle) [![Stackage version](https://www.stackage.org/package/hoogle/badge/nightly?label=Stackage)](https://www.stackage.org/package/hoogle) [![Linux Build Status](https://img.shields.io/travis/ndmitchell/hoogle/master.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hoogle) [![Windows Build Status](https://img.shields.io/appveyor/ci/ndmitchell/hoogle/master.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hoogle)
+# Hoogle [![Hackage version](https://img.shields.io/hackage/v/hoogle.svg?label=Hackage)](https://hackage.haskell.org/package/hoogle) [![Stackage version](https://www.stackage.org/package/hoogle/badge/nightly?label=Stackage)](https://www.stackage.org/package/hoogle) [![Linux build status](https://img.shields.io/travis/ndmitchell/hoogle/master.svg?label=Linux%20build)](https://travis-ci.org/ndmitchell/hoogle) [![Windows build status](https://img.shields.io/appveyor/ci/ndmitchell/hoogle/master.svg?label=Windows%20build)](https://ci.appveyor.com/project/ndmitchell/hoogle)
 
 ## Hoogle 4 vs Hoogle 5
 
