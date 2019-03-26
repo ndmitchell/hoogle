@@ -18,6 +18,7 @@ import Control.Monad.Extra
 import qualified Data.IntSet as Set
 import qualified Data.Map.Strict as Map
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import qualified Data.ByteString.Char8 as BS
 import Data.Semigroup
 import General.Util
 import Data.Maybe
@@ -38,7 +39,7 @@ showTime = showUTCTime "%Y-%m-%dT%H:%M:%S%Q"
 logNone :: IO Log
 logNone = do ref <- newIORef Map.empty; return $ Log Nothing ref (const False)
 
-logCreate :: Either Handle FilePath -> (String -> Bool) -> IO Log
+logCreate :: Either Handle FilePath -> (BS.ByteString -> Bool) -> IO Log
 logCreate store interesting = do
     (h, old) <- case store of
         Left h -> return (h, Map.empty)
@@ -46,13 +47,13 @@ logCreate store interesting = do
             b <- doesFileExist file
             mp <- if not b then return Map.empty else withFile file ReadMode $ \h -> do
                 src <- LBS.hGetContents h
-                let xs = mapMaybe (parseLogLine interesting) $ LBS.lines src
+                let xs = mapMaybe (parseLogLine interesting . LBS.toStrict) $ LBS.lines src
                 return $! foldl' (\mp (k,v) -> Map.alter (Just . maybe v (<> v)) k mp) Map.empty xs
             (,mp) <$> openFile file AppendMode
     hSetBuffering h LineBuffering
     var <- newVar h
     ref <- newIORef old
-    return $ Log (Just var) ref interesting
+    return $ Log (Just var) ref (interesting . BS.pack)
 
 logAddMessage :: Log -> String -> IO ()
 logAddMessage Log{..} msg = do
@@ -110,19 +111,21 @@ summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest iAve
 
 -- This noinline solves a massive memory leak at -O2, and I have no idea why
 {-# NOINLINE parseLogLine #-}
-parseLogLine :: (String -> Bool) -> LBS.ByteString -> Maybe (Day, SummaryI)
-parseLogLine interesting (LBS.words -> time:user:dur:query:err)
-    | user /= LBS.pack "-"
-    , Just [a, b, c] <- fmap (map fst) $ mapM LBS.readInt $ LBS.split '-' $ LBS.takeWhile (/= 'T') time
+parseLogLine :: (BS.ByteString -> Bool) -> BS.ByteString -> Maybe (Day, SummaryI)
+parseLogLine interesting (BS.words -> time:user:dur:query:err)
+    | use && not isErr
+    , user /= BS.singleton '-'
+    , Just [a, b, c] <- fmap (map fst) $ mapM BS.readInt $ BS.split '-' $ BS.takeWhile (/= 'T') time
     = Just (fromGregorian (fromIntegral a) b c, SummaryI
         (if use then Set.singleton $ hash user else Set.empty)
         (if use then 1 else 0)
         (if use then dur2 else 0)
         (toAverage $ if use then dur2 else 0)
-        (if [LBS.pack "ERROR:"] `isPrefixOf` err then 1 else 0))
-    where use = interesting $ LBS.unpack query
-          dur2 = let s = LBS.unpack dur in fromMaybe 0 $
-                 if '.' `elem` s then readMaybe s else (/ 1000) . intToDouble <$> readMaybe s
+        (if isErr then 1 else 0))
+    where use = interesting query
+          isErr = [BS.pack "ERROR:"] `isPrefixOf` err
+          dur2 = fromMaybe 0 $
+                 if BS.any (== '.') dur then readMaybe (BS.unpack dur) else (/ 1000) . intToDouble . fst <$> BS.readInt dur
 parseLogLine _ _ = Nothing
 
 

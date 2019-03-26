@@ -17,6 +17,7 @@ import Control.Monad
 import Text.Read
 import System.IO.Extra
 import General.Str
+import qualified Data.ByteString.Char8 as BS
 import qualified Data.Map as Map
 import System.Time.Extra
 import Data.Time.Clock
@@ -50,7 +51,7 @@ actionServer cmd@Server{..} = do
     putStr "Reading log..." >> hFlush stdout
     time <- offsetTime
     log <- logCreate (if logs == "" then Left stdout else Right logs) $
-        \x -> "hoogle=" `isInfixOf` x && not ("is:ping" `isInfixOf` x)
+        \x -> BS.pack "hoogle=" `BS.isInfixOf` x && not (BS.pack "is:ping" `BS.isInfixOf` x)
     putStrLn . showDuration =<< time
     evaluate spawned
     dataDir <- case datadir of
