@@ -9,7 +9,6 @@ import Control.Concurrent.Extra
 import Control.Applicative
 import System.Directory
 import System.IO
-import Text.Read
 import Data.Hashable
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -124,9 +123,20 @@ parseLogLine interesting (BS.words -> time:user:dur:query:err)
         (if isErr then 1 else 0))
     where use = interesting query
           isErr = [BS.pack "ERROR:"] `isPrefixOf` err
-          dur2 = fromMaybe 0 $
-                 if BS.any (== '.') dur then readMaybe (BS.unpack dur) else (/ 1000) . intToDouble . fst <$> BS.readInt dur
+          dur2 = parseDuration dur
 parseLogLine _ _ = Nothing
+
+-- Hoogle used to store whole numbers of milliseconds, then it switched to 4dp doubles with a guaranteed '.'
+parseDuration :: BS.ByteString -> Double
+parseDuration x
+    | Just (whole, x) <- BS.readInt x
+    = case BS.uncons x of
+        Just ('.', x)
+            | Just (frac, y) <- BS.readInt x
+                -> intToDouble whole + (intToDouble frac / (10 ^ (BS.length x - BS.length y)))
+            | otherwise -> 0
+        _ -> intToDouble whole / 1000
+parseDuration _ = 0
 
 
 logSummary :: Log -> IO [Summary]
