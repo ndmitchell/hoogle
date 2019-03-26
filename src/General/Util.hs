@@ -17,7 +17,6 @@ module General.Util(
     takeSortOn,
     Average, toAverage, fromAverage,
     inRanges,
-    readMaybe,
     parseTrailingVersion,
     trimVersion,
     exitFail,
@@ -293,11 +292,6 @@ instance Num a => Semigroup (Average a) where
 instance Num a => Monoid (Average a) where
     mempty = Average 0 0
     mappend = (<>)
-
-
-readMaybe :: Read a => String -> Maybe a
-readMaybe s | [x] <- [x | (x,t) <- reads s, ("","") <- lex t] = Just x
-            | otherwise = Nothing
 
 
 data TakeSort k v = More !Int !(Map.Map k [v])

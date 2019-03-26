@@ -9,6 +9,7 @@ import Control.Concurrent.Extra
 import Control.Applicative
 import System.Directory
 import System.IO
+import Text.Read
 import Data.Hashable
 import Data.Time.Calendar
 import Data.Time.Clock

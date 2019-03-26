@@ -14,6 +14,7 @@ import Data.Version
 import Paths_hoogle
 import Data.Maybe
 import Control.Monad
+import Text.Read
 import System.IO.Extra
 import General.Str
 import qualified Data.Map as Map
