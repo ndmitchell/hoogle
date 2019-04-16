@@ -12,6 +12,7 @@ import Control.DeepSeq
 import Control.Monad.Trans.Class
 import General.Conduit
 import Control.Monad.Extra
+import Control.Exception.Extra
 import Data.Generics.Uniplate.Data
 import General.Str
 
@@ -171,7 +172,7 @@ prettyItem (EDecl x) = pretty x
 input_haddock_test :: IO ()
 input_haddock_test = testing "Input.Haddock.parseLine" $ do
     let a === b | fmap (map prettyItem) (parseLine a) == Right [b] = putChar '.'
-                | otherwise = error $ show (a,b,parseLine a, fmap (map prettyItem) $ parseLine a)
+                | otherwise = errorIO $ show (a,b,parseLine a, fmap (map prettyItem) $ parseLine a)
     let test a = a === a
     test "type FilePath = [Char]"
     test "data Maybe a"
