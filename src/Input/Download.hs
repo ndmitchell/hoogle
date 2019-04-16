@@ -12,6 +12,7 @@ import qualified Data.Conduit as C
 import General.Util
 import General.Timing
 import Control.Monad.Trans.Resource
+import Control.Exception.Extra (errorIO)
 
 
 -- | Download all the input files to input/
@@ -20,7 +21,7 @@ downloadInput timing insecure download dir name url = do
     let file = dir </> "input-" ++ name
     exists <- doesFileExist file
     when (not exists && download == Just False) $
-        error $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
+        errorIO $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
     when (not exists || download == Just True) $
         timed timing ("Downloading " ++ url) $ do
             downloadFile insecure (file <.> "part") url

@@ -9,6 +9,7 @@ module Action.Search
 
 import Control.DeepSeq
 import Control.Monad.Extra
+import Control.Exception.Extra (errorIO)
 import Data.Functor.Identity
 import Data.List.Extra
 import qualified Data.Map as Map
@@ -99,12 +100,12 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
           res <- return $ snd $ search store (parseQuery a)
           case res of
               [] -> putChar '.'
-              _ -> error $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res) ++ "\n expected none"
+              _ -> errorIO $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res) ++ "\n expected none"
     let a ==$ f = do
             res <- return $ snd $ search store (parseQuery a)
             case res of
                 Target{..}:_ | f targetURL -> putChar '.'
-                _ -> error $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res)
+                _ -> errorIO $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res)
     let a === b = a ==$ (== b)
 
     let query :: String -> [ExpectedQueryResult] -> IO ()
@@ -112,9 +113,9 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
                       in forM_ qrs $ \qr -> case matchQR qr results of
                                               Success           -> putChar '.'
                                               ExpectedFailure   -> putChar 'o'
-                                              _ -> error $ "Searching for: " ++ show a
-                                                         ++ "\nGot: " ++ show (take 5 results)
-                                                         ++ "\n expected " ++ expected qr
+                                              _ -> errorIO $ "Searching for: " ++ show a
+                                                           ++ "\nGot: " ++ show (take 5 results)
+                                                           ++ "\n expected " ++ expected qr
 
     let hackage x = "https://hackage.haskell.org/package/" ++ x
     if sample then do
@@ -280,7 +281,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             ]
 
         let tags = completionTags store
-        let asserts b x = if b then putChar '.' else error $ "Assertion failed, got False for " ++ x
+        let asserts b x = if b then putChar '.' else errorIO $ "Assertion failed, got False for " ++ x
         asserts ("set:haskell-platform" `elem` tags) "set:haskell-platform `elem` tags"
         asserts ("author:Neil-Mitchell" `elem` tags) "author:Neil-Mitchell `elem` tags"
         asserts ("package:uniplate" `elem` tags) "package:uniplate `elem` tags"

@@ -13,6 +13,7 @@ import Data.List.Extra
 import System.FilePath
 import Control.DeepSeq
 import Control.Exception
+import Control.Exception.Extra (errorIO)
 import Control.Monad
 import System.IO.Extra
 import General.Str
@@ -82,7 +83,7 @@ readGhcPkg settings = do
     -- important to use BS process reading so it's in Binary format, see #194
     (exit, stdout, stderr) <- BS.readProcessWithExitCode "ghc-pkg" ["dump"] mempty
     when (exit /= ExitSuccess) $
-        fail $ "Error when reading from ghc-pkg, " ++ show exit ++ "\n" ++ UTF8.toString stderr
+        errorIO $ "Error when reading from ghc-pkg, " ++ show exit ++ "\n" ++ UTF8.toString stderr
     let g (stripPrefix "$topdir" -> Just x) | Just t <- topdir = takeDirectory t ++ x
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}

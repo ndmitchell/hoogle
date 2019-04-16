@@ -5,6 +5,7 @@ module Action.Server(actionServer, actionReplay, action_server_test_, action_ser
 import Data.List.Extra
 import System.FilePath
 import Control.Exception
+import Control.Exception.Extra (errorIO)
 import Control.DeepSeq
 import System.Directory
 import Data.Tuple.Extra
@@ -261,7 +262,7 @@ action_server_test_ = do
         let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<s0>" "" . replace "</s0>" ""
             contract = replace "{" "" . replace "}" ""
         let q === s | displayItem (parseQuery q) (contract s) == expand s = putChar '.'
-                    | otherwise = error $ show (q,s,displayItem (parseQuery q) (contract s))
+                    | otherwise = errorIO $ show (q,s,displayItem (parseQuery q) (contract s))
         "test" === "<s0>my{Test}</s0> :: Int -&gt; test"
         "new west" === "<s0>{newest}_{new}</s0> :: Int"
         "+*" === "(<s0>{+*}&amp;</s0>) :: Int"

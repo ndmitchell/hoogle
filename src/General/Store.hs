@@ -12,6 +12,7 @@ module General.Store(
 import Control.Applicative
 import Control.DeepSeq
 import Control.Exception
+import Control.Exception.Extra (errorIO)
 import Control.Monad.Extra
 import Data.Binary
 import qualified Data.ByteString.Char8 as BS
@@ -117,7 +118,7 @@ storeWriteFile file act = do
         -- sort the atoms and validate there are no duplicates
         let atoms = Map.fromList swAtoms
         when (Map.size atoms /= length swAtoms) $
-            error "Some duplicate names have been written out"
+            errorIO "Some duplicate names have been written out"
 
         -- write the atoms out, then put the size at the end
         let bs = encodeBS atoms
@@ -169,22 +170,22 @@ storeReadFile :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
 storeReadFile file act = mmapWithFilePtr file ReadOnly Nothing $ \(ptr, len) -> strict $ do
     -- check is longer than my version string
     when (len < (BS.length verString * 2) + intSize) $
-        error $ "The Hoogle file " ++ file ++ " is corrupt, only " ++ show len ++ " bytes."
+        errorIO $ "The Hoogle file " ++ file ++ " is corrupt, only " ++ show len ++ " bytes."
 
     let verN = BS.length verString
     verEnd <- BS.unsafePackCStringLen (plusPtr ptr $ len - verN, verN)
     when (verString /= verEnd) $ do
         verStart <- BS.unsafePackCStringLen (plusPtr ptr 0, verN)
         if verString /= verStart then
-            error $ "The Hoogle file " ++ file ++ " is the wrong version or format.\n" ++
-                    "Expected: " ++ trim (BS.unpack verString) ++ "\n" ++
-                    "Got     : " ++ map (\x -> if isAlphaNum x || x `elem` "_-. " then x else '?') (trim $ BS.unpack verStart)
+            errorIO $ "The Hoogle file " ++ file ++ " is the wrong version or format.\n" ++
+                      "Expected: " ++ trim (BS.unpack verString) ++ "\n" ++
+                      "Got     : " ++ map (\x -> if isAlphaNum x || x `elem` "_-. " then x else '?') (trim $ BS.unpack verStart)
          else
-            error $ "The Hoogle file " ++ file ++ " is truncated, probably due to an error during creation."
+            errorIO $ "The Hoogle file " ++ file ++ " is truncated, probably due to an error during creation."
 
     atomSize <- intFromBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize, intSize)
     when (len < verN + intSize + atomSize) $
-        error $ "The Hoogle file " ++ file ++ " is corrupt, couldn't read atom table."
+        errorIO $ "The Hoogle file " ++ file ++ " is corrupt, couldn't read atom table."
     atoms <- decodeBS <$> BS.unsafePackCStringLen (plusPtr ptr $ len - verN - intSize - atomSize, atomSize)
     act $ StoreRead file len ptr atoms
 
@@ -196,7 +197,7 @@ storeReadAtom :: forall a t . (Typeable (t a), Typeable a) => StoreRead -> t a -
 storeReadAtom StoreRead{..} (typeOf -> k) unpack = unsafePerformIO $ do
     let key = show k
     let val = show $ typeOf (undefined :: a)
-    let corrupt msg = error $ "The Hoogle file " ++ srFile ++ " is corrupt, " ++ key ++ " " ++ msg ++ "."
+    let corrupt msg = errorIO $ "The Hoogle file " ++ srFile ++ " is corrupt, " ++ key ++ " " ++ msg ++ "."
     case Map.lookup key srAtoms of
         Nothing -> corrupt "is missing"
         Just Atom{..}

@@ -275,7 +275,7 @@ strict :: NFData a => IO a -> IO a
 strict act = do
     res <- try_ act
     case res of
-        Left e -> do msg <- showException e; evaluate $ rnf msg; error msg
+        Left e -> do msg <- showException e; evaluate $ rnf msg; errorIO msg
         Right v -> evaluate $ force v
 
 data Average a = Average !a {-# UNPACK #-} !Int deriving Show -- a / b
@@ -380,13 +380,13 @@ inRanges xs = \x -> maybe False (`inRange` x) $ Map.lookupLE x mp
 general_util_test :: IO ()
 general_util_test = do
     testing "General.Util.splitPair" $ do
-        let a === b = if a == b then putChar '.' else error $ show (a,b)
+        let a === b = if a == b then putChar '.' else errorIO $ show (a,b)
         splitPair ":" "module:foo:bar" === ("module","foo:bar")
         do x <- try_ $ evaluate $ rnf $ splitPair "-" "module:foo"; isLeft x === True
         splitPair "-" "module-" === ("module","")
     testing_ "General.Util.inRanges" $ do
         quickCheck $ \(x :: Int8) xs -> inRanges xs x == any (`inRange` x) xs
     testing "General.Util.parseTrailingVersion" $ do
-        let a === b = if a == b then putChar '.' else error $ show (a,b)
+        let a === b = if a == b then putChar '.' else errorIO $ show (a,b)
         parseTrailingVersion "shake-0.15.2" === ("shake",[0,15,2])
         parseTrailingVersion "test-of-stuff1" === ("test-of-stuff1",[])
