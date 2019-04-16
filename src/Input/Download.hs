@@ -12,7 +12,7 @@ import qualified Data.Conduit as C
 import General.Util
 import General.Timing
 import Control.Monad.Trans.Resource
-import Control.Exception.Extra (errorIO)
+import Control.Exception.Extra
 
 
 -- | Download all the input files to input/

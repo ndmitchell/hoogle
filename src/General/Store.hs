@@ -12,7 +12,7 @@ module General.Store(
 import Control.Applicative
 import Control.DeepSeq
 import Control.Exception
-import Control.Exception.Extra (errorIO)
+import Control.Exception.Extra
 import Control.Monad.Extra
 import Data.Binary
 import qualified Data.ByteString.Char8 as BS

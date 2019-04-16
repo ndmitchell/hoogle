@@ -13,7 +13,7 @@ import Data.List.Extra
 import System.FilePath
 import Control.DeepSeq
 import Control.Exception
-import Control.Exception.Extra (errorIO)
+import Control.Exception.Extra
 import Control.Monad
 import System.IO.Extra
 import General.Str

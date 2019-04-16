@@ -12,7 +12,7 @@ import Control.DeepSeq
 import Control.Monad.Trans.Class
 import General.Conduit
 import Control.Monad.Extra
-import Control.Exception.Extra (errorIO)
+import Control.Exception.Extra
 import Data.Generics.Uniplate.Data
 import General.Str
 

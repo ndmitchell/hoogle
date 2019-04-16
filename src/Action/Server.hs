@@ -5,7 +5,7 @@ module Action.Server(actionServer, actionReplay, action_server_test_, action_ser
 import Data.List.Extra
 import System.FilePath
 import Control.Exception
-import Control.Exception.Extra (errorIO)
+import Control.Exception.Extra
 import Control.DeepSeq
 import System.Directory
 import Data.Tuple.Extra
