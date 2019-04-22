@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    #261, add support for pattern synonyms
 5.0.17.6, released 2019-03-27
     #291, optimise the log parsing (5x speedup)
     #289, change to use autofocus attribute
