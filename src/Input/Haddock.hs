@@ -193,3 +193,4 @@ input_haddock_test = testing "Input.Haddock.parseLine" $ do
     -- Broken in the last HSE release, fixed in HSE HEAD
     -- test "quotRemInt# :: Int# -> Int# -> (# Int#, Int# #)"
     test "( # ) :: Int"
+    test "pattern MyPattern :: ()"

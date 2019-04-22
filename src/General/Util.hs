@@ -123,7 +123,7 @@ parseMode :: ParseMode
 parseMode = defaultParseMode{extensions=map EnableExtension es}
     where es = [ConstraintKinds,EmptyDataDecls,TypeOperators,ExplicitForAll,GADTs,KindSignatures,MultiParamTypeClasses
                ,TypeFamilies,FlexibleContexts,FunctionalDependencies,ImplicitParams,MagicHash,UnboxedTuples
-               ,ParallelArrays,UnicodeSyntax,DataKinds,PolyKinds]
+               ,ParallelArrays,UnicodeSyntax,DataKinds,PolyKinds,PatternSynonyms]
 
 applyType :: Type a -> [Type a] -> Type a
 applyType x (t:ts) = applyType (TyApp (ann t) x t) ts
@@ -187,12 +187,14 @@ declNames x = map fromName $ case x of
     DataFamDecl _ _ hd _ -> f hd
     ClassDecl _ _ hd _ _ -> f hd
     TypeSig _ names _ -> names
+    PatSynSig _ names _ _ _ _ _ -> names
     _ -> []
     where f x = [fst $ fromDeclHead x]
 
 
 isTypeSig :: Decl a -> Bool
 isTypeSig TypeSig{} = True
+isTypeSig PatSynSig{} = True
 isTypeSig _ = False
 
 
