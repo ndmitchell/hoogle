@@ -191,7 +191,10 @@ showResults local links haddock args query results = unlines $
      "</div>"
     | is@(Target{..}:_) <- results]
     where
-        useLink ts@(t:_)=
+        useLink :: [Target] -> String
+        useLink [t] | isNothing $ targetPackage t =
+            "https://packdeps.haskellers.com/reverse/" ++ extractName (targetItem t)
+        useLink ts@(t:_) =
             "https://codesearch.aelve.com/haskell/search?query=" ++ escapeURL (extractName $ targetItem t) ++
             "&filter=" ++ intercalate "|" (mapMaybe (fmap fst . targetModule) ts) ++
             "&precise=on"
