@@ -279,9 +279,13 @@ action_server_test sample database = do
     testing "Action.Server.replyServer" $ withSearch database $ \store -> do
         log <- logNone
         dataDir <- getDataDir
-        let q === want = do
+        let check p q = do
                 OutputHTML (lbstrUnpack -> res) <- replyServer log False False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",taint q)])
-                if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
+                if p res then putChar '.' else fail $ "Bad substring: " ++ res
+        let q === want = check (want `isInfixOf`) q
+        let q /== want = check (not . isInfixOf want) q
+        "<test" /== "<test"
+        "&test" /== "&test"
         if sample then
             "Wife" === "<b>type family</b>"
          else do
