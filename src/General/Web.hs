@@ -34,8 +34,11 @@ data Input = Input
     } deriving Show
 
 readInput :: String -> Input
-readInput (breakOn "?" -> (a,b)) = Input (dropWhile null $ splitOn "/" a) $
+readInput (breakOn "?" -> (a,b)) = Input (filter (not . bad) $ dropWhile null $ splitOn "/" a) $
     map (second (unEscapeString . drop1) . breakOn "=") $ splitOn "&" $ drop1 b
+    where
+        -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
+        bad xs = xs == "" || all (== '.') xs
 
 data Output
     = OutputText LBS.ByteString

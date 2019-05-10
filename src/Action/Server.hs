@@ -134,7 +134,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
             Nothing -> OutputFail $ lbstrPack "GHC Statistics is not enabled, restart with +RTS -T"
             Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
     "haddock":xs | Just x <- haddock -> do
-        let file = intercalate "/" $ filter (not . all (== '.')) (x:xs)
+        let file = intercalate "/" $ x:xs
         return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
     "file":xs | local -> do
         let x = ['/' | not isWindows] ++ intercalate "/" (dropWhile null xs)
@@ -147,8 +147,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
             -- so replace on file:// and drop all leading empty paths above
             return $ OutputHTML $ lbstrPack $ replace "file://" "/file/" src
     xs ->
-        -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
-        return $ OutputFile $ joinPath $ htmlDir : filter (not . all (== '.')) xs
+        return $ OutputFile $ joinPath $ htmlDir : xs
     where
         str = templateStr . lbstrPack
         tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- completionTags store]
