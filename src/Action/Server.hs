@@ -84,34 +84,33 @@ replyServer :: Log -> Bool -> Bool -> Maybe FilePath -> StoreRead -> String -> S
 replyServer log local links haddock store cdn home htmlDir scope Input{..} = case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
-        let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
-        let qScope = let xs = grab "scope" in [escapeHTML scope | null xs && scope /= ""] ++ xs
-        let qSource = grab "hoogle" ++ filter (/= "set:stackage") qScope
-        let q = concatMap parseQuery qSource
-        let (q2, results) = search store q
+        let grab name = [x | (a,x) <- inputArgs, a == name, x /= taint ""]
+            grabInt name def = fromMaybe def $ readMaybe . carefulUntaint =<< listToMaybe (grab name) :: Int
+
+        let qScope = let xs = grab "scope" in [taint scope | null xs && scope /= ""] ++ xs
+        let qSource = sequenceA $ grab "hoogle" ++ filter (/= taint "set:stackage") qScope
+        let q = concatMap parseQuery <$> qSource :: Taint [Query]
+        let (q2, results) = search store $ carefulUntaint q
         let body = showResults local links haddock (filter ((/= "mode") . fst) inputArgs) q2 $
                 dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
-        case lookup "mode" $ reverse inputArgs of
-            Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex $ map (second str)
+        case lookup "mode" inputArgs of
+            Nothing | qSource /= taint [] -> fmap OutputHTML $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions qScope)
                         ,("body",body)
-                        ,("title",escapeHTML $ unwords qSource ++ " - Hoogle")
-                        ,("search",escapeHTML $ unwords $ grab "hoogle")
-                        ,("robots",if any isQueryScope q then "none" else "index")]
+                        ,("title",escapeUntaint $ (\x -> unwords x ++ " - Hoogle") <$> qSource)
+                        ,("search",escapeUntaint $ unwords <$> sequenceA (grab "hoogle"))
+                        ,("robots",if carefulUntaint $ any isQueryScope <$> q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
-            Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else return $ lbstrPack body
-            Just "json" ->
-              let argRead :: Read a => String -> a -> a
-                  argRead key def = fromMaybe def $
-                    readMaybe =<< lookup key inputArgs
-                  -- 1 means don't drop anything, if it's less than 1 ignore it
+            Just ((== taint "body") -> True) -> OutputHTML <$> if qSource == taint [] then templateRender templateEmpty [] else return $ lbstrPack body
+            Just ((== taint "json") -> True) ->
+              let -- 1 means don't drop anything, if it's less than 1 ignore it
                   start :: Int
-                  start = max 0 $ (argRead "start" 1) - 1
+                  start = max 0 $ grabInt "start" 1 - 1
                   -- by default it returns 100 entries
                   count :: Int
-                  count = min 500 $ argRead "count" 100
+                  count = min 500 $ grabInt "count" 100
               in pure $ OutputJSON $ JSON.encode $ take count $ drop start results
-            Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
+            Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ escapeUntaint m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["plugin","jquery.flot.time.js"] -> OutputFile <$> Flot.file Flot.FlotTime
@@ -150,7 +149,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         return $ OutputFile $ joinPath $ htmlDir : xs
     where
         str = templateStr . lbstrPack
-        tagOptions sel = concat [tag "option" ["selected=selected" | x `elem` sel] x | x <- completionTags store]
+        tagOptions sel = concat [tag "option" ["selected=selected" | taint x `elem` sel] x | x <- completionTags store]
         params = map (second str)
             [("cdn",cdn)
             ,("home",home)
@@ -172,7 +171,7 @@ dedupeTake n key = f [] Map.empty
             where k = key x
 
 
-showResults :: Bool -> Bool -> Maybe FilePath -> [(String, String)] -> [Query] -> [[Target]] -> String
+showResults :: Bool -> Bool -> Maybe FilePath -> [(String, Taint String)] -> [Query] -> [[Target]] -> String
 showResults local links haddock args query results = unlines $
     ["<h1>" ++ renderQuery query ++ "</h1>"
     ,"<ul id=left>"
@@ -198,10 +197,10 @@ showResults local links haddock args query results = unlines $
             "&filter=" ++ intercalate "|" (mapMaybe (fmap fst . targetModule) ts) ++
             "&precise=on"
 
-        add x = escapeHTML $ ("?" ++) $ intercalate "&" $ map (joinPair "=") $
+        add x = ("?" ++) $ intercalate "&amp;" $ map (joinPair "=" . second escapeUntaint) $
             case break ((==) "hoogle" . fst) args of
-                (a,[]) -> a ++ [("hoogle",x)]
-                (a,(_,x1):b) -> a ++ [("hoogle",x1 ++ " " ++ x)] ++ b
+                (a,[]) -> a ++ [("hoogle",taint x)]
+                (a,(_,x1):b) -> a ++ [("hoogle",(\v -> v ++ " " ++ x) <$> x1)] ++ b
 
         f cat val = "<a class=\"minus\" href=\"" ++ add ("-" ++ cat ++ ":" ++ val) ++ "\"></a>" ++
                     "<a class=\"plus\" href=\"" ++ add (cat ++ ":" ++ val) ++ "\">" ++
@@ -281,7 +280,7 @@ action_server_test sample database = do
         log <- logNone
         dataDir <- getDataDir
         let q === want = do
-                OutputHTML (lbstrUnpack -> res) <- replyServer log False False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
+                OutputHTML (lbstrUnpack -> res) <- replyServer log False False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",taint q)])
                 if want `isInfixOf` res then putChar '.' else fail $ "Bad substring: " ++ res
         if sample then
             "Wife" === "<b>type family</b>"
