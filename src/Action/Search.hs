@@ -12,6 +12,8 @@ import Control.Monad.Extra
 import Control.Exception.Extra
 import Data.Functor.Identity
 import Data.List.Extra
+import Text.Blaze.Renderer.Utf8
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Map as Map
 import Data.Maybe
 import qualified Data.Set as Set
@@ -37,7 +39,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
     withSearch database $ \store ->
         if null compare_ then do
             (q, res) <- return $ search store $ parseQuery $ unwords query
-            whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (renderQuery q)
+            whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
             let (shown, hidden) = splitAt count $ nubOrd $ map (targetResultDisplay link) res
             if null res then
                 putStrLn "No results found"

@@ -12,7 +12,7 @@ module General.Util(
     showUTCTime,
     strict,
     withs,
-    escapeHTML, unescapeHTML, unHTML, tag, tag_,
+    escapeHTML, unescapeHTML, unHTML,
     escapeURL,
     takeSortOn,
     Average, toAverage, fromAverage,
@@ -261,16 +261,6 @@ prettyTable dp units xs =
 
         padL n s = replicate (n - length s) ' ' ++ s
         padR n s = s ++ replicate (n - length s) ' '
-
-
-tag :: String -> [String] -> String -> String
-tag name attr inner = "<" ++ unwords (name : map f attr) ++ ">" ++ inner ++ "</" ++ name ++ ">"
-    where f (break (== '=') -> (a,'=':b)) = a ++ "=\"" ++ escapeHTML b ++ "\""
-          f x = x
-
-tag_ :: String -> String -> String
-tag_ name = tag name []
-
 
 -- ensure that no value escapes in a thunk from the value
 strict :: NFData a => IO a -> IO a

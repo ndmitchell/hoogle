@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards, ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -O0 #-} -- otherwise it takes a lot of memory to compile on the haskell.org server
 
 module Query(
@@ -10,6 +11,8 @@ module Query(
 import Data.List
 import Language.Haskell.Exts
 import Data.Char
+import Text.Blaze
+import qualified Text.Blaze.XHtml5 as H
 import Data.List.Extra
 import Data.Generics.Uniplate.Data
 import General.Util
@@ -32,13 +35,14 @@ isQueryName QueryName{} = True; isQueryName _ = False
 isQueryType QueryType{} = True; isQueryType _ = False
 isQueryScope QueryScope{} = True; isQueryScope _ = False
 
-renderQuery :: [Query] -> String
-renderQuery [] = "<i>No query</i>"
-renderQuery xs = unwords $
-    [escapeHTML x | QueryName x <- xs] ++
-    [":: " ++ escapeHTML (pretty x) | QueryType x <- xs] ++
-    [['-' | not scopeInclude] ++ escapeHTML scopeCategory ++ ":" ++ escapeHTML scopeValue | QueryScope{..} <- xs] ++
-    ["<strike>" ++ escapeHTML x ++ "</strike>" | QueryNone x <- xs]
+renderQuery :: [Query] -> Markup
+renderQuery [] = H.i "No query"
+renderQuery xs = do
+    string $ unwords $
+        [x | QueryName x <- xs] ++
+        [":: " ++ pretty x | QueryType x <- xs] ++
+        [['-' | not scopeInclude] ++ scopeCategory ++ ":" ++ scopeValue | QueryScope{..} <- xs]
+    mconcat [" " <> H.del (string x) | QueryNone x <- xs]
 
 
 ---------------------------------------------------------------------
@@ -58,8 +62,8 @@ isBracket x = x `elem` (openBrackets ++ shutBrackets)
 isBracketPair x = x `elem` zipWith (++) openBrackets shutBrackets
 
 isSym x = ((isSymbol x || isPunctuation x) && x `notElem` special) || x `elem` ascSymbol
-    where special = "(),;[]`{}\"'"
-          ascSymbol = "!#$%&*+./<=>?@\\^|-~"
+    where special = "(),;[]`{}\"'" :: String
+          ascSymbol = "!#$%&*+./<=>?@\\^|-~" :: String
 
 isSyms xs | isBracket xs || isBracketPair xs = False
 isSyms (x:xs) = isSym x
@@ -75,7 +79,7 @@ lexer x | Just s <- (bs !!) <$> findIndex (`isPrefixOf` x) bs = s : lexer (drop 
 lexer (x:xs)
     | isSpace x = " " : lexer (dropWhile isSpace xs)
     | isAlpha x || x == '_' =
-        let (a,b) = span (\x -> isAlphaNum x || x `elem` "_'#-") xs
+        let (a,b) = span (\x -> isAlphaNum x || x `elem` ("_'#-" :: String)) xs
             (a1,a2) = spanEnd (== '-') a
         in (x:a1) : lexer (a2 ++ b)
     | isSym x = let (a,b) = span isSym xs in (x:a) : lexer b

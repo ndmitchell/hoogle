@@ -1,11 +1,13 @@
 {-# LANGUAGE PatternGuards, DeriveDataTypeable, ScopedTypeVariables #-}
 
 module General.Template(
-    Template, templateFile, templateStr, templateApply, templateRender
+    Template, templateFile, templateStr, templateMarkup, templateApply, templateRender
     ) where
 
 import Data.Data
 import Data.Monoid
+import Text.Blaze
+import Text.Blaze.Renderer.Utf8
 import General.Str
 import Control.Exception
 import Data.Generics.Uniplate.Data
@@ -95,6 +97,9 @@ templateTree t = Template t $ treeCache t
 
 templateFile :: FilePath -> Template
 templateFile = templateTree . Lam
+
+templateMarkup :: Markup -> Template
+templateMarkup = templateStr . renderMarkup
 
 templateStr :: LBStr -> Template
 templateStr = templateTree . List . map Lit . lbstrToChunks

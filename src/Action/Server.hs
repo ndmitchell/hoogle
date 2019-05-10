@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
 
@@ -8,6 +9,10 @@ import Control.Exception
 import Control.Exception.Extra
 import Control.DeepSeq
 import System.Directory
+import Text.Blaze
+import Text.Blaze.Renderer.Utf8
+import qualified Text.Blaze.XHtml5 as H
+import qualified Text.Blaze.XHtml5.Attributes as H
 import Data.Tuple.Extra
 import qualified Language.Javascript.JQuery as JQuery
 import qualified Language.Javascript.Flot as Flot
@@ -19,6 +24,7 @@ import Text.Read
 import System.IO.Extra
 import General.Str
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Map as Map
 import System.Time.Extra
 import Data.Time.Clock
@@ -94,14 +100,14 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         let body = showResults local links haddock (filter ((/= "mode") . fst) inputArgs) q2 $
                 dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" inputArgs of
-            Nothing | qSource /= taint [] -> fmap OutputHTML $ templateRender templateIndex $ map (second str)
-                        [("tags",tagOptions qScope)
-                        ,("body",body)
-                        ,("title",escapeUntaint $ (\x -> unwords x ++ " - Hoogle") <$> qSource)
-                        ,("search",escapeUntaint $ unwords <$> sequenceA (grab "hoogle"))
-                        ,("robots",if carefulUntaint $ any isQueryScope <$> q then "none" else "index")]
+            Nothing | qSource /= taint [] -> fmap OutputHTML $ templateRender templateIndex
+                        [("tags", html $ tagOptions qScope)
+                        ,("body", html body)
+                        ,("title", text $ carefulUntaint $ (\x -> unwords x ++ " - Hoogle") <$> qSource)
+                        ,("search", text $ carefulUntaint $ unwords <$> sequenceA (grab "hoogle"))
+                        ,("robots", text $ if carefulUntaint $ any isQueryScope <$> q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
-            Just ((== taint "body") -> True) -> OutputHTML <$> if qSource == taint [] then templateRender templateEmpty [] else return $ lbstrPack body
+            Just ((== taint "body") -> True) -> OutputHTML <$> if qSource == taint [] then templateRender templateEmpty [] else templateRender (html body) []
             Just ((== taint "json") -> True) ->
               let -- 1 means don't drop anything, if it's less than 1 ignore it
                   start :: Int
@@ -110,7 +116,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                   count :: Int
                   count = min 500 $ grabInt "count" 100
               in pure $ OutputJSON $ JSON.toEncoding $ take count $ drop start results
-            Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ escapeUntaint m ++ " not (currently) supported"
+            Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ carefulUntaint m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["plugin","jquery.flot.time.js"] -> OutputFile <$> Flot.file Flot.FlotTime
@@ -126,7 +132,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
 
     ["log"] -> do
         log <- displayLog <$> logSummary log
-        OutputHTML <$> templateRender templateLog [("data",str log)]
+        OutputHTML <$> templateRender templateLog [("data",html $ H.string log)]
     ["stats"] -> do
         stats <- getStatsDebug
         return $ case stats of
@@ -148,16 +154,18 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
     xs ->
         return $ OutputFile $ joinPath $ htmlDir : xs
     where
-        str = templateStr . lbstrPack
-        tagOptions sel = concat [tag "option" ["selected=selected" | taint x `elem` sel] x | x <- completionTags store]
-        params = map (second str)
-            [("cdn",cdn)
-            ,("home",home)
-            ,("jquery",if null cdn then "plugin/jquery.js" else JQuery.url)
-            ,("version",showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
+        html = templateMarkup
+        text = templateMarkup . H.string
+
+        tagOptions sel = mconcat [H.option !? (taint x `elem` sel, H.selected "selected") $ H.string x | x <- completionTags store]
+        params =
+            [("cdn", text cdn)
+            ,("home", text home)
+            ,("jquery", text $ if null cdn then "plugin/jquery.js" else JQuery.url)
+            ,("version", text $ showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
         templateIndex = templateFile (htmlDir </> "index.html") `templateApply` params
         templateEmpty = templateFile (htmlDir </>  "welcome.html")
-        templateHome = templateIndex `templateApply` [("tags",str $ tagOptions []),("body",templateEmpty),("title",str "Hoogle"),("search",str ""),("robots",str "index")]
+        templateHome = templateIndex `templateApply` [("tags",html $ tagOptions []),("body",templateEmpty),("title",text "Hoogle"),("search",text ""),("robots",text "index")]
         templateLog = templateFile (htmlDir </> "log.html") `templateApply` params
 
 
@@ -171,23 +179,22 @@ dedupeTake n key = f [] Map.empty
             where k = key x
 
 
-showResults :: Bool -> Bool -> Maybe FilePath -> [(String, Taint String)] -> [Query] -> [[Target]] -> String
-showResults local links haddock args query results = unlines $
-    ["<h1>" ++ renderQuery query ++ "</h1>"
-    ,"<ul id=left>"
-    ,"<li><b>Packages</b></li>"] ++
-    [tag_ "li" $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query] ++
-    ["</ul>"] ++
-    ["<p>No results found</p>" | null results] ++
-    ["<div class=result>" ++
-     "<div class=ans>" ++
-        "<a href=\"" ++ showURL local haddock targetURL ++ "\">" ++ displayItem query targetItem ++ "</a>" ++
-        (if not links then "" else "<div class=links><a href='" ++ useLink is ++ "'>Uses</a></div>") ++
-     "</div>" ++
-     "<div class=from>" ++ showFroms local haddock is ++ "</div>" ++
-     "<div class=\"doc newline shut\">" ++ targetDocs ++ "</div>" ++
-     "</div>"
-    | is@(Target{..}:_) <- results]
+showResults :: Bool -> Bool -> Maybe FilePath -> [(String, Taint String)] -> [Query] -> [[Target]] -> Markup
+showResults local links haddock args query results = do
+    H.h1 $ renderQuery query
+    H.ul ! H.id "left" $ do
+        H.li $ H.b "Packages"
+        mconcat [H.li $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
+    when (null results) $ H.p "No results found"
+    forM_ results $ \is@(Target{..}:_) -> do
+        H.div ! H.class_ "result" $ do
+            H.div ! H.class_ "ans" $ do
+                H.a ! H.href (H.stringValue $ showURL local haddock targetURL) $
+                    displayItem query targetItem
+                when links $ do
+                    H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue $ useLink is) $ "Uses"
+            H.div ! H.class_ "from" $ showFroms local haddock is
+            H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
     where
         useLink :: [Target] -> String
         useLink [t] | isNothing $ targetPackage t =
@@ -197,14 +204,15 @@ showResults local links haddock args query results = unlines $
             "&filter=" ++ intercalate "|" (mapMaybe (fmap fst . targetModule) ts) ++
             "&precise=on"
 
-        add x = ("?" ++) $ intercalate "&amp;" $ map (joinPair "=" . second escapeUntaint) $
+        add x = ("?" ++) $ intercalate "&amp;" $ map (joinPair "=" . second carefulUntaint) $
             case break ((==) "hoogle" . fst) args of
                 (a,[]) -> a ++ [("hoogle",taint x)]
                 (a,(_,x1):b) -> a ++ [("hoogle",(\v -> v ++ " " ++ x) <$> x1)] ++ b
 
-        f cat val = "<a class=\"minus\" href=\"" ++ add ("-" ++ cat ++ ":" ++ val) ++ "\"></a>" ++
-                    "<a class=\"plus\" href=\"" ++ add (cat ++ ":" ++ val) ++ "\">" ++
-                    (if cat == "package" then "" else cat ++ ":") ++ val ++ "</a>"
+        f cat val = do
+            H.a ! H.class_" minus" ! H.href (H.stringValue $ add $ "-" ++ cat ++ ":" ++ val) $ ""
+            H.a ! H.class_ "plus"  ! H.href (H.stringValue $ add $        cat ++ ":" ++ val) $
+                H.string $ (if cat == "package" then "" else cat ++ ":") ++ val
 
 
 -- find the <span class=name>X</span> bit
@@ -223,10 +231,10 @@ itemCategories xs =
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
-showFroms :: Bool -> Maybe FilePath -> [Target] -> String
-showFroms local haddock xs = intercalate ", " $ flip map pkgs $ \p ->
+showFroms :: Bool -> Maybe FilePath -> [Target] -> Markup
+showFroms local haddock xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
     let ms = filter ((==) p . targetPackage) xs
-    in unwords ["<a href=\"" ++ showURL local haddock b ++ "\">" ++ a ++ "</a>" | (a,b) <- catMaybes $ p : map remod ms]
+    in mconcat [H.a ! H.href (H.stringValue $ showURL local haddock b) $ H.string a | (a,b) <- catMaybes $ p : map remod ms]
     where
         remod Target{..} = do (a,_) <- targetModule; return (a,targetURL)
         pkgs = nubOrd $ map targetPackage xs
@@ -240,12 +248,13 @@ showURL _ _ x = x
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
 
-highlightItem :: [Query] -> String -> String
+highlightItem :: [Query] -> String -> Markup
 highlightItem qs x
-    | Just (pre,x) <- stripInfix "<s0>" x, Just (name,post) <- stripInfix "</s0>" x = pre ++ highlight (unescapeHTML name) ++ post
-    | otherwise = x
+    | Just (pre,x) <- stripInfix "<s0>" x, Just (name,post) <- stripInfix "</s0>" x
+        = H.preEscapedString pre <> highlight (unescapeHTML name) <> H.preEscapedString post
+    | otherwise = H.string x
     where
-        highlight = concatMap (\xs@((b,_):_) -> let s = escapeHTML $ map snd xs in if b then "<b>" ++ s ++ "</b>" else s) .
+        highlight = mconcat . map (\xs@((b,_):_) -> let s = H.string $ map snd xs in if b then H.b s else s) .
                     groupOn fst . (\x -> zip (f x) x)
             where
               f (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (f xs)
@@ -253,7 +262,7 @@ highlightItem qs x
               f (x:xs) = False : f xs
               f [] = []
 
-displayItem :: [Query] -> String -> String
+displayItem :: [Query] -> String -> Markup
 displayItem = highlightItem
 
 
@@ -262,8 +271,8 @@ action_server_test_ = do
     testing "Action.Server.displayItem" $ do
         let expand = replace "{" "<b>" . replace "}" "</b>" . replace "<s0>" "" . replace "</s0>" ""
             contract = replace "{" "" . replace "}" ""
-        let q === s | displayItem (parseQuery q) (contract s) == expand s = putChar '.'
-                    | otherwise = errorIO $ show (q,s,displayItem (parseQuery q) (contract s))
+        let q === s | LBS.unpack (renderMarkup $ displayItem (parseQuery q) (contract s)) == expand s = putChar '.'
+                    | otherwise = errorIO $ show (q,s,renderMarkup $ displayItem (parseQuery q) (contract s))
         "test" === "<s0>my{Test}</s0> :: Int -&gt; test"
         "new west" === "<s0>{newest}_{new}</s0> :: Int"
         "+*" === "(<s0>{+*}&amp;</s0>) :: Int"
