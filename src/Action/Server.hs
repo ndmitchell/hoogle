@@ -44,6 +44,7 @@ import General.Log
 import Action.Search
 import Action.CmdLine
 import Control.Applicative
+import Data.Monoid
 import Prelude
 
 import qualified Data.Aeson as JSON
