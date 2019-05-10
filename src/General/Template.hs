@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternGuards, DeriveDataTypeable, ScopedTypeVariables #-}
 
 module General.Template(
-    Template, templateFile, templateStr, templateMarkup, templateApply, templateRender
+    Template, templateFile, templateMarkup, templateApply, templateRender
     ) where
 
 import Data.Data
