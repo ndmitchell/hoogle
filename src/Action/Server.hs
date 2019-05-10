@@ -107,7 +107,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                         ,("search", text $ unwords $ grab "hoogle")
                         ,("robots", text $ if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
-            Just "body" -> OutputHTML <$> if qSource == [] then templateRender templateEmpty [] else templateRender (html body) []
+            Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else templateRender (html body) []
             Just "json" ->
               let -- 1 means don't drop anything, if it's less than 1 ignore it
                   start :: Int
