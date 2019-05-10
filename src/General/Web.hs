@@ -62,7 +62,7 @@ forceBS (OutputFail x) = force x
 forceBS (OutputFile x) = rnf x `seq` LBS.empty
 
 instance NFData Output where
-    rnf = rwhnf . forceBS
+    rnf x = forceBS x `seq` ()
 
 server :: Log -> CmdLine -> (Input -> IO Output) -> IO ()
 server log Server{..} act = do
