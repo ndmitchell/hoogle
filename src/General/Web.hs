@@ -2,7 +2,6 @@
 
 module General.Web(
     Input(..),
-    Taint, taint, carefulUntaint, escapeUntaint,
     Output(..), readInput, server
     ) where
 
@@ -34,32 +33,12 @@ import Prelude
 
 data Input = Input
     {inputURL :: [String]
-    ,inputArgs :: [(String, Taint String)]
+    ,inputArgs :: [(String, String)]
     } deriving Show
-
-newtype Taint a = Taint a
-    deriving (Functor, Show, Eq)
-
-instance Applicative Taint where
-    pure     = Taint
-    Taint f <*> Taint x = Taint $ f x
-
-instance Monad Taint where
-    Taint m >>= k = k m
-
-
-taint :: a -> Taint a
-taint = Taint
-
-carefulUntaint :: Taint a -> a
-carefulUntaint (Taint a) = a
-
-escapeUntaint :: Taint String -> String
-escapeUntaint = escapeHTML . carefulUntaint
 
 readInput :: String -> Input
 readInput (breakOn "?" -> (a,b)) = Input (filter (not . badPath) $ dropWhile null $ splitOn "/" a) $
-    filter (not . badArg . fst) $ map (second (Taint . unEscapeString . drop1) . breakOn "=") $ splitOn "&" $ drop1 b
+    filter (not . badArg . fst) $ map (second (unEscapeString . drop1) . breakOn "=") $ splitOn "&" $ drop1 b
     where
         -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
         badPath xs = xs == "" || all (== '.') xs
@@ -109,7 +88,7 @@ server log Server{..} act = do
     runServer $ \req reply -> do
         putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
         let pay = Input (map Text.unpack $ pathInfo req)
-                        [(bstrUnpack a, Taint $ maybe "" bstrUnpack b) | (a,b) <- queryString req]
+                        [(bstrUnpack a, maybe "" bstrUnpack b) | (a,b) <- queryString req]
         (time,res) <- duration $ try_ $ do s <- act pay; bs <- evaluate $ forceBS s; return (s, bs)
         res <- either (fmap Left . showException) (return . Right) res
         logAddEntry log (showSockAddr $ remoteHost req)

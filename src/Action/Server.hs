@@ -90,25 +90,25 @@ replyServer :: Log -> Bool -> Bool -> Maybe FilePath -> StoreRead -> String -> S
 replyServer log local links haddock store cdn home htmlDir scope Input{..} = case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
-        let grab name = [x | (a,x) <- inputArgs, a == name, x /= taint ""]
-            grabInt name def = fromMaybe def $ readMaybe . carefulUntaint =<< listToMaybe (grab name) :: Int
+        let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
+            grabInt name def = fromMaybe def $ readMaybe =<< listToMaybe (grab name) :: Int
 
-        let qScope = let xs = grab "scope" in [taint scope | null xs && scope /= ""] ++ xs
-        let qSource = sequenceA $ grab "hoogle" ++ filter (/= taint "set:stackage") qScope
-        let q = concatMap parseQuery <$> qSource :: Taint [Query]
-        let (q2, results) = search store $ carefulUntaint q
+        let qScope = let xs = grab "scope" in [scope | null xs && scope /= ""] ++ xs
+        let qSource = grab "hoogle" ++ filter (/= "set:stackage") qScope
+        let q = concatMap parseQuery qSource
+        let (q2, results) = search store q
         let body = showResults local links haddock (filter ((/= "mode") . fst) inputArgs) q2 $
                 dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" inputArgs of
-            Nothing | qSource /= taint [] -> fmap OutputHTML $ templateRender templateIndex
+            Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex
                         [("tags", html $ tagOptions qScope)
                         ,("body", html body)
-                        ,("title", text $ carefulUntaint $ (\x -> unwords x ++ " - Hoogle") <$> qSource)
-                        ,("search", text $ carefulUntaint $ unwords <$> sequenceA (grab "hoogle"))
-                        ,("robots", text $ if carefulUntaint $ any isQueryScope <$> q then "none" else "index")]
+                        ,("title", text $ unwords qSource ++ " - Hoogle")
+                        ,("search", text $ unwords $ grab "hoogle")
+                        ,("robots", text $ if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
-            Just ((== taint "body") -> True) -> OutputHTML <$> if qSource == taint [] then templateRender templateEmpty [] else templateRender (html body) []
-            Just ((== taint "json") -> True) ->
+            Just "body" -> OutputHTML <$> if qSource == [] then templateRender templateEmpty [] else templateRender (html body) []
+            Just "json" ->
               let -- 1 means don't drop anything, if it's less than 1 ignore it
                   start :: Int
                   start = max 0 $ grabInt "start" 1 - 1
@@ -116,7 +116,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                   count :: Int
                   count = min 500 $ grabInt "count" 100
               in pure $ OutputJSON $ JSON.toEncoding $ take count $ drop start results
-            Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ carefulUntaint m ++ " not (currently) supported"
+            Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["plugin","jquery.flot.time.js"] -> OutputFile <$> Flot.file Flot.FlotTime
@@ -157,7 +157,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         html = templateMarkup
         text = templateMarkup . H.string
 
-        tagOptions sel = mconcat [H.option !? (taint x `elem` sel, H.selected "selected") $ H.string x | x <- completionTags store]
+        tagOptions sel = mconcat [H.option !? (x `elem` sel, H.selected "selected") $ H.string x | x <- completionTags store]
         params =
             [("cdn", text cdn)
             ,("home", text home)
@@ -179,7 +179,7 @@ dedupeTake n key = f [] Map.empty
             where k = key x
 
 
-showResults :: Bool -> Bool -> Maybe FilePath -> [(String, Taint String)] -> [Query] -> [[Target]] -> Markup
+showResults :: Bool -> Bool -> Maybe FilePath -> [(String, String)] -> [Query] -> [[Target]] -> Markup
 showResults local links haddock args query results = do
     H.h1 $ renderQuery query
     H.ul ! H.id "left" $ do
@@ -204,10 +204,10 @@ showResults local links haddock args query results = do
             "&filter=" ++ intercalate "|" (mapMaybe (fmap fst . targetModule) ts) ++
             "&precise=on"
 
-        add x = ("?" ++) $ intercalate "&amp;" $ map (joinPair "=" . second carefulUntaint) $
+        add x = ("?" ++) $ intercalate "&amp;" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
-                (a,[]) -> a ++ [("hoogle",taint x)]
-                (a,(_,x1):b) -> a ++ [("hoogle",(\v -> v ++ " " ++ x) <$> x1)] ++ b
+                (a,[]) -> a ++ [("hoogle", x)]
+                (a,(_,x1):b) -> a ++ [("hoogle", x1 ++ " " ++ x)] ++ b
 
         f cat val = do
             H.a ! H.class_" minus" ! H.href (H.stringValue $ add $ "-" ++ cat ++ ":" ++ val) $ ""
@@ -289,7 +289,7 @@ action_server_test sample database = do
         log <- logNone
         dataDir <- getDataDir
         let check p q = do
-                OutputHTML (lbstrUnpack -> res) <- replyServer log False False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",taint q)])
+                OutputHTML (lbstrUnpack -> res) <- replyServer log False False Nothing store "" "" (dataDir </> "html") "" (Input [] [("hoogle",q)])
                 if p res then putChar '.' else fail $ "Bad substring: " ++ res
         let q === want = check (want `isInfixOf`) q
         let q /== want = check (not . isInfixOf want) q
