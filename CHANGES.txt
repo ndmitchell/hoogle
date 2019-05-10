@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+5.0.17.7, released 2019-05-10
     Fix an XSS vulnerability, reported by @alexanderGugel
     #297, make Uses for packages point at reverse deps
     #261, add support for pattern synonyms
