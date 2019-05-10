@@ -85,7 +85,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
         let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
-        let qScope = let xs = grab "scope" in [scope | null xs && scope /= ""] ++ xs
+        let qScope = let xs = grab "scope" in [escapeHTML scope | null xs && scope /= ""] ++ xs
         let qSource = grab "hoogle" ++ filter (/= "set:stackage") qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
@@ -95,8 +95,8 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
             Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex $ map (second str)
                         [("tags",tagOptions qScope)
                         ,("body",body)
-                        ,("title",unwords qSource ++ " - Hoogle")
-                        ,("search",unwords $ grab "hoogle")
+                        ,("title",escapeHTML $ unwords qSource ++ " - Hoogle")
+                        ,("search",escapeHTML $ unwords $ grab "hoogle")
                         ,("robots",if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
             Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else return $ lbstrPack body
