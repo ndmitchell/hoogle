@@ -14,7 +14,6 @@ import Network.Wai.Logger
 import Network.Wai
 import Control.DeepSeq
 import Network.HTTP.Types.Status
-import Control.Monad.Identity
 import qualified Data.Text as Text
 import General.Str
 import qualified Data.ByteString.Char8 as BS
@@ -37,7 +36,7 @@ data Input = Input
     ,inputArgs :: [(String, Taint String)]
     } deriving Show
 
-data Taint a = Taint a
+newtype Taint a = Taint a
     deriving (Functor, Show, Eq)
 
 instance Applicative Taint where
