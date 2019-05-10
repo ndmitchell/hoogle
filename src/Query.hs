@@ -17,6 +17,7 @@ import Data.List.Extra
 import Data.Generics.Uniplate.Data
 import General.Util
 import Data.Maybe
+import Data.Monoid
 import Control.Applicative
 import Prelude
 
