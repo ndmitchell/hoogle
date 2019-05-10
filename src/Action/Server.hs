@@ -134,7 +134,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
             Nothing -> OutputFail $ lbstrPack "GHC Statistics is not enabled, restart with +RTS -T"
             Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
     "haddock":xs | Just x <- haddock -> do
-        let file = intercalate "/" $ filter (not . (== "..")) (x:xs)
+        let file = intercalate "/" $ filter (not . all (== '.')) (x:xs)
         return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
     "file":xs | local -> do
         let x = ['/' | not isWindows] ++ intercalate "/" (dropWhile null xs)
