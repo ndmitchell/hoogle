@@ -19,6 +19,7 @@ import General.Str
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.List.Extra
+import Data.Aeson.Encoding
 import Data.Char
 import Data.String
 import Data.Tuple.Extra
@@ -68,18 +69,21 @@ readInput (breakOn "?" -> (a,b)) = Input (filter (not . badPath) $ dropWhile nul
 data Output
     = OutputText LBS.ByteString
     | OutputHTML LBS.ByteString
-    | OutputJSON LBS.ByteString
+    | OutputJSON Encoding
     | OutputFail LBS.ByteString
     | OutputFile FilePath
       deriving Show
 
-instance NFData Output where
-    rnf (OutputText x) = rnf x
-    rnf (OutputJSON x) = rnf x
-    rnf (OutputHTML x) = rnf x
-    rnf (OutputFail x) = rnf x
-    rnf (OutputFile x) = rnf x
+-- | Force all the output (no delayed exceptions) and produce bytestrings
+forceBS :: Output -> LBS.ByteString
+forceBS (OutputText x) = force x
+forceBS (OutputJSON x) = force $ encodingToLazyByteString x
+forceBS (OutputHTML x) = force x
+forceBS (OutputFail x) = force x
+forceBS (OutputFile x) = rnf x `seq` LBS.empty
 
+instance NFData Output where
+    rnf = rwhnf . forceBS
 
 server :: Log -> CmdLine -> (Input -> IO Output) -> IO ()
 server log Server{..} act = do
@@ -106,18 +110,18 @@ server log Server{..} act = do
         putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
         let pay = Input (map Text.unpack $ pathInfo req)
                         [(bstrUnpack a, Taint $ maybe "" bstrUnpack b) | (a,b) <- queryString req]
-        (time,res) <- duration $ try_ $ do s <- act pay; evaluate $ force s
+        (time,res) <- duration $ try_ $ do s <- act pay; bs <- evaluate $ forceBS s; return (s, bs)
         res <- either (fmap Left . showException) (return . Right) res
         logAddEntry log (showSockAddr $ remoteHost req)
             (BS.unpack $ rawPathInfo req <> rawQueryString req) time (either Just (const Nothing) res)
         case res of
             Left s -> reply $ responseLBS status500 [] $ LBS.pack s
-            Right v -> reply $ case v of
+            Right (v, bs) -> reply $ case v of
                 OutputFile file -> responseFile status200
                     [("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] file Nothing
-                OutputText msg -> responseLBS status200 [("content-type","text/plain")] msg
-                OutputJSON msg -> responseLBS status200 [("content-type","application/json"), ("access-control-allow-origin","*")] msg
-                OutputFail msg -> responseLBS status500 [] msg
-                OutputHTML msg -> responseLBS status200 [("content-type","text/html")] msg
+                OutputText{} -> responseLBS status200 [("content-type","text/plain")] bs
+                OutputJSON{} -> responseLBS status200 [("content-type","application/json"), ("access-control-allow-origin","*")] bs
+                OutputFail{} -> responseLBS status500 [("content-type","text/plain")] bs
+                OutputHTML{} -> responseLBS status200 [("content-type","text/html")] bs
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
