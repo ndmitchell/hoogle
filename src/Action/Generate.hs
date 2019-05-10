@@ -81,7 +81,7 @@ generate :: Maybe Int -> [GenList] -> [GenTags] -> [GenData] -> IO ()
 
 
 generate :: FilePath -> [(String, [(String, String)])] -> [(String, LBS.ByteString)] -> IO ()
-generate output metadata  = undefined
+generate output metadata = ...
 -}
 
 
