@@ -146,7 +146,7 @@ storeWriteAtom (StoreWrite ref) (show . typeOf -> key) part (ptr, len) = do
     sw@SW{..} <- readIORef ref
     putBuffer swHandle ptr len
 
-    let val = show $ typeOf (undefined :: a)
+    let val = show $ typeRep (Proxy :: Proxy a)
     atoms <- case swAtoms of
         (keyOld,a):xs | part, key == keyOld -> do
             let size = atomSize a + len
@@ -196,7 +196,7 @@ storeRead = storedRead
 storeReadAtom :: forall a t . (Typeable (t a), Typeable a) => StoreRead -> t a -> (CStringLen -> IO a) -> a
 storeReadAtom StoreRead{..} (typeOf -> k) unpack = unsafePerformIO $ do
     let key = show k
-    let val = show $ typeOf (undefined :: a)
+    let val = show $ typeRep (Proxy :: Proxy a)
     let corrupt msg = errorIO $ "The Hoogle file " ++ srFile ++ " is corrupt, " ++ key ++ " " ++ msg ++ "."
     case Map.lookup key srAtoms of
         Nothing -> corrupt "is missing"
