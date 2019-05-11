@@ -235,7 +235,7 @@ itemCategories xs =
 showFroms :: Bool -> Maybe FilePath -> [Target] -> Markup
 showFroms local haddock xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
     let ms = filter ((==) p . targetPackage) xs
-    in mconcat [H.a ! H.href (H.stringValue $ showURL local haddock b) $ H.string a | (a,b) <- catMaybes $ p : map remod ms]
+    in mconcat $ intersperse " " [H.a ! H.href (H.stringValue $ showURL local haddock b) $ H.string a | (a,b) <- catMaybes $ p : map remod ms]
     where
         remod Target{..} = do (a,_) <- targetModule; return (a,targetURL)
         pkgs = nubOrd $ map targetPackage xs
