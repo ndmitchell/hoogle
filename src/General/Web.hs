@@ -82,6 +82,39 @@ server log Server{..} act = do
         runServer :: Application -> IO ()
         runServer = if https then runTLS (tlsSettings cert key) set
                              else runSettings set
+        secH = [
+             -- Tells the browser this web page should not be rendered inside a
+             -- frame, except if the framing page comes from the same origin
+             -- (i.e. DNS name + port). This is to thwart invisible, keylogging
+             -- framing pages.
+             ("X-Frame-Options", "sameorigin"),
+
+             -- Tells browsers to trust the Content-Type header and not try to
+             -- otherwise guess at response types. In particular, prevents
+             -- dangerous browser behaviour that would execute a file loaded
+             -- from a <script> or <style> tag despite not having a
+             -- text/javascript or text/css Content-Type.
+             ("X-Content-Type-Options", "nosniff"),
+
+             -- Browser should try to detect "reflected" XSS attacks, where
+             -- some suspicious payload of the request appears in the response.
+             -- How browsers do that is unspecified. On detection, browser
+             -- should block the page from rendering at all.
+             ("X-XSS-Protection", "1; mode=block"),
+
+             -- Do not include referrer information if user-agent generates a
+             -- request from an HTTPS page to an HTTP one. Note: this is
+             -- technically redundant as this should be the browser default
+             -- behaviour.
+             ("Referrer-Policy", "no-referrer-when-downgrade")
+
+             -- Strict Transport Security (aka HSTS) tells the browser that,
+             -- from now on and until max-age seconds have passed, it should
+             -- never try to connect to this domain name through unprotected
+             -- HTTP. The browser will automatically upgrade any HTTP request
+             -- to this domain name to HTTPS, client side, before any network
+             -- call happens.
+             ] ++ [("Strict-Transport-Security", "max-age=31536000; includeSubDomains") | https]
 
     logAddMessage log $ "Server starting on port " ++ show port ++ " and host/IP " ++ show host'
 
@@ -97,10 +130,10 @@ server log Server{..} act = do
             Left s -> reply $ responseLBS status500 [] $ LBS.pack s
             Right (v, bs) -> reply $ case v of
                 OutputFile file -> responseFile status200
-                    [("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] file Nothing
-                OutputText{} -> responseLBS status200 [("content-type","text/plain")] bs
-                OutputJSON{} -> responseLBS status200 [("content-type","application/json"), ("access-control-allow-origin","*")] bs
-                OutputFail{} -> responseLBS status500 [("content-type","text/plain")] bs
-                OutputHTML{} -> responseLBS status200 [("content-type","text/html")] bs
+                    ([("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] ++ secH) file Nothing
+                OutputText{} -> responseLBS status200 (("content-type","text/plain") : secH) bs
+                OutputJSON{} -> responseLBS status200 (("content-type","application/json") : ("access-control-allow-origin","*") : secH) bs
+                OutputFail{} -> responseLBS status500 (("content-type","text/plain") : secH) bs
+                OutputHTML{} -> responseLBS status200 (("content-type","text/html") : secH) bs
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
