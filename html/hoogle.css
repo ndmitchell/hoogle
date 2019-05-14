@@ -110,6 +110,11 @@ form {
     padding-right: 15px;
 }
 
+#plugin {
+    display: none;
+    cursor: pointer;
+}
+
 
 /********************************************************************
 *  LEFT - EXTRA SUGGESTIONS
