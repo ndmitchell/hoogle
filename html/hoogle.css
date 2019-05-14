@@ -110,7 +110,7 @@ form {
     padding-right: 15px;
 }
 
-#plugin {
+#top-menu li#plugin {
     display: none;
     cursor: pointer;
 }

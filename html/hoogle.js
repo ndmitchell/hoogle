@@ -247,18 +247,16 @@ $(function(){
         });
     }
     if (window.external && ("AddSearchProvider" in window.external))
-        $("#plugin").css("display","");
-});
-
-$(function(){
-    $("#plugin").on('click', function(){
-        var url = $("link[rel=search]").attr("href");
-        //  If neither scheme(http(s)://) nor DSN prefix(//) is in URL then we
-        //  should add prefix.
-        if (url.indexOf('://') === -1 && url.indexOf('//') !== 0)
-            url = prefixUrl + url;
-        window.external.AddSearchProvider(url);
-    });
+    {
+        $("#plugin").css("display","inline").on('click', function(){
+            var url = $("link[rel=search]").attr("href");
+            //  If neither scheme(http(s)://) nor DSN prefix(//) is in URL then we
+            //  should add prefix.
+            if (url.indexOf('://') === -1 && url.indexOf('//') !== 0)
+                url = prefixUrl + url;
+            window.external.AddSearchProvider(url);
+        });
+    }
 });
 
 
