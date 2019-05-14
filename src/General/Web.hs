@@ -94,8 +94,7 @@ server log Server{..} act = do
               <> " script-src 'self' https://code.jquery.com/ https://rawcdn.githack.com;"
               -- As an exception to the default rule, allow stylesheets from
               -- the CDN. TODO: for now, we are also enabling inline styles,
-              -- because the existing template uses some. This should probably
-              -- be looked at and removed if possible.
+              -- because it the chosen plugin uses them.
               <> " style-src 'self' 'unsafe-inline' https://rawcdn.githack.com;"
               -- As an exception to the default rule, allow images from the
               -- CDN.
