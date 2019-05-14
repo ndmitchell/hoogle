@@ -110,11 +110,7 @@ server log Server{..} act = do
               <> " upgrade-insecure-requests;"
               -- Do not display http content if the page was loaded under
               -- https.
-              <> " block-all-mixed-content;"
-              -- If the browser manages to detect any reflected XSS attack
-              -- going on, block the page. This is the preferred replacement
-              -- for the X-XSS-Protection header specified below.
-              <> " reflected-xss block"),
+              <> " block-all-mixed-content"),
 
              -- Tells the browser this web page should not be rendered inside a
              -- frame, except if the framing page comes from the same origin
