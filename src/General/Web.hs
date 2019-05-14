@@ -90,11 +90,15 @@ server log Server{..} act = do
               -- page.
               "default-src 'self';"
               -- As an exception to the default rule, allow scripts from jquery
-              -- and the CDN.
-              <> " script-src 'self' https://code.jquery.com/ https://rawcdn.githack.com;"
+              -- and the CDN. TODO: For now, we are also enabling inline
+              -- styles, because the existing template uses some. This should
+              -- probably be looked at and removed if possible.
+              <> " script-src 'self' 'unsafe-inline' https://code.jquery.com/ https://rawcdn.githack.com;"
               -- As an exception to the default rule, allow stylesheets from
-              -- the CDN.
-              <> " style-src 'self' https://rawcdn.githack.com;"
+              -- the CDN. TODO: for now, we are also enabling inline styles,
+              -- because the existing template uses some. This should probably
+              -- be looked at and removed if possible.
+              <> " style-src 'self' 'unsafe-inline' https://rawcdn.githack.com;"
               -- As an exception to the default rule, allow images from the
               -- CDN.
               <> " img-src 'self' https://rawcdn.githack.com;"
