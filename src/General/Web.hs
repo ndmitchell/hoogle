@@ -83,6 +83,38 @@ server log Server{..} act = do
         runServer = if https then runTLS (tlsSettings cert key) set
                              else runSettings set
         secH = [
+             -- The CSP is giving additional instructions to the browser.
+             ("Content-Security-Policy",
+              -- For any content type not specifically enumerated in this CSP
+              -- (e.g. fonts), the only valid origin is the same as the current
+              -- page.
+              "default-src 'self';"
+              -- As an exception to the default rule, allow scripts from jquery
+              -- and the CDN.
+              <> " script-src 'self' https://code.jquery.com/ https://rawcdn.githack.com;"
+              -- As an exception to the default rule, allow stylesheets from
+              -- the CDN.
+              <> " style-src 'self' https://rawcdn.githack.com;"
+              -- As an exception to the default rule, allow images from the
+              -- CDN.
+              <> " img-src 'self' https://rawcdn.githack.com;"
+              -- Only allow this request in an iframe if the containing page
+              -- has the same origin.
+              <> " frame-ancestors 'self';"
+              -- Forms are only allowed to target addresses under the same
+              -- origin as the page.
+              <> " form-action 'self';"
+              -- Any request originating from this page and specifying http as
+              -- its protocol will be automatically upgraded to https.
+              <> " upgrade-insecure-requests;"
+              -- Do not display http content if the page was loaded under
+              -- https.
+              <> " block-all-mixed-content;"
+              -- If the browser manages to detect any reflected XSS attack
+              -- going on, block the page. This is the preferred replacement
+              -- for the X-XSS-Protection header specified below.
+              <> " reflected-xss block"),
+
              -- Tells the browser this web page should not be rendered inside a
              -- frame, except if the framing page comes from the same origin
              -- (i.e. DNS name + port). This is to thwart invisible, keylogging
