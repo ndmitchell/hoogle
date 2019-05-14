@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+5.0.17.8, released 2019-05-14
     #299, add some security-improving headers
     #298, use Blaze for constructing most HTML
 5.0.17.7, released 2019-05-10
