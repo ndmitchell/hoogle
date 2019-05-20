@@ -189,7 +189,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             , KnownFailure "GitHub issue #267" $
                   ("pure" `inPackage` "base") `AppearsBefore` ("shrinkNothing" `inModule` "Test.QuickCheck")
             , InTop 10 ("pure"   `inPackage` "base")
-            , InTop 10 ("return" `inPackage` "base")
+            -- , InTop 10 ("return" `inPackage` "base")
             ]
         query "[a] -> a"
             [ InTop 10 ("head" `inPackage` "base")
