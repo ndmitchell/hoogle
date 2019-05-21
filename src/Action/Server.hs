@@ -162,7 +162,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         params =
             [("cdn", text cdn)
             ,("home", text home)
-            ,("jquery", text $ if null cdn then "plugin/jquery.js" else JQuery.url)
+            ,("jquery", text $ if null cdn then "plugin/jquery.js" else "https:" ++ JQuery.url)
             ,("version", text $ showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
         templateIndex = templateFile (htmlDir </> "index.html") `templateApply` params
         templateEmpty = templateFile (htmlDir </>  "welcome.html")
