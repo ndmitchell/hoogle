@@ -49,7 +49,6 @@ import Prelude
 
 import qualified Data.Aeson as JSON
 
-
 actionServer :: CmdLine -> IO ()
 actionServer cmd@Server{..} = do
     -- so I can get good error messages
@@ -72,7 +71,7 @@ actionServer cmd@Server{..} = do
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
-    let qs = [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
+    let qs = catMaybes [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
         dataDir <- getDataDir
