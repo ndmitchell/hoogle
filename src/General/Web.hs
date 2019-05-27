@@ -22,12 +22,12 @@ import Data.Aeson.Encoding
 import Data.Char
 import Data.String
 import Data.Tuple.Extra
+import Data.Maybe (fromMaybe)
 import Data.Monoid
 import System.FilePath
 import Control.Exception.Extra
 import System.Time.Extra
 import General.Log
-import Network.URI
 import Prelude
 
 
@@ -155,13 +155,12 @@ server log Server{..} act = do
     logAddMessage log $ "Server starting on port " ++ show port ++ " and host/IP " ++ show host'
 
     runServer $ \req reply -> do
-        putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
-        let pay = Input (map Text.unpack $ pathInfo req)
-                        [(bstrUnpack a, maybe "" bstrUnpack b) | (a,b) <- queryString req]
+        let pq = BS.unpack $ rawPathInfo req <> rawQueryString req
+        putStrLn pq
+        let pay = fromMaybe (error $ "Bad URL: " ++ pq) (readInput pq)
         (time,res) <- duration $ try_ $ do s <- act pay; bs <- evaluate $ forceBS s; return (s, bs)
         res <- either (fmap Left . showException) (return . Right) res
-        logAddEntry log (showSockAddr $ remoteHost req)
-            (BS.unpack $ rawPathInfo req <> rawQueryString req) time (either Just (const Nothing) res)
+        logAddEntry log (showSockAddr $ remoteHost req) pq time (either Just (const Nothing) res)
         case res of
             Left s -> reply $ responseLBS status500 [] $ LBS.pack s
             Right (v, bs) -> reply $ case v of
