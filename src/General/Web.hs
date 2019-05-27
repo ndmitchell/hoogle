@@ -82,7 +82,8 @@ server log Server{..} act = do
         runServer :: Application -> IO ()
         runServer = if https then runTLS (tlsSettings cert key) set
                              else runSettings set
-        secH = [
+        secH = if no_security_headers then []
+                                      else [
              -- The CSP is giving additional instructions to the browser.
              ("Content-Security-Policy",
               -- For any content type not specifically enumerated in this CSP
@@ -135,7 +136,7 @@ server log Server{..} act = do
              -- request from an HTTPS page to an HTTP one. Note: this is
              -- technically redundant as this should be the browser default
              -- behaviour.
-             ("Referrer-Policy", "no-referrer-when-downgrade")
+             ("Referrer-Policy", "no-referrer-when-downgrade"),
 
              -- Strict Transport Security (aka HSTS) tells the browser that,
              -- from now on and until max-age seconds have passed, it should
@@ -143,7 +144,7 @@ server log Server{..} act = do
              -- HTTP. The browser will automatically upgrade any HTTP request
              -- to this domain name to HTTPS, client side, before any network
              -- call happens.
-             ] ++ [("Strict-Transport-Security", "max-age=31536000; includeSubDomains") | https]
+             ("Strict-Transport-Security", "max-age=31536000; includeSubDomains")]
 
     logAddMessage log $ "Server starting on port " ++ show port ++ " and host/IP " ++ show host'
 

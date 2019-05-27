@@ -59,6 +59,7 @@ data CmdLine
         ,cert :: FilePath
         ,key :: FilePath
         ,datadir :: Maybe FilePath
+        ,no_security_headers :: Bool
         }
     | Replay
         {logs :: FilePath
@@ -142,6 +143,7 @@ server = Server
     ,cert = "cert.pem" &= typFile &= help "Path to the certificate pem file (when running an https server)"
     ,key = "key.pem" &= typFile &= help "Path to the key pem file (when running an https server)"
     ,datadir = def &= help "Override data directory paths"
+    ,no_security_headers = False &= help "Disable vital security headers"
     } &= help "Start a Hoogle server"
 
 replay = Replay
