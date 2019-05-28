@@ -149,7 +149,7 @@ server log Server{..} act = do
 
     runServer $ \req reply -> do
         putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
-        let pay = Input (map Text.unpack $ pathInfo req)
+        let pay = Input (filter (not . all (== '.')) $ map Text.unpack $ pathInfo req)
                         [(bstrUnpack a, maybe "" bstrUnpack b) | (a,b) <- queryString req]
         (time,res) <- duration $ try_ $ do s <- act pay; bs <- evaluate $ forceBS s; return (s, bs)
         res <- either (fmap Left . showException) (return . Right) res
