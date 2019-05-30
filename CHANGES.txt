@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+5.0.17.9, released 2019-05-30
     #306, fix a potential directory traversal bug
     #305, add a flag to disable security headers
 5.0.17.8, released 2019-05-14
