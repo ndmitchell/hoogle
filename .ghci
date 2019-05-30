@@ -1,6 +1,6 @@
 :set -fwarn-unused-binds -fwarn-unused-imports -fwarn-orphans
 :set -isrc
-:load Main src\Paths.hs
+:load Main src/Paths.hs
 
 :def test \xs -> return $ ":main test " ++ xs
 

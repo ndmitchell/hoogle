@@ -12,9 +12,9 @@ import Action.CmdLine
 import Network.Wai.Logger
 import Network.Wai
 import Control.DeepSeq
+import Network.HTTP.Types (parseQuery, decodePathSegments)
 import Network.HTTP.Types.Status
 import qualified Data.Text as Text
-import General.Str
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.List.Extra
@@ -22,12 +22,12 @@ import Data.Aeson.Encoding
 import Data.Char
 import Data.String
 import Data.Tuple.Extra
+import Data.Maybe (fromMaybe)
 import Data.Monoid
 import System.FilePath
 import Control.Exception.Extra
 import System.Time.Extra
 import General.Log
-import Network.URI
 import Prelude
 
 
@@ -36,14 +36,21 @@ data Input = Input
     ,inputArgs :: [(String, String)]
     } deriving Show
 
-readInput :: String -> Input
-readInput (breakOn "?" -> (a,b)) = Input (filter (not . badPath) $ dropWhile null $ splitOn "/" a) $
-    filter (not . badArg . fst) $ map (second (unEscapeString . drop1) . breakOn "=") $ splitOn "&" $ drop1 b
-    where
-        -- avoid "" and ".." in the URLs, since they could be trying to browse on the server
-        badPath xs = xs == "" || all (== '.') xs
-
-        badArg xs = xs == "" || any (not . isLower) xs
+readInput :: String -> Maybe Input
+readInput (breakOn "?" -> (a,b)) =
+  if (badPath path || badArgs args) then Nothing else Just $ Input path args
+  where
+    path = parsePath a
+    parsePath = map Text.unpack
+              . decodePathSegments
+              . BS.pack
+    badPath = any $ all (== '.')
+    args = parseArgs b
+    parseArgs = map (\(n, v) -> (BS.unpack n, maybe "" BS.unpack v))
+              . parseQuery
+              . BS.pack
+    badArgs = any (any (not . isLower))
+            . map fst
 
 data Output
     = OutputText LBS.ByteString
@@ -149,13 +156,12 @@ server log Server{..} act = do
     logAddMessage log $ "Server starting on port " ++ show port ++ " and host/IP " ++ show host'
 
     runServer $ \req reply -> do
-        putStrLn $ BS.unpack $ rawPathInfo req <> rawQueryString req
-        let pay = Input (map Text.unpack $ pathInfo req)
-                        [(bstrUnpack a, maybe "" bstrUnpack b) | (a,b) <- queryString req]
+        let pq = BS.unpack $ rawPathInfo req <> rawQueryString req
+        putStrLn pq
+        let pay = fromMaybe (error $ "Bad URL: " ++ pq) (readInput pq)
         (time,res) <- duration $ try_ $ do s <- act pay; bs <- evaluate $ forceBS s; return (s, bs)
         res <- either (fmap Left . showException) (return . Right) res
-        logAddEntry log (showSockAddr $ remoteHost req)
-            (BS.unpack $ rawPathInfo req <> rawQueryString req) time (either Just (const Nothing) res)
+        logAddEntry log (showSockAddr $ remoteHost req) pq time (either Just (const Nothing) res)
         case res of
             Left s -> reply $ responseLBS status500 [] $ LBS.pack s
             Right (v, bs) -> reply $ case v of
