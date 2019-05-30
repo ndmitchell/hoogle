@@ -67,7 +67,6 @@ library
         js-flot,
         js-jquery,
         mmap,
-        network-uri >= 2.6,
         process-extras,
         resourcet,
         storable-tuple,
