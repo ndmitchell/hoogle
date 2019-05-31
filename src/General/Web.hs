@@ -158,9 +158,11 @@ server log Server{..} act = do
     runServer $ \req reply -> do
         let pq = BS.unpack $ rawPathInfo req <> rawQueryString req
         putStrLn pq
-        let pay = fromMaybe (error $ "Bad URL: " ++ pq) (readInput pq)
-        (time,res) <- duration $ try_ $ do s <- act pay; bs <- evaluate $ forceBS s; return (s, bs)
-        res <- either (fmap Left . showException) (return . Right) res
+        (time, res) <- duration $ case readInput pq of
+            Nothing -> return $ Left $ "Bad URL: " ++ pq
+            Just pay ->
+                handle_ (fmap Left . showException) $ do
+                    s <- act pay; bs <- evaluate $ forceBS s; return $ Right (s, bs)
         logAddEntry log (showSockAddr $ remoteHost req) pq time (either Just (const Nothing) res)
         case res of
             Left s -> reply $ responseLBS status500 [] $ LBS.pack s
