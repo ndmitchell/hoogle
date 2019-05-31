@@ -22,7 +22,7 @@ import Data.Aeson.Encoding
 import Data.Char
 import Data.String
 import Data.Tuple.Extra
-import Data.Maybe (fromMaybe)
+import Data.Maybe
 import Data.Monoid
 import System.FilePath
 import Control.Exception.Extra
