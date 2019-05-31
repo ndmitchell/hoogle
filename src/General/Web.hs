@@ -169,7 +169,7 @@ server log Server{..} act = do
                     ([("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] ++ secH) file Nothing
                 OutputText{} -> responseLBS status200 (("content-type","text/plain") : secH) bs
                 OutputJSON{} -> responseLBS status200 (("content-type","application/json") : ("access-control-allow-origin","*") : secH) bs
-                OutputFail{} -> responseLBS status500 (("content-type","text/plain") : secH) bs
+                OutputFail{} -> responseLBS status400 (("content-type","text/plain") : secH) bs
                 OutputHTML{} -> responseLBS status200 (("content-type","text/html") : secH) bs
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
