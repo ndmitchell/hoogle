@@ -366,7 +366,7 @@ inRanges xs = \x -> maybe False (`inRange` x) $ Map.lookupLE x mp
         add mp x
             | Just x2 <- Map.lookupLE (fst x) mp, overlap x x2 = add (Map.delete (fst x2) mp) (merge x x2)
             | Just x2 <- Map.lookupGE (fst x) mp, overlap x x2 = add (Map.delete (fst x2) mp) (merge x x2)
-            | otherwise = Map.insert (fst x) (snd x) mp
+            | otherwise = uncurry Map.insert x mp
 
 
 general_util_test :: IO ()
