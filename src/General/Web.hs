@@ -161,7 +161,7 @@ server log Server{..} act = do
         let pq = BS.unpack $ rawPathInfo req <> rawQueryString req
         putStrLn pq
         (time, res) <- duration $ case readInput pq of
-            Nothing -> return $ Left $ "Bad URL: " ++ pq
+            Nothing -> return $ Right (OutputFail "", LBS.pack $ "Bad URL: " ++ pq)
             Just pay ->
                 handle_ (fmap Left . showException) $ do
                     s <- act pay; bs <- evaluate $ forceBS s; return $ Right (s, bs)
