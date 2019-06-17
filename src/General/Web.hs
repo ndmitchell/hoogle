@@ -55,6 +55,7 @@ readInput (breakOn "?" -> (a,b)) =
 data Output
     = OutputText LBS.ByteString
     | OutputHTML LBS.ByteString
+    | OutputJavascript LBS.ByteString
     | OutputJSON Encoding
     | OutputFail LBS.ByteString
     | OutputFile FilePath
@@ -65,6 +66,7 @@ forceBS :: Output -> LBS.ByteString
 forceBS (OutputText x) = force x
 forceBS (OutputJSON x) = force $ encodingToLazyByteString x
 forceBS (OutputHTML x) = force x
+forceBS (OutputJavascript x) = force x
 forceBS (OutputFail x) = force x
 forceBS (OutputFile x) = rnf x `seq` LBS.empty
 
@@ -173,5 +175,6 @@ server log Server{..} act = do
                 OutputJSON{} -> responseLBS status200 (("content-type","application/json") : ("access-control-allow-origin","*") : secH) bs
                 OutputFail{} -> responseLBS status400 (("content-type","text/plain") : secH) bs
                 OutputHTML{} -> responseLBS status200 (("content-type","text/html") : secH) bs
+                OutputJavascript{} -> responseLBS status200 (("content-type","text/javascript") : secH) bs
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]

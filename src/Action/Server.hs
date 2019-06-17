@@ -131,8 +131,10 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
             "Updates " ++ (if alive < 1.5 then "good" else "bad") ++ ": Last updated " ++ showDP 2 alive ++ " days ago.\n"
 
     ["log"] -> do
+        OutputHTML <$> templateRender templateLog []
+    ["log.js"] -> do
         log <- displayLog <$> logSummary log
-        OutputHTML <$> templateRender templateLog [("data",html $ H.string log)]
+        OutputJavascript <$> templateRender templateLogJs [("data",html $ H.preEscapedString log)]
     ["stats"] -> do
         stats <- getStatsDebug
         return $ case stats of
@@ -167,6 +169,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         templateEmpty = templateFile (htmlDir </>  "welcome.html")
         templateHome = templateIndex `templateApply` [("tags",html $ tagOptions []),("body",templateEmpty),("title",text "Hoogle"),("search",text ""),("robots",text "index")]
         templateLog = templateFile (htmlDir </> "log.html") `templateApply` params
+        templateLogJs = templateFile (htmlDir </> "log.js") `templateApply` params
 
 
 dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]

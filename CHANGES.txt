@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    Fix up the /log page to avoid raising CSP errors
     Avoid raising error when you see a bad URL
     Make errors from the server be code 400 rather than 500
 5.0.17.9, released 2019-05-30
