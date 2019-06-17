@@ -112,7 +112,7 @@ summarize date SummaryI{..} = Summary date (Set.size iUsers) iUses iSlowest iAve
 {-# NOINLINE parseLogLine #-}
 parseLogLine :: (BS.ByteString -> Bool) -> BS.ByteString -> Maybe (Day, SummaryI)
 parseLogLine interesting (BS.words -> time:user:dur:query:err)
-    | use && not isErr
+    | use || isErr
     , user /= BS.singleton '-'
     , Just [a, b, c] <- fmap (map fst) $ mapM BS.readInt $ BS.split '-' $ BS.takeWhile (/= 'T') time
     = Just (fromGregorian (fromIntegral a) b c, SummaryI
