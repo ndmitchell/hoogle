@@ -13,7 +13,7 @@ description:
     Hoogle is a Haskell API search engine, which allows you to
     search many standard Haskell libraries by either function name,
     or by approximate type signature.
-homepage:           http://hoogle.haskell.org/
+homepage:           https://hoogle.haskell.org/
 bug-reports:        https://github.com/ndmitchell/hoogle/issues
 tested-with:        GHC==8.6.5, GHC==8.4.4, GHC==8.2.2, GHC==8.0.2
 extra-doc-files:
