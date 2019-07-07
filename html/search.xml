@@ -8,11 +8,11 @@
         or by approximate type signature.
     </Description>
     <Tags>haskell</Tags>
-    <Url type="text/html" template="http://hoogle.haskell.org/?hoogle={searchTerms}"/>
-    <Url type="application/x-suggestions+json" template="http://hoogle.haskell.org/?hoogle={searchTerms}&amp;mode=suggest"/>
+    <Url type="text/html" template="https://hoogle.haskell.org/?hoogle={searchTerms}"/>
+    <Url type="application/x-suggestions+json" template="https://hoogle.haskell.org/?hoogle={searchTerms}&amp;mode=suggest"/>
 
-    <Image height="16" width="16" type="image/png">http://hoogle.haskell.org/favicon.png</Image>
-    <Image height="64" width="64" type="image/png">http://hoogle.haskell.org/favicon64.png</Image>
+    <Image height="16" width="16" type="image/png">https://hoogle.haskell.org/favicon.png</Image>
+    <Image height="64" width="64" type="image/png">https://hoogle.haskell.org/favicon64.png</Image>
     <Developer>Neil Mitchell</Developer>
     <AdultContent>false</AdultContent>
     <Language>en-us</Language>
