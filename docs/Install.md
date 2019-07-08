@@ -1,6 +1,6 @@
 # Installing Hoogle locally
 
-The server at [hoogle.haskell.org](http://hoogle.haskell.org) provides a version of Hoogle updated daily that searches all the packages available on [Stackage](https://stackage.org). This document describes how to install and setup your own copy of Hoogle, which is useful if you want to search different packages, use the command line, or use Hoogle offline.
+The server at [hoogle.haskell.org](https://hoogle.haskell.org) provides a version of Hoogle updated daily that searches all the packages available on [Stackage](https://stackage.org). This document describes how to install and setup your own copy of Hoogle, which is useful if you want to search different packages, use the command line, or use Hoogle offline.
 
 The first step is to obtain Hoogle, currently from the Git repo, then install it using `cabal` or `stack`.
 

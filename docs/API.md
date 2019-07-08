@@ -10,9 +10,9 @@ Hoogle can be integrated into other projects in several ways.
 
 Embedded Hoogle lets you include a small interactive Hoogle search box on your web page. As an example:
 
-<form action="http://www.haskell.org/hoogle/" method="get">
-  <script type="text/javascript" src="http://www.haskell.org/hoogle/res/jquery.js"></script>
-  <script type="text/javascript" src="http://www.haskell.org/hoogle/res/hoogle.js"></script>
+<form action="https://hoogle.haskell.org" method="get">
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="https://hoogle.haskell.org/hoogle.js"></script>
   <input type="text"   name="hoogle" id="hoogle" accesskey="1" />
   <input type="submit" value="Search" />
 </form>
@@ -21,9 +21,9 @@ Try entering searches into the box above, for example "filter". As you type, the
 
 To use Embedded Hoogle on your page add:
 
-    <form action="http://www.haskell.org/hoogle/" method="get">
-        <script type="text/javascript" src="http://www.haskell.org/hoogle/res/jquery.js"></script>
-        <script type="text/javascript" src="http://www.haskell.org/hoogle/res/hoogle.js"></script>
+    <form action="https://hoogle.haskell.org" method="get">
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script type="text/javascript" src="https://hoogle.haskell.org/hoogle.js"></script>
         <input type="text"   name="hoogle" id="hoogle" accesskey="1" />
         <input type="submit" value="Search" />
     </form>
@@ -44,16 +44,36 @@ Hoogle is available as a standard Haskell library, whose documentation is availa
 
 The Hoogle website provides JSON output using the parameter `?mode=json`. As an example:
 
-    $ wget http://www.haskell.org/hoogle/?mode=json&hoogle=map&start=1&count=2
-    {"version":"4.2.11"
-    ,"results":
-         [{"location":"http://hackage.haskell.org/packages/archive/base/latest/doc/html/Prelude.html#v:map"
-          ,"self":"map :: (a -> b) -> [a] -> [b]"
-          ,"docs":"map f xs is the list obtained by applying f to each element of xs, i.e.,\n\n> map ..."}
-         ,{"location":"http://hackage.haskell.org/packages/archive/base/latest/doc/html/Prelude.html#v:mapM"
-          ,"self":"mapM :: Monad m => (a -> m b) -> [a] -> m [b]"
-          ,docs:"mapM f is equivalent to sequence . map f. "}
-         ]
-     }
+    $ curl -sS "https://hoogle.haskell.org?mode=json&hoogle=map&start=1&count=2"
+    [
+      {
+        "url": "https://hackage.haskell.org/package/base/docs/Prelude.html#v:map",
+        "module": {
+          "url": "https://hackage.haskell.org/package/base/docs/Prelude.html",
+          "name": "Prelude"
+        },
+        "package": {
+          "url": "https://hackage.haskell.org/package/base",
+          "name": "base"
+        },
+        "item": "<span class=name><s0>map</s0></span> :: (a -&gt; b) -&gt; [a] -&gt; [b]",
+        "type": "",
+        "docs": "<a>map</a> <tt>f xs</tt> is the list obtained by applying <tt>f</tt>\nto each element of <tt>xs</tt>, i.e.,\n\n<pre>\nmap f [x1, x2, ..., xn] == [f x1, f x2, ..., f xn]\nmap f [x1, x2, ...] == [f x1, f x2, ...]\n</pre>\n"
+      },
+      {
+        "url": "https://hackage.haskell.org/package/base/docs/Data-List.html#v:map",
+        "module": {
+          "url": "https://hackage.haskell.org/package/base/docs/Data-List.html",
+          "name": "Data.List"
+        },
+        "package": {
+          "url": "https://hackage.haskell.org/package/base",
+          "name": "base"
+        },
+        "item": "<span class=name><s0>map</s0></span> :: (a -&gt; b) -&gt; [a] -&gt; [b]",
+        "type": "",
+        "docs": "<a>map</a> <tt>f xs</tt> is the list obtained by applying <tt>f</tt>\nto each element of <tt>xs</tt>, i.e.,\n\n<pre>\nmap f [x1, x2, ..., xn] == [f x1, f x2, ..., f xn]\nmap f [x1, x2, ...] == [f x1, f x2, ...]\n</pre>\n"
+      }
+    ]
 
 This output has been reformatted to better fit the screen. Future versions of Hoogle may produce different JSON output.

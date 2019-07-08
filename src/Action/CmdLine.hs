@@ -104,7 +104,7 @@ defaultGenerate = generate{language=Haskell}
 
 cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
     &= verbosity &= program "hoogle"
-    &= summary ("Hoogle " ++ showVersion version ++ ", http://hoogle.haskell.org/")
+    &= summary ("Hoogle " ++ showVersion version ++ ", https://hoogle.haskell.org/")
 
 search_ = Search
     {color = def &= name "colour" &= help "Use colored output (requires ANSI terminal)"
@@ -137,7 +137,7 @@ server = Server
     ,haddock = def &= help "Serve local haddocks from a specified directory"
     ,scope = def &= help "Default scope to start with"
     ,links = def &= help "Display extra links"
-    ,home = "http://hoogle.haskell.org" &= typ "URL" &= help "Set the URL linked to by the Hoogle logo."
+    ,home = "https://hoogle.haskell.org" &= typ "URL" &= help "Set the URL linked to by the Hoogle logo."
     ,host = "" &= help "Set the host to bind on (e.g., an ip address; '!4' for ipv4-only; '!6' for ipv6-only; default: '*' for any host)."
     ,https = def &= help "Start an https server (use --cert and --key to specify paths to the .pem files)"
     ,cert = "cert.pem" &= typFile &= help "Path to the certificate pem file (when running an https server)"
