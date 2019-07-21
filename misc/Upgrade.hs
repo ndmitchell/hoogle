@@ -48,11 +48,13 @@ main = do
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M900M -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " test --database=haskell.hoo"
 
-        echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M900M -T -N2"
+        when False $ -- Frege database has disappeared
+            echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M900M -T -N2"
 
-        createDirectoryIfMissing True "daml"
-        echo system_ "curl https://docs.daml.com/hoogle_db/base.txt --output daml/base.txt"
-        echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=daml.hoo --local=daml +RTS -M900M -T -N2"
+        when False $ do -- DAML now has its own server
+            createDirectoryIfMissing True "daml"
+            echo system_ "curl https://docs.daml.com/hoogle_db/base.txt --output daml/base.txt"
+            echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=daml.hoo --local=daml +RTS -M900M -T -N2"
 
         ignore $ echo system_ "pkill hoogle"
         let hoogle database port log links = echo system_ $
@@ -63,14 +65,14 @@ main = do
                 "--cdn=https://rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
                 "--log=../../log" ++ log ++ ".txt " ++ (if links then "--links " else "") ++ " +RTS -T -N4 >> ../../out" ++ log ++ ".txt 2>&1 &"
         hoogle "haskell.hoo" 0 "" True
-        hoogle "frege.hoo" 1 "-frege" False
-        hoogle "daml.hoo" 2 "-daml" False
+        -- hoogle "frege.hoo" 1 "-frege" False
+        -- hoogle "daml.hoo" 2 "-daml" False
 
         unless new $ do
             ignore $ echo system_ "pkill rdr2tls"
             echo system_ "nohup rdr2tls --port=8080 --path=hoogle.haskell.org >> ../../out-rdr2tls.txt 2>&1 &"
-            echo system_ "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444 >> ../../out-frege-rdr2tls.txt 2>&1 &"
-            echo system_ "nohup rdr2tls --port=8082 --path=hoogle.haskell.org:8445 >> ../../out-daml-rdr2tls.txt 2>&1 &"
+            -- echo system_ "nohup rdr2tls --port=8081 --path=hoogle.haskell.org:8444 >> ../../out-frege-rdr2tls.txt 2>&1 &"
+            -- echo system_ "nohup rdr2tls --port=8082 --path=hoogle.haskell.org:8445 >> ../../out-daml-rdr2tls.txt 2>&1 &"
 
     appendFile "hoogle-upgrade/upgrade.txt" $ dir ++ "\n"
 
