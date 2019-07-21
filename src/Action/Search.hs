@@ -253,10 +253,8 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         query "(a -> b) -> Maybe a -> Maybe b"
             [ InTop 3 ("fmap" `inPackage` "base")
             ]
-        query "IO a -> m a" -- see GitHub issue #180
-            [ InTop 50 ("liftIO" `inPackage` "base")
-            , KnownFailure "GitHub issue #180" $
-                  InTop 3 ("liftIO" `inPackage` "base")
+        query "IO a -> m a"
+            [ InTop 3 ("liftIO" `inPackage` "base")
             ]
         query "a -> m a" -- see GitHub issue #180
             [ InTop 20 ("pure" `inPackage` "base")
