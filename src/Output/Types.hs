@@ -348,7 +348,7 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
                 differences :: Double -> Double -> Fingerprint -> Fingerprint -> a
                 differences !rare !common !want !have = fpRaresFold mfpAdd f want
                     where f n | fpRaresElem n have = mfpCost ("term in common " ++ prettyName n) 0
-                              | n == name0 = mfpCost ("term _ missing") $ floor rare -- should this be common?
+                              | n == name0 = mfpCost "term _ missing" 0 -- will pay the cost the other way around
                               | otherwise = let p = popularityName n in mfpCost ("term " ++ prettyName n ++ " (" ++ showDP 2 p ++ ") missing") $
                                             floor $ (p*common) + ((1-p)*rare)
 
