@@ -314,7 +314,7 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
     where
         -- CAFs must match perfectly, otherwise too many is better than too few
         arity | ta == 0 = \ca -> if ca == 0 then mfpJust $ mfpCost "arity equal" 0 else mfpMiss "arity different and query a CAF" -- searching for a CAF
-              | otherwise = \ca -> case fromIntegral $ ca - ta of
+              | otherwise = \ca -> case fromIntegral ca - fromIntegral ta of
                     _ | ca == 0 -> mfpMiss "arity different and answer a CAF" -- searching for a CAF
                     0  -> mfpJust $ mfpCost "arity equal" 0 -- perfect match
                     -1 -> mfpJust $ mfpCost "arity 1 to remove" 1000 -- not using something the user carefully wrote
@@ -327,7 +327,7 @@ matchFingerprintEx MatchFingerprint{..} sig@(toFingerprint -> target) =
                 allowMore = TVar name0 [] `elem` sigTy sig
 
         -- missing terms are a bit worse than invented terms, but it's fairly balanced, clip at large numbers
-        terms = \ct -> case fromIntegral $ ct - tt of
+        terms = \ct -> case fromIntegral ct - fromIntegral tt of
                 n | abs n > 20 -> mfpMiss $ "terms " ++ show n ++ " different" -- too different
                   | n == 0 -> mfpJust $ mfpCost "terms equal" 0
                   | n > 0 -> mfpJust $ mfpCost ("terms " ++ show n ++ " to add") $ n * 10 -- candidate has more terms
