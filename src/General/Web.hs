@@ -36,9 +36,10 @@ data Input = Input
     ,inputArgs :: [(String, String)]
     } deriving Show
 
-readInput :: String -> Maybe Input
-readInput (breakOn "?" -> (a,b)) =
-  if (badPath path || badArgs args) then Nothing else Just $ Input path args
+readInput :: String -> Bool -> Maybe Input
+readInput (breakOn "?" -> (a,b)) isLocal =
+  -- If the server is local, we need not check if path/args are bad
+  if (not isLocal && (badPath path || badArgs args)) then Nothing else Just $ Input path args
   where
     path = parsePath a
     parsePath = map Text.unpack
@@ -160,7 +161,7 @@ server log Server{..} act = do
     runServer $ \req reply -> do
         let pq = BS.unpack $ rawPathInfo req <> rawQueryString req
         putStrLn pq
-        (time, res) <- duration $ case readInput pq of
+        (time, res) <- duration $ case readInput pq local of
             Nothing -> return $ Right (OutputFail "", LBS.pack $ "Bad URL: " ++ pq)
             Just pay ->
                 handle_ (fmap Left . showException) $ do

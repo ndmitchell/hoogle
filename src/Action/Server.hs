@@ -71,7 +71,7 @@ actionServer cmd@Server{..} = do
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
     src <- readFile logs
-    let qs = catMaybes [readInput url | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
+    let qs = catMaybes [readInput url False | _:ip:_:url:_ <- map words $ lines src, ip /= "-"]
     (t,_) <- duration $ withSearch database $ \store -> do
         log <- logNone
         dataDir <- getDataDir
