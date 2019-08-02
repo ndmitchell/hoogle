@@ -44,7 +44,7 @@ readInput (breakOn "?" -> (a,b)) =
     parsePath = map Text.unpack
               . decodePathSegments
               . BS.pack
-    badPath = any $ all (== '.')
+    badPath = any (all (== '.')) . filter (/= "")
     args = parseArgs b
     parseArgs = map (\(n, v) -> (BS.unpack n, maybe "" BS.unpack v))
               . parseQuery
