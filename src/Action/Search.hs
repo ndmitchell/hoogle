@@ -165,7 +165,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "Ord a => [a] -> [a]" === hackage "base/docs/Data-List.html#v:sort"
         "ShakeOptions -> Int" === hackage "shake/docs/Development-Shake.html#v:shakeThreads"
         "is:module" === hackage "base/docs/Prelude.html"
-        "visibleDataCons" === hackage "ghc/docs/TyCon.html#v:visibleDataCons"
+        "visibleDataCons" === hackage "ghc-lib-parser/docs/TyCon.html#v:visibleDataCons"
         "sparkle" === hackage "sparkle" -- library without Hoogle docs
         "weeder" === hackage "weeder" -- executable in Stackage
         "supero" === hackage "supero"
