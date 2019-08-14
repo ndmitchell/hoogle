@@ -1,5 +1,6 @@
 :set -fwarn-unused-binds -fwarn-unused-imports -fwarn-orphans
 :set -isrc
+:set -hide-package=ghc-lib-parser
 :load Main src/Paths.hs
 
 :def test \xs -> return $ ":main test " ++ xs
@@ -7,7 +8,7 @@
 :{
 :def opt \xs -> return $ unlines
         [":!mkdir dist\\obj\\o2"
-        ,":!ghc -O2 -fno-state-hack -isrc --make src/Paths.hs Main -threaded -outputdir dist/obj/o2 -o dist/obj/o2/main -rtsopts cbits/text_search.o"
+        ,":!ghc -O2 -fno-state-hack -hide-package=ghc-lib-parser -isrc --make src/Paths.hs Main -threaded -outputdir dist/obj/o2 -o dist/obj/o2/main -rtsopts cbits/text_search.o"
         ,":!dist\\obj\\o2\\main +RTS -T -N2 -RTS " ++ xs]
 :}
 :{
