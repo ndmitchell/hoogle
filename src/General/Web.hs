@@ -46,7 +46,7 @@ readInput (breakOn "?" -> (a,b)) =
               . BS.pack
     badPath = any (all (== '.')) . filter (/= "")
     args = parseArgs b
-    parseArgs = map (\(n, v) -> (BS.unpack n, maybe "" BS.unpack v))
+    parseArgs = map (BS.unpack *** maybe "" BS.unpack)
               . parseQuery
               . BS.pack
     badArgs = any (any (not . isLower))
