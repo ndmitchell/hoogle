@@ -61,9 +61,7 @@ actionServer cmd@Server{..} = do
         \x -> BS.pack "hoogle=" `BS.isInfixOf` x && not (BS.pack "is:ping" `BS.isInfixOf` x)
     putStrLn . showDuration =<< time
     evaluate spawned
-    dataDir <- case datadir of
-        Just d -> return d
-        Nothing -> getDataDir
+    dataDir <- maybe getDataDir return datadir
     haddock <- maybe (return Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
         server log cmd $ replyServer log local links haddock store cdn home (dataDir </> "html") scope

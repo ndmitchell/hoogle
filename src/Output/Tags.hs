@@ -2,6 +2,7 @@
 
 module Output.Tags(writeTags, completionTags, applyTags) where
 
+import Data.Bifunctor
 import Data.Function
 import Data.List.Extra
 import Data.Tuple.Extra
@@ -45,7 +46,7 @@ writeTags store keep extra xs = do
     let packages = addRange splitPkg
     storeWrite store Packages (bstr0Join $ map (strUnpack . fst) packages, V.fromList $ map snd packages)
 
-    let categories = map (first snd . second reverse) $ Map.toList $ Map.fromListWith (++)
+    let categories = map (bimap snd reverse) $ Map.toList $ Map.fromListWith (++)
             [(((weightTag ex, both lower ex), joinPair ":" ex),[rng]) | (p,rng) <- packages, ex <- extra p]
     storeWrite store Categories (bstr0Join $ map fst categories, jaggedFromList $ map snd categories)
 
