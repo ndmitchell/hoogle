@@ -1,4 +1,4 @@
-sudo: required
+language: minimal
 env:
 - GHCVER=8.0
 - GHCVER=8.2
