@@ -22,6 +22,7 @@ data Language = Haskell | Frege deriving (Data,Typeable,Show,Eq,Enum,Bounded)
 data CmdLine
     = Search
         {color :: Maybe Bool
+        ,json :: Bool
         ,link :: Bool
         ,numbers :: Bool
         ,info :: Bool
@@ -108,6 +109,7 @@ cmdLineMode = cmdArgsMode $ modes [search_ &= auto,generate,server,replay,test]
 
 search_ = Search
     {color = def &= name "colour" &= help "Use colored output (requires ANSI terminal)"
+    ,json = def &= name "json" &= help "Get result as JSON"
     ,link = def &= help "Give URL's for each result"
     ,numbers = def &= help "Give counter for each result"
     ,info = def &= help "Give extended information about the first result"
