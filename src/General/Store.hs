@@ -118,7 +118,7 @@ storeWriteFile file act = do
         -- sort the atoms and validate there are no duplicates
         let atoms = Map.fromList swAtoms
         when (Map.size atoms /= length swAtoms) $
-            errorIO "Some duplicate names have been written out"
+            errorIO $ "Some duplicate names have been written out: " ++ show (Map.size atoms, length swAtoms)
 
         -- write the atoms out, then put the size at the end
         let bs = encodeBS atoms
