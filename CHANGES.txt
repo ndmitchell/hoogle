@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+5.0.17.11, released 2019-08-23
     #318, allow --json to get results JSON from the command line
 5.0.17.10, released 2019-08-02
     #314, fix bad URL trying to access package on Hoogle with --local
