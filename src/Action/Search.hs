@@ -10,6 +10,7 @@ module Action.Search
 import Control.DeepSeq
 import Control.Monad.Extra
 import Control.Exception.Extra
+import qualified Data.Aeson as JSON
 import Data.Functor.Identity
 import Data.List.Extra
 import Text.Blaze.Renderer.Utf8
@@ -47,8 +48,8 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
                  putStr $ targetInfo $ head res
              else do
                 let toShow = if numbers && not info then addCounter shown else shown
-                putStr $ unlines toShow
-                when (hidden /= []) $ do
+                if json then LBS.putStrLn $ JSON.encode $ map unHTMLtargetItem res else putStr $ unlines toShow
+                when (hidden /= [] && not json) $ do
                     whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
         else do
             let parseType x = case parseQuery x of
@@ -71,6 +72,9 @@ targetResultDisplay link Target{..} = unHTML $ unwords $
         map fst (maybeToList targetModule) ++
         [targetItem] ++
         ["-- " ++ targetURL | link]
+
+unHTMLtargetItem :: Target -> Target
+unHTMLtargetItem target = target {targetItem = unHTML $ targetItem target}
 
 addCounter :: [String] -> [String]
 addCounter = zipWith (\i x -> show i ++ ") " ++ x) [1..]
