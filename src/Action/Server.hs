@@ -205,10 +205,10 @@ showResults local links haddock args query results = do
             "&filter=" ++ intercalate "|" (mapMaybe (fmap fst . targetModule) ts) ++
             "&precise=on"
 
-        add x = ("?" ++) $ intercalate "&amp;" $ map (joinPair "=") $
+        add x = ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
                 (a,[]) -> a ++ [("hoogle", x)]
-                (a,(_,x1):b) -> a ++ [("hoogle", x1 ++ " " ++ x)] ++ b
+                (a,(_,x1):b) -> a ++ [("hoogle", escapeURL x1 ++ " " ++ x)] ++ b
 
         f cat val = do
             H.a ! H.class_" minus" ! H.href (H.stringValue $ add $ "-" ++ cat ++ ":" ++ val) $ ""
