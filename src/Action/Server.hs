@@ -207,7 +207,7 @@ showResults local links haddock args query results = do
 
         add x = ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
-                (a,[]) -> a ++ [("hoogle", x)]
+                (a,[]) -> a ++ [("hoogle", escapeURL x)]
                 (a,(_,x1):b) -> a ++ [("hoogle", escapeURL $ x1 ++ " " ++ x)] ++ b
 
         f cat val = do
