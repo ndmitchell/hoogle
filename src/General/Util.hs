@@ -54,6 +54,8 @@ import System.Mem
 import GHC.Stats
 import General.Str
 import Prelude
+import qualified Network.HTTP.Types.URI as URI
+import qualified Data.ByteString.UTF8 as UTF8
 
 
 type PkgName = Str
@@ -216,9 +218,7 @@ unHTML :: String -> String
 unHTML = unescapeHTML . innerTextHTML
 
 escapeURL :: String -> String
-escapeURL = concatMap $ \x ->
-    if (isAscii x && isAlphaNum x) || x `elem` "-_.~" then [x]
-    else '%' : showHex (ord x) ""
+escapeURL = UTF8.toString . URI.urlEncode True . UTF8.fromString
 
 isUpper1 (x:xs) = isUpper x
 isUpper1 _ = False
