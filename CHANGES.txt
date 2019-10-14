@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    #324, make unicode search work more
     #323, fix escaping in packages list (on the left)
 5.0.17.11, released 2019-08-23
     #318, allow --json to get results JSON from the command line
