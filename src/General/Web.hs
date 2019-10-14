@@ -29,6 +29,7 @@ import Control.Exception.Extra
 import System.Time.Extra
 import General.Log
 import Prelude
+import qualified Data.ByteString.UTF8 as UTF8
 
 
 data Input = Input
@@ -46,9 +47,9 @@ readInput (breakOn "?" -> (a,b)) =
               . BS.pack
     badPath = any (all (== '.')) . filter (/= "")
     args = parseArgs b
-    parseArgs = map (BS.unpack *** maybe "" BS.unpack)
+    parseArgs = map (UTF8.toString *** maybe "" UTF8.toString)
               . parseQuery
-              . BS.pack
+              . UTF8.fromString
     badArgs = any (any (not . isLower))
             . map fst
 
