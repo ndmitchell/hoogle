@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    Allow haskell-src-exts-1.22
     #324, make unicode search work more
     #323, fix escaping in packages list (on the left)
 5.0.17.11, released 2019-08-23
