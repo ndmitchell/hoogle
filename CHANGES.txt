@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    #330, work with more browsers when JavaScript is disabled
 5.0.17.12, released 2019-11-02
     Allow haskell-src-exts-1.22
     #324, make unicode search work more
