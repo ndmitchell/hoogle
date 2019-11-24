@@ -258,12 +258,12 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             [ InTop 3 ("fmap" `inPackage` "base")
             ]
         query "IO a -> m a"
-            [ InTop 3 ("liftIO" `inPackage` "base")
+            [ InTop 5 ("liftIO" `inPackage` "base")
             ]
         query "a -> m a" -- see GitHub issue #180
             [ InTop 20 ("pure" `inPackage` "base")
             , InTop 50 ("return" `inPackage` "base")
-            , InTop 3 ("pure" `inPackage` "base")
+            , InTop 5 ("pure" `inPackage` "base")
             , KnownFailure "GitHub issue #267" $
                   InTop 3 ("return" `inPackage` "base")
             ]
