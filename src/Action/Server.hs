@@ -88,11 +88,13 @@ replyServer :: Log -> Bool -> Bool -> Maybe FilePath -> StoreRead -> String -> S
 replyServer log local links haddock store cdn home htmlDir scope Input{..} = case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
-        let grab name = [x | (a,x) <- inputArgs, a == name, x /= ""]
+        let grabBy name = [x | (a,x) <- inputArgs, name a, x /= ""]
+            grab name = grabBy (== name)
             grabInt name def = fromMaybe def $ readMaybe =<< listToMaybe (grab name) :: Int
 
         let qScope = let xs = grab "scope" in [scope | null xs && scope /= ""] ++ xs
-        let qSource = grab "hoogle" ++ filter (/= "set:stackage") qScope
+        let qSearch = grabBy (`elem` ["hoogle","q"])
+        let qSource = qSearch ++ filter (/= "set:stackage") qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
         let body = showResults local links haddock (filter ((/= "mode") . fst) inputArgs) q2 $
@@ -102,7 +104,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                         [("tags", html $ tagOptions qScope)
                         ,("body", html body)
                         ,("title", text $ unwords qSource ++ " - Hoogle")
-                        ,("search", text $ unwords $ grab "hoogle")
+                        ,("search", text $ unwords qSearch)
                         ,("robots", text $ if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
             Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else templateRender (html body) []
