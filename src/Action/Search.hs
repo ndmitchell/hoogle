@@ -39,19 +39,19 @@ actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store ->
         if null compare_ then do
-            count <- return $ fromMaybe 10 count
+            count' <- return $ fromMaybe 10 count
             (q, res) <- return $ search store $ parseQuery $ unwords query
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
-            let (shown, hidden) = splitAt count $ nubOrd $ map (targetResultDisplay link) res
+            let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link) res
             if null res then
                 putStrLn "No results found"
              else if info then do
                  putStr $ targetInfo $ head res
              else do
                 let toShow = if numbers && not info then addCounter shown else shown
-                if json then LBS.putStrLn $ JSON.encode $ map unHTMLtargetItem res else putStr $ unlines toShow
+                if json then LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res else putStr $ unlines toShow
                 when (hidden /= [] && not json) $ do
-                    whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count+10) ++ " to see more"
+                    whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count'+10) ++ " to see more"
         else do
             let parseType x = case parseQuery x of
                                   [QueryType t] -> (pretty t, hseToSig t)

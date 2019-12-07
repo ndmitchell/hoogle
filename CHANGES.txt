@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    #331, make --count work with --json
     #332, support ?q= as well as ?hoogle= (since it used to be q)
     #330, work with more browsers when JavaScript is disabled
 5.0.17.12, released 2019-11-02
