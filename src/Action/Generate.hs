@@ -211,7 +211,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     popularity <- evaluate $ Map.adjust (max $ 1 + Map.findWithDefault 0 (strPack "mtl") popularity) (strPack "transformers") popularity
 
     want <- return $ if include /= [] then Set.fromList $ map strPack include else want
-    want <- return $ if count == 0 then want else Set.fromList $ take count $ Set.toList want
+    want <- return $ case count of Nothing -> want; Just count -> Set.fromList $ take count $ Set.toList want
 
     (stats, _) <- storeWriteFile database $ \store -> do
         xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do

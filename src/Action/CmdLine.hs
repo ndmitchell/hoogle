@@ -27,7 +27,7 @@ data CmdLine
         ,numbers :: Bool
         ,info :: Bool
         ,database :: FilePath
-        ,count :: Int
+        ,count :: Maybe Int
         ,query :: [String]
         ,repeat_ :: Int
         ,language :: Language
@@ -38,7 +38,7 @@ data CmdLine
         ,database :: FilePath
         ,insecure :: Bool
         ,include :: [String]
-        ,count :: Int
+        ,count :: Maybe Int
         ,local_ :: [FilePath]
         ,haddock :: Maybe FilePath
         ,debug :: Bool
@@ -114,7 +114,7 @@ search_ = Search
     ,numbers = def &= help "Give counter for each result"
     ,info = def &= help "Give extended information about the first result"
     ,database = def &= typFile &= help "Name of database to use (use .hoo extension)"
-    ,count = 10 &= name "n" &= help "Maximum number of results to return"
+    ,count = Nothing &= name "n" &= help "Maximum number of results to return (defaults to 10)"
     ,query = def &= args &= typ "QUERY"
     ,repeat_ = 1 &= help "Number of times to repeat (for benchmarking)"
     ,language = enum [x &= explicit &= name (lower $ show x) &= help ("Work with " ++ show x) | x <- [minBound..maxBound]] &= groupname "Language"
@@ -126,7 +126,7 @@ generate = Generate
     ,insecure = def &= help "Allow insecure HTTPS connections"
     ,include = def &= args &= typ "PACKAGE"
     ,local_ = def &= opt "" &= help "Index local packages and link to local haddock docs"
-    ,count = 0 &= name "n" &= help "Maximum number of packages to index (defaults to all)"
+    ,count = Nothing &= name "n" &= help "Maximum number of packages to index (defaults to all)"
     ,haddock = def &= help "Use local haddocks"
     ,debug = def &= help "Generate debug information"
     } &= help "Generate Hoogle databases"

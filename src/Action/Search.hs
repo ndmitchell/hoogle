@@ -39,6 +39,7 @@ actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store ->
         if null compare_ then do
+            count <- return $ fromMaybe 10 count
             (q, res) <- return $ search store $ parseQuery $ unwords query
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
             let (shown, hidden) = splitAt count $ nubOrd $ map (targetResultDisplay link) res
