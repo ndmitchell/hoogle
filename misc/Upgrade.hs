@@ -64,7 +64,7 @@ main = do
                 (if new then "" else "--https --key=/etc/letsencrypt/live/hoogle.haskell.org/privkey.pem --cert=/etc/letsencrypt/live/hoogle.haskell.org/fullchain.pem ") ++
                 -- "--cdn=https://rawcdn.githack.com/ndmitchell/hoogle/" ++ sha1 ++ "/html/ " ++
                 "--log=../../log" ++ log ++ ".txt " ++ (if links then "--links " else "") ++ " +RTS -T -N4 >> ../../out" ++ log ++ ".txt 2>&1 &"
-        hoogle "haskell.hoo" 0 "" False
+        hoogle "haskell.hoo" 0 "" True
         -- hoogle "frege.hoo" 1 "-frege" False
         -- hoogle "daml.hoo" 2 "-daml" False
 
