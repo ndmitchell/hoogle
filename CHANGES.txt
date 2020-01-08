@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+5.0.17.14, released 2020-01-08
     #334, allow haskell-src-exts-1.23
     #333, disable Aelve Codesearch links
 5.0.17.13, released 2019-12-07
