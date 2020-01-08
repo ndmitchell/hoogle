@@ -19,7 +19,7 @@ import qualified Language.Javascript.Flot as Flot
 import Data.Version
 import Paths_hoogle
 import Data.Maybe
-import Control.Monad
+import Control.Monad.Extra
 import Text.Read
 import System.IO.Extra
 import General.Str
@@ -194,18 +194,16 @@ showResults local links haddock args query results = do
             H.div ! H.class_ "ans" $ do
                 H.a ! H.href (H.stringValue $ showURL local haddock targetURL) $
                     displayItem query targetItem
-                when links $ do
-                    H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue $ useLink is) $ "Uses"
+                when links $
+                    whenJust (useLink is) $ \link ->
+                        H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue link) $ "Uses"
             H.div ! H.class_ "from" $ showFroms local haddock is
             H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
     where
-        useLink :: [Target] -> String
+        useLink :: [Target] -> Maybe String
         useLink [t] | isNothing $ targetPackage t =
-            "https://packdeps.haskellers.com/reverse/" ++ extractName (targetItem t)
-        useLink ts@(t:_) =
-            "https://codesearch.aelve.com/haskell/search?query=" ++ escapeURL (extractName $ targetItem t) ++
-            "&filter=" ++ intercalate "|" (mapMaybe (fmap fst . targetModule) ts) ++
-            "&precise=on"
+            Just $ "https://packdeps.haskellers.com/reverse/" ++ extractName (targetItem t)
+        useLink _ = Nothing
 
         add x = ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
