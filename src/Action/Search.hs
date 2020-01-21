@@ -368,7 +368,7 @@ deDup tgts = Map.elems (Map.fromList $ Map.elems tgtMap)
   where
     tgtMap :: Map.Map Target (Int, [Target])
     tgtMap = Map.fromListWith (\(n, ts) (n', ts') -> (min n n', ts ++ ts'))
-             $ map (\(n,t) -> (simple t, (n, [t]))) (zip [0..] tgts)
+             $ zipWith (\n t -> (simple t, (n, [t]))) [0..] tgts
 
     simple :: Target -> Target
     simple t = t { targetURL = "", targetPackage = Nothing, targetModule = Nothing }
