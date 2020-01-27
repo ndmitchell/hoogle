@@ -50,8 +50,7 @@ readInput (breakOn "?" -> (a,b)) =
     parseArgs = map (UTF8.toString *** maybe "" UTF8.toString)
               . parseQuery
               . UTF8.fromString
-    badArgs = any (any (not . isLower))
-            . map fst
+    badArgs = not . all (all isLower . fst)
 
 data Output
     = OutputText LBS.ByteString
