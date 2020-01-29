@@ -128,7 +128,9 @@ searchFingerprintsDebug store query answers = intercalate [""] $
 
 data TypesNames a where TypesNames :: TypesNames (BStr0, V.Vector Name) deriving Typeable
 
-type NameWord = Word16
+-- At around 7000 packages, Word16 becomes insufficient
+-- because there are more than 2^16 Names, so we use Word32.
+type NameWord = Word32
 
 -- Must be a unique Name per String.
 -- First 0-99 are variables, rest are constructors.
