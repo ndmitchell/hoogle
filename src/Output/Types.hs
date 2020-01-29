@@ -128,11 +128,13 @@ searchFingerprintsDebug store query answers = intercalate [""] $
 
 data TypesNames a where TypesNames :: TypesNames (BStr0, V.Vector Name) deriving Typeable
 
+type NameWord = Word16
+
 -- Must be a unique Name per String.
 -- First 0-99 are variables, rest are constructors.
 -- More popular type constructors have higher numbers.
 -- There are currently about 14K names, so about 25% of the bit patterns are taken
-newtype Name = Name Word16 deriving (Eq,Ord,Show,Data,Typeable,Storable,Binary)
+newtype Name = Name NameWord deriving (Eq,Ord,Show,Data,Typeable,Storable,Binary)
 
 name0 = Name 0 -- use to represent _
 
@@ -150,7 +152,7 @@ prettyName x@(Name i)
 -- | Give a name a popularity, where 0 is least popular, 1 is most popular
 popularityName :: Name -> Double
 popularityName (Name n) | isVar $ Name n = error "Can't call popularityName on a Var"
-                        | otherwise = fromIntegral (n - 100) / fromIntegral (maxBound - 100 :: Word16)
+                        | otherwise = fromIntegral (n - 100) / fromIntegral (maxBound - 100 :: NameWord)
 
 newtype Names = Names {lookupName :: Str -> Maybe Name}
 
@@ -193,7 +195,7 @@ spreadNames (sortOn (negate . snd) -> xs@((_,limit):_)) = check $ f (99 + fromIn
                  | otherwise = error $ "Invalid spreadNames, length=" ++ show (length xs)
 
         -- I can only assign values between mn and mx inclusive
-        f :: Word16 -> Word16 -> [(a, Int)] -> [(a, Name)]
+        f :: NameWord -> NameWord -> [(a, Int)] -> [(a, Name)]
         f !mn !mx [] = []
         f mn mx ((a,i):xs) = (a, Name real) : f (mn-1) (real-1) xs
             where real = fromIntegral $ max mn $ min mx ideal
