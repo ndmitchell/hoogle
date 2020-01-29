@@ -190,7 +190,7 @@ spreadNames [] = []
 spreadNames (sortOn (negate . snd) -> xs@((_,limit):_)) = check $ f (99 + fromIntegral (length xs)) maxBound xs
     where
         check xs | all (isCon . snd) xs && length (nubOrd $ map snd xs) == length xs = xs
-                 | otherwise = error "Invalid spreadNames"
+                 | otherwise = error $ "Invalid spreadNames, length=" ++ show (length xs)
 
         -- I can only assign values between mn and mx inclusive
         f :: Word16 -> Word16 -> [(a, Int)] -> [(a, Name)]
