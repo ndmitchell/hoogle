@@ -267,11 +267,13 @@ instance Storable Fingerprint where
     sizeOf _ = 64
     alignment _ = 4
     peekByteOff ptr i = Fingerprint
-        <$> peekByteOff ptr (i+0) <*> peekByteOff ptr (i+2) <*> peekByteOff ptr (i+4)
-        <*> peekByteOff ptr (i+6) <*> peekByteOff ptr (i+7)
+        <$> peekByteOff ptr (i+0) <*> peekByteOff ptr (i+1*w) <*> peekByteOff ptr (i+2*w)
+        <*> peekByteOff ptr (i+3*w) <*> peekByteOff ptr (i+3*w + 1)
+        where w = sizeOf name0
     pokeByteOff ptr i Fingerprint{..} = do
-        pokeByteOff ptr (i+0) fpRare1 >> pokeByteOff ptr (i+2) fpRare2 >> pokeByteOff ptr (i+4) fpRare3
-        pokeByteOff ptr (i+6) fpArity >> pokeByteOff ptr (i+7) fpTerms
+        pokeByteOff ptr (i+0) fpRare1 >> pokeByteOff ptr (i+1*w) fpRare2 >> pokeByteOff ptr (i+2*w) fpRare3
+        pokeByteOff ptr (i+3*w) fpArity >> pokeByteOff ptr (i+3*w + 1) fpTerms
+        where w = sizeOf name0
 
 toFingerprint :: Sig Name -> Fingerprint
 toFingerprint sig = Fingerprint{..}
