@@ -7,7 +7,8 @@ module Input.Item(
     Item(..), itemName,
     Target(..), targetExpandURL, TargetId(..),
     splitIPackage, splitIModule,
-    hseToSig, hseToItem, item_test
+    hseToSig, hseToItem, item_test,
+    unHTMLTarget
     ) where
 
 import Numeric
@@ -171,6 +172,8 @@ targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const m
                  | ':':_ <- dropWhile isAsciiLower b = b -- match http: etc
                  | otherwise = a ++ b
 
+unHTMLTarget :: Target -> Target
+unHTMLTarget t@Target {targetItem=item, targetDocs=docs} = t {targetItem=(unHTML item), targetDocs=(unHTML docs)}
 
 splitIPackage, splitIModule :: [(a, Item)] -> [(Str, [(a, Item)])]
 splitIPackage = splitUsing $ \x -> case snd x of IPackage x -> Just x; _ -> Nothing
