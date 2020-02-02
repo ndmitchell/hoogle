@@ -115,7 +115,11 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                   -- by default it returns 100 entries
                   count :: Int
                   count = min 500 $ grabInt "count" 100
-              in pure $ OutputJSON $ JSON.toEncoding $ take count $ drop start results
+                  filteredResults = take count $ drop start results
+              in case lookup "format" inputArgs of
+                Just "text" -> pure $ OutputJSON $ JSON.toEncoding $ map unHTMLTarget filteredResults
+                _ -> pure $ OutputJSON $ JSON.toEncoding filteredResults
+                
             Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
