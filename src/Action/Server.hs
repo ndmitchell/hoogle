@@ -120,7 +120,6 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                 Just "text" -> pure $ OutputJSON $ JSON.toEncoding $ map unHTMLTarget filteredResults
                 Just f -> return $ OutputFail $ lbstrPack $ "Format mode " ++ f ++ " not (currently) supported"
                 Nothing -> pure $ OutputJSON $ JSON.toEncoding filteredResults
-                
             Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
