@@ -173,7 +173,7 @@ targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const m
                  | otherwise = a ++ b
 
 unHTMLTarget :: Target -> Target
-unHTMLTarget t@Target {targetItem=item, targetDocs=docs} = t {targetItem=(unHTML item), targetDocs=(unHTML docs)}
+unHTMLTarget t@Target {..} = t{targetItem=unHTML targetItem, targetDocs=unHTML targetDocs}
 
 splitIPackage, splitIModule :: [(a, Item)] -> [(Str, [(a, Item)])]
 splitIPackage = splitUsing $ \x -> case snd x of IPackage x -> Just x; _ -> Nothing
