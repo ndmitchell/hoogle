@@ -118,7 +118,8 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                   filteredResults = take count $ drop start results
               in case lookup "format" inputArgs of
                 Just "text" -> pure $ OutputJSON $ JSON.toEncoding $ map unHTMLTarget filteredResults
-                _ -> pure $ OutputJSON $ JSON.toEncoding filteredResults
+                Just f -> return $ OutputFail $ lbstrPack $ "Format mode " ++ f ++ " not (currently) supported"
+                Nothing -> pure $ OutputJSON $ JSON.toEncoding filteredResults
                 
             Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
