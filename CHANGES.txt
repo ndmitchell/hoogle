@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    Consider packages in Stackage Nightly and LTS part of Stackage
     #338, add format=text to strip HTML from the JSON
 5.0.17.14, released 2020-01-08
     #334, allow haskell-src-exts-1.23
