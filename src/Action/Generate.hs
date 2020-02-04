@@ -94,13 +94,14 @@ type Download = String -> URL -> IO FilePath
 
 readHaskellOnline :: Timing -> Settings -> Download -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellOnline timing settings download = do
-    stackage <- download "haskell-stackage.txt" "https://www.stackage.org/nightly/cabal.config"
+    stackageLts <- download "haskell-stackage-lts.txt" "https://www.stackage.org/nightly/cabal.config"
+    stackageNightly <- download "haskell-stackage-nightly.txt" "https://www.stackage.org/lts/cabal.config"
     platform <- download "haskell-platform.txt" "https://raw.githubusercontent.com/haskell/haskell-platform/master/hptool/src/Releases2015.hs"
     cabals   <- download "haskell-cabal.tar.gz" "https://hackage.haskell.org/packages/index.tar.gz"
     hoogles  <- download "haskell-hoogle.tar.gz" "https://hackage.haskell.org/packages/hoogle.tar.gz"
 
     -- peakMegabytesAllocated = 2
-    setStackage <- Set.map strPack <$> setStackage stackage
+    setStackage <- Set.map strPack <$> (Set.union <$> setStackage stackageLts <*> setStackage stackageNightly)
     setPlatform <- Set.map strPack <$> setPlatform platform
     setGHC <- Set.map strPack <$> setGHC platform
 
