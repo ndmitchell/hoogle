@@ -76,4 +76,38 @@ The Hoogle website provides JSON output using the parameter `?mode=json`. As an 
       }
     ]
 
-This output has been reformatted to better fit the screen. Future versions of Hoogle may produce different JSON output.
+Another possible option is to set the `?format` query parameter to `text` (only current possible value), to remove the HTML tags from the `item` and `docs` properties of the output.
+
+    $ curl -sS "https://hoogle.haskell.org?mode=json&format=text&hoogle=map&start=1&count=2"
+    [
+      {
+        "url": "https://hackage.haskell.org/package/base/docs/Prelude.html#v:map",
+        "module": {
+          "url": "https://hackage.haskell.org/package/base/docs/Prelude.html",
+          "name": "Prelude"
+        },
+        "package": {
+          "url": "https://hackage.haskell.org/package/base",
+          "name": "base"
+        },
+        "item": "map :: (a -> b) -> [a] -> [b]",
+        "type": "",
+        "docs": "map f xs is the list obtained by applying f\nto each element of xs, i.e.,\n\n\nmap f [x1, x2, ..., xn] == [f x1, f x2, ..., f xn]\nmap f [x1, x2, ...] == [f x1, f x2, ...]\n\n"
+      },
+      {
+        "url": "https://hackage.haskell.org/package/base/docs/Data-List.html#v:map",
+        "module": {
+          "url": "https://hackage.haskell.org/package/base/docs/Data-List.html",
+          "name": "Data.List"
+        },
+        "package": {
+          "url": "https://hackage.haskell.org/package/base",
+          "name": "base"
+        },
+        "item": "map :: (a -> b) -> [a] -> [b]",
+        "type": "",
+        "docs": "map f xs is the list obtained by applying f\nto each element of xs, i.e.,\n\n\nmap f [x1, x2, ..., xn] == [f x1, f x2, ..., f xn]\nmap f [x1, x2, ...] == [f x1, f x2, ...]\n\n"
+      }
+    ]
+    
+These JSON outputs have been reformatted to better fit the screen. Future versions of Hoogle may produce different JSON output.
