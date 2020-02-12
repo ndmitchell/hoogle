@@ -147,7 +147,7 @@ readHaskellDirs timing settings dirs = do
         return (strPack $ takeBaseName fp, pkg)
 
     generateBarePackage (name, dir) =
-        (name, mempty{packageTags = [(strPack "set", strPack "all")] ++ sets})
+        (name, mempty{packageTags = (strPack "set", strPack "all") : sets})
       where
         sets = map setFromDir $ filter (`isPrefixOf` dir) dirs
 
