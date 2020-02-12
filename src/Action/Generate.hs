@@ -138,13 +138,20 @@ readHaskellDirs timing settings dirs = do
             yield (name, url, lbstrFromChunks [src])
     return (Map.union
                 (Map.fromList cabals)
-                (Map.fromList $ map ((,mempty{packageTags=[(strPack "set",strPack "all")]}) . fst) packages)
+                (Map.fromList $ map generateBarePackage packages)
            ,Set.fromList $ map fst packages, source)
   where
     parseCabal fp = do
         src <- readFileUTF8' fp
         let pkg = readCabal settings src
         return (strPack $ takeBaseName fp, pkg)
+
+    generateBarePackage (name, dir) =
+        (name, mempty{packageTags = [(strPack "set", strPack "all")] ++ sets})
+      where
+        sets = map setFromDir $ filter (`isPrefixOf` dir) dirs
+
+        setFromDir dir = (strPack "set", strPack (takeFileName $ dropTrailingPathSeparator dir))
 
 readFregeOnline :: Timing -> Download -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readFregeOnline timing download = do
