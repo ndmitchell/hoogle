@@ -130,7 +130,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
         "__suffix__" === "http://henry.com?too_long"
         "__infix__" === "http://henry.com?too_long"
         "Wife" === "http://eghmitchell.com/Mitchell.html#a_wife"
-        completionTags store `testEq` ["set:all","package:emily","package:henry"]
+        completionTags store `testEq` ["set:all","set:sample-data","package:emily","package:henry"]
      else do
         "base" === hackage "base"
         "Prelude" === hackage "base/docs/Prelude.html"
