@@ -146,12 +146,11 @@ readHaskellDirs timing settings dirs = do
         let pkg = readCabal settings src
         return (strPack $ takeBaseName fp, pkg)
 
-    generateBarePackage (name, dir) =
+    generateBarePackage (name, file) =
         (name, mempty{packageTags = (strPack "set", strPack "all") : sets})
       where
-        sets = map setFromDir $ filter (`isPrefixOf` dir) dirs
-
-        setFromDir dir = (strPack "set", strPack (takeFileName $ dropTrailingPathSeparator dir))
+        sets = map setFromDir $ filter (`isPrefixOf` file) dirs
+        setFromDir dir = (strPack "set", strPack $ takeFileName $ dropTrailingPathSeparator dir)
 
 readFregeOnline :: Timing -> Download -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readFregeOnline timing download = do
