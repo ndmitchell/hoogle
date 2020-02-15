@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+5.0.17.15, released 2020-02-15
     #342, have --local flag generate a set with the directory name
     Consider packages in Stackage Nightly and LTS part of Stackage
     #338, add format=text to strip HTML from the JSON
