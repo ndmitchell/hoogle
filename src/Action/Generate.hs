@@ -138,7 +138,7 @@ readHaskellDirs timing settings dirs = do
             yield (name, url, lbstrFromChunks [src])
     return (Map.union
                 (Map.fromList cabals)
-                (Map.fromList $ map generateBarePackage packages)
+                (Map.fromListWith (<>) $ map generateBarePackage packages)
            ,Set.fromList $ map fst packages, source)
   where
     parseCabal fp = do
