@@ -87,7 +87,7 @@ readGhcPkg settings = do
     let g (stripPrefix "$topdir" -> Just x) | Just t <- topdir = takeDirectory t ++ x
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
-    let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack x, fixer $ readCabal settings $ unlines xs)
+    let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack $ trimStart x, fixer $ readCabal settings $ unlines xs)
         f xs = Nothing
     return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
 
@@ -123,7 +123,7 @@ readCabal Settings{..} src = Package{..}
         packageVersion = strPack $ head $ dropWhile null (ask "version") ++ ["0.0"]
         packageSynopsis = strPack $ unwords $ words $ unwords $ ask "synopsis"
         packageLibrary = "library" `elem` map (lower . trim) (lines src)
-        packageDocs = listToMaybe $ ask "haddock-html"
+        packageDocs = find (not . null) $ ask "haddock-html"
 
         packageTags = map (both strPack) $ nubOrd $ concat
             [ map (head xs,) $ concatMap cleanup $ concatMap ask xs
