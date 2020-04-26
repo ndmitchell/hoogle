@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = breaking change)
 
+    #351, partially fixed ghc-pkg output parsing for GHC 8.8
 5.0.17.15, released 2020-02-15
     #342, have --local flag generate a set with the directory name
     Consider packages in Stackage Nightly and LTS part of Stackage
