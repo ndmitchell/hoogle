@@ -5,6 +5,7 @@ module Input.Haddock(parseHoogle, fakePackage, input_haddock_test) where
 import Language.Haskell.Exts as HSE
 import Data.Char
 import Data.List.Extra
+import Data.Maybe
 import Data.Data
 import Input.Item
 import General.Util
@@ -37,7 +38,7 @@ parserC warning = f [] ""
         f com url = do
             x <- await
             whenJust x $ \(i,s) -> case () of
-                _ | Just s <- bstrStripPrefix "-- | " s -> f [s] url
+                _ | Just s <- bstrStripPrefix "-- | " s -> f [ignoreMath s] url
                   | Just s <- bstrStripPrefix "--" s -> f (if null com then [] else bstrTrimStart s : com) url
                   | Just s <- bstrStripPrefix "@url " s -> f com (bstrUnpack s)
                   | bstrNull $ bstrTrimStart s -> f [] ""
@@ -50,6 +51,15 @@ parserC warning = f [] ""
                             Right xs -> forM_ xs $ \x ->
                                 yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse com, x) -- descendBi stringShare x)
                         f [] ""
+
+
+-- See https://github.com/ndmitchell/hoogle/issues/353
+-- for functions like `tail` which start <math>.
+ignoreMath :: BStr -> BStr
+ignoreMath x | Just x <- "&lt;math&gt;" `bstrStripPrefix` x
+             = fromMaybe x $ ". " `bstrStripPrefix` x
+ignoreMath x = x
+
 
 typeItem (EPackage x) = "package"
 typeItem (EModule x) = "module"
