@@ -2,7 +2,7 @@
 -- and producing a database.
 
 import Text.HTML.TagSoup
-import Data.List
+import Data.List.Extra
 import Data.Char
 import System.Environment
 import System.IO.Extra
@@ -42,7 +42,7 @@ keywordFormat x = concat ["" : docs ++ ["@url #" ++ concatMap g n, "@entry keywo
                partitions isBlock x
 
         g x | isAlpha x || x `elem` "_-:" = [x]
-            | otherwise = '.' : map toUpper (showHex (ord x) "")
+            | otherwise = '.' : upper (showHex (ord x) "")
 
         isBlock (TagOpen x _) = x `elem` ["p","pre","ul"]
         isBlock _ = False
@@ -57,7 +57,7 @@ keywordFormat x = concat ["" : docs ++ ["@url #" ++ concatMap g n, "@entry keywo
 docFormat :: [Tag String] -> [String]
 docFormat (TagOpen "pre" _:xs) = ["<pre>"] ++ map (drop n) ys ++ ["</pre>"]
     where
-        ys = lines $ reverse $ dropWhile isSpace $ reverse $ innerText xs
+        ys = lines $ trimEnd $ innerText xs
         n = minimum $ map (length . takeWhile isSpace) ys
 
 docFormat (TagOpen "p" _:xs) = g 0 [] $ words $ f xs
@@ -67,7 +67,7 @@ docFormat (TagOpen "p" _:xs) = g 0 [] $ words $ f xs
                        | otherwise = g (n+nx+1) (x:acc) xs
             where nx = length x
 
-        f (TagOpen "code" _:xs) = "<tt>" ++ innerText a ++ "</tt>" ++ f (drop 1 b)
+        f (TagOpen "code" _:xs) = "<tt>" ++ innerText a ++ "</tt>" ++ f (drop1 b)
             where (a,b) = break (~== "</code>") xs
         f (x:xs) = h x ++ f xs
         f [] = []
