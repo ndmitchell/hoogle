@@ -117,7 +117,7 @@ search_ = Search
     ,count = Nothing &= name "n" &= help "Maximum number of results to return (defaults to 10)"
     ,query = def &= args &= typ "QUERY"
     ,repeat_ = 1 &= help "Number of times to repeat (for benchmarking)"
-    ,language = enum [x &= explicit &= name (lower $ show x) &= help ("Work with " ++ show x) | x <- [minBound..maxBound]] &= groupname "Language"
+    ,language = enum [x &= explicit &= name (lower $ show x) &= help ("Work with " ++ show x) | x <- enumerate] &= groupname "Language"
     ,compare_ = def &= help "Type signatures to compare against"
     } &= help "Perform a search"
 

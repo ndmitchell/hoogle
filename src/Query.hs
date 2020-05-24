@@ -78,7 +78,7 @@ lexer ('(':',':xs) | (a,')':b) <- span (== ',') xs = ("(," ++ a ++ ")") : lexer 
 lexer x | Just s <- (bs !!) <$> findIndex (`isPrefixOf` x) bs = s : lexer (drop (length s) x)
     where bs = zipWith (++) openBrackets shutBrackets ++ openBrackets ++ shutBrackets
 lexer (x:xs)
-    | isSpace x = " " : lexer (dropWhile isSpace xs)
+    | isSpace x = " " : lexer (trimStart xs)
     | isAlpha x || x == '_' =
         let (a,b) = span (\x -> isAlphaNum x || x `elem` ("_'#-" :: String)) xs
             (a1,a2) = spanEnd (== '-') a

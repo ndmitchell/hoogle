@@ -9,6 +9,7 @@ import Data.Monoid
 import Text.Blaze
 import Text.Blaze.Renderer.Utf8
 import General.Str
+import Data.List.Extra
 import Control.Exception
 import Data.Generics.Uniplate.Data
 import Control.Applicative
@@ -60,7 +61,7 @@ treeOptimise = transform f . treeRemoveApp
 
         g [] = []
         g (x:xs) | not $ isLit x = x : g xs
-        g xs = [Lit x | let x = mconcat $ map fromLit a, x /= mempty] ++ g b
+        g xs = [Lit x | let x = mconcatMap fromLit a, x /= mempty] ++ g b
             where (a,b) = span isLit xs
 
 treeEval :: Tree -> [BStr]

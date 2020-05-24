@@ -101,7 +101,7 @@ lookupCtor store names c =
 
 searchFingerprintsDebug :: StoreRead -> (String, Sig String) -> [(String, Sig String)] -> [String]
 searchFingerprintsDebug store query answers = intercalate [""] $
-    f False "Query" query : zipWith (\i -> f True ("Answer " ++ show i)) [1..] answers
+    f False "Query" query : zipWithFrom (\i -> f True ("Answer " ++ show i)) 1 answers
     where
         qsig = lookupNames names name0 $ strPack <$> snd query
         names = readNames store
@@ -232,7 +232,7 @@ writeDuplicates store xs = do
     -- s=signature, t=targetid, p=popularity (incoing index), i=index (outgoing index)
     xs <- return $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
         Map.fromListWith (\(x1,x2) (y1,y2) -> (, x2 ++ y2) $! min x1 y1)
-                         [(s,(p,[t])) | (p,(t,s)) <- zip [0::Int ..] xs]
+                         [(s,(p,[t])) | (p,(t,s)) <- zipFrom (0::Int) xs]
     -- give a list of TargetId's at each index
     storeWrite store TypesDuplicates $ jaggedFromList $ map (reverse . snd) xs
     return $ map fst xs
@@ -368,7 +368,7 @@ data TypesSigData a where TypesSigData :: TypesSigData BS.ByteString deriving Ty
 writeSignatures :: StoreWrite -> [Sig Name] -> IO ()
 writeSignatures store xs = do
     v <- VM.new $ length xs
-    forM_ (zip [0..] xs) $ \(i,x) -> do
+    forM_ (zipFrom 0 xs) $ \(i,x) -> do
         let b = encodeBS x
         storeWritePart store TypesSigData b
         VM.write v i $ fromIntegral $ BS.length b
@@ -406,7 +406,7 @@ searchTypeMatch possibilities getSig arrow n sig =
 bestByFingerprint :: [(SigLoc, Fingerprint)] -> Int -> Sig Name -> [ (Int, (Int, SigLoc, Fingerprint)) ]
 bestByFingerprint db n sig =
   takeSortOn fst (max 5000 n)
-    [ (fv, (i, sigIdx, f)) | (i, (sigIdx, f)) <- zip [0..] db
+    [ (fv, (i, sigIdx, f)) | (i, (sigIdx, f)) <- zipFrom 0 db
                            , fv <- maybeToList (matchFp f) ]
   where
     matchFp = matchFingerprint sig

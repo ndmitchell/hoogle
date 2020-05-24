@@ -40,7 +40,7 @@ readFileSettings file backup = do
         if isDoesNotExistError e
             then return backup
             else throwIO e
-    return $ concat $ zipWith f [1..] $ map trim $ lines src
+    return $ concat $ zipWithFrom f 1 $ map trim $ lines src
     where
         f i s | null s = []
               | "--" `isPrefixOf` s = []
@@ -71,7 +71,7 @@ createSettings xs = Settings{..}
         reorderModule = \pkg -> case f pkg of
                                     [] -> const 0
                                     xs -> let f = wildcards xs
-                                          in \mod -> last $ 0 : f mod
+                                          in \mod -> lastDef 0 (f mod)
             where f = wildcards [(a,(b,c)) | ReorderModule a b c <- xs]
 
 

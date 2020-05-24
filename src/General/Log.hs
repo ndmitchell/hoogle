@@ -22,7 +22,7 @@ import Data.Semigroup
 import General.Util
 import Data.Maybe
 import Data.List
-import Data.IORef
+import Data.IORef.Extra
 import Prelude
 
 
@@ -63,7 +63,7 @@ logAddMessage Log{..} msg = do
 logAddEntry :: Log -> String -> String -> Double -> Maybe String -> IO ()
 logAddEntry Log{..} user question taken err = do
     time <- getCurrentTime
-    let add v = atomicModifyIORef logCurrent $ \mp -> (Map.alter (Just . maybe v (<> v)) (utctDay time) mp, ())
+    let add v = atomicModifyIORef_ logCurrent $ \mp -> Map.alter (Just . maybe v (<> v)) (utctDay time) mp
     if logInteresting question then
         add $ SummaryI (Set.singleton $ hash $ LBS.pack user) 1 taken (toAverage taken) (if isJust err then 1 else 0)
      else if isJust err then

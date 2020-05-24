@@ -78,7 +78,7 @@ unHTMLtargetItem :: Target -> Target
 unHTMLtargetItem target = target {targetItem = unHTML $ targetItem target}
 
 addCounter :: [String] -> [String]
-addCounter = zipWith (\i x -> show i ++ ") " ++ x) [1..]
+addCounter = zipWithFrom (\i x -> show i ++ ") " ++ x) 1
 
 withSearch :: NFData a => FilePath -> (StoreRead -> IO a) -> IO a
 withSearch database act = do
@@ -337,7 +337,7 @@ matchQR qr res = case qr of
         UnexpectedSuccess -> Failure
   where
     success p = if p then Success else Failure
-    matchIdx tm = fmap fst $ find (runTargetMatcher tm . snd) (zip [0..] $ concat res)
+    matchIdx tm = fmap fst $ find (runTargetMatcher tm . snd) (zipFrom 0 $ concat res)
 
 data TargetMatcher
     = MatchFunctionInModule  String String
@@ -369,7 +369,7 @@ deDup tgts = Map.elems (Map.fromList $ Map.elems tgtMap)
   where
     tgtMap :: Map.Map Target (Int, [Target])
     tgtMap = Map.fromListWith (\(n, ts) (n', ts') -> (min n n', ts ++ ts'))
-             $ zipWith (\n t -> (simple t, (n, [t]))) [0..] tgts
+             $ zipWithFrom (\n t -> (simple t, (n, [t]))) 0 tgts
 
     simple :: Target -> Target
     simple t = t { targetURL = "", targetPackage = Nothing, targetModule = Nothing }

@@ -103,7 +103,7 @@ getStatsPeakAllocBytes = do
 
 getStatsDebug :: IO (Maybe String)
 getStatsDebug = do
-    let dump = replace ", " "\n" . takeWhile (/= '}') . drop 1 . dropWhile (/= '{') . show
+    let dump = replace ", " "\n" . takeWhile (/= '}') . drop1 . dropWhile (/= '{') . show
 #if RTS_STATS
     withRTSStats dump
 #else
@@ -210,7 +210,7 @@ tarballReadFiles file = f . Tar.read . GZip.decompress <$> LBS.readFile file
 
 
 innerTextHTML :: String -> String
-innerTextHTML ('<':xs) = innerTextHTML $ drop 1 $ dropWhile (/= '>') xs
+innerTextHTML ('<':xs) = innerTextHTML $ drop1 $ dropWhile (/= '>') xs
 innerTextHTML (x:xs) = x : innerTextHTML xs
 innerTextHTML [] = []
 

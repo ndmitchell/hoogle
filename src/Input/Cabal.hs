@@ -120,7 +120,7 @@ readCabal Settings{..} src = Package{..}
             map strPack $ nubOrd $ filter (/= "") $
             map (intercalate "-" . takeWhile (all isAlpha . take 1) . splitOn "-" . fst . word1) $
             concatMap (split (== ',')) (ask "build-depends") ++ concatMap words (ask "depends")
-        packageVersion = strPack $ head $ dropWhile null (ask "version") ++ ["0.0"]
+        packageVersion = strPack $ headDef "0.0" $ dropWhile null (ask "version")
         packageSynopsis = strPack $ unwords $ words $ unwords $ ask "synopsis"
         packageLibrary = "library" `elem` map (lower . trim) (lines src)
         packageDocs = find (not . null) $ ask "haddock-html"

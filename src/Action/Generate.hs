@@ -275,7 +275,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
 
         x <- getVerbosity
         when (x >= Loud) $
-            maybe (return ()) print =<< getStatsDebug
+            whenJustM getStatsDebug print
         when (x >= Normal) $ do
             whenJustM getStatsPeakAllocBytes $ \x ->
                 putStrLn $ "Peak of " ++ x ++ ", " ++ fromMaybe "unknown" itemsMemory ++ " for items"

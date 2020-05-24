@@ -143,7 +143,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         stats <- getStatsDebug
         return $ case stats of
             Nothing -> OutputFail $ lbstrPack "GHC Statistics is not enabled, restart with +RTS -T"
-            Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop 1 $ dropWhile (/= '{') $ show x
+            Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop1 $ dropWhile (/= '{') $ show x
     "haddock":xs | Just x <- haddock -> do
         let file = intercalate "/" $ x:xs
         return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
@@ -259,7 +259,7 @@ highlightItem qs x
         = H.preEscapedString pre <> highlight (unescapeHTML name) <> H.preEscapedString post
     | otherwise = H.string x
     where
-        highlight = mconcat . map (\xs@((b,_):_) -> let s = H.string $ map snd xs in if b then H.b s else s) .
+        highlight = mconcatMap (\xs@((b,_):_) -> let s = H.string $ map snd xs in if b then H.b s else s) .
                     groupOn fst . (\x -> zip (f x) x)
             where
               f (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (f xs)
