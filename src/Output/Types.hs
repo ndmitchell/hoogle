@@ -574,7 +574,7 @@ unifyName lhs rhs = do
 -- Allocate new references for each name that appears in the type and context.
 refTyp :: Bool -> Typ Name -> [Ctx Name] -> ST s (Typ (NameRef s), [Ctx (NameRef s)])
 refTyp fixed t cs =
-    evalStateT go (Map.fromList [])
+    evalStateT go Map.empty
   where
     go = do
         ty  <- mkRefs t

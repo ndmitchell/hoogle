@@ -174,4 +174,4 @@ searchTags :: StoreRead -> [Query] -> [TargetId]
 searchTags ts qs
     | x:xs <- [map fst $ maybe [] (fromMaybe [] . snd . resolveTag ts) $ parseTag cat val | QueryScope True cat val <- qs]
     = if null xs then x else filter (`Set.member` foldl1' Set.intersection (map Set.fromList xs)) x
-searchTags ts _ = map fst $ fromMaybe [] $  snd $ resolveTag ts IsPackage
+searchTags ts _ = maybe [] (map fst) $ snd $ resolveTag ts IsPackage
