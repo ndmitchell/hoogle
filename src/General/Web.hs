@@ -161,10 +161,10 @@ server log Server{..} act = do
         let pq = BS.unpack $ rawPathInfo req <> rawQueryString req
         putStrLn pq
         (time, res) <- duration $ case readInput pq of
-            Nothing -> return $ Right (OutputFail "", LBS.pack $ "Bad URL: " ++ pq)
+            Nothing -> pure $ Right (OutputFail "", LBS.pack $ "Bad URL: " ++ pq)
             Just pay ->
                 handle_ (fmap Left . showException) $ do
-                    s <- act pay; bs <- evaluate $ forceBS s; return $ Right (s, bs)
+                    s <- act pay; bs <- evaluate $ forceBS s; pure $ Right (s, bs)
         logAddEntry log (showSockAddr $ remoteHost req) pq time (either Just (const Nothing) res)
         case res of
             Left s -> reply $ responseLBS status500 [] $ LBS.pack s

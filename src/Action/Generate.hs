@@ -107,7 +107,7 @@ readHaskellOnline timing settings download = do
 
     cbl <- timed timing "Reading Cabal" $ parseCabalTarball settings cabals
     let want = Set.insert (strPack "ghc") $ Set.unions [setStackage, setPlatform, setGHC]
-    cbl <- return $ flip Map.mapWithKey cbl $ \name p ->
+    cbl <- pure $ flip Map.mapWithKey cbl $ \name p ->
         p{packageTags =
             [(strPack "set",strPack "included-with-ghc") | name `Set.member` setGHC] ++
             [(strPack "set",strPack "haskell-platform") | name `Set.member` setPlatform] ++
@@ -118,7 +118,7 @@ readHaskellOnline timing settings download = do
             tar <- liftIO $ tarballReadFiles hoogles
             forM_ tar $ \(strPack . takeBaseName -> name, src) ->
                 yield (name, hackagePackageURL name, src)
-    return (cbl, want, source)
+    pure (cbl, want, source)
 
 
 readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
@@ -136,7 +136,7 @@ readHaskellDirs timing settings dirs = do
             dir <- liftIO $ canonicalizePath $ takeDirectory file
             let url = "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ replace "\\" "/" dir ++ "/"
             yield (name, url, lbstrFromChunks [src])
-    return (Map.union
+    pure (Map.union
                 (Map.fromList cabals)
                 (Map.fromListWith (<>) $ map generateBarePackage packages)
            ,Set.fromList $ map fst packages, source)
@@ -144,7 +144,7 @@ readHaskellDirs timing settings dirs = do
     parseCabal fp = do
         src <- readFileUTF8' fp
         let pkg = readCabal settings src
-        return (strPack $ takeBaseName fp, pkg)
+        pure (strPack $ takeBaseName fp, pkg)
 
     generateBarePackage (name, file) =
         (name, mempty{packageTags = (strPack "set", strPack "all") : sets})
@@ -158,7 +158,7 @@ readFregeOnline timing download = do
     let source = do
             src <- liftIO $ bstrReadFile frege
             yield (strPack "frege", "http://google.com/", lbstrFromChunks [src])
-    return (Map.empty, Set.singleton $ strPack "frege", source)
+    pure (Map.empty, Set.singleton $ strPack "frege", source)
 
 
 readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
@@ -173,9 +173,9 @@ readHaskellGhcpkg timing settings = do
                     let url = "file://" ++ ['/' | not $ all isPathSeparator $ take 1 docs] ++
                               replace "\\" "/" (addTrailingPathSeparator docs)
                     yield (name, url, lbstrFromChunks [src])
-    cbl <- return $ let ts = map (both strPack) [("set","stackage"),("set","installed")]
+    cbl <- pure $ let ts = map (both strPack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
-    return (cbl, Map.keysSet cbl, source)
+    pure (cbl, Map.keysSet cbl, source)
 
 readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellHaddock timing settings docBaseDir = do
@@ -189,9 +189,9 @@ readHaskellHaddock timing settings docBaseDir = do
                     let url = ['/' | not $ all isPathSeparator $ take 1 docs] ++
                               replace "\\" "/" (addTrailingPathSeparator docs)
                     yield (name, url, lbstrFromChunks [src])
-    cbl <- return $ let ts = map (both strPack) [("set","stackage"),("set","installed")]
+    cbl <- pure $ let ts = map (both strPack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
-    return (cbl, Map.keysSet cbl, source)
+    pure (cbl, Map.keysSet cbl, source)
 
     where docDir name Package{..} = name ++ "-" ++ strUnpack packageVersion
 
@@ -201,7 +201,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     createDirectoryIfMissing True $ takeDirectory database
     whenLoud $ putStrLn $ "Generating files to " ++ takeDirectory database
 
-    download <- return $ downloadInput timing insecure download (takeDirectory database)
+    download <- pure $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
     (cbl, want, source) <- case language of
         Haskell | Just dir <- haddock -> readHaskellHaddock timing settings dir
@@ -217,8 +217,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     -- mtl is more popular than transformers, despite having dodgy docs, which is a shame, so we hack it
     popularity <- evaluate $ Map.adjust (max $ 1 + Map.findWithDefault 0 (strPack "mtl") popularity) (strPack "transformers") popularity
 
-    want <- return $ if include /= [] then Set.fromList $ map strPack include else want
-    want <- return $ case count of Nothing -> want; Just count -> Set.fromList $ take count $ Set.toList want
+    want <- pure $ if include /= [] then Set.fromList $ map strPack include else want
+    want <- pure $ case count of Nothing -> want; Just count -> Set.fromList $ take count $ Set.toList want
 
     (stats, _) <- storeWriteFile database $ \store -> do
         xs <- withBinaryFile (database `replaceExtension` "warn") WriteMode $ \warnings -> do
@@ -258,17 +258,17 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                                 else if null include then
                                     ret "Not on Stackage, so not searched.\n"
                                 else
-                                    return ()
+                                    pure ()
                             ))
                     .| pipelineC 10 (items .| sinkList)
 
                 itemWarn <- readIORef itemWarn
                 when (itemWarn > 0) $
                     putStrLn $ "Found " ++ show itemWarn ++ " warnings when processing items"
-                return [(a,b) | (a,bs) <- xs, b <- bs]
+                pure [(a,b) | (a,bs) <- xs, b <- bs]
 
         itemsMemory <- getStatsCurrentLiveBytes
-        xs <- timed timing "Reordering items" $ return $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
+        xs <- timed timing "Reordering items" $ pure $! reorderItems settings (\s -> maybe 1 negate $ Map.lookup s popularity) xs
         timed timing "Writing tags" $ writeTags store (`Set.member` want) (\x -> maybe [] (map (both strUnpack) . packageTags) $ Map.lookup x cbl) xs
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs

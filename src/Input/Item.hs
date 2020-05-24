@@ -143,11 +143,11 @@ instance FromJSON Target where
            <*> o .: ("docs" :: T.Text)
     where namedUrl o' n = do
              mObj <- o' .: n
-             if null mObj then return Nothing
+             if null mObj then pure Nothing
                         else do
                            pkName <- mObj .: ("name" :: T.Text)
                            pkUrl  <- mObj .: ("url" :: T.Text)
-                           return $ Just (pkName, pkUrl)
+                           pure $ Just (pkName, pkUrl)
 
 instance Arbitrary Target where
   arbitrary = Target <$> a
@@ -158,7 +158,7 @@ instance Arbitrary Target where
                      <*> a
     where a = arbitrary
           mNurl = do
-            oneof [return Nothing
+            oneof [pure Nothing
                  , Just <$> liftA2 (,) a a]
 
 targetExpandURL :: Target -> Target

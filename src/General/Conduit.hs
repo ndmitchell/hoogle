@@ -74,7 +74,7 @@ pipelineC buffer sink = do
                 x <- liftIO $ readChan chan
                 liftIO $ signalQSem sem
                 whenJust x yield
-                return $ isJust x) .|
+                pure $ isJust x) .|
             sink
     awaitForever $ \x -> liftIO $ do
         waitQSem sem

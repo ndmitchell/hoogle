@@ -36,23 +36,23 @@ showTime :: UTCTime -> String
 showTime = showUTCTime "%Y-%m-%dT%H:%M:%S%Q"
 
 logNone :: IO Log
-logNone = do ref <- newIORef Map.empty; return $ Log Nothing ref (const False)
+logNone = do ref <- newIORef Map.empty; pure $ Log Nothing ref (const False)
 
 logCreate :: Either Handle FilePath -> (BS.ByteString -> Bool) -> IO Log
 logCreate store interesting = do
     (h, old) <- case store of
-        Left h -> return (h, Map.empty)
+        Left h -> pure (h, Map.empty)
         Right file -> do
             b <- doesFileExist file
-            mp <- if not b then return Map.empty else withFile file ReadMode $ \h -> do
+            mp <- if not b then pure Map.empty else withFile file ReadMode $ \h -> do
                 src <- LBS.hGetContents h
                 let xs = mapMaybe (parseLogLine interesting . LBS.toStrict) $ LBS.lines src
-                return $! foldl' (\mp (k,v) -> Map.alter (Just . maybe v (<> v)) k mp) Map.empty xs
+                pure $! foldl' (\mp (k,v) -> Map.alter (Just . maybe v (<> v)) k mp) Map.empty xs
             (,mp) <$> openFile file AppendMode
     hSetBuffering h LineBuffering
     var <- newVar h
     ref <- newIORef old
-    return $ Log (Just var) ref (interesting . BS.pack)
+    pure $ Log (Just var) ref (interesting . BS.pack)
 
 logAddMessage :: Log -> String -> IO ()
 logAddMessage Log{..} msg = do
@@ -69,7 +69,7 @@ logAddEntry Log{..} user question taken err = do
      else if isJust err then
         add mempty{iErrors=1}
      else
-        return ()
+        pure ()
     whenJust logOutput $ \var -> withVar var $ \h ->
         hPutStrLn h $ unwords $ [showTime time, user, showDP 3 taken, question] ++
                                 maybeToList (fmap ((++) "ERROR: " . unwords . words) err)

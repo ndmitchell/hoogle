@@ -38,9 +38,9 @@ readFileSettings :: FilePath -> String -> IO [Setting]
 readFileSettings file backup = do
     src <- readFileUTF8 file `catch` \e ->
         if isDoesNotExistError e
-            then return backup
+            then pure backup
             else throwIO e
-    return $ concat $ zipWithFrom f 1 $ map trim $ lines src
+    pure $ concat $ zipWithFrom f 1 $ map trim $ lines src
     where
         f i s | null s = []
               | "--" `isPrefixOf` s = []
@@ -60,7 +60,7 @@ loadSettings = do
     let backup = $(runIO (readFileUTF8 "misc/settings.txt") >>= lift)
 #endif
     src <- readFileSettings (dataDir </> "misc/settings.txt") backup
-    return $ createSettings src
+    pure $ createSettings src
 
 createSettings :: [Setting] -> Settings
 createSettings xs = Settings{..}

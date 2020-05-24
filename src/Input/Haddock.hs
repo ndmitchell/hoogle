@@ -47,7 +47,7 @@ parserC warning = f [] ""
                             Left y -> lift $ warning $ show i ++ ":" ++ y
                             -- only check Nothing as some items (e.g. "instance () :> Foo a")
                             -- don't roundtrip but do come out equivalent
-                            Right [EDecl InfixDecl{}] -> return () -- can ignore infix constructors
+                            Right [EDecl InfixDecl{}] -> pure () -- can ignore infix constructors
                             Right xs -> forM_ xs $ \x ->
                                 yield (Target url Nothing Nothing (typeItem x) (renderItem x) $ reformat $ reverse com, x) -- descendBi stringShare x)
                         f [] ""

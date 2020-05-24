@@ -26,7 +26,7 @@ downloadInput timing insecure download dir name url = do
         timed timing ("Downloading " ++ url) $ do
             downloadFile insecure (file <.> "part") url
             renameFile (file <.> "part") file
-    return file
+    pure file
 
 downloadFile :: Bool -> FilePath -> String -> IO ()
 downloadFile insecure file url = do

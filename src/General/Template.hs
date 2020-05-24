@@ -35,7 +35,7 @@ treeRemoveLam :: Tree -> IO Tree
 treeRemoveLam = transformM f
     where
         f (Lam file) = List . parse <$> bstrReadFile file
-        f x = return x
+        f x = pure x
 
         parse x | Just (a,b) <- bstrSplitInfix (bstrPack "#{") x
                 , Just (b,c) <- bstrSplitInfix (bstrPack "}") b
@@ -82,16 +82,16 @@ treeCache :: Tree -> IO Tree
 treeCache t0 = unsafePerformIO $ do
     let files = [x | Lam x <- universe t0]
     ref <- newIORef ([], treeOptimise t0)
-    return $ do
+    pure $ do
         (old,t) <- readIORef ref
         new <- forM files $ \file ->
             -- the standard getModificationTime message on Windows doesn't say the file
             getModificationTime file `catch` \(e :: IOException) ->
                 fail $ "Failed: getModificationTime on " ++ file ++ ", " ++ show e
-        if old == new then return t else do
+        if old == new then pure t else do
             t <- treeOptimise <$> treeRemoveLam t0
             writeIORef ref (new,t)
-            return t
+            pure t
 
 templateTree :: Tree -> Template
 templateTree t = Template t $ treeCache t
@@ -111,5 +111,5 @@ templateApply (Template t _) args = templateTree $ App t [(bstrPack a, b) | (a,T
 templateRender :: Template -> [(String, Template)] -> IO LBStr
 templateRender (Template _ t) args = do
     t <- t
-    let Template t2 _ = templateApply (Template t $ return t) args
+    let Template t2 _ = templateApply (Template t $ pure t) args
     lbstrFromChunks . treeEval <$> treeRemoveLam t2

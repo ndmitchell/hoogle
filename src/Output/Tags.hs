@@ -165,7 +165,7 @@ filterTags2 ts qs = \i -> not (negq i) && (noPosRestrict || posq i)
           getRestriction (QueryScope sense cat val) = do
             tag <- parseTag cat val
             ranges <- snd $ resolveTag ts tag
-            return (sense, ranges)
+            pure (sense, ranges)
 
 
 -- | Given a search which has no type or string in it, run the query on the tag bits.

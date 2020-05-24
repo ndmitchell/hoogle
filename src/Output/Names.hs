@@ -46,7 +46,7 @@ searchNames :: StoreRead -> Bool -> [String] -> [TargetId]
 searchNames store exact (filter (/= "") . map trim -> xs) = unsafePerformIO $ do
     let vs = storeRead store NamesItems
     -- if there are no questions, we will match everything, which exceeds the result buffer
-    if null xs then return $ V.toList vs else do
+    if null xs then pure $ V.toList vs else do
         let tweak x = bstrPack $ [' ' | isUpper1 x] ++ lower x ++ "\0"
         bracket (mallocArray $ storeRead store NamesSize) free $ \result ->
             BS.unsafeUseAsCString (storeRead store NamesText) $ \haystack ->
@@ -54,7 +54,7 @@ searchNames store exact (filter (/= "") . map trim -> xs) = unsafePerformIO $ do
                     withArray0 nullPtr needles $ \needles -> do
                         found <- c_text_search haystack needles (if exact then 1 else 0) result
                         xs <- peekArray (fromIntegral found) result
-                        return $ map ((vs V.!) . fromIntegral) xs
+                        pure $ map ((vs V.!) . fromIntegral) xs
 
 {-# NOINLINE c_text_search #-} -- for profiling
 c_text_search a b c d = text_search a b c d

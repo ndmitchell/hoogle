@@ -12,7 +12,7 @@
 - ignore: {name: "Use module export list"}
 - ignore: {name: "Use list literal pattern"}
 - ignore: {name: "Use void"}
-- ignore: {name: "Redundant return"}
+- ignore: {name: "Redundant pure"}
 - ignore: {name: "Redundant do"}
 - ignore: {name: "Move brackets to avoid $"}
 - ignore: {name: "Unused LANGUAGE pragma"}

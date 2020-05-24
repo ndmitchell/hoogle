@@ -90,7 +90,7 @@ instance forall a . (Typeable a, Storable a) => Stored (V.Vector a) where
         storeWriteAtom store k part (castPtr ptr, V.length v * sizeOf (undefined :: a))
     storedRead store k = storeReadAtom store k $ \(ptr, len) -> do
         ptr <- newForeignPtr_ $ castPtr ptr
-        return $ V.unsafeFromForeignPtr0 ptr (len `div` sizeOf (undefined :: a))
+        pure $ V.unsafeFromForeignPtr0 ptr (len `div` sizeOf (undefined :: a))
 
 
 ---------------------------------------------------------------------
@@ -130,7 +130,7 @@ storeWriteFile file act = do
         let stats = prettyTable 0 "Bytes" $
                 ("Overheads", intToDouble $ fromIntegral final - sum (map atomSize $ Map.elems atoms)) :
                 [(name ++ " :: " ++ atomType, intToDouble atomSize) | (name, Atom{..}) <- Map.toList atoms]
-        return (stats, res)
+        pure (stats, res)
 
 storeWrite :: (Typeable (t a), Typeable a, Stored a) => StoreWrite -> t a -> a -> IO ()
 storeWrite store k = storedWrite store k False
@@ -151,8 +151,8 @@ storeWriteAtom (StoreWrite ref) (show . typeOf -> key) part (ptr, len) = do
         (keyOld,a):xs | part, key == keyOld -> do
             let size = atomSize a + len
             evaluate size
-            return $ (key,a{atomSize=size}) : xs
-        _ -> return $ (key, Atom val swPosition len) : swAtoms
+            pure $ (key,a{atomSize=size}) : xs
+        _ -> pure $ (key, Atom val swPosition len) : swAtoms
     writeIORef' ref sw{swPosition = swPosition + len, swAtoms = atoms}
 
 

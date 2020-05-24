@@ -27,7 +27,7 @@ setPlatform file = setPlatformWith file ["incGHCLib","incLib"]
 setPlatformWith :: FilePath -> [String] -> IO (Set.Set String)
 setPlatformWith file names = do
     src <- lines <$> readFile' file
-    return $ Set.fromList [read lib | ",":name:lib:_ <- map words src, name `elem` names]
+    pure $ Set.fromList [read lib | ",":name:lib:_ <- map words src, name `elem` names]
 
 setGHC :: FilePath -> IO (Set.Set String)
 setGHC file = setPlatformWith file ["incGHCLib"]

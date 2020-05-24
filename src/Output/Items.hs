@@ -40,14 +40,14 @@ inputItem (url:pkg:modu:typ:self:docs) = targetExpandURL $
 writeItems :: StoreWrite -> (ConduitM (Maybe Target, item) (Maybe TargetId, item) IO () -> IO a) -> IO a
 writeItems store act = act $ do
     void $ (\f -> mapAccumMC f 0) $ \pos (target, item) -> case target of
-        Nothing -> return (pos, (Nothing, item))
+        Nothing -> pure (pos, (Nothing, item))
         Just target -> do
             let bs = LBS.toStrict $ GZip.compress $ lbstrPack $ unlines $ outputItem target
             liftIO $ do
                 storeWritePart store Items $ intToBS $ BS.length bs
                 storeWritePart store Items bs
             let pos2 = pos + fromIntegral (intSize + BS.length bs)
-            return (pos2, (Just $ TargetId pos, item))
+            pure (pos2, (Just $ TargetId pos, item))
 
 
 listItems :: StoreRead -> [Target]
@@ -66,4 +66,4 @@ lookupItem store =
     in \(TargetId i) ->
         let i2 = fromIntegral i
             n = intFromBS $ BS.take intSize $ BS.drop i2 x
-        in inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks $ return $ BS.take n $ BS.drop (i2 + intSize) x
+        in inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks $ pure $ BS.take n $ BS.drop (i2 + intSize) x

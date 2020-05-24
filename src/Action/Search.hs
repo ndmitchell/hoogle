@@ -39,8 +39,8 @@ actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store ->
         if null compare_ then do
-            count' <- return $ fromMaybe 10 count
-            (q, res) <- return $ search store $ parseQuery $ unwords query
+            count' <- pure $ fromMaybe 10 count
+            (q, res) <- pure $ search store $ parseQuery $ unwords query
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
             let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link) res
             if null res then
@@ -90,26 +90,26 @@ withSearch database act = do
 
 search :: StoreRead -> [Query] -> ([Query], [Target])
 search store qs = runIdentity $ do
-    (qs, exact, filt, list) <- return $ applyTags store  qs
+    (qs, exact, filt, list) <- pure $ applyTags store  qs
     is <- case (filter isQueryName qs, filter isQueryType qs) of
-        ([], [] ) -> return list
-        ([], t:_) -> return $ searchTypes store $ hseToSig $ fromQueryType t
-        (xs, [] ) -> return $ searchNames store exact $ map fromQueryName xs
+        ([], [] ) -> pure list
+        ([], t:_) -> pure $ searchTypes store $ hseToSig $ fromQueryType t
+        (xs, [] ) -> pure $ searchNames store exact $ map fromQueryName xs
         (xs, t:_) -> do
-            nam <- return $ Set.fromList $ searchNames store exact $ map fromQueryName xs
-            return $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
+            nam <- pure $ Set.fromList $ searchNames store exact $ map fromQueryName xs
+            pure $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
     let look = lookupItem store
-    return (qs, map look $ filter filt is)
+    pure (qs, map look $ filter filt is)
 
 action_search_test :: Bool -> FilePath -> IO ()
 action_search_test sample database = testing "Action.Search.search" $ withSearch database $ \store -> do
     let noResults a = do
-          res <- return $ snd $ search store (parseQuery a)
+          res <- pure $ snd $ search store (parseQuery a)
           case res of
               [] -> putChar '.'
               _ -> errorIO $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res) ++ "\n expected none"
     let a ==$ f = do
-            res <- return $ snd $ search store (parseQuery a)
+            res <- pure $ snd $ search store (parseQuery a)
             case res of
                 Target{..}:_ | f targetURL -> putChar '.'
                 _ -> errorIO $ "Searching for: " ++ show a ++ "\nGot: " ++ show (take 1 res)

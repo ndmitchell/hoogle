@@ -79,24 +79,24 @@ data CmdLine
 defaultDatabaseLang :: Language -> IO FilePath
 defaultDatabaseLang lang = do
     dir <- getAppUserDataDirectory "hoogle"
-    return $ dir </> "default-" ++ lower (show lang) ++ "-" ++ showVersion (trimVersion 3 version) ++ ".hoo"
+    pure $ dir </> "default-" ++ lower (show lang) ++ "-" ++ showVersion (trimVersion 3 version) ++ ".hoo"
 
 getCmdLine :: [String] -> IO CmdLine
 getCmdLine args = do
     args <- withArgs args $ cmdArgsRun cmdLineMode
 
     -- fill in the default database
-    args <- if database args /= "" then return args else do
-        db <- defaultDatabaseLang $ language args; return args{database=db}
+    args <- if database args /= "" then pure args else do
+        db <- defaultDatabaseLang $ language args; pure args{database=db}
 
     -- fix up people using Hoogle 4 instructions
     args <- case args of
         Generate{..} | "all" `elem` include -> do
             putStrLn "Warning: 'all' argument is no longer required, and has been ignored."
-            return $ args{include = delete "all" include}
-        _ -> return args
+            pure $ args{include = delete "all" include}
+        _ -> pure args
 
-    return args
+    pure args
 
 
 defaultGenerate :: CmdLine

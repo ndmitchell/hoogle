@@ -61,8 +61,8 @@ actionServer cmd@Server{..} = do
         \x -> BS.pack "hoogle=" `BS.isInfixOf` x && not (BS.pack "is:ping" `BS.isInfixOf` x)
     putStrLn . showDuration =<< time
     evaluate spawned
-    dataDir <- maybe getDataDir return datadir
-    haddock <- maybe (return Nothing) (fmap Just . canonicalizePath) haddock
+    dataDir <- maybe getDataDir pure datadir
+    haddock <- maybe (pure Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
         server log cmd $ replyServer log local links haddock store cdn home (dataDir </> "html") scope
 
@@ -118,9 +118,9 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                   filteredResults = take count $ drop start results
               in case lookup "format" inputArgs of
                 Just "text" -> pure $ OutputJSON $ JSON.toEncoding $ map unHTMLTarget filteredResults
-                Just f -> return $ OutputFail $ lbstrPack $ "Format mode " ++ f ++ " not (currently) supported"
+                Just f -> pure $ OutputFail $ lbstrPack $ "Format mode " ++ f ++ " not (currently) supported"
                 Nothing -> pure $ OutputJSON $ JSON.toEncoding filteredResults
-            Just m -> return $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
+            Just m -> pure $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
     ["plugin","jquery.flot.time.js"] -> OutputFile <$> Flot.file Flot.FlotTime
@@ -130,7 +130,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         summ <- logSummary log
         let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
         let alive = fromRational $ toRational $ (now `diffUTCTime` spawned) / (24 * 60 * 60)
-        return $ (if errs == 0 && alive < 1.5 then OutputText else OutputFail) $ lbstrPack $
+        pure $ (if errs == 0 && alive < 1.5 then OutputText else OutputFail) $ lbstrPack $
             "Errors " ++ (if errs == 0 then "good" else "bad") ++ ": " ++ show errs ++ " in the last 24 hours.\n" ++
             "Updates " ++ (if alive < 1.5 then "good" else "bad") ++ ": Last updated " ++ showDP 2 alive ++ " days ago.\n"
 
@@ -141,24 +141,24 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         OutputJavascript <$> templateRender templateLogJs [("data",html $ H.preEscapedString log)]
     ["stats"] -> do
         stats <- getStatsDebug
-        return $ case stats of
+        pure $ case stats of
             Nothing -> OutputFail $ lbstrPack "GHC Statistics is not enabled, restart with +RTS -T"
             Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop1 $ dropWhile (/= '{') $ show x
     "haddock":xs | Just x <- haddock -> do
         let file = intercalate "/" $ x:xs
-        return $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
+        pure $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
     "file":xs | local -> do
         let x = ['/' | not isWindows] ++ intercalate "/" (dropWhile null xs)
         let file = x ++ (if hasTrailingPathSeparator x then "index.html" else "")
         if takeExtension file /= ".html" then
-            return $ OutputFile file
+            pure $ OutputFile file
          else do
             src <- readFile file
             -- Haddock incorrectly generates file:// on Windows, when it should be file:///
             -- so replace on file:// and drop all leading empty paths above
-            return $ OutputHTML $ lbstrPack $ replace "file://" "/file/" src
+            pure $ OutputHTML $ lbstrPack $ replace "file://" "/file/" src
     xs ->
-        return $ OutputFile $ joinPath $ htmlDir : xs
+        pure $ OutputFile $ joinPath $ htmlDir : xs
     where
         html = templateMarkup
         text = templateMarkup . H.string
@@ -241,7 +241,7 @@ showFroms local haddock xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
     let ms = filter ((==) p . targetPackage) xs
     in mconcat $ intersperse " " [H.a ! H.href (H.stringValue $ showURL local haddock b) $ H.string a | (a,b) <- catMaybes $ p : map remod ms]
     where
-        remod Target{..} = do (a,_) <- targetModule; return (a,targetURL)
+        remod Target{..} = do (a,_) <- targetModule; pure (a,targetURL)
         pkgs = nubOrd $ map targetPackage xs
 
 showURL :: Bool -> Maybe FilePath -> URL -> String

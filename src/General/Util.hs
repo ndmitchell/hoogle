@@ -78,10 +78,10 @@ showMb x = show x ++ "Mb"
 
 #if RTS_STATS
 withRTSStats :: (RTSStats -> a) -> IO (Maybe a)
-withRTSStats f = ifM getRTSStatsEnabled (Just . f <$> getRTSStats) (return Nothing)
+withRTSStats f = ifM getRTSStatsEnabled (Just . f <$> getRTSStats) (pure Nothing)
 #else
 withGCStats :: (GCStats -> a) -> IO (Maybe a)
-withGCStats f = ifM getGCStatsEnabled (Just . f <$> getGCStats) (return Nothing)
+withGCStats f = ifM getGCStatsEnabled (Just . f <$> getGCStats) (pure Nothing)
 #endif
 
 getStatsCurrentLiveBytes :: IO (Maybe String)

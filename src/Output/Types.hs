@@ -44,10 +44,10 @@ import Input.Item
 writeTypes :: StoreWrite -> Maybe FilePath -> [(Maybe TargetId, Item)] -> IO ()
 writeTypes store debug xs = do
     let debugger ext body = whenJust debug $ \file -> writeFileUTF8 (file <.> ext) body
-    inst <- return $ Map.fromListWith (+) [(fromIString x,1) | (_, IInstance (Sig _ [TCon x _])) <- xs]
+    inst <- pure $ Map.fromListWith (+) [(fromIString x,1) | (_, IInstance (Sig _ [TCon x _])) <- xs]
     xs <- writeDuplicates store [(i, fromIString <$> t) | (Just i, ISignature t) <- xs]
     names <- writeNames store debugger inst xs
-    xs <- return $ map (lookupNames names (error "Unknown name in writeTypes")) xs
+    xs <- pure $ map (lookupNames names (error "Unknown name in writeTypes")) xs
     writeFingerprints store xs
     writeSignatures store xs
 
@@ -181,10 +181,10 @@ writeNames store debug inst xs = do
             Map.fromListWith (+) $ map (,1::Int) $ concatMap sigNames xs
     let names = spreadNames $ Map.toList freq
     debug "names" $ unlines [strUnpack s ++ " = " ++ show n ++ " (" ++ show (freq Map.! s) ++ " uses)" | (s,n) <- names]
-    names <- return $ sortOn fst names
+    names <- pure $ sortOn fst names
     storeWrite store TypesNames (bstr0Join $ map (strUnpack . fst) names, V.fromList $ map snd names)
     let mp2 = Map.fromAscList names
-    return $ Names $ \x -> Map.lookup x mp2
+    pure $ Names $ \x -> Map.lookup x mp2
 
 
 -- | Given a list of names, spread them out uniquely over the range [Name 100 .. Name maxBound]
@@ -230,12 +230,12 @@ newtype Duplicates = Duplicates {expandDuplicates :: Int -> [TargetId]}
 writeDuplicates :: Ord a => StoreWrite -> [(TargetId, Sig a)] -> IO [Sig a]
 writeDuplicates store xs = do
     -- s=signature, t=targetid, p=popularity (incoing index), i=index (outgoing index)
-    xs <- return $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
+    xs <- pure $ map (second snd) $ sortOn (fst . snd) $ Map.toList $
         Map.fromListWith (\(x1,x2) (y1,y2) -> (, x2 ++ y2) $! min x1 y1)
                          [(s,(p,[t])) | (p,(t,s)) <- zipFrom (0::Int) xs]
     -- give a list of TargetId's at each index
     storeWrite store TypesDuplicates $ jaggedFromList $ map (reverse . snd) xs
-    return $ map fst xs
+    pure $ map fst xs
 
 readDuplicates :: StoreRead -> Duplicates
 readDuplicates store = Duplicates $ V.toList . ask
@@ -428,7 +428,7 @@ matches (lhs, lctx) (rhs, rctx) = runST $ evalStateT (getWork go) (Work 0)
         (qry, qryC) <- lift (refTyp True  lhs lctx)
         (ans, ansC) <- lift (refTyp False rhs rctx)
         unifyTyp qry ans >>= \case
-            False -> return False
+            False -> pure False
             True  -> do
                 -- Normalize constraints
                 let normalize (Ctx c a) = lift (Ctx <$> getName c <*> getName a)
@@ -447,11 +447,11 @@ matches (lhs, lctx) (rhs, rctx) = runST $ evalStateT (getWork go) (Work 0)
 
                 workDelta (Work (3 * length addl))
 
-                return True
+                pure True
 
     getWork action = action >>= \case
         True  -> Just <$> get
-        False -> return Nothing
+        False -> pure Nothing
 
     normalizeTy = \case
         TyVar n tys -> TyVar <$> getName n <*> mapM normalizeTy tys
@@ -539,11 +539,11 @@ findRep :: NameRef s -> ST s (NameRef s)
 findRep ref = do
     ni <- readSTRef ref
     case niParent ni of
-        Nothing -> return ref
+        Nothing -> pure ref
         Just p  -> do
             root <- findRep p
             writeSTRef ref (ni { niParent = Just root })
-            return root
+            pure root
 
 -- The "union" part of union-find, with union-by-rank.
 -- Each unification is given a cost of 1 work unit.
@@ -569,7 +569,7 @@ unifyName lhs rhs = do
         lift $ modifySTRef' child (\n -> n { niParent = Just root })
         when (lRank == rRank) $ lift $ modifySTRef' root (\n -> n { niRank = lRank + 1 })
 
-    return ok
+    pure ok
 
 -- Allocate new references for each name that appears in the type and context.
 refTyp :: Bool -> Typ Name -> [Ctx Name] -> ST s (Typ (NameRef s), [Ctx (NameRef s)])
@@ -579,7 +579,7 @@ refTyp fixed t cs =
     go = do
         ty  <- mkRefs t
         ctx <- forM cs $ \(Ctx c a) -> Ctx <$> getRef c <*> getRef a
-        return (ty, ctx)
+        pure (ty, ctx)
 
     mkRefs = foldTy $ \case
         TyVarF n args    -> TyVar <$> getRef n <*> sequence args
@@ -589,11 +589,11 @@ refTyp fixed t cs =
     getRef n = do
         known <- get
         case Map.lookup n known of
-            Just ref -> return ref
+            Just ref -> pure ref
             Nothing  -> do
                 ref <- lift (newNameInfo fixed n)
                 put (Map.insert n ref known)
-                return ref
+                pure ref
 
 -- Unify two types.
 unifyTyp :: Typ (NameRef s) -> Typ (NameRef s) -> StateT Work (ST s) Bool
@@ -601,28 +601,28 @@ unifyTyp lhs rhs = case (lhs, rhs) of
     (TyCon n tys, TyVar n' tys') | length tys == length tys' -> do
             ok <- unifyName n n'
             if not ok
-              then return False
+              then pure False
               else and <$> zipWithM unifyTyp tys tys'
 
     (TyCon n tys, TyCon n' tys') | length tys == length tys' -> do
             ok <- unifyName n n'
             if not ok
-              then return False
+              then pure False
               else and <$> zipWithM unifyTyp tys tys'
 
     (TyVar n tys, TyVar n' tys') | length tys == length tys' -> do
             ok <- unifyName n n'
             if not ok
-              then return False
+              then pure False
               else and <$> zipWithM unifyTyp tys tys'
 
     (TyFun args ret, TyFun args' ret') | length args == length args' -> do
             ok <- unifyTyp ret ret'
             if not ok
-              then return False
+              then pure False
               else and <$> zipWithM unifyTyp args args'
 
-    _ -> return False
+    _ -> pure False
 
 -- The total cost of a unification operation.
 newtype Work = Work Int

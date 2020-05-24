@@ -89,7 +89,7 @@ readGhcPkg settings = do
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
     let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack $ trimStart x, fixer $ readCabal settings $ unlines xs)
         f xs = Nothing
-    return $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
+    pure $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
 
 
 -- | Given a tarball of Cabal files, parse the latest version of each package.
@@ -103,7 +103,7 @@ parseCabalTarball settings tarfile = do
         (sourceList =<< liftIO (tarballReadFiles tarfile)) .|
         mapC (first takeBaseName) .| groupOnLastC fst .| mapMC (evaluate . force) .|
         pipelineC 10 (mapC (strPack *** readCabal settings . lbstrUnpack) .| mapMC (evaluate . force) .| sinkList)
-    return $ Map.fromList res
+    pure $ Map.fromList res
 
 
 ---------------------------------------------------------------------
