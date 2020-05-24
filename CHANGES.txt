@@ -1,5 +1,6 @@
-Changelog for Hoogle (* = breaking change)
+Changelog for Hoogle (* = API change, @ = database format change)
 
+@   #339, support enough names to index all of Hackage
     #353, remove leading latex comments
     #351, partially fixed ghc-pkg output parsing for GHC 8.8
 5.0.17.15, released 2020-02-15
