@@ -245,7 +245,7 @@ showFroms local haddock xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
         pkgs = nubOrd $ map targetPackage xs
 
 showURL :: Bool -> Maybe FilePath -> URL -> String
-showURL _ (Just _) x = "haddock" ++ x
+showURL _ (Just _) x = "haddock/" ++ dropPrefix "file:///" x
 showURL True _ (stripPrefix "file:///" -> Just x) = "file/" ++ x
 showURL _ _ x = x
 

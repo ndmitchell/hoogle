@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = API change, @ = database format change)
 
+    #356, make server --haddock work better
 @   #339, support enough names to index all of Hackage
     #353, remove leading latex comments
     #351, partially fixed ghc-pkg output parsing for GHC 8.8
