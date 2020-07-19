@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = API change, @ = database format change)
 
+5.0.18, released 2020-07-19
     #356, make server --haddock work better
 @   #339, support enough names to index all of Hackage
     #353, remove leading latex comments
