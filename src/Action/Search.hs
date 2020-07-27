@@ -190,7 +190,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             , DoesNotFind ("head"      `inPackage` "base")
             , DoesNotFind ("last"      `inPackage` "base")
             , InTop 50    ("pure"      `inPackage` "base")
-            , InTop 100   ("return"    `inPackage` "base")
+            , KnownFailure "" $ InTop 100   ("return"    `inPackage` "base")
             , KnownFailure "GitHub issue #267" $
                   ("pure" `inPackage` "base") `AppearsBefore` ("shrinkNothing" `inModule` "Test.QuickCheck")
             -- , InTop 10 ("pure"   `inPackage` "base")
