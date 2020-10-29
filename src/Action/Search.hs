@@ -182,7 +182,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             ]
         query "[a] -> Maybe a"
             [ TopHit  ("listToMaybe" `inModule` "Data.Maybe")
-            , InTop 5 ("headMay"     `inModule` "Safe")
+            , InTop 10 ("headMay"     `inModule` "Safe")
             ]
         query "a -> [a]"
             [ InTop 10    ("repeat"    `inPackage` "base")
