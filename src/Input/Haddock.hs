@@ -107,15 +107,31 @@ renderItem = keyword . focus
 
         focus (EModule x) = renderModule x
         focus (EPackage x) = renderPackage x
-        focus (EDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
-            if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
-                init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tail post)
-            else
-                escapeHTML pre ++ name (highlight now) ++ escapeHTML post
+        focus (EDecl x) 
+            | [now] <- declNames x
+            , (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x = if "(" `isSuffixOf` pre && ")" `isPrefixOf` post
+                then init (escapeHTML pre) ++ name ("(" ++ highlightName now ++ ")") ++ (highlightSign $ tail post)
+                else escapeHTML pre ++ name (highlightName now) ++ (highlightSign post)
         focus (EDecl x) = pretty x
 
-        highlight :: String -> String
-        highlight x = "<s0>" ++ escapeHTML x ++ "</s0>"
+        highlightName :: String -> String
+        highlightName x = "<s0>" ++ escapeHTML x ++ "</s0>"
+
+        highlightSign :: String -> String
+        highlightSign = concat . foo 
+            where
+                foo "" = []
+                foo x = wrap (escapeHTML var) : escapeHTML symbols : foo rest
+                    where
+                        kws :: String
+                        kws = "()[] \n:-=>,"
+                        var = takeWhile (not . flip elem kws) x
+                        symbols = takeWhile (`elem` kws) $ drop (length var) x
+                        rest = drop (length var + length symbols) x
+                        wrap x
+                            | null x = x
+                            | isUpper $ head x = "<s1>"++x++"</s1>"
+                            | otherwise = "<s2>"++x++"</s2>"
 
 
 parseLine :: String -> Either String [Entry]
