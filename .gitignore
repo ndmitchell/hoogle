@@ -1,5 +1,6 @@
 /obj/
 /dist/
+/dist-newstyle/
 log.txt
 *.o
 *.prof
