@@ -31,15 +31,16 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ withTempFile $ \sample 
     putStrLn "Sample database tests"
     actionGenerate defaultGenerate{database=sample, local_=["misc/sample-data"]}
     action_search_test True sample
-    action_server_test True sample
+    unless disable_network_tests $ action_server_test True sample
     putStrLn ""
 
-    putStrLn "Haskell.org database tests"
-    action_search_test False database
-    action_server_test False database
+    unless disable_network_tests $ do
+        putStrLn "Haskell.org database tests"
+        action_search_test False database
+        action_server_test False database
 
-    when deep $ withSearch database $ \store -> do
-        putStrLn "Deep tests"
-        let xs = map targetItem $ listItems store
-        evaluate $ rnf xs
-        putStrLn $ "Loaded " ++ show (length xs) ++ " items"
+        when deep $ withSearch database $ \store -> do
+            putStrLn "Deep tests"
+            let xs = map targetItem $ listItems store
+            evaluate $ rnf xs
+            putStrLn $ "Loaded " ++ show (length xs) ++ " items"
