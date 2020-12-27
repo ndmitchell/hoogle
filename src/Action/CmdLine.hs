@@ -70,9 +70,10 @@ data CmdLine
         ,scope :: String
         }
     | Test
-        {deep :: Bool
-        ,database :: FilePath
-        ,language :: Language
+        { deep :: Bool
+        , disable_network_tests  :: Bool
+        , database :: FilePath
+        , language :: Language
         }
       deriving (Data,Typeable,Show)
 
@@ -153,5 +154,6 @@ replay = Replay
     } &= help "Replay a log file"
 
 test = Test
-    {deep = False &= help "Run extra long tests"
+    { deep    = False &= help "Run extra long tests"
+    , disable_network_tests = False  &= help "Disables the use of network tests"
     } &= help "Run the test suite"
