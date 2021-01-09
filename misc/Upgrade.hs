@@ -38,11 +38,11 @@ main = do
         putStrLn $ "Upgrading into " ++ dir
         echo system_ "git clone https://github.com/ndmitchell/hoogle.git ."
         sha1 <- trim <$> echo systemOutput_ "git rev-parse HEAD"
-        echo system_ "cabal update"
-        echo system_ "cabal install -j1 --only-dependencies --upgrade-dependencies --force-reinstalls --ghc-options=\"+RTS -M1G\" --overwrite-policy=always"
-        echo system_ "cabal configure \"--ghc-options=-rtsopts -O2\""
-        echo system_ "GHCRTS=-M1G cabal build"
-        let exe = normalise "dist/build/hoogle/hoogle"
+        echo system_ "cabal v2-update"
+        echo system_ "cabal v2-build -j1 --only-dependencies --upgrade-dependencies --force-reinstalls --ghc-options=\"+RTS -M1G\""
+        echo system_ "cabal v2-configure \"--ghc-options=-rtsopts -O2\""
+        echo system_ "GHCRTS=-M1G cabal v2-install -j1 --installdir=bin"
+        let exe = normalise "bin/hoogle"
 
         -- Compile databases
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M900M -T -N2"
