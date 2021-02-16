@@ -1,8 +1,8 @@
-cabal-version:      >= 1.18
+cabal-version:      2.4
 build-type:         Simple
 name:               hoogle
 version:            5.0.18.1
-license:            BSD3
+license:            BSD-3-Clause
 license-file:       LICENSE
 category:           Development
 author:             Neil Mitchell <ndmitchell@gmail.com>
@@ -96,6 +96,9 @@ library
 
     exposed-modules:
         Hoogle
+
+    autogen-modules:
+        Paths_hoogle
 
     other-modules:
         Paths_hoogle
