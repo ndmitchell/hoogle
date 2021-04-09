@@ -2,7 +2,7 @@
 
 module General.Web(
     Input(..),
-    Output(..), readInput, server
+    Output(..), readInput, server, general_web_test
     ) where
 
 import Network.Wai.Handler.Warp hiding (Port, Handle)
@@ -28,6 +28,7 @@ import System.FilePath
 import Control.Exception.Extra
 import System.Time.Extra
 import General.Log
+import General.Util
 import Prelude
 import qualified Data.ByteString.UTF8 as UTF8
 
@@ -35,7 +36,7 @@ import qualified Data.ByteString.UTF8 as UTF8
 data Input = Input
     {inputURL :: [String]
     ,inputArgs :: [(String, String)]
-    } deriving Show
+    } deriving (Eq, Show)
 
 readInput :: String -> Maybe Input
 readInput (breakOn "?" -> (a,b)) =
@@ -45,7 +46,14 @@ readInput (breakOn "?" -> (a,b)) =
     parsePath = map Text.unpack
               . decodePathSegments
               . BS.pack
-    badPath = any (all (== '.')) . filter (/= "")
+    -- Note that there is a difference between URL paths
+    -- which split on / and only that and file paths where
+    -- an escaped %2f is equivalent to /. decodePathSegments
+    -- (correctly) only considers the former so here
+    -- we add an extra check that the result (which has unescaped %2f to /)
+    -- does not contain path separators.
+    badPath = any badSegment . filter (/= "")
+    badSegment seg = all (== '.') seg || any isPathSeparator seg
     args = parseArgs b
     parseArgs = map (UTF8.toString *** maybe "" UTF8.toString)
               . parseQuery
@@ -178,3 +186,22 @@ server log Server{..} act = do
                 OutputJavascript{} -> responseLBS status200 (("content-type","text/javascript") : secH) bs
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
+
+general_web_test :: IO ()
+general_web_test = do
+    testing "General.Web.readInput" $ do
+        let a === b = if a == b then putChar '.' else errorIO $ show (a,b)
+        readInput "abc" === Just (Input ["abc"] [])
+        readInput "/abc" === Just (Input ["abc"] [])
+        readInput "/abc/" === Just (Input ["abc", ""] [])
+        readInput "abc?ab=cd&ef=gh" === Just (Input ["abc"] [("ab", "cd"), ("ef", "gh")])
+        readInput "%2fabc" === Nothing
+        readInput "%2F" === Nothing
+        readInput "def%2fabc" === Nothing
+        readInput "." === Nothing
+        readInput ".." === Nothing
+        readInput "..a" === Just (Input ["..a"] [])
+        readInput "../a" === Nothing
+        readInput "a/../a" === Nothing
+        readInput "%2e" === Nothing
+        readInput "%2E" === Nothing
