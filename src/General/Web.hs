@@ -5,6 +5,7 @@ module General.Web(
     Output(..), readInput, server, general_web_test
     ) where
 
+import Network.Wai.Application.Static
 import Network.Wai.Handler.Warp hiding (Port, Handle)
 import Network.Wai.Handler.WarpTLS
 
@@ -40,20 +41,12 @@ data Input = Input
 
 readInput :: String -> Maybe Input
 readInput (breakOn "?" -> (a,b)) =
-  if (badPath path || badArgs args) then Nothing else Just $ Input path args
+  if badArgs args then Nothing else Just $ Input path args
   where
     path = parsePath a
     parsePath = map Text.unpack
               . decodePathSegments
               . BS.pack
-    -- Note that there is a difference between URL paths
-    -- which split on / and only that and file paths where
-    -- an escaped %2f is equivalent to /. decodePathSegments
-    -- (correctly) only considers the former so here
-    -- we add an extra check that the result (which has unescaped %2f to /)
-    -- does not contain path separators.
-    badPath = any badSegment . filter (/= "")
-    badSegment seg = all (== '.') seg || any isPathSeparator seg
     args = parseArgs b
     parseArgs = map (UTF8.toString *** maybe "" UTF8.toString)
               . parseQuery
@@ -67,6 +60,10 @@ data Output
     | OutputJSON Encoding
     | OutputFail LBS.ByteString
     | OutputFile FilePath
+    | OutputStaticFile
+    -- ^ static file in htmlDir. We fallback to wai-app-static which
+    -- gets the filepath from the request so no need to store a filepath
+    -- here.
       deriving Show
 
 -- | Force all the output (no delayed exceptions) and produce bytestrings
@@ -77,12 +74,13 @@ forceBS (OutputHTML x) = force x
 forceBS (OutputJavascript x) = force x
 forceBS (OutputFail x) = force x
 forceBS (OutputFile x) = rnf x `seq` LBS.empty
+forceBS OutputStaticFile = LBS.empty
 
 instance NFData Output where
     rnf x = forceBS x `seq` ()
 
-server :: Log -> CmdLine -> (Input -> IO Output) -> IO ()
-server log Server{..} act = do
+server :: Log -> CmdLine -> FilePath -> (Input -> IO Output) -> IO ()
+server log Server{..} htmlDir act = do
     let
         host' = fromString $
                   if host == "" then
@@ -99,6 +97,8 @@ server log Server{..} act = do
         runServer :: Application -> IO ()
         runServer = if https then runTLS (tlsSettings cert key) set
                              else runSettings set
+        serveStaticFile :: Application
+        serveStaticFile = staticApp $ defaultWebAppSettings htmlDir
         secH = if no_security_headers then []
                                       else [
              -- The CSP is giving additional instructions to the browser.
@@ -176,14 +176,15 @@ server log Server{..} act = do
         logAddEntry log (showSockAddr $ remoteHost req) pq time (either Just (const Nothing) res)
         case res of
             Left s -> reply $ responseLBS status500 [] $ LBS.pack s
-            Right (v, bs) -> reply $ case v of
-                OutputFile file -> responseFile status200
+            Right (v, bs) -> case v of
+                OutputFile file -> reply $ responseFile status200
                     ([("content-type",c) | Just c <- [lookup (takeExtension file) contentType]] ++ secH) file Nothing
-                OutputText{} -> responseLBS status200 (("content-type","text/plain") : secH) bs
-                OutputJSON{} -> responseLBS status200 (("content-type","application/json") : ("access-control-allow-origin","*") : secH) bs
-                OutputFail{} -> responseLBS status400 (("content-type","text/plain") : secH) bs
-                OutputHTML{} -> responseLBS status200 (("content-type","text/html") : secH) bs
-                OutputJavascript{} -> responseLBS status200 (("content-type","text/javascript") : secH) bs
+                OutputText{} -> reply $ responseLBS status200 (("content-type","text/plain") : secH) bs
+                OutputJSON{} -> reply $ responseLBS status200 (("content-type","application/json") : ("access-control-allow-origin","*") : secH) bs
+                OutputFail{} -> reply $ responseLBS status400 (("content-type","text/plain") : secH) bs
+                OutputHTML{} -> reply $ responseLBS status200 (("content-type","text/html") : secH) bs
+                OutputJavascript{} -> reply $ responseLBS status200 (("content-type","text/javascript") : secH) bs
+                OutputStaticFile -> serveStaticFile req reply
 
 contentType = [(".html","text/html"),(".css","text/css"),(".js","text/javascript")]
 
@@ -195,13 +196,13 @@ general_web_test = do
         readInput "/abc" === Just (Input ["abc"] [])
         readInput "/abc/" === Just (Input ["abc", ""] [])
         readInput "abc?ab=cd&ef=gh" === Just (Input ["abc"] [("ab", "cd"), ("ef", "gh")])
-        readInput "%2fabc" === Nothing
-        readInput "%2F" === Nothing
-        readInput "def%2fabc" === Nothing
-        readInput "." === Nothing
-        readInput ".." === Nothing
+        readInput "%2fabc" === Just (Input ["/abc"] [])
+        readInput "%2F" === Just (Input ["/"] [])
+        readInput "def%2fabc" === Just (Input ["def/abc"] [])
+        readInput "." === Just (Input ["."] [])
+        readInput ".." === Just (Input [".."] [])
         readInput "..a" === Just (Input ["..a"] [])
-        readInput "../a" === Nothing
-        readInput "a/../a" === Nothing
-        readInput "%2e" === Nothing
-        readInput "%2E" === Nothing
+        readInput "../a" === Just (Input ["..", "a"] [])
+        readInput "a/../a" === Just (Input ["a", "..", "a"] [])
+        readInput "%2e" === Just (Input ["."] [])
+        readInput "%2E" === Just (Input ["."] [])
