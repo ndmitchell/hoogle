@@ -97,11 +97,6 @@ There is a terminal/curses based UI available through [`cabal install bhoogle`](
 
 If you want to search for special symbols in Firefox keyword search, modify the keyword search URL to be: `javascript:window.location.href="http://haskell.org/hoogle?q=" + encodeURIComponent("%s")`
 
-
-## Firefox Ubiquity Integration
-
-[Ubiquity](https://wiki.mozilla.org/Labs/Ubiquity) provides a graphical command-line for Firefox. To install the Ubiquity Hoogle command, visit the [this page](http://www.randomhacks.net/git/ubiquity/hoogle/) and click "Subscribe..." when asked whether you want to install it. Further information is available [here](http://www.randomhacks.net/articles/2008/09/01/ubiquitous-hoogle).
-
 ## Others
 
 * [Doc Browser](https://github.com/qwfy/doc-browser)
