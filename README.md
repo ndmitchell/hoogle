@@ -137,7 +137,7 @@ All code is all &copy; [Neil Mitchell](https://ndmitchell.com/), 2004-present. T
 * Niklas Broberg
 * Esa Ilari Vuokko
 * Udo Stenzel
-* Henk-Jan van Tuyl
+* [Henk-Jan van Tuyl](https://github.com/HJvT)
 * Gwern Branwen
 * Tillmann Rendel
 * David Waern
