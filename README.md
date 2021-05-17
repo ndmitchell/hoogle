@@ -97,9 +97,9 @@ Hoogle work is licensed under the [BSD-3-Clause license](https://github.com/ndmi
 
 A lot of related work was done by Rittri [1] and Runciman [2] in the late 80's. Since then Di Cosmo [3] has produced a book on type isomorphisms. Unfortunately the implementations that accompanied the earlier works were for functional languages that have since become less popular.
 
-1. [Mikael Rittri, Using Types as Search Keys in Function Libraries](http://portal.acm.org/citation.cfm?id=99384). Proceedings of the fourth international conference on Functional Programming languages and Computer Architecture: 174-183, June 1989.
-2. [Colin Runciman and Ian Toyn, Retrieving reusable software components by polymorphic type](http://portal.acm.org/citation.cfm?id=99383). Journal of Functional Programming 1 (2): 191-211, April 1991.
-3. [Roberto Di Cosmo, Isomorphisms of types: from lambda-calculus to information retrieval and language design](http://www.pps.jussieu.fr/~dicosmo/Publications/ISObook.html). Birkhauser, 1995. ISBN-0-8176-3763-X
+1. [Mikael Rittri, Using Types as Search Keys in Function Libraries](https://doi.org/10.1145/99370.99384). Proceedings of the fourth international conference on Functional Programming languages and Computer Architecture: 174-183, June 1989.
+2. [Colin Runciman and Ian Toyn, Retrieving reusable software components by polymorphic type](https://doi.org/10.1145/99370.99383). Journal of Functional Programming 1 (2): 191-211, April 1991.
+3. [Roberto Di Cosmo, Isomorphisms of types: from lambda-calculus to information retrieval and language design](https://doi.org/10.1145/270563.571468). Birkhauser, 1995. ISBN-0-8176-3763-X
 
 I have given several presentations on type searching all available from [my home page](https://ndmitchell.com/).
 
