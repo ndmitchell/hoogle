@@ -77,8 +77,6 @@ There is a terminal/curses based UI available through [`cabal install bhoogle`](
 
 **As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](https://hoogle.haskell.org/) in Firefox, right-click in the Hoogle search field and select "Add a Keyword for this Search...". Given it a keyword such as "h".
 
-If you want to search for special symbols in Firefox keyword search, modify the keyword search URL to be: `javascript:window.location.href="http://haskell.org/hoogle?q=" + encodeURIComponent("%s")`
-
 ## Others
 
 * [Doc Browser](https://github.com/qwfy/doc-browser)
