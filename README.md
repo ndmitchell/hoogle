@@ -101,7 +101,7 @@ A lot of related work was done by Rittri [1] and Runciman [2] in the late 80's. 
 2. [Colin Runciman and Ian Toyn, Retrieving reusable software components by polymorphic type](http://portal.acm.org/citation.cfm?id=99383). Journal of Functional Programming 1 (2): 191-211, April 1991.
 3. [Roberto Di Cosmo, Isomorphisms of types: from lambda-calculus to information retrieval and language design](http://www.pps.jussieu.fr/~dicosmo/Publications/ISObook.html). Birkhauser, 1995. ISBN-0-8176-3763-X
 
-I have given several presentations on type searching all available from [my home page](http://community.haskell.org/~ndm/hoogle).
+I have given several presentations on type searching all available from [my home page](https://ndmitchell.com/).
 
 ## Project Structure
 
