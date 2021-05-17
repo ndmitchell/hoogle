@@ -103,19 +103,21 @@ A lot of related work was done by Rittri [1] and Runciman [2] in the late 80's. 
 
 I have given several presentations on type searching all available from [my home page](http://community.haskell.org/~ndm/hoogle).
 
-## Folders
+## Project Structure
 
-The folders in the distribution, and their meaning are:
+The folders in the repository, and their meaning are:
 
-data - tools to generate a hoogle data file
+.github/workflows - CI workflow specification
 
-docs - documentation on hoogle
+cbits             - C implementation of the text search used by hoogle
 
-misc - presentations, icons, emacs scripts, logos
+docs              - documention on hoogle
 
-src  - source code
+html              - resources for hoogle's web front-end (html, css, javascript, images, etc.)
 
-web  - additional resources for the web front end (css, jpg etc.)
+misc              - scripts, logos, sample data, etc.
+
+src               - haskell source code
 
 ## Similar Tools
 
