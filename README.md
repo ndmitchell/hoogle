@@ -107,8 +107,6 @@ I have given several presentations on type searching all available from [my home
 
 The folders in the repository, and their meaning are:
 
-.github/workflows - CI workflow specification
-
 cbits             - C implementation of the text search used by hoogle
 
 docs              - documention on hoogle
