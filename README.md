@@ -73,7 +73,7 @@ There is a terminal/curses based UI available through [`cabal install bhoogle`](
 
 ## Firefox Integration
 
-**From the search bar:** Go to the [Hoogle website](https://hoogle.haskell.org/) in Firefox and click on the drop-down arrow at the left of the search bar, and select the "Add Hoogle" option. Click the arrow again to select Hoogle as your search engine.
+**From the search bar:** Go to the [Hoogle website](https://hoogle.haskell.org/) in Firefox and click on the `⋯` symbol at the right of the URL bar, and select the "Add Search Engine" option. Click the hoogle logo at the bottom of the completion dropdown when searching to perform a Hoogle search.
 
 **As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](https://hoogle.haskell.org/) in Firefox, right-click in the Hoogle search field and select "Add a Keyword for this Search...". Given it a keyword such as "h".
 
