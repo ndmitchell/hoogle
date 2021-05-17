@@ -52,14 +52,14 @@ With the set of packages you are searching, you can also restrict the set of mod
 
 To invoke Hoogle type:
 
-    hoogle "[a] -> [b]"
+    $ hoogle "[a] -> [b]"
 
 Note the quotes, otherwise you will redirect the output to the file [b].
 
 To ensure you have data files for the Hackage modules, you will first need to
 type:
 
-    hoogle generate
+    $ hoogle generate
 
 Which will download and build Hoogle databases.
 
@@ -85,7 +85,7 @@ If you want to search for special symbols in Firefox keyword search, modify the 
 
 ### The Source Code
 
-    git clone https://github.com/ndmitchell/hoogle.git
+    $ git clone https://github.com/ndmitchell/hoogle.git
 
 Contributions are most welcome. Hoogle is written in Haskell 98 + Heirarchical Modules, I do not wish to change this. Other than that, I'm pretty flexible about most aspects of Hoogle. The [issue tracker](https://github.com/ndmitchell/hoogle/issues) has many outstanding tasks, but please contact me if you have thoughts on doing something major to Hoogle, so I can give some advice.
 
