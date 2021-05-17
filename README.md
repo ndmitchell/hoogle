@@ -1,25 +1,8 @@
 # Hoogle [![Hackage version](https://img.shields.io/hackage/v/hoogle.svg?label=Hackage)](https://hackage.haskell.org/package/hoogle) [![Stackage version](https://www.stackage.org/package/hoogle/badge/nightly?label=Stackage)](https://www.stackage.org/package/hoogle) [![Build status](https://img.shields.io/github/workflow/status/ndmitchell/hoogle/ci.svg)](https://github.com/ndmitchell/hoogle/actions)
 
-## Hoogle 4 vs Hoogle 5
+Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries by either function name, or by approximate type signature. The online version can be found at https://hoogle.haskell.org/ and searches [Stackage](https://www.stackage.org/).
 
-Hoogle is in the middle of a transition from version 4 to version 5.
-
-Hoogle 4 is at https://www.haskell.org/hoogle/. It searches the [Haskell platform](https://www.haskell.org/platform/contents.html) as-of 2013. It has good type search.
-
-Hoogle 5 is at https://hoogle.haskell.org/ and on Hackage, so will be obtained by `cabal install hoogle`. It searches [Stackage](https://www.stackage.org/) and is updated daily. It has weaker type search, with various tickets to improve that.
-
-## Other stuff (somewhat outdated)
-
-
-----------
-
-**This page describes how Hoogle 5 might work, and has not yet been fully implemented.**
-
-----------
-
-Hoogle is a Haskell API search engine, which allows you to search many standard Haskell libraries by either function name, or by approximate type signature. To experiment, visit the online version at http://haskell.org/hoogle.
-
-* **Online version:** https://www.haskell.org/hoogle/
+* **Online version:** https://hoogle.haskell.org/
 * **Hackage page:** https://hackage.haskell.org/package/hoogle
 * **Source code:** http://github.com/ndmitchell/hoogle
 * **Bug tracker:** https://github.com/ndmitchell/hoogle/issues
@@ -28,7 +11,7 @@ Hoogle is a Haskell API search engine, which allows you to search many standard 
 
 Hoogle can be used in several ways:
 
-* **Online**, with the web interface at http://haskell.org/hoogle
+* **Online**, with the web interface at http://hoogle.haskell.org/
 * **In [IRC](http://haskell.org/haskellwiki/Haskell_IRC_channel)**, using the [Lambdabot](http://haskell.org/haskellwiki/Lambdabot) plugin with `@hoogle` and `@hoogle+`
 * **From `emacs`**, by means of [`engine-mode`](https://github.com/hrs/engine-mode)
 * **[Installed locally](https://github.com/ndmitchell/hoogle/blob/master/docs/Install.md)**, with either a command line or in a browser
@@ -50,7 +33,7 @@ Here are some example searches:
 
 ## Scope
 
-By default, searches look at the [Haskell Platform](http://hackage.haskell.org/platform) and [Haskell keywords](http://haskell.org/haskellwiki/Keywords). However, all [Hackage](http://hackage.haskell.org) packages are available to search. As some examples:
+By default, searches look at the [Haskell Platform](http://hackage.haskell.org/platform) and [Haskell keywords](http://haskell.org/haskellwiki/Keywords). However, all [Stackage](http://stackage.org) packages are available to search. As some examples:
 
 * `mode +cmdargs` searches only the "cmdargs" package
 * `file -base` searches the Haskell Platform, excluding the "base" package
@@ -86,14 +69,13 @@ There is a terminal/curses based UI available through [`cabal install bhoogle`](
 
 ## Chrome Integration
 
-**As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](http://haskell.org/hoogle/) in Chrome, right-click in the Hoogle search field and select "Add as a search engine...". Give it a keyword such as "h".
-
+**As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](http://hoogle.haskell.org/) in Chrome, right-click in the Hoogle search field and select "Add as a search engine...". Give it a keyword such as "h".
 
 ## Firefox Integration
 
-**From the search bar:** Go to the [Hoogle website](http://haskell.org/hoogle/) in Firefox and click on the drop-down arrow at the left of the search bar, and select the "Add Hoogle" option. Click the arrow again to select Hoogle as your search engine.
+**From the search bar:** Go to the [Hoogle website](http://hoogle.haskell.org/) in Firefox and click on the drop-down arrow at the left of the search bar, and select the "Add Hoogle" option. Click the arrow again to select Hoogle as your search engine.
 
-**As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](http://haskell.org/hoogle/) in Firefox, right-click in the Hoogle search field and select "Add a Keyword for this Search...". Given it a keyword such as "h".
+**As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](http://hoogle.haskell.org/) in Firefox, right-click in the Hoogle search field and select "Add a Keyword for this Search...". Given it a keyword such as "h".
 
 If you want to search for special symbols in Firefox keyword search, modify the keyword search URL to be: `javascript:window.location.href="http://haskell.org/hoogle?q=" + encodeURIComponent("%s")`
 
@@ -103,11 +85,9 @@ If you want to search for special symbols in Firefox keyword search, modify the 
 
 ### The Source Code
 
-<tt>$ darcs get http://code.haskell.org/hoogle/</tt>
+`$ git clone https://github.com/ndmitchell/hoogle.git`
 
-Contributions are most welcome. Hoogle is written in Haskell 98 + Heirarchical Modules, I do not wish to change this. Other than that, I'm pretty flexible about most aspects of Hoogle. The [http://code.google.com/p/ndmitchell/issues/list bug tracker] has many outstanding tasks, but please contact me if you have thoughts on doing something major to Hoogle, so I can give some advice.
-
-
+Contributions are most welcome. Hoogle is written in Haskell 98 + Heirarchical Modules, I do not wish to change this. Other than that, I'm pretty flexible about most aspects of Hoogle. The [issue tracker](https://github.com/ndmitchell/hoogle/issues) has many outstanding tasks, but please contact me if you have thoughts on doing something major to Hoogle, so I can give some advice.
 
 # Background
 
@@ -149,7 +129,7 @@ I was unaware of any similar tools before starting development, and no other too
 
 ## Acknowledgements
 
-All code is all &copy; [Neil Mitchell](http://community.haskell.org/~ndm/), 2004-present. The initial version was done over my summer holiday, and further work was done during my PhD. During Summer 2008 I was funded to full-time on Hoogle by [Google Summer of Code](http://code.google.com/soc/) with the [haskell.org](http://haskell.org/) mentoring organisation. Since then I have been working on Hoogle in my spare time. Various people have given lots of useful ideas, including my PhD supervisor [Colin Runciman](http://www.cs.york.ac.uk/~colin/), and various members of the [Plasma group](https://www.cs.york.ac.uk/plasma/wiki/). In addition, the following people have also contributed code or significant debugging work:
+All code is all &copy; [Neil Mitchell](https://ndmitchell.com/), 2004-present. The initial version was done over my summer holiday, and further work was done during my PhD. During Summer 2008 I was funded to full-time on Hoogle by [Google Summer of Code](http://code.google.com/soc/) with the [haskell.org](http://haskell.org/) mentoring organisation. Since then I have been working on Hoogle in my spare time. Various people have given lots of useful ideas, including my PhD supervisor [Colin Runciman](http://www.cs.york.ac.uk/~colin/), and various members of the [Plasma group](https://www.cs.york.ac.uk/plasma/wiki/). In addition, the following people have also contributed code or significant debugging work:
 
 * [Thomas "Bob" Davie](http://www.cs.kent.ac.uk/people/rpg/tatd2/)
 * [Don Stewart](http://www.cse.unsw.edu.au/~dons/)
