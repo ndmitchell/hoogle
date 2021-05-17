@@ -149,7 +149,7 @@ I was unaware of any similar tools before starting development, and no other too
 
 ## Acknowledgements
 
-All code is all &copy; [Neil Mitchell](http://community.haskell.org/~ndm/), 2004-present. The initial version was done over my summer holiday, and further work was done during my PhD. During Summer 2008 I was funded to full-time on Hoogle by [Google Summer of Code](http://code.google.com/soc/) with the [haskell.org](http://haskell.org/) mentoring organisation. Since then I have been working on Hoogle in my spare time. Various people have given lots of useful ideas, including my PhD supervisor [Colin Runciman](http://www.cs.york.ac.uk/~colin/), and various members of the [Plasma group](http://www.cs.york.ac.uk/plasma/). In addition, the following people have also contributed code or significant debugging work:
+All code is all &copy; [Neil Mitchell](http://community.haskell.org/~ndm/), 2004-present. The initial version was done over my summer holiday, and further work was done during my PhD. During Summer 2008 I was funded to full-time on Hoogle by [Google Summer of Code](http://code.google.com/soc/) with the [haskell.org](http://haskell.org/) mentoring organisation. Since then I have been working on Hoogle in my spare time. Various people have given lots of useful ideas, including my PhD supervisor [Colin Runciman](http://www.cs.york.ac.uk/~colin/), and various members of the [Plasma group](https://www.cs.york.ac.uk/plasma/wiki/). In addition, the following people have also contributed code or significant debugging work:
 
 * [Thomas "Bob" Davie](http://www.cs.kent.ac.uk/people/rpg/tatd2/)
 * [Don Stewart](http://www.cse.unsw.edu.au/~dons/)
