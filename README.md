@@ -4,15 +4,15 @@ Hoogle is a Haskell API search engine, which allows you to search many standard 
 
 * **Online version:** https://hoogle.haskell.org/
 * **Hackage page:** https://hackage.haskell.org/package/hoogle
-* **Source code:** http://github.com/ndmitchell/hoogle
+* **Source code:** https://github.com/ndmitchell/hoogle
 * **Bug tracker:** https://github.com/ndmitchell/hoogle/issues
 
 ## Hoogle Use
 
 Hoogle can be used in several ways:
 
-* **Online**, with the web interface at http://hoogle.haskell.org/
-* **In [IRC](http://haskell.org/haskellwiki/Haskell_IRC_channel)**, using the [Lambdabot](http://haskell.org/haskellwiki/Lambdabot) plugin with `@hoogle` and `@hoogle+`
+* **Online**, with the web interface at https://hoogle.haskell.org/
+* **In [IRC](https://wiki.haskell.org/IRC_channel)**, using the [Lambdabot](https://wiki.haskell.org/Lambdabot) plugin with `@hoogle` and `@hoogle+`
 * **From `emacs`**, by means of [`engine-mode`](https://github.com/hrs/engine-mode)
 * **[Installed locally](https://github.com/ndmitchell/hoogle/blob/master/docs/Install.md)**, with either a command line or in a browser
 * **[As a developer](https://github.com/ndmitchell/hoogle/blob/master/docs/API.md)**, through Haskell or JSON APIs.
@@ -33,7 +33,7 @@ Here are some example searches:
 
 ## Scope
 
-By default, searches look at the [Haskell Platform](http://hackage.haskell.org/platform) and [Haskell keywords](http://haskell.org/haskellwiki/Keywords). However, all [Stackage](http://stackage.org) packages are available to search. As some examples:
+By default, searches look at the [Haskell Platform](https://www.haskell.org/platform/) and [Haskell keywords](https://wiki.haskell.org/Keywords). However, all [Stackage](https://stackage.org) packages are available to search. As some examples:
 
 * `mode +cmdargs` searches only the "cmdargs" package
 * `file -base` searches the Haskell Platform, excluding the "base" package
@@ -69,13 +69,13 @@ There is a terminal/curses based UI available through [`cabal install bhoogle`](
 
 ## Chrome Integration
 
-**As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](http://hoogle.haskell.org/) in Chrome, right-click in the Hoogle search field and select "Add as a search engine...". Give it a keyword such as "h".
+**As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](https://hoogle.haskell.org/) in Chrome, right-click in the Hoogle search field and select "Add as a search engine...". Give it a keyword such as "h".
 
 ## Firefox Integration
 
-**From the search bar:** Go to the [Hoogle website](http://hoogle.haskell.org/) in Firefox and click on the drop-down arrow at the left of the search bar, and select the "Add Hoogle" option. Click the arrow again to select Hoogle as your search engine.
+**From the search bar:** Go to the [Hoogle website](https://hoogle.haskell.org/) in Firefox and click on the drop-down arrow at the left of the search bar, and select the "Add Hoogle" option. Click the arrow again to select Hoogle as your search engine.
 
-**As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](http://hoogle.haskell.org/) in Firefox, right-click in the Hoogle search field and select "Add a Keyword for this Search...". Given it a keyword such as "h".
+**As a keyword search:** With a keyword search you can type `h map` directly into the location bar to perform a Hoogle search. Go to the [Hoogle website](https://hoogle.haskell.org/) in Firefox, right-click in the Hoogle search field and select "Add a Keyword for this Search...". Given it a keyword such as "h".
 
 If you want to search for special symbols in Firefox keyword search, modify the keyword search URL to be: `javascript:window.location.href="http://haskell.org/hoogle?q=" + encodeURIComponent("%s")`
 
@@ -121,15 +121,15 @@ src               - haskell source code
 
 I was unaware of any similar tools before starting development, and no other tool has really influenced this tool (except the first on this list). Some related tools are:
 
-* [Google](http://www.google.com/), the leader in online search
-* [Hayoo](http://holumbus.fh-wedel.de/hayoo/hayoo.html), similar to Hoogle, but with less focus on type search
-* [Krugle](http://www.krugle.com/), search code, but no Haskell :(
-* [Cloogle](https://cloogle.org), for the [Clean](http://clean.cs.ru.nl) language
+* [Google](https://www.google.com/), the leader in online search
+* [Hayoo](https://hackage.haskell.org/package/Hayoo), similar to Hoogle, but with less focus on type search
+* [Krugle](https://www.krugle.com/), search code, but no Haskell :(
+* [Cloogle](https://cloogle.org), for the [Clean](https://clean.cs.ru.nl/Clean) language
 
 
 ## Acknowledgements
 
-All code is all &copy; [Neil Mitchell](https://ndmitchell.com/), 2004-present. The initial version was done over my summer holiday, and further work was done during my PhD. During Summer 2008 I was funded to full-time on Hoogle by [Google Summer of Code](https://summerofcode.withgoogle.com/) with the [haskell.org](http://haskell.org/) mentoring organisation. Since then I have been working on Hoogle in my spare time. Various people have given lots of useful ideas, including my PhD supervisor [Colin Runciman](http://www.cs.york.ac.uk/~colin/), and various members of the [Plasma group](https://www.cs.york.ac.uk/plasma/wiki/). In addition, the following people have also contributed code or significant debugging work:
+All code is all &copy; [Neil Mitchell](https://ndmitchell.com/), 2004-present. The initial version was done over my summer holiday, and further work was done during my PhD. During Summer 2008 I was funded to full-time on Hoogle by [Google Summer of Code](https://summerofcode.withgoogle.com/) with the [haskell.org](https://www.haskell.org/) mentoring organisation. Since then I have been working on Hoogle in my spare time. Various people have given lots of useful ideas, including my PhD supervisor [Colin Runciman](https://www-users.cs.york.ac.uk/~colin/), and various members of the [Plasma group](https://www.cs.york.ac.uk/plasma/wiki/). In addition, the following people have also contributed code or significant debugging work:
 
 * [Thomas "Bob" Davie](http://www.cs.kent.ac.uk/people/rpg/tatd2/)
 * [Don Stewart](http://www.cse.unsw.edu.au/~dons/)
