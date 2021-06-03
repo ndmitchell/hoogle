@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, RecordWildCards, ScopedTypeVariables, TupleSections #-}
+{-# LANGUAGE LambdaCase, RecordWildCards, ScopedTypeVariables, TupleSections, MultiWayIf #-}
 
 module Action.Search
     (actionSearch, withSearch, search
@@ -28,6 +28,7 @@ import Output.Items
 import Output.Names
 import Output.Tags
 import Output.Types
+import Output.Colors
 import Query
 
 -- -- generate all
@@ -39,6 +40,7 @@ actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store ->
         if null compare_ then do
+            color' <- pure $ fromMaybe False color
             count' <- pure $ fromMaybe 10 count
             (q, res) <- pure $ search store $ parseQuery $ unwords query
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
@@ -49,7 +51,10 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
                  putStr $ targetInfo $ head res
              else do
                 let toShow = if numbers && not info then addCounter shown else shown
-                if json then LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res else putStr $ unlines toShow
+                if 
+                    | json      -> LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res 
+                    | color'    -> printColored $ unlines toShow
+                    | otherwise -> putStr       $ unlines toShow
                 when (hidden /= [] && not json) $ do
                     whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count'+10) ++ " to see more"
         else do
