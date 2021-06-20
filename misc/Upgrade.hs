@@ -41,6 +41,7 @@ main = do
         echo system_ "cabal v2-update"
         echo system_ "cabal v2-build -j1 --only-dependencies --upgrade-dependencies --force-reinstalls --ghc-options=\"+RTS -M1G\""
         echo system_ "cabal v2-configure \"--ghc-options=-rtsopts -O2\""
+        echo system_ "cabal v2-build -j1 --only-dependencies --upgrade-dependencies --force-reinstalls --ghc-options=\"+RTS -M1G\""
         echo system_ "GHCRTS=-M1G cabal v2-install -j1 --installdir=bin"
         let exe = normalise "bin/hoogle"
 
