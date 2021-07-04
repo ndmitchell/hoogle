@@ -1,4 +1,5 @@
-{-# LANGUAGE LambdaCase, RecordWildCards, ScopedTypeVariables, TupleSections #-}
+{-# LANGUAGE LambdaCase, MultiWayIf, RecordWildCards, ScopedTypeVariables,
+             TupleSections #-}
 
 module Action.Search
     (actionSearch, withSearch, search
@@ -8,17 +9,17 @@ module Action.Search
     ) where
 
 import Control.DeepSeq
-import Control.Monad.Extra
 import Control.Exception.Extra
+import Control.Monad.Extra
 import qualified Data.Aeson as JSON
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Functor.Identity
 import Data.List.Extra
-import Text.Blaze.Renderer.Utf8
-import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Map as Map
 import Data.Maybe
 import qualified Data.Set as Set
 import System.Directory
+import Text.Blaze.Renderer.Utf8
 
 import Action.CmdLine
 import General.Store
@@ -49,7 +50,9 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
                  putStr $ targetInfo $ head res
              else do
                 let toShow = if numbers && not info then addCounter shown else shown
-                if json then LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res else putStr $ unlines toShow
+                if | json -> LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res
+                   | jsonl -> mapM_ (LBS.putStrLn . JSON.encode) $ maybe id take count $ map unHTMLtargetItem res
+                   | otherwise -> putStr $ unlines toShow
                 when (hidden /= [] && not json) $ do
                     whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count'+10) ++ " to see more"
         else do
