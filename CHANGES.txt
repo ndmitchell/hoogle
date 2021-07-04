@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = API change, @ = database format change)
 
+    #370, add --jsonl to produce JSON on separate lines
 5.0.18.1, released 2020-12-27
     #365, add flag to disable network tests
 5.0.18, released 2020-07-19
