@@ -267,6 +267,14 @@ a.dull, a.dull:hover {
     color: #C4451D;
 }
 
+.ans s1{
+    color: #3d00ea;
+}
+
+.ans s2{
+    color: black;
+}
+
 .links {
     float: right;
     color: #CCCCCC;
