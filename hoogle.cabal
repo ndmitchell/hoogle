@@ -79,6 +79,7 @@ library
         utf8-string,
         vector,
         wai,
+        wai-app-static,
         wai-logger,
         warp,
         warp-tls,
