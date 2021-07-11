@@ -177,6 +177,18 @@ readHaskellGhcpkg timing settings = do
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     pure (cbl, Map.keysSet cbl, source)
 
+readHaskellHaddockFile :: Timing -> Settings -> FilePath -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
+readHaskellHaddockFile timing settings txt = do
+    let name = strPack $ take (length txt - (length ".txt")) txt
+    let source =
+            whenM (liftIO $ doesFileExist txt) $ do
+                src <- liftIO $ bstrReadFile txt
+                let url = "file://./" ++ txt
+                yield (name, url, lbstrFromChunks [src])
+    pure (Map.empty, Set.singleton name, source)
+
+    where docDir name Package{..} = name ++ "-" ++ strUnpack packageVersion
+
 readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellHaddock timing settings docBaseDir = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
@@ -204,7 +216,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     download <- pure $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
     (cbl, want, source) <- case language of
-        Haskell | Just dir <- haddock -> readHaskellHaddock timing settings dir
+        Haskell | Just txt <- source -> readHaskellHaddockFile timing settings txt
+                | Just dir <- haddock -> readHaskellHaddock timing settings dir
                 | [""] <- local_ -> readHaskellGhcpkg timing settings
                 | [] <- local_ -> readHaskellOnline timing settings download
                 | otherwise -> readHaskellDirs timing settings local_
