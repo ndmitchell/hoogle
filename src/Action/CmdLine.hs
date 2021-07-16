@@ -37,7 +37,7 @@ data CmdLine
     | Generate
         {download :: Maybe Bool
         ,database :: FilePath
-        ,source :: Maybe FilePath
+        ,convert :: [FilePath]
         ,insecure :: Bool
         ,include :: [String]
         ,count :: Maybe Int
@@ -128,7 +128,7 @@ search_ = Search
 generate = Generate
     {download = def &= help "Download all files from the web"
     ,insecure = def &= help "Allow insecure HTTPS connections"
-    ,source = def &=help "Specify a textbase source"
+    ,convert = def &=help "Convert a set of textbases to the hoo format."
     ,include = def &= args &= typ "PACKAGE"
     ,local_ = def &= opt "" &= help "Index local packages and link to local haddock docs"
     ,count = Nothing &= name "n" &= help "Maximum number of packages to index (defaults to all)"

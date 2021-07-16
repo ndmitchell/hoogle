@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Action.Generate(actionGenerate) where
 
@@ -36,6 +37,8 @@ import General.Str
 import Action.CmdLine
 import General.Conduit
 import Control.DeepSeq
+
+import Debug.Trace
 
 {-
 
@@ -177,15 +180,17 @@ readHaskellGhcpkg timing settings = do
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     pure (cbl, Map.keysSet cbl, source)
 
-readHaskellHaddockFile :: Timing -> Settings -> FilePath -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
-readHaskellHaddockFile timing settings txt = do
-    let name = strPack $ take (length txt - (length ".txt")) txt
+readHaskellHaddockFile :: Timing -> Settings -> [FilePath] -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
+readHaskellHaddockFile timing settings txtdbs = do
     let source =
-            whenM (liftIO $ doesFileExist txt) $ do
-                src <- liftIO $ bstrReadFile txt
-                let url = "file://./" ++ txt
-                yield (name, url, lbstrFromChunks [src])
-    pure (Map.empty, Set.singleton name, source)
+            forM_ txtdbs $ \txt -> do
+                let name = strPack $ take (length txt - (length ".txt")) txt
+                whenM (liftIO $ doesFileExist txt) $ do
+                    src <- liftIO $ bstrReadFile txt
+                    let url = "file://./" ++ txt
+                    yield (name, url, lbstrFromChunks [src])
+    let pkgs = Set.fromList $ map (\txt -> strPack $ take (length txt - (length ".txt")) txt) txtdbs
+    pure (Map.empty, pkgs, source)
 
     where docDir name Package{..} = name ++ "-" ++ strUnpack packageVersion
 
@@ -216,7 +221,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     download <- pure $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
     (cbl, want, source) <- case language of
-        Haskell | Just txt <- source -> readHaskellHaddockFile timing settings txt
+        Haskell | txtdbs@(_:_) <- convert -> readHaskellHaddockFile timing settings txtdbs
                 | Just dir <- haddock -> readHaskellHaddock timing settings dir
                 | [""] <- local_ -> readHaskellGhcpkg timing settings
                 | [] <- local_ -> readHaskellOnline timing settings download
