@@ -30,7 +30,7 @@ Run `hoogle generate --local` to query `ghc-pkg` and generate links for all pack
 Run `hoogle generate --local=mydir` to generate an index for the packages in `mydir`, which must contain `foo.txt` Hoogle input files. Links to the results will default to Hackage, but if `@url` directives are in the `.txt` files they can override the link destination.
 
 ### Index a text database
-Run `hoogle generate --source=MyPackage.txt` to generate an index for one Hoogle-formated textual database. Do not expect links in the results to work, this mode is meant for CLI search. Such a database can be generated with `haddock --hoogle --package-name=MyPackage --odir=<directory of your choosing> <haskell files to be hooglified>`
+Run `hoogle generate --convert=MyPackage.txt` to generate an index for one Hoogle-formated textual database. Do not expect links in the results to work, this mode is meant for CLI search. Such a database can be generated with `haddock --hoogle --package-name=MyPackage --odir=<directory of your choosing> <haskell files to be hooglified>`
 
 ## Searching a Hoogle database
 
