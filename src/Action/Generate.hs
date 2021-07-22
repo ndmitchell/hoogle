@@ -1,5 +1,4 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Action.Generate(actionGenerate) where
 
@@ -37,8 +36,6 @@ import General.Str
 import Action.CmdLine
 import General.Conduit
 import Control.DeepSeq
-
-import Debug.Trace
 
 {-
 
