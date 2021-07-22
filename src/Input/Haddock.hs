@@ -30,7 +30,7 @@ fakePackage name desc = (Just $ Target (hackagePackageURL name) Nothing Nothing 
 
 -- | Given a file name (for errors), feed in lines to the conduit and emit either errors or items
 parseHoogle :: Monad m => (String -> m ()) -> URL -> LBStr -> ConduitM i (Maybe Target, [Item]) m ()
-parseHoogle warning url body = sourceLStr body .| linesCR .| zipFromC 1 .| parserC warning .| hierarchyC url .| mapC (\x -> rnf x `seq` x)
+parseHoogle warning url body = sourceLStr body .| linesCR .| zipFromC 1 .| parserC warning .| hierarchyC warning url .| mapC (\x -> rnf x `seq` x)
 
 parserC :: Monad m => (String -> m ()) -> ConduitM (Int, BStr) (Target, Entry) m ()
 parserC warning = f [] ""
@@ -71,22 +71,30 @@ reformat :: [BStr] -> String
 reformat = unlines . map bstrUnpack
 
 
-hierarchyC :: Monad m => URL -> ConduitM (Target, Entry) (Maybe Target, [Item]) m ()
-hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
+hierarchyC :: Monad m => (String -> m ()) -> URL -> ConduitM (Target, Entry) (Maybe Target, [Item]) m ()
+hierarchyC warning packageUrl = void $ mapAccumMC f (Nothing, Nothing)
     where
-        f (pkg, mod) (t, EPackage x) = ((Just (strUnpack x, url), Nothing), (Just t{targetURL=url}, [IPackage x]))
+        f (pkg, mod) (t, EPackage x) = return ((Just (strUnpack x, url), Nothing), (Just t{targetURL=url}, [IPackage x]))
             where url = targetURL t `orIfNull` packageUrl
-        f (pkg, mod) (t, EModule x) = ((pkg, Just (strUnpack x, url)), (Just t{targetPackage=pkg, targetURL=url}, [IModule x]))
+        f (pkg, mod) (t, EModule x) = return ((pkg, Just (strUnpack x, url)), (Just t{targetPackage=pkg, targetURL=url}, [IModule x]))
             where url = targetURL t `orIfNull` (if isGhc then ghcModuleURL x else hackageModuleURL x)
-        f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
-        f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
+        f (pkg, mod) (t, EDecl i@InstDecl{}) = do
+            item <- tryHseToItem i
+            return ((pkg, mod), (Nothing, item))
+        f (pkg, mod) (t, EDecl x) = do
+            item <- tryHseToItem x
+            return ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, item))
             where url = targetURL t `orIfNull` case x of
                             _ | [n] <- declNames x -> hackageDeclURL (isTypeSig x) n
                               | otherwise -> ""
 
         isGhc = "~ghc" `isInfixOf` packageUrl || "/" `isSuffixOf` packageUrl
 
-        hseToItem_ x = hseToItem x `orIfNull` error ("hseToItem failed, " ++ pretty x)
+        tryHseToItem x = do
+            let item = hseToItem x
+            when (null item) $ warning ("hseToItem failed, " ++ pretty x)
+            return item
+
         infix 1 `orIfNull`
         orIfNull x y = if null x then y else x
 
