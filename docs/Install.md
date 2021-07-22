@@ -29,6 +29,9 @@ Run `hoogle generate --local` to query `ghc-pkg` and generate links for all pack
 
 Run `hoogle generate --local=mydir` to generate an index for the packages in `mydir`, which must contain `foo.txt` Hoogle input files. Links to the results will default to Hackage, but if `@url` directives are in the `.txt` files they can override the link destination.
 
+### Index a text database
+Run `hoogle generate --source=MyPackage.txt` to generate an index for one Hoogle-formated textual database. Do not expect links in the results to work, this mode is meant for CLI search. Such a database can be generated with `haddock --hoogle --package-name=MyPackage --odir=<directory of your choosing> <haskell files to be hooglified>`
+
 ## Searching a Hoogle database
 
 You can run searches on the command line or by spawning a web server.
@@ -45,7 +48,7 @@ If your database points at the local file system pass `--local` to reserve `file
 
 ### GHCi Integration
 
-Ever feel like having access to hoogle whilst messing around in GHCi? It's relatively easy to integrate the two. 
+Ever feel like having access to hoogle whilst messing around in GHCi? It's relatively easy to integrate the two.
 
 The following will install hoogle as a shell command, and configure GHCi to have a command ":hoogle":
 
@@ -62,9 +65,9 @@ Done!
 On Windows you should add the same line
  :def hoogle \x -> return $ ":!hoogle \"" ++ x ++ "\""
 to file (XP/2003):
- C:\Documents and Settings\[your windows account]\Application Data\ghc\ghci.conf 
+ C:\Documents and Settings\[your windows account]\Application Data\ghc\ghci.conf
 or(Windows Vista/7):
- C:\users\[your windows account]\Application Data\ghc\ghci.conf 
+ C:\users\[your windows account]\Application Data\ghc\ghci.conf
 
 #### How it works
 

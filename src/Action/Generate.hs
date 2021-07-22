@@ -204,8 +204,8 @@ readHaskellHaddockFile timing settings txtdbs = do
 
 -- | readHaskellHaddock takes a @baseDocDir@, which is the filepath prefix for
 -- ghc-pkg's documentation directories. This function reads all installed
--- packages on the system (via ghc-pkg), and uses their listed documentation
--- directory as a source for indexing.
+-- packages on the system (via ghc-pkg), it tries to read all files matching
+-- @baseDocDir@/@<pkgname>-<version>@/@<pkgname>.txt@
 readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellHaddock timing settings docBaseDir = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
