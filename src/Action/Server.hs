@@ -163,7 +163,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         html = templateMarkup
         text = templateMarkup . H.string
 
-        tagOptions sel = mconcat [H.option !? (x `elem` sel, H.selected "selected") $ H.string x | x <- completionTags store]
+        tagOptions sel = mconcat [H.option Text.Blaze.!? (x `elem` sel, H.selected "selected") $ H.string x | x <- completionTags store]
         params =
             [("cdn", text cdn)
             ,("home", text home)
