@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = API change, @ = database format change)
 
+5.0.18.2, released 2021-09-01
     Compatibility with extra-1.7.10
     #370, add --jsonl to produce JSON on separate lines
 5.0.18.1, released 2020-12-27
