@@ -43,7 +43,7 @@ library
 
     build-depends:
         QuickCheck,
-        aeson,
+        aeson < 2,
         base > 4 && < 5,
         blaze-html,
         blaze-markup,
