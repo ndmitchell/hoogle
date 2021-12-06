@@ -18,6 +18,7 @@ body {
 
 #body {
     flex-grow: 1;
+    position: relative;
 }
 
 a img {
@@ -127,6 +128,9 @@ form {
     padding: 0px;
     margin-left: 10px;
     overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 #left li {
