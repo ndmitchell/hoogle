@@ -29,7 +29,6 @@ import General.IString
 import Prelude
 import qualified Data.Aeson as J
 import Data.Aeson.Types
-import qualified Data.Text as T
 import Test.QuickCheck
 ---------------------------------------------------------------------
 -- TYPES
@@ -122,31 +121,31 @@ instance NFData Target where
 
 instance ToJSON Target where
     toJSON (Target a b c d e f) = object [
-      ("url" :: T.Text, toJSON a),
-      ("package" :: T.Text, maybeNamedURL b),
-      ("module" :: T.Text, maybeNamedURL c),
-      ("type" :: T.Text, toJSON d),
-      ("item" :: T.Text, toJSON e),
-      ("docs" :: T.Text, toJSON f)
+      ("url", toJSON a),
+      ("package", maybeNamedURL b),
+      ("module", maybeNamedURL c),
+      ("type", toJSON d),
+      ("item", toJSON e),
+      ("docs", toJSON f)
       ]
       where
         maybeNamedURL m = maybe emptyObject namedURL m
-        namedURL (name, url) = object [("name" :: T.Text, toJSON name), ("url" :: T.Text, toJSON url)]
+        namedURL (name, url) = object [("name", toJSON name), ("url", toJSON url)]
 
 instance FromJSON Target where
   parseJSON = withObject "Target" $ \o ->
-    Target <$> o .: ("url" :: T.Text)
-           <*> o `namedUrl` ("package" :: T.Text)
-           <*> o `namedUrl` ("module" :: T.Text)
-           <*> o .: ("type" :: T.Text)
-           <*> o .: ("item" :: T.Text)
-           <*> o .: ("docs" :: T.Text)
+    Target <$> o .: "url"
+           <*> o `namedUrl` "package"
+           <*> o `namedUrl` "module"
+           <*> o .: "type"
+           <*> o .: "item"
+           <*> o .: "docs"
     where namedUrl o' n = do
              mObj <- o' .: n
              if null mObj then pure Nothing
                         else do
-                           pkName <- mObj .: ("name" :: T.Text)
-                           pkUrl  <- mObj .: ("url" :: T.Text)
+                           pkName <- mObj .: "name"
+                           pkUrl  <- mObj .: "url"
                            pure $ Just (pkName, pkUrl)
 
 instance Arbitrary Target where
