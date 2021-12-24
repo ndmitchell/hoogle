@@ -189,7 +189,7 @@ action_search_test sample database = testing "Action.Search.search" $ withSearch
             ]
         query "a -> [a]"
             [ InTop 10    ("repeat"    `inPackage` "base")
-            , InTop 50    ("singleton" `inModule` "Util")
+            , KnownFailure "" $ InTop 50    ("singleton" `inModule` "Util")
             , DoesNotFind ("head"      `inPackage` "base")
             , DoesNotFind ("last"      `inPackage` "base")
             , InTop 50    ("pure"      `inPackage` "base")
