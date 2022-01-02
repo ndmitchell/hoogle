@@ -189,9 +189,6 @@ dedupeTake n key = f [] Map.empty
 showResults :: Bool -> Bool -> Maybe FilePath -> [(String, String)] -> [Query] -> [[Target]] -> Markup
 showResults local links haddock args query results = do
     H.h1 $ renderQuery query
-    H.ul ! H.id "left" $ do
-        H.li $ H.b "Packages"
-        mconcat [H.li $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
     when (null results) $ H.p "No results found"
     forM_ results $ \is@(Target{..}:_) -> do
         H.div ! H.class_ "result" $ do
@@ -203,6 +200,10 @@ showResults local links haddock args query results = do
                         H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue link) $ "Uses"
             H.div ! H.class_ "from" $ showFroms local haddock is
             H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
+    H.ul ! H.id "left" $ do
+        H.li $ H.b "Packages"
+        mconcat [H.li $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
+
     where
         useLink :: [Target] -> Maybe String
         useLink [t] | isNothing $ targetPackage t =
