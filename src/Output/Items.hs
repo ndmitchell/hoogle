@@ -59,6 +59,15 @@ listItems store = unfoldr f $ storeRead store Items
             , (this,x) <- BS.splitAt n x
             = Just (inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks [this], x)
 
+listItemsWithIds :: StoreRead -> [(TargetId, Target)]
+listItemsWithIds store = unfoldr f (0, storeRead store Items)
+  where
+    f (offset, x)
+      | BS.null x = Nothing
+      | (n, x) <- BS.splitAt intSize x,
+        n <- intFromBS n,
+        (this, x) <- BS.splitAt n x =
+        Just ((TargetId offset, inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks [this]), (offset + fromIntegral (n + intSize), x))
 
 lookupItem :: StoreRead -> (TargetId -> Target)
 lookupItem store =
