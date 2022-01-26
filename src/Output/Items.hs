@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards, DeriveDataTypeable, GADTs #-}
 
-module Output.Items(writeItems, lookupItem, listItems) where
+module Output.Items(writeItems, lookupItem, listItems, listItemsWithIds) where
 
 import Control.Monad
 import Data.List.Extra
@@ -51,13 +51,7 @@ writeItems store act = act $ do
 
 
 listItems :: StoreRead -> [Target]
-listItems store = unfoldr f $ storeRead store Items
-    where
-        f x | BS.null x = Nothing
-            | (n,x) <- BS.splitAt intSize x
-            , n <- intFromBS n
-            , (this,x) <- BS.splitAt n x
-            = Just (inputItem $ lines $ UTF8.toString $ GZip.decompress $ LBS.fromChunks [this], x)
+listItems store = map snd $ listItemsWithIds store
 
 listItemsWithIds :: StoreRead -> [(TargetId, Target)]
 listItemsWithIds store = unfoldr f (0, storeRead store Items)
