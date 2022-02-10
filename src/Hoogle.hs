@@ -53,16 +53,16 @@ dumpDatabase = do
   setLocaleEncoding utf8
   database <- defaultDatabaseLocation
   withSearch database $ \store -> do
-    let items = filter (not . null . targetDocs . snd) $ listItemsWithIds store
-    withFile ".\\dump.txt" WriteMode $ \handle -> do
-      mapM_ (\(id, t) -> hPutStrLn handle $ (normalize $ targetDocs t)) items
+    let items = take 8 $ filter (not . null . targetDocs . snd) $ listItemsWithIds store
+    withFile ".\\small.dump.txt" WriteMode $ \handle -> do
+      mapM_ (\(id, t) -> hPutStrLn handle $ show id ++ ":" ++ (normalize $ targetDocs t)) items
     return ()
   return ()
 
 normalize :: String -> String
-normalize = stringToLower . intercalate space . lines . unHTML
+normalize = stringToLower . concatMap (\l -> trimConsSpace l ++ " ") . lines . unHTML
   where
-    space = " "
+    trimConsSpace = unwords . words
     stringToLower = map toLower
 
 maybeReadHex :: (Eq a, Num a) => String -> Maybe a
