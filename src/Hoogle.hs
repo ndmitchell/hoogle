@@ -1,26 +1,37 @@
-
 -- | High level Hoogle API
-module Hoogle(
-    Database, withDatabase, searchDatabase, defaultDatabaseLocation,
-    Target(..), URL,
+module Hoogle
+  ( Database,
+    withDatabase,
+    searchDatabase,
+    defaultDatabaseLocation,
+    Target (..),
+    URL,
     hoogle,
     targetInfo,
-    targetResultDisplay
-    ) where
-
-import Control.DeepSeq (NFData)
-
-import Query
-import Input.Item
-import General.Util
-import General.Store
+    targetResultDisplay,
+  )
+where
 
 import Action.CmdLine
 import Action.Generate
 import Action.Search
 import Action.Server
 import Action.Test
-
+import Control.DeepSeq (NFData)
+import Data.Binary (Word32)
+import Data.Char
+import Data.List (concatMap, intercalate)
+import Data.Maybe (listToMaybe)
+import GHC.IO.Encoding (setLocaleEncoding, utf8)
+import General.Store
+import General.Util
+import Input.Item
+import Network.HTTP.Client.Conduit (Response (responseBody))
+import Network.HTTP.Simple
+import Numeric (readHex)
+import Output.Items (listItemsWithIds, lookupItem)
+import Query
+import System.IO (IOMode (WriteMode), hPutStrLn, withFile)
 
 -- | Database containing Hoogle search data.
 newtype Database = Database StoreRead
@@ -37,14 +48,33 @@ defaultDatabaseLocation = defaultDatabaseLang Haskell
 searchDatabase :: Database -> String -> [Target]
 searchDatabase (Database db) query = snd $ search db $ parseQuery query
 
+dumpDatabase :: IO ()
+dumpDatabase = do
+  setLocaleEncoding utf8
+  database <- defaultDatabaseLocation
+  withSearch database $ \store -> do
+    let items = filter (not . null . targetDocs . snd) $ listItemsWithIds store
+    withFile ".\\dump.txt" WriteMode $ \handle -> do
+      mapM_ (\(id, t) -> hPutStrLn handle $ (normalize $ targetDocs t)) items
+    return ()
+  return ()
+
+normalize :: String -> String
+normalize = stringToLower . intercalate space . lines . unHTML
+  where
+    space = " "
+    stringToLower = map toLower
+
+maybeReadHex :: (Eq a, Num a) => String -> Maybe a
+maybeReadHex s = listToMaybe $ map fst $ readHex s
 
 -- | Run a command line Hoogle operation.
 hoogle :: [String] -> IO ()
 hoogle args = do
-    args <- getCmdLine args
-    case args of
-        Search{} -> actionSearch args
-        Generate{} -> actionGenerate args
-        Server{} -> actionServer args
-        Test{} -> actionTest args
-        Replay{} -> actionReplay args
+  args <- getCmdLine args
+  case args of
+    Search {} -> actionSearch args
+    Generate {} -> actionGenerate args
+    Server {} -> actionServer args
+    Test {} -> actionTest args
+    Replay {} -> actionReplay args
