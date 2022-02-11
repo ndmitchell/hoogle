@@ -48,14 +48,19 @@ defaultDatabaseLocation = defaultDatabaseLang Haskell
 searchDatabase :: Database -> String -> [Target]
 searchDatabase (Database db) query = snd $ search db $ parseQuery query
 
-dumpDatabase :: IO ()
-dumpDatabase = do
-  setLocaleEncoding utf8
+dumpDatabaseAsCsvDefault :: IO ()
+dumpDatabaseAsCsvDefault = dumpDatabaseAsCsv "small.dump.csv"
+
+dumpDatabaseAsCsv :: FilePath -> IO ()
+dumpDatabaseAsCsv f = do
   database <- defaultDatabaseLocation
   withSearch database $ \store -> do
-    let items = take 8 $ filter (not . null . targetDocs . snd) $ listItemsWithIds store
-    withFile ".\\small.dump.txt" WriteMode $ \handle -> do
-      mapM_ (\(id, t) -> hPutStrLn handle $ show id ++ ":" ++ (normalize $ targetDocs t)) items
+    let items = take 20 $ filter (not . null . targetDocs . snd) $ listItemsWithIds store
+    withFile f WriteMode $ \handle -> do
+      let surroundWithQuotes s = "\"" ++ s ++ "\"" 
+      let header = surroundWithQuotes "id" ++ ";" ++ surroundWithQuotes "content"
+      hPutStrLn handle header
+      mapM_ (\(id, t) -> hPutStrLn handle $ surroundWithQuotes (show id) ++ ";" ++ (surroundWithQuotes (normalize $ targetDocs t))) items
     return ()
   return ()
 
