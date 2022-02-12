@@ -12,6 +12,7 @@ module Hoogle
   )
 where
 
+import qualified Data.ByteString.Lazy.Char8 as BS
 import Action.CmdLine
 import Action.Generate
 import Action.Search
@@ -32,6 +33,8 @@ import Numeric (readHex)
 import Output.Items (listItemsWithIds, lookupItem)
 import Query
 import System.IO (IOMode (WriteMode), hPutStrLn, withFile)
+import qualified Data.Aeson as AE
+import Corpus.Document
 
 -- | Database containing Hoogle search data.
 newtype Database = Database StoreRead
@@ -48,27 +51,21 @@ defaultDatabaseLocation = defaultDatabaseLang Haskell
 searchDatabase :: Database -> String -> [Target]
 searchDatabase (Database db) query = snd $ search db $ parseQuery query
 
-dumpDatabaseAsCsvDefault :: IO ()
-dumpDatabaseAsCsvDefault = dumpDatabaseAsCsv "small.dump.csv"
+dumpDatabaseAsJsonlDefault :: IO ()
+dumpDatabaseAsJsonlDefault = dumpDatabaseAsJsonl "small.dump.jsonl"
 
-dumpDatabaseAsCsv :: FilePath -> IO ()
-dumpDatabaseAsCsv f = do
+dumpDatabaseAsJsonl :: FilePath -> IO ()
+dumpDatabaseAsJsonl f = do
+  setLocaleEncoding utf8
   database <- defaultDatabaseLocation
   withSearch database $ \store -> do
-    let items = take 20 $ filter (not . null . targetDocs . snd) $ listItemsWithIds store
+    let items = filter (not . null . targetDocs . snd) $ listItemsWithIds store
+    let docs = map toDocument items
+    let encodeDocs = map AE.encode docs 
     withFile f WriteMode $ \handle -> do
-      let surroundWithQuotes s = "\"" ++ s ++ "\"" 
-      let header = surroundWithQuotes "id" ++ ";" ++ surroundWithQuotes "content"
-      hPutStrLn handle header
-      mapM_ (\(id, t) -> hPutStrLn handle $ surroundWithQuotes (show id) ++ ";" ++ (surroundWithQuotes (normalize $ targetDocs t))) items
+      mapM_ (\encDoc -> BS.hPutStrLn handle $ encDoc) encodeDocs
     return ()
   return ()
-
-normalize :: String -> String
-normalize = stringToLower . concatMap (\l -> trimConsSpace l ++ " ") . lines . unHTML
-  where
-    trimConsSpace = unwords . words
-    stringToLower = map toLower
 
 maybeReadHex :: (Eq a, Num a) => String -> Maybe a
 maybeReadHex s = listToMaybe $ map fst $ readHex s
