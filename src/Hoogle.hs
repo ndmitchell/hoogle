@@ -32,9 +32,9 @@ import Network.HTTP.Simple
 import Numeric (readHex)
 import Output.Items (listItemsWithIds, lookupItem)
 import Query
-import System.IO (IOMode (WriteMode), hPutStrLn, withFile)
+import System.IO (IOMode (WriteMode), hPutStrLn, withFile, hPrint)
 import qualified Data.Aeson as AE
-import Corpus.Document
+import Document
 
 -- | Database containing Hoogle search data.
 newtype Database = Database StoreRead
@@ -60,10 +60,11 @@ dumpDatabaseAsJsonl f = do
   database <- defaultDatabaseLocation
   withSearch database $ \store -> do
     let items = filter (not . null . targetDocs . snd) $ listItemsWithIds store
-    let docs = map toDocument items
-    let encodeDocs = map AE.encode docs 
+    let docs = map (content . toDocument) items
+    -- let encodeDocs = map AE.encode docs
     withFile f WriteMode $ \handle -> do
-      mapM_ (\encDoc -> BS.hPutStrLn handle $ encDoc) encodeDocs
+      -- mapM_ (\encDoc -> hPutStrLn handle encDoc) docs
+      mapM_ ((\(TargetId id) -> hPrint handle id) . fst) items
     return ()
   return ()
 

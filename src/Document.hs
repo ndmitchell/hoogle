@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Corpus.Document where
+module Document where
 
 import Data.Aeson
   ( ToJSON (toEncoding),
