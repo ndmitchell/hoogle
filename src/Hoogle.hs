@@ -56,15 +56,12 @@ dumpDatabaseAsJsonlDefault = dumpDatabaseAsJsonl "small.dump.jsonl"
 
 dumpDatabaseAsJsonl :: FilePath -> IO ()
 dumpDatabaseAsJsonl f = do
-  setLocaleEncoding utf8
   database <- defaultDatabaseLocation
   withSearch database $ \store -> do
     let items = filter (not . null . targetDocs . snd) $ listItemsWithIds store
-    let docs = map (content . toDocument) items
-    -- let encodeDocs = map AE.encode docs
+    let docs = map (AE.encode . toDocument) items
     withFile f WriteMode $ \handle -> do
-      -- mapM_ (\encDoc -> hPutStrLn handle encDoc) docs
-      mapM_ ((\(TargetId id) -> hPrint handle id) . fst) items
+      mapM_ (\encDoc -> BS.hPutStrLn handle encDoc) docs
     return ()
   return ()
 
