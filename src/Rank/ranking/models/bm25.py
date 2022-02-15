@@ -1,8 +1,9 @@
 import pickle
 
 class BM25Model:
-    def __init__(self, store = None, model = None):
+    def __init__(self, store, model):
         assert(store is not None)
+        assert(model is not None)
         self.__store = store
         self.__bm25 = model
     
@@ -13,9 +14,10 @@ class BM25Model:
     
     def save_model(self, file):
         with open(file, 'wb') as fout:
-            pickle.dump(self.__bm25, fout, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self, fout, pickle.HIGHEST_PROTOCOL)
     
-    def load_model(self, file):
+    @staticmethod
+    def load_model(file):
         with open(file, 'rb') as fin:
-            self.__bm25 = pickle.load(fin)
+            return pickle.load(fin)
     
