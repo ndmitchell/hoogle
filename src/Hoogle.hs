@@ -58,10 +58,10 @@ dumpDatabaseAsJsonl :: FilePath -> IO ()
 dumpDatabaseAsJsonl f = do
   database <- defaultDatabaseLocation
   withSearch database $ \store -> do
-    let items = filter (not . null . targetDocs . snd) $ listItemsWithIds store
-    let docs = map (AE.encode . toDocument) items
+    let docs = map toDocument $ filter (not . null . targetDocs . snd) $ listItemsWithIds store
+    let encDocs = map AE.encode docs
     withFile f WriteMode $ \handle -> do
-      mapM_ (\encDoc -> BS.hPutStrLn handle encDoc) docs
+      mapM_ (\encDoc -> BS.hPutStrLn handle encDoc) encDocs
     return ()
   return ()
 
