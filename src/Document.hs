@@ -1,53 +1,63 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Document where
 
-import Data.Aeson
-  ( ToJSON (toEncoding),
-    defaultOptions,
-    encode,
-    genericToEncoding,
-  )
+import qualified Data.Aeson as A
 import Data.Binary (Word32)
-import qualified Data.ByteString.Lazy.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Char (toLower)
+import Data.List.Extra (breakOn, intercalate, splitOn)
+import Data.Maybe (fromMaybe)
+import qualified Data.Text as DT (pack, strip, unpack)
 import GHC.Generics (Generic)
 import General.Util (unHTML)
 import Input.Item (Target (targetDocs, targetItem), TargetId (..), unHTMLTarget)
 import System.IO (IOMode (WriteMode), withFile)
-import Data.List.Extra (splitOn)
-import qualified Data.Text as DT (strip, unpack, pack)
-import Data.Maybe (fromMaybe)
 
 type FunctionName = String
-type FunctionType = String
-data Document = Document {id :: Word32, content :: String, functionName :: FunctionName, typeString :: FunctionType} deriving (Generic)
 
-instance ToJSON Document where
-  toEncoding = genericToEncoding defaultOptions
+type FunctionType = String
+
+data Document = Document
+  { docId :: Word32,
+    docContent :: String,
+    docItem :: String,
+    docType :: String
+  }
+  deriving (Show, Generic)
+
+instance A.ToJSON Document where
+  toEncoding = A.genericToEncoding A.defaultOptions
 
 toDocument :: (TargetId, Target) -> Document
-toDocument (TargetId id, t) = Document id normDocs name typeAsString
+toDocument (TargetId id, t) = Document id docContent' docItem' docType'
   where
     unHTMLedTarget = unHTMLTarget t
-    normDocs = normalizedDocs unHTMLedTarget
-    targetItemString = targetItem unHTMLedTarget
-    maybeSig = maybeTypeSignature targetItemString
-    (name, typeAsString) = case maybeSig of
-      Nothing -> ("", "") 
-      Just (functionName, functionType) -> (functionName, functionType)
+    docContent' = normalizedDocs unHTMLedTarget
+    docItem' = strip $ fromMaybe "" $ getTypeSig $ targetItem unHTMLedTarget
+    docType' = strip $ fromMaybe "" $ getTypeOfTypeSig $ targetItem unHTMLedTarget
 
-normalizedDocs :: Target -> String
-normalizedDocs = normalize . targetDocs
+toJson :: Document -> LBS.ByteString
+toJson = A.encode
 
--- | Returns the type as string if the given string is a type signature
-maybeTypeSignature :: String -> Maybe (FunctionName, FunctionType)
-maybeTypeSignature s = case splitOn "::" s of
-  [name, typeString] -> if (length $ words name) == 1 then Just (strip name, strip typeString) else Nothing
-  _ -> Nothing
+-- cheap but enough to check whether targetItem is a type signature
+getTypeSig :: String -> Maybe String
+getTypeSig s = if isTypeSignature s then Just s else Nothing
+  where
+    isTypeSignature s = case splitOn "::" s of
+      [name, typeString] -> (length $ words name) == 1
+      _ -> False
+
+-- breakOn is used to keep "::" to enforce hoogle type search
+getTypeOfTypeSig :: String -> Maybe String
+getTypeOfTypeSig s = snd . breakOn "::" <$> getTypeSig s
 
 strip :: String -> String
 strip = (DT.unpack . DT.strip . DT.pack)
+
+normalizedDocs :: Target -> String
+normalizedDocs = normalize . targetDocs
 
 normalize :: String -> String
 normalize = stringToLower . concatMap (\l -> trimConsSpace l ++ " ") . lines

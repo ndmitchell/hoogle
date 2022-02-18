@@ -12,29 +12,23 @@ module Hoogle
   )
 where
 
-import qualified Data.ByteString.Lazy.Char8 as BS
 import Action.CmdLine
 import Action.Generate
 import Action.Search
 import Action.Server
 import Action.Test
 import Control.DeepSeq (NFData)
-import Data.Binary (Word32)
 import Data.Char
-import Data.List (concatMap, intercalate)
-import Data.Maybe (listToMaybe)
-import GHC.IO.Encoding (setLocaleEncoding, utf8)
+import qualified Data.Vector.Storable as V
 import General.Store
+import General.Store (storeRead)
 import General.Util
 import Input.Item
 import Network.HTTP.Client.Conduit (Response (responseBody))
 import Network.HTTP.Simple
 import Numeric (readHex)
-import Output.Items (listItemsWithIds, lookupItem)
+import Output.Types (TypesDuplicates (TypesDuplicates), readDuplicates)
 import Query
-import System.IO (IOMode (WriteMode), hPutStrLn, withFile, hPrint)
-import qualified Data.Aeson as AE
-import Document
 
 -- | Database containing Hoogle search data.
 newtype Database = Database StoreRead
@@ -50,23 +44,6 @@ defaultDatabaseLocation = defaultDatabaseLang Haskell
 -- | Search a database, given a query string, produces a list of results.
 searchDatabase :: Database -> String -> [Target]
 searchDatabase (Database db) query = snd $ search db $ parseQuery query
-
-dumpDatabaseAsJsonlDefault :: IO ()
-dumpDatabaseAsJsonlDefault = dumpDatabaseAsJsonl "small.dump.jsonl"
-
-dumpDatabaseAsJsonl :: FilePath -> IO ()
-dumpDatabaseAsJsonl f = do
-  database <- defaultDatabaseLocation
-  withSearch database $ \store -> do
-    let docs = map toDocument $ filter (not . null . targetDocs . snd) $ listItemsWithIds store
-    let encDocs = map AE.encode docs
-    withFile f WriteMode $ \handle -> do
-      mapM_ (\encDoc -> BS.hPutStrLn handle encDoc) encDocs
-    return ()
-  return ()
-
-maybeReadHex :: (Eq a, Num a) => String -> Maybe a
-maybeReadHex s = listToMaybe $ map fst $ readHex s
 
 -- | Run a command line Hoogle operation.
 hoogle :: [String] -> IO ()
