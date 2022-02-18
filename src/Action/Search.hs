@@ -90,9 +90,8 @@ withSearch database act = do
                    "    Filename: " ++ database
     storeReadFile database act
 
-
-search :: StoreRead -> [Query] -> ([Query], [Target])
-search store qs = runIdentity $ do
+searchTargetIds :: StoreRead -> [Query] -> ([Query], [TargetId])
+searchTargetIds store qs = runIdentity $ do
     (qs, exact, filt, list) <- pure $ applyTags store  qs
     is <- case (filter isQueryName qs, filter isQueryType qs) of
         ([], [] ) -> pure list
@@ -101,8 +100,13 @@ search store qs = runIdentity $ do
         (xs, t:_) -> do
             nam <- pure $ Set.fromList $ searchNames store exact $ map fromQueryName xs
             pure $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
+    pure (qs, filter filt is)
+
+search :: StoreRead -> [Query] -> ([Query], [Target])
+search store qs = runIdentity $ do
+    let (_, is) = searchTargetIds store qs
     let look = lookupItem store
-    pure (qs, map look $ filter filt is)
+    pure (qs, map look is)
 
 action_search_test :: Bool -> FilePath -> IO ()
 action_search_test sample database = testing "Action.Search.search" $ withSearch database $ \store -> do
