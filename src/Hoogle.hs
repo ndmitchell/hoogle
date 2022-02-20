@@ -26,9 +26,9 @@ import General.Util
 import Input.Item
 import Network.HTTP.Client.Conduit (Response (responseBody))
 import Network.HTTP.Simple
-import Numeric (readHex)
-import Output.Types (TypesDuplicates (TypesDuplicates), readDuplicates)
 import Query
+import Document
+import qualified Data.ByteString.Lazy.Char8 as LBS
 
 -- | Database containing Hoogle search data.
 newtype Database = Database StoreRead
@@ -44,6 +44,22 @@ defaultDatabaseLocation = defaultDatabaseLang Haskell
 -- | Search a database, given a query string, produces a list of results.
 searchDatabase :: Database -> String -> [Target]
 searchDatabase (Database db) query = snd $ search db $ parseQuery query
+
+-- | Search a database, given a query string, produces a list of tuples.
+searchDatabase' :: Database -> String -> [(TargetId, Target)]
+searchDatabase' (Database db) query = snd $ searchTargetsWithIds db $ parseQuery query
+
+searchDocs :: String -> IO [Document]
+searchDocs q = do
+  database <- defaultDatabaseLocation
+  res <- withDatabase database $ \db -> do
+    return $ searchDatabase' db q
+  return $ map (\(id, t) -> toDocument (id, t)) res
+
+putSearchDocs  :: String -> IO ()
+putSearchDocs q = do
+  res <- searchDocs q
+  mapM_ (LBS.putStrLn . toJson) res
 
 -- | Run a command line Hoogle operation.
 hoogle :: [String] -> IO ()
