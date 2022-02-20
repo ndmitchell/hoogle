@@ -2,7 +2,7 @@
              TupleSections #-}
 
 module Action.Search
-    (actionSearch, withSearch, search
+    (actionSearch, withSearch, search, searchTargetsWithIds 
     ,targetInfo
     ,targetResultDisplay
     ,action_search_test
@@ -90,8 +90,8 @@ withSearch database act = do
                    "    Filename: " ++ database
     storeReadFile database act
 
-searchTargetIds :: StoreRead -> [Query] -> ([Query], [TargetId])
-searchTargetIds store qs = runIdentity $ do
+searchTargetsWithIds :: StoreRead -> [Query] -> ([Query], [(TargetId, Target)])
+searchTargetsWithIds store qs = runIdentity $ do
     (qs, exact, filt, list) <- pure $ applyTags store  qs
     is <- case (filter isQueryName qs, filter isQueryType qs) of
         ([], [] ) -> pure list
@@ -100,13 +100,13 @@ searchTargetIds store qs = runIdentity $ do
         (xs, t:_) -> do
             nam <- pure $ Set.fromList $ searchNames store exact $ map fromQueryName xs
             pure $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
-    pure (qs, filter filt is)
+    let look = lookupItem store
+    pure (qs, map (\id -> (id, look id)) $ filter filt is)
 
 search :: StoreRead -> [Query] -> ([Query], [Target])
-search store qs = runIdentity $ do
-    let (_, is) = searchTargetIds store qs
-    let look = lookupItem store
-    pure (qs, map look is)
+search store qs = (qs, targets) where
+    (qs, results) = searchTargetsWithIds store qs 
+    targets = map snd results
 
 action_search_test :: Bool -> FilePath -> IO ()
 action_search_test sample database = testing "Action.Search.search" $ withSearch database $ \store -> do
