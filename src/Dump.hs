@@ -12,9 +12,15 @@ import Output.Items
 import System.IO
 import General.Store (StoreRead)
 import GHC.IO.Encoding
+import System.Directory (doesFileExist)
+import Control.Monad.Extra (findM)
 
 exportDatabaseAsJsonl :: IO ()
-exportDatabaseAsJsonl = dump database "test.jsonl" asJson
+exportDatabaseAsJsonl = do
+  let defaultName = "raw.dump.jsonl"
+  let possibleNames = defaultName : map (\n -> "(" ++ show n ++ ")" ++ " " ++ defaultName) [1..]
+  Just notTakenName <- findM (fmap not . doesFileExist) possibleNames
+  dump database notTakenName asJson
 
 dump :: (FilePath -> (Document -> LBS.ByteString) -> IO ()) -> FilePath -> (Document -> LBS.ByteString) -> IO ()
 dump action target format = action target format
