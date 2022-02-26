@@ -7,6 +7,9 @@ def read_dataset(source) -> pd.DataFrame:
     df = df.set_index(['docId', 'storageId'])
     return df
 
+def write_dataset(df: pd.DataFrame, foutput):
+    to_jsonl(df.reset_index(), foutput)
+
 def read_jsonl(source, encoding=DEFAULT_ENCODING) -> pd.DataFrame:
     with open(source, encoding=encoding) as fin:
         df = pd.read_json(fin, lines=True)
