@@ -1,16 +1,18 @@
 import pickle
+from ranking.models.model import Model
+from rank_bm25 import BM25Okapi
+from ranking.storage.document_store import DocumentStore
 
-class BM25Model:
-    def __init__(self, store, model):
-        assert(store is not None)
-        assert(model is not None)
-        self.__store = store
-        self.__bm25 = model
+class BM25Model(Model):
+    def __init__(self, store: DocumentStore):
+        super().__init__(store)
+        corpus = [tokenized.split() for tokenized in self._store.read_corpus()]
+        self._bm25 = BM25Okapi(corpus)
     
-    def get_batch_scores(self, query, hoogle_ids):
-        storage_ids = [self.__store.get_storage_ids_for_hoogle_ids(id) for id in hoogle_ids]
-        scores = self.__bm25.get_batch_scores(query, storage_ids)
-        return zip(hoogle_ids, scores)
+    def score(self, query, hoogle_ids):
+        storage_ids = self._store.get_storage_ids_for_hoogle_ids(hoogle_ids)
+        scores = self._bm25.get_batch_scores(query, storage_ids)
+        return zip(storage_ids, scores)
     
     def save_model(self, file):
         with open(file, 'wb') as fout:
