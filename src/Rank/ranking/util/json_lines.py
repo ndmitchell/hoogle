@@ -4,7 +4,7 @@ DEFAULT_ENCODING = 'utf-8'
 
 def read_dataset(source) -> pd.DataFrame:
     df = read_jsonl(source)
-    df = df.set_index(['docId', 'storageId'])
+    df.set_index(['docId', 'storageId'], inplace=True)
     return df
 
 def write_dataset(df: pd.DataFrame, foutput):
