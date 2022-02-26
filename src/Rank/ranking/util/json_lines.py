@@ -2,6 +2,10 @@ import pandas as pd
 
 DEFAULT_ENCODING = 'utf-8'
 
+def read_dataset(source) -> pd.DataFrame:
+    df = read_jsonl(source)
+    df = df.set_index(['docId', 'storageId'])
+    return df
 
 def read_jsonl(source, encoding=DEFAULT_ENCODING) -> pd.DataFrame:
     with open(source, encoding=encoding) as fin:
