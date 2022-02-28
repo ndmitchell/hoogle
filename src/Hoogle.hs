@@ -1,16 +1,5 @@
 -- | High level Hoogle API
-module Hoogle
-  ( Database,
-    withDatabase,
-    searchDatabase,
-    defaultDatabaseLocation,
-    Target (..),
-    URL,
-    hoogle,
-    targetInfo,
-    targetResultDisplay,
-  )
-where
+module Hoogle where
 
 import Action.CmdLine
 import Action.Generate
@@ -29,6 +18,9 @@ import Network.HTTP.Simple
 import Query
 import Document
 import qualified Data.ByteString.Lazy.Char8 as LBS
+import qualified EvalItem as E (readEvalItems, EvalItem (docQuery, queryRes, docType), writeEvalItems, toJson)
+import EvalItem (writeEvalItems, EvalItem (queryRes))
+import System.IO (withFile, IOMode (WriteMode, AppendMode))
 
 -- | Database containing Hoogle search data.
 newtype Database = Database StoreRead
@@ -46,20 +38,39 @@ searchDatabase :: Database -> String -> [Target]
 searchDatabase (Database db) query = snd $ search db $ parseQuery query
 
 -- | Search a database, given a query string, produces a list of tuples.
-searchDatabase' :: Database -> String -> [(TargetId, Target)]
-searchDatabase' (Database db) query = snd $ searchTargetsWithIds db $ parseQuery query
+searchDatabase' :: StoreRead -> String -> [(TargetId, Target)]
+searchDatabase' store query = snd $ searchTargetsWithIds store $ parseQuery query
 
 searchDocs :: String -> IO [Document]
 searchDocs q = do
   database <- defaultDatabaseLocation
-  res <- withDatabase database $ \db -> do
-    return $ searchDatabase' db q
+  res <- withSearch database $ \store -> do
+    return $ searchDatabase' store q
   return $ map (\(id, t) -> toDocument (id, t)) res
 
 putSearchDocs  :: String -> IO ()
 putSearchDocs q = do
   res <- searchDocs q
   mapM_ (LBS.putStrLn . toJson) res
+
+runEvaluation :: FilePath -> IO ()
+runEvaluation f = do
+  let destination = ".\\eval-result-test.jsonl"
+  startAt <- length . lines <$> readFile destination
+  print startAt
+  database <- defaultDatabaseLocation
+  withSearch database $ \store -> do
+    items <- E.readEvalItems f
+    let enumeratedItems = drop startAt $ zip [1..] items
+    let getTargetIds q = map (\(TargetId id, _) -> id) $ searchDatabase' store q
+    withFile destination AppendMode $ \handle ->
+      mapM_ (\(n, i) -> do
+        print $ "start item n" ++ show n
+        let res = getTargetIds $ E.docType i
+        LBS.hPutStrLn handle $ E.toJson $ i { queryRes = Just res }
+        ) enumeratedItems
+
+evlpath = ".\\src\\Rank\\notebooks\\data_preparation\\test-tfidf-evalset.jsonl"
 
 -- | Run a command line Hoogle operation.
 hoogle :: [String] -> IO ()

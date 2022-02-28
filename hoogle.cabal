@@ -125,6 +125,8 @@ library
         General.Timing
         General.Util
         General.Web
+        Document
+        EvalItem
 
 
 executable hoogle
