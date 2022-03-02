@@ -9,8 +9,7 @@ class BM25Model(Model):
         corpus = [tokenized.split() for tokenized in self._store.read_corpus()]
         self._bm25 = BM25Okapi(corpus)
     
-    def score(self, query, hoogle_ids):
-        storage_ids = self._store.get_storage_ids_for_hoogle_ids(hoogle_ids)
+    def score(self, query, storage_ids):
         scores = self._bm25.get_batch_scores(query, storage_ids)
         return zip(storage_ids, scores)
     

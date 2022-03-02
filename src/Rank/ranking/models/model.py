@@ -7,13 +7,13 @@ class Model:
         assert store is not None, 'Store must not be None.'
         self._store = store
 
-    def rank(self, query, hoogleIds):
-        scores = self.score(query, hoogleIds)
-        ranking = sorted(scores, key=lambda score: score[1], reverse=True)
-        return ranking
+    def rank(self, query, storage_ids, top_n=10):
+        scores = self.score(query, storage_ids)
+        ranking = sorted(scores, key=lambda score: score[1], reverse=True)[:top_n]
+        return [id for id, _ in ranking]
 
     @abstractmethod
-    def score(self, query, hoogleIds):
+    def score(self, query, storage_ids):
         pass
 
     @abstractmethod
