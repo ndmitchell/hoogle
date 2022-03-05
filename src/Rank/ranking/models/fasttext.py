@@ -8,7 +8,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 class FastTextModel(Model):
     def __init__(self, store: DocumentStore, corpus):
         super().__init__(store)
-        self._model = FastText()
+        self._model = FastText(sg=1)
         self._model.build_vocab(sentences=corpus)
         self._model.train(sentences=corpus,
                           total_examples=self._model.corpus_count, epochs=10)
