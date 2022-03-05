@@ -1,7 +1,8 @@
 from abc import abstractmethod
 from ranking.storage.document_store import DocumentStore
+import pickle
 
-class Model:
+class Model(dict):
 
     def __init__(self, store: DocumentStore) -> None:
         assert store is not None, 'Store must not be None.'
@@ -16,10 +17,11 @@ class Model:
     def score(self, query, storage_ids):
         pass
 
-    @abstractmethod
-    def load():
-        pass
+    @staticmethod
+    def load(file):
+        with open(file, 'rb') as fin:
+            return pickle.load(fin)
 
-    @abstractmethod
     def save(self, file):
-        pass
+        with open(file, 'wb') as fout:
+            pickle.dump(self, fout, pickle.HIGHEST_PROTOCOL)

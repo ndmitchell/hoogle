@@ -1,21 +1,25 @@
-from ranking.util import json_lines as jl
 import numpy as np
+from ranking.util import json_lines as jl
 
 
 class DocumentStore:
     def __init__(self, dataset_file) -> None:
         self._df = jl.read_dataset(dataset_file)
+        self._grouped = self._df.groupby('storageId').first()
 
     def get_storage_ids_for_hoogle_ids(self, hoogle_ids):
-        hoogle_ids = [hoogle_id for hoogle_id in hoogle_ids if hoogle_id in self._df.index]
+        hoogle_ids = [
+            hoogle_id for hoogle_id in hoogle_ids if hoogle_id in self._df.index]
         return self._df.loc[hoogle_ids].index.get_level_values('storageId').unique().values
 
     def get_storage_id_for_hoogle_id(self, hoogle_id):
         [storageId] = self.get_storage_ids_for_hoogle_ids([hoogle_id])
         return storageId
 
-    def get_doc_contents_by_hoogle_ids(self, hoogle_id):
-        return self._df.xs(hoogle_id, level='storageId')
+    def get_doc_contents_by_storage_ids(self, storage_ids):
+        doc_contents = self._grouped.loc[storage_ids].apply(
+            lambda res: (res.name, res['docContent']), axis=1).to_list()
+        return doc_contents
 
     def read_corpus(self) -> np.ndarray:
         groups = self._df.groupby('storageId')
