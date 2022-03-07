@@ -41,6 +41,13 @@ searchDatabase (Database db) query = snd $ search db $ parseQuery query
 searchDatabase' :: StoreRead -> String -> [(TargetId, Target)]
 searchDatabase' store query = snd $ searchTargetsWithIds store $ parseQuery query
 
+searchTargets :: String -> IO [Target]
+searchTargets q = do
+  database <- defaultDatabaseLocation
+  res <- withSearch database $ \store -> do
+    return $ searchDatabase' store q
+  return $ map snd res
+
 searchDocs :: String -> IO [Document]
 searchDocs q = do
   database <- defaultDatabaseLocation

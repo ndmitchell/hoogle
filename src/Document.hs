@@ -12,7 +12,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as DT (pack, strip, unpack)
 import GHC.Generics (Generic)
 import General.Util (unHTML)
-import Input.Item (Target (targetDocs, targetItem), TargetId (..), unHTMLTarget)
+import Input.Item (Target (targetDocs, targetItem, targetPackage), TargetId (..), unHTMLTarget)
 import System.IO (IOMode (WriteMode), withFile)
 
 type FunctionName = String
@@ -23,7 +23,8 @@ data Document = Document
   { docId :: Word32,
     docContent :: String,
     docItem :: String,
-    docType :: String
+    docType :: String,
+    docPackage :: String
   }
   deriving (Show, Generic)
 
@@ -31,12 +32,13 @@ instance A.ToJSON Document where
   toEncoding = A.genericToEncoding A.defaultOptions
 
 toDocument :: (TargetId, Target) -> Document
-toDocument (TargetId id, t) = Document id docContent' docItem' docType'
+toDocument (TargetId id, t) = Document id docContent' docItem' docType' package
   where
     unHTMLedTarget = unHTMLTarget t
     docContent' = normalizedDocs unHTMLedTarget
     docItem' = strip $ fromMaybe "" $ getTypeSig $ targetItem unHTMLedTarget
     docType' = strip $ fromMaybe "" $ getTypeOfTypeSig $ targetItem unHTMLedTarget
+    package = maybe "" fst (targetPackage unHTMLedTarget)
 
 toJson :: Document -> LBS.ByteString
 toJson = A.encode
