@@ -1,6 +1,14 @@
 import pandas as pd
 from ranking.models.model import Model
+from ranking.normalization.normalizer import normalize
 
+def evaluate_model(model: Model, evaluation_set: pd.DataFrame):
+    evaluation_set['result'] = evaluation_set.apply(
+        lambda row: model.rank(normalize(row['docQuery']).split(), row['hoogleRes']),
+        axis=1
+    )
+    evaluation_set['rankings'] = evaluation_set.apply(lambda row: get_rank(row['storageId'], row['result']), axis=1)
+    return evaluate(evaluation_set['rankings'])
 
 def evaluate(ranks: pd.Series):
     total = len(ranks)
