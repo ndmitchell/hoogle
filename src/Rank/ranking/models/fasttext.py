@@ -9,8 +9,8 @@ class FastTextModel(Model):
     def __init__(self, store: DocumentStore, corpus):
         super().__init__(store)
         self._model = FastText(sg=1)
-        self._model.build_vocab(sentences=corpus)
-        self._model.train(sentences=corpus,
+        self._model.build_vocab(corpus)
+        self._model.train(corpus,
                           total_examples=self._model.corpus_count, epochs=10)
 
     def score(self, query, storage_ids):

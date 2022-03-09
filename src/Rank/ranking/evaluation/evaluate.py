@@ -1,10 +1,9 @@
-import pandas as pd
 from ranking.models.model import Model
-from ranking.normalization.normalizer import normalize
+import pandas as pd
 
 def evaluate_model(model: Model, evaluation_set: pd.DataFrame):
     evaluation_set['result'] = evaluation_set.apply(
-        lambda row: model.rank(normalize(row['docQuery']).split(), row['hoogleRes']),
+        lambda row: model.rank(row['docQuery'].split(), row['hoogleRes']),
         axis=1
     )
     evaluation_set['rankings'] = evaluation_set.apply(lambda row: get_rank(row['storageId'], row['result']), axis=1)

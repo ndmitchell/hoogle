@@ -1,6 +1,6 @@
 import setuptools
 
-required_packages = ['rank-bm25', 'pandas', 'scikit-learn']
+required_packages = ['rank-bm25', 'gensim', 'pandas', 'nltk', 'scikit-learn']
 
 setuptools.setup(
     name="ranking",
