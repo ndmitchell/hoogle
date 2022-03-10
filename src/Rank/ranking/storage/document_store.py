@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from ranking.util import json_lines as jl
 
 
@@ -6,6 +7,7 @@ class DocumentStore:
     def __init__(self, dataset_file) -> None:
         self._df = jl.read_dataset(dataset_file)
         self._grouped = self._df.groupby('storageId').first()
+        self._assert_that_grouped_storage_ids_are_overly_strict_monotonic()
 
     def get_storage_ids_for_hoogle_ids(self, hoogle_ids):
         hoogle_ids = [
@@ -22,6 +24,9 @@ class DocumentStore:
         return doc_contents
 
     def read_corpus(self) -> np.ndarray:
-        groups = self._df.groupby('storageId')
-        corpus = groups['docContent'].first().to_numpy()
-        return corpus
+        return self._grouped['docContent'].to_numpy()
+
+    def _assert_that_grouped_storage_ids_are_overly_strict_monotonic(self):
+        index = self._grouped.index
+        assert_range = pd.Series(range(1,len(self._grouped) + 1))
+        assert (assert_range - index).sum() == len(self._grouped), 'Grouped storage_ids must be a sequence of increasing natural numbers.'
