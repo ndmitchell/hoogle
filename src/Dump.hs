@@ -6,7 +6,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.Maybe
 import Document
 import Hoogle
-import Input.Item (TargetId (TargetId))
+import Input.Item (TargetId (TargetId), Target (targetDocs))
 import Numeric
 import Output.Items
 import System.IO

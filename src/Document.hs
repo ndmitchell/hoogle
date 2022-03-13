@@ -40,6 +40,16 @@ toDocument (TargetId id, t) = Document id docContent' docItem' docType' package
     docType' = strip $ fromMaybe "" $ getTypeOfTypeSig $ targetItem unHTMLedTarget
     package = maybe "" fst (targetPackage unHTMLedTarget)
 
+-- Same as toDocument but does not modify targetDocs.
+toDocument' :: (TargetId, Target) -> Document
+toDocument' (TargetId id, t) = Document id docContent' docItem' docType' package
+  where
+    unHTMLedTarget = unHTMLTarget t
+    docContent' = targetDocs t
+    docItem' = strip $ fromMaybe "" $ getTypeSig $ targetItem unHTMLedTarget
+    docType' = strip $ fromMaybe "" $ getTypeOfTypeSig $ targetItem unHTMLedTarget
+    package = maybe "" fst (targetPackage unHTMLedTarget)
+
 toJson :: Document -> LBS.ByteString
 toJson = A.encode
 

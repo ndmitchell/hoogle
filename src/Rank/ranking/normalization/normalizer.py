@@ -3,6 +3,7 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import word_tokenize
+from lxml.html import fromstring, etree
 
 # call nltk.help.upenn_tagset() to view all pos-tags
 
@@ -33,16 +34,25 @@ def stem(tokens, language='english'):
     stemmer = SnowballStemmer(language)
     return [stemmer.stem(token) for token in tokens]
 
-
 def lemmatize(tokens):
     lemmatizer = WordNetLemmatizer()
     return [lemmatizer.lemmatize(token, tag) for token, tag in get_pos_tags(tokens)]
 
+def get_wn_stopwords():
+    stop = set(stopwords.words('english'))
+    return list(stop)
 
-def normalize(text, stem=lemmatize, language='english'):
+def normalize(text, stem=lemmatize, stop = []):
     tokens = word_tokenize(text)
     tokens = [token for token in tokens if token.isalnum()]
     tokens = stem(tokens)
-    stop = set(stopwords.words(language))
     tokens = [token for token in tokens if token not in stop]
     return " ".join(tokens)
+
+def clean(text: str) -> str:
+    doc = fromstring(text)
+    etree.strip_elements(doc, 'pre')
+    cleaned_text = doc.text_content()
+    cleaned_text = ' '.join(cleaned_text.splitlines())
+    cleaned_text = ' '.join(cleaned_text.split()) # remove consecutive spaces
+    return cleaned_text.lower()
