@@ -104,9 +104,17 @@ searchTargetsWithIds store qs = runIdentity $ do
     pure (qs, map (\id -> (id, look id)) $ filter filt is)
 
 search :: StoreRead -> [Query] -> ([Query], [Target])
-search store qs = (qs, targets) where
-    (qs, results) = searchTargetsWithIds store qs 
-    targets = map snd results
+search store qs = runIdentity $ do
+    (qs, exact, filt, list) <- pure $ applyTags store  qs
+    is <- case (filter isQueryName qs, filter isQueryType qs) of
+        ([], [] ) -> pure list
+        ([], t:_) -> pure $ searchTypes store $ hseToSig $ fromQueryType t
+        (xs, [] ) -> pure $ searchNames store exact $ map fromQueryName xs
+        (xs, t:_) -> do
+            nam <- pure $ Set.fromList $ searchNames store exact $ map fromQueryName xs
+            pure $ filter (`Set.member` nam) $ searchTypes store $ hseToSig $ fromQueryType t
+    let look = lookupItem store
+    pure (qs, map look $ filter filt is)
 
 action_search_test :: Bool -> FilePath -> IO ()
 action_search_test sample database = testing "Action.Search.search" $ withSearch database $ \store -> do
