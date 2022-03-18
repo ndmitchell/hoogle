@@ -10,7 +10,7 @@ class BM25Model(Model):
         self._bm25 = BM25Okapi(corpus)
     
     def score(self, query, storage_ids):
-        scores = self._bm25.get_batch_scores(query, storage_ids)
+        scores = self._bm25.get_batch_scores(query.split(), storage_ids)
         return zip(storage_ids, scores)
     
     def save_model(self, file):

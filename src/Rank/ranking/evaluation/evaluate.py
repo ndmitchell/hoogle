@@ -5,7 +5,7 @@ from tqdm import tqdm
 def evaluate_model(model: Model, evaluation_set: pd.DataFrame):
     tqdm.pandas(desc='Evaluation progress')
     evaluation_set['result'] = evaluation_set.progress_apply(
-        lambda row: model.rank(row['docQuery'].split(), row['hoogleRes']),
+        lambda row: model.rank(row['docQuery'], row['hoogleRes']),
         axis=1
     )
     evaluation_set['rankings'] = evaluation_set.apply(lambda row: get_rank(row['storageId'], row['result']), axis=1)

@@ -16,7 +16,7 @@ class FastTextModel(Model):
         self._document_embeddings = self._get_store_embeddings(store)
 
     def score(self, query, storage_ids):
-        scores = [(storage_id, self.sim(self.get_embeddings(query), self._document_embeddings[storage_id])) 
+        scores = [(storage_id, self.sim(self.get_embeddings(query.split()), self._document_embeddings[storage_id])) 
             for storage_id in storage_ids]
         return scores
 
