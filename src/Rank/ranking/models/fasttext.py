@@ -3,6 +3,7 @@ from gensim.models.fasttext import FastText
 from ranking.models.model import Model
 from ranking.storage.document_store import DocumentStore
 from sklearn.metrics.pairwise import cosine_similarity
+import pandas as pd
 
 
 class FastTextModel(Model):
@@ -12,11 +13,11 @@ class FastTextModel(Model):
         self._model.build_vocab(corpus)
         self._model.train(corpus,
                           total_examples=self._model.corpus_count, epochs=10)
+        self._document_embeddings = self._get_store_embeddings(store)
 
     def score(self, query, storage_ids):
-        documents = self._store.get_doc_contents_by_storage_ids(storage_ids)
-        scores = [(storage_id, self.sim(query, document.split()))
-                  for storage_id, document in documents]
+        scores = [(storage_id, self.sim(self.get_embeddings(query), self._document_embeddings[storage_id])) 
+            for storage_id in storage_ids]
         return scores
 
     def get_embeddings(self, words):
@@ -24,12 +25,15 @@ class FastTextModel(Model):
             return np.zeros(self._model.vector_size)
         word_embeddings = np.array(
             [self._model.wv.get_vector(word) for word in words])
-        result = np.mean(word_embeddings, axis=0)
-        return result
+        mean_word_embeddings = np.mean(word_embeddings, axis=0)
+        return mean_word_embeddings
 
-    def sim(self, first_words, second_words):
-        first_words_embeddings = self.get_embeddings(first_words)
-        second_words_embeddings = self.get_embeddings(second_words)
-        [[similarity]] = cosine_similarity(first_words_embeddings.reshape(
-            1, -1), second_words_embeddings.reshape(1, -1))
+    def sim(self, first_emb, second_emb):
+        [[similarity]] = cosine_similarity(first_emb.reshape(
+            1, -1), second_emb.reshape(1, -1))
         return similarity
+
+    def _get_store_embeddings(self, store: DocumentStore) -> np.ndarray:
+        documents = pd.Series(store.read_corpus()).str.split()
+        doc_embeddings = documents.apply(lambda words: self.get_embeddings(words))
+        return doc_embeddings 
