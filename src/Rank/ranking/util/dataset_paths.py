@@ -1,7 +1,9 @@
 import os
+from pathlib import Path
 
-corpora_dir = os.path.abspath('..\\..\\datasets\\corpora\\without-code-examples')
-evaluation_dir = os.path.abspath('..\\..\\datasets\\evaluation')
+base_dir =  Path(__file__).parents[2]
+corpora_dir = os.path.join(base_dir, 'datasets\\corpora\\without-code-examples')
+evaluation_dir = os.path.join(base_dir, 'datasets\\evaluation')
 
 # Corpora
 lemmatized_unique_functions_corpus = os.path.join(corpora_dir, 'lem-all-unique-functions.jsonl')
