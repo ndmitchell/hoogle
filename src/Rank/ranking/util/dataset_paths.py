@@ -8,6 +8,11 @@ evaluation_dir = os.path.join(base_dir, 'datasets\\evaluation')
 # Corpora
 lemmatized_unique_functions_corpus = os.path.join(corpora_dir, 'lem-all-unique-functions.jsonl')
 tokenized_unique_functions_corpus = os.path.join(corpora_dir, 'tokenized-all-unique-functions.jsonl')
+
+# Contains not only function but also package, module, etc. documentation 
+lemmatized_unique_sentences_corpus = os.path.join(corpora_dir, 'lemmatized-corpus.txt')
+tokenized_unique_sentences_corpus = os.path.join(corpora_dir, 'tokenized-corpus.txt')
+
 unique_functions_corpus = os.path.join(corpora_dir, 'all-unique-functions.jsonl')
 raw_corpus = os.path.join(corpora_dir, 'no-code-ex-raw.dump.jsonl')
 
