@@ -1,4 +1,4 @@
-:set -fwarn-unused-binds -fwarn-unused-imports -fwarn-orphans
+:set -Wunused-binds -Wunused-imports -Worphans
 :set -isrc
 :set -hide-package=ghc-lib-parser
 :load Main src/Paths.hs
