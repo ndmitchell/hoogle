@@ -11,10 +11,12 @@ import GHC.Plugins
     CommandLineOption,
     FitPlugin,
     GlobalRdrElt (gre_imp),
+    HasDynFlags (getDynFlags),
     HoleFit (HoleFit, RawHoleFit, hfCand),
     HoleFitCandidate (GreHFCand),
     HoleFitPlugin (HoleFitPlugin, candPlugin, fitPlugin),
     HoleFitPluginR (HoleFitPluginR),
+    Outputable (ppr),
     Plugin (holeFitPlugin, pluginRecompile),
     TypedHole (th_hole),
     defaultPlugin,
@@ -24,13 +26,16 @@ import GHC.Plugins
     moduleNameString,
     occNameString,
     purePlugin,
-    text, HasDynFlags (getDynFlags), showSDoc, Outputable (ppr),
+    showSDoc,
+    text,
   )
 import GHC.Tc.Errors.Hole.FitTypes
 import GHC.Tc.Types.Constraint (Hole (hole_occ, hole_ty), HoleSort (TypeHole), ctPred, hole_ty)
 import GHC.Tc.Utils.Monad
-import Text.Read
+import Hoogle (searchTargets)
+import Input.Item (Target (targetItem), unHTMLTarget)
 import System.IO
+import Text.Read
 
 data HolePluginState = HPS
   { timeAlloted :: Maybe NominalDiffTime,
@@ -77,8 +82,6 @@ toHoleFitCommand tHole str =
 modFilterTimeoutP :: [CommandLineOption] -> TcRef HolePluginState -> CandPlugin
 modFilterTimeoutP _ ref hole cands = do
   curTime <- liftIO Time.getCurrentTime
-  liftIO $ hSetBuffering stdout NoBuffering
-  liftIO $ putStrLn "hello"
   HPS {..} <- readTcRef ref
   updTcRef ref (setCurStarted curTime)
   return $ case timeAlloted of
@@ -96,37 +99,19 @@ modFilterTimeoutP _ ref hole cands = do
     replace _ _ [] = []
     replace a b (x : xs) = (if x == a then b else x) : replace a b xs
 
+searchHoogle :: String -> IO [String]
+searchHoogle ts = do
+  result <- map unHTMLTarget <$> searchTargets ts
+  return $ map targetItem result
+
 modSortP :: [CommandLineOption] -> TcRef HolePluginState -> FitPlugin
 modSortP _ ref hole hfs = do
   dflags <- getDynFlags
-  -- let tyString = showSDoc dflags . ppr . ctPred <$> th_hole hole
-  let holeT = hole_ty <$> th_hole hole
-  case holeT of
-    Nothing -> liftIO $ print "hello"
-    Just ty -> liftIO $ print $ (showSDoc dflags . ppr) ty
-  return hfs
-  -- curTime <- liftIO Time.getCurrentTime
-  -- HPS {..} <- readTcRef ref
-  -- updTcRef ref $ bumpElapsed (Time.diffUTCTime curTime timeCurStarted)
-  -- return $ case timeAlloted of
-  --   -- If we're out of time, remove any candidates, so nothing is checked.
-  --   Just sofar | elapsedTime > sofar -> [RawHoleFit msg]
-  --   _ -> case toHoleFitCommand hole "sort_by_mod" of
-  --     -- If only_ is on, the fits will all be from the same module.
-  --     Just ('_' : 'd' : 'e' : 's' : 'c' : _) -> reverse hfs
-  --     Just _ -> orderByModule hfs
-  --     _ -> hfs
-  -- where
-  --   orderByModule :: [HoleFit] -> [HoleFit]
-  --   orderByModule = sortOn (fmap fromModule . mbHFCand)
-  --   mbHFCand :: HoleFit -> Maybe HoleFitCandidate
-  --   mbHFCand HoleFit {hfCand = c} = Just c
-  --   mbHFCand _ = Nothing
-  --   msg =
-  --     hang
-  --       (text "Error: The time ran out, and the search was aborted for this hole.")
-  --       7
-  --       $ text "Try again with a longer timeout."
+  let holeT = (showSDoc dflags . ppr) . hole_ty <$> th_hole hole
+  res <- case holeT of
+    Nothing -> return []
+    Just ty -> liftIO $ searchHoogle ty
+  return $ (take 10 $ map (RawHoleFit . text . ("Hoogle: " ++)) res) ++ hfs
 
 plugin :: Plugin
 plugin = defaultPlugin {holeFitPlugin = holeFitP, pluginRecompile = purePlugin}

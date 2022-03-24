@@ -1,5 +1,6 @@
 {-# OPTIONS -fplugin=Plugin.HolePlugin -fplugin-opt=Plugin.HolePlugin:600 -funclutter-valid-hole-fits #-}
-module Plugin.PluginDemo (hello) where
+{-# OPTIONS -fmax-valid-hole-fits=10 #-}
+module Plugin.PluginDemo where
 
 import Plugin.HolePlugin
 
