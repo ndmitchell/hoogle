@@ -82,7 +82,8 @@ library
         wai-logger,
         warp,
         warp-tls,
-        zlib
+        zlib,
+        ghc
 
     c-sources:        cbits/text_search.c
     include-dirs:     cbits
@@ -127,6 +128,8 @@ library
         General.Web
         Document
         EvalItem
+        Plugin.HolePlugin
+        Plugin.PluginDemo
 
 
 executable hoogle
