@@ -48,27 +48,6 @@ searchDatabase (Database db) query = snd $ search db $ parseQuery query
 searchDatabase' :: StoreRead -> String -> [(TargetId, Target)]
 searchDatabase' store query = snd $ searchTargetsWithIds store $ parseQuery query
 
-searchTargetIdsOnly :: String -> IO [TargetId]
-searchTargetIdsOnly q = do
-  database <- defaultDatabaseLocation
-  res <- withSearch database $ \store -> do
-    return $ searchDatabase' store q
-  return $ map fst res
-
-lookupTargets :: [TargetId] -> IO [Target]
-lookupTargets ids = do
-  database <- defaultDatabaseLocation
-  withSearch database $ \store -> do
-    let result = map (lookupItem store) ids
-    return result
-
-rankExternally :: String -> [TargetId] -> IO [TargetId]
-rankExternally q ids = do
-  let sepIds = intercalate "," (map (\(TargetId id) -> show id) ids)
-  request <- simpleHttp $ "http://localhost:8000/rank?query=" ++ q ++ "&hoogle_ids=" ++ sepIds
-  let res = map TargetId <$> (decode request :: Maybe [Word32])
-  return $ fromMaybe [] res
-
 searchTargets :: String -> IO [Target]
 searchTargets q = do
   database <- defaultDatabaseLocation

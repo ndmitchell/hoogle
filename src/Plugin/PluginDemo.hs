@@ -1,4 +1,4 @@
-{-# OPTIONS -fplugin=Plugin.HolePlugin -fplugin-opt=Plugin.HolePlugin:600 -funclutter-valid-hole-fits #-}
+{-# OPTIONS -fplugin=Plugin.HolePlugin -fplugin-opt=Plugin.HolePlugin:http://localhost:8000 -funclutter-valid-hole-fits #-}
 {-# OPTIONS -fmax-valid-hole-fits=10 #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Plugin.PluginDemo where
