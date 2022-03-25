@@ -71,13 +71,12 @@ hoogleRerankPlugin _ ref hole hfs = do
   let holeT = (showSDoc dflags . ppr) . hole_ty <$> th_hole hole
   res <- case holeT of
     Nothing -> return []
-    Just ty -> do
+    Just ty -> liftIO $ do
       let holeQ = holeNameToQuery hole
       let searchP = ":: " ++ ty
-      res <- liftIO $ searchHoogle holeQ searchP
-      liftIO $ print $ "Type: " ++ searchP
-      liftIO $ print $ "Query: " ++ holeQ
-      return res
+      print $ "Type: " ++ searchP
+      print $ "Query: " ++ holeQ
+      searchHoogle holeQ searchP
   return $ (take 10 $ map (RawHoleFit . text . ("Hoogle: " ++)) res) ++ hfs
 
 plugin :: Plugin
