@@ -40,66 +40,14 @@ import Data.Maybe (fromMaybe)
 import Data.List.Extra (splitOn)
 
 data HolePluginState = HPS
-  { timeAlloted :: Maybe NominalDiffTime,
-    elapsedTime :: NominalDiffTime,
-    timeCurStarted :: UTCTime
-  }
-
-bumpElapsed :: NominalDiffTime -> HolePluginState -> HolePluginState
-bumpElapsed ad (HPS a e t) = HPS a (e + ad) t
-
-setAlloted :: Maybe NominalDiffTime -> HolePluginState -> HolePluginState
-setAlloted a (HPS _ e t) = HPS a e t
-
-setCurStarted :: UTCTime -> HolePluginState -> HolePluginState
-setCurStarted nt (HPS a e _) = HPS a e nt
-
-hpStartState :: HolePluginState
-hpStartState = HPS Nothing zero undefined
-  where
-    zero = fromInteger @NominalDiffTime 0
 
 initPlugin :: [CommandLineOption] -> TcM (TcRef HolePluginState)
-initPlugin [msecs] = newTcRef $ hpStartState {timeAlloted = alloted}
-  where
+initPlugin [msecs] = newTcRef HPS  where
     errMsg = "Invalid amount of milliseconds given to plugin: " <> show msecs
     alloted = case readMaybe @Integer msecs of
       Just millisecs -> Just $ fromInteger @NominalDiffTime millisecs / 1000
       _ -> error errMsg
-initPlugin _ = newTcRef hpStartState
-
-fromModule :: HoleFitCandidate -> [String]
-fromModule (GreHFCand gre) =
-  map (moduleNameString . importSpecModule) $ gre_imp gre
-fromModule _ = []
-
-toHoleFitCommand :: TypedHole -> String -> Maybe String
-toHoleFitCommand tHole str =
-  case th_hole tHole of
-    Just hole -> stripPrefix ("_" <> str) $ occNameString $ hole_occ hole
-    _ -> Nothing
-
--- | This candidate plugin filters the candidates by module,
--- using the name of the hole as module to search in
-modFilterTimeoutP :: [CommandLineOption] -> TcRef HolePluginState -> CandPlugin
-modFilterTimeoutP _ ref hole cands = do
-  curTime <- liftIO Time.getCurrentTime
-  HPS {..} <- readTcRef ref
-  updTcRef ref (setCurStarted curTime)
-  return $ case timeAlloted of
-    -- If we're out of time we remove all the candidates. Then nothing is checked.
-    Just sofar | elapsedTime > sofar -> []
-    _ -> case toHoleFitCommand hole "only_" of
-      Just modName -> filter (inScopeVia modName) cands
-      _ -> cands
-  where
-    inScopeVia modNameStr cand@(GreHFCand _) =
-      elem (toModName modNameStr) $ fromModule cand
-    inScopeVia _ _ = False
-    toModName = replace '_' '.'
-    replace :: Eq a => a -> a -> [a] -> [a]
-    replace _ _ [] = []
-    replace a b (x : xs) = (if x == a then b else x) : replace a b xs
+initPlugin _ = newTcRef HPS
 
 searchHoogle :: String -> String -> IO [String]
 searchHoogle q ts = do
@@ -114,8 +62,11 @@ holeNameToQuery hole = splitUcWords holeName where
     Just ho -> fromMaybe "" . stripPrefix "_" . occNameString $ hole_occ ho
   splitUcWords = unwords . splitOn "_"
 
-modSortP :: [CommandLineOption] -> TcRef HolePluginState -> FitPlugin
-modSortP _ ref hole hfs = do
+defaultCandPlugin :: [CommandLineOption] -> TcRef HolePluginState -> CandPlugin
+defaultCandPlugin _ _ _ cands = return cands
+
+hoogleRerankPlugin :: [CommandLineOption] -> TcRef HolePluginState -> FitPlugin
+hoogleRerankPlugin _ ref hole hfs = do
   dflags <- getDynFlags
   let holeT = (showSDoc dflags . ppr) . hole_ty <$> th_hole hole
   res <- case holeT of
@@ -137,8 +88,5 @@ holeFitP opts = Just (HoleFitPluginR initP pluginDef stopP)
   where
     initP = initPlugin opts
     stopP = const $ return ()
-    pluginDef ref =
-      HoleFitPlugin
-        { candPlugin = modFilterTimeoutP opts ref,
-          fitPlugin = modSortP opts ref
-        }
+    pluginDef ref = HoleFitPlugin { fitPlugin = hoogleRerankPlugin opts ref, candPlugin = defaultCandPlugin opts ref}
+
