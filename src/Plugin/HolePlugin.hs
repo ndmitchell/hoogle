@@ -118,12 +118,15 @@ modSortP :: [CommandLineOption] -> TcRef HolePluginState -> FitPlugin
 modSortP _ ref hole hfs = do
   dflags <- getDynFlags
   let holeT = (showSDoc dflags . ppr) . hole_ty <$> th_hole hole
-  liftIO $ print $ fromMaybe "nothing" holeT
-  let holeQ = holeNameToQuery hole
-  liftIO $ print holeQ 
   res <- case holeT of
     Nothing -> return []
-    Just ty -> liftIO $ searchHoogle holeQ ty
+    Just ty -> do
+      let holeQ = holeNameToQuery hole
+      let searchP = ":: " ++ ty
+      res <- liftIO $ searchHoogle holeQ searchP
+      liftIO $ print $ "Type: " ++ searchP
+      liftIO $ print $ "Query: " ++ holeQ
+      return res
   return $ (take 10 $ map (RawHoleFit . text . ("Hoogle: " ++)) res) ++ hfs
 
 plugin :: Plugin
