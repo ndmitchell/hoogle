@@ -13,7 +13,7 @@ import General.Store
 import General.Store (storeRead)
 import General.Util
 import Input.Item
-import Network.HTTP.Client.Conduit (Response (responseBody))
+import Network.HTTP.Client.Conduit (Response (responseBody), Request (requestBody))
 import Network.HTTP.Simple
 import Query
 import Document
@@ -22,6 +22,12 @@ import qualified EvalItem as E (readEvalItems, EvalItem (docQuery, queryRes, doc
 import EvalItem (writeEvalItems, EvalItem (queryRes))
 import System.IO (withFile, IOMode (WriteMode, AppendMode))
 import System.Directory (doesFileExist)
+import Output.Items
+import Network.HTTP.Conduit (simpleHttp)
+import Data.List
+import Data.Aeson (decode)
+import Data.Binary (Word32)
+import Data.Maybe (fromMaybe)
 
 -- | Database containing Hoogle search data.
 newtype Database = Database StoreRead
@@ -41,6 +47,27 @@ searchDatabase (Database db) query = snd $ search db $ parseQuery query
 -- | Search a database, given a query string, produces a list of tuples.
 searchDatabase' :: StoreRead -> String -> [(TargetId, Target)]
 searchDatabase' store query = snd $ searchTargetsWithIds store $ parseQuery query
+
+searchTargetIdsOnly :: String -> IO [TargetId]
+searchTargetIdsOnly q = do
+  database <- defaultDatabaseLocation
+  res <- withSearch database $ \store -> do
+    return $ searchDatabase' store q
+  return $ map fst res
+
+lookupTargets :: [TargetId] -> IO [Target]
+lookupTargets ids = do
+  database <- defaultDatabaseLocation
+  withSearch database $ \store -> do
+    let result = map (lookupItem store) ids
+    return result
+
+rankExternally :: String -> [TargetId] -> IO [TargetId]
+rankExternally q ids = do
+  let sepIds = intercalate "," (map (\(TargetId id) -> show id) ids)
+  request <- simpleHttp $ "http://localhost:8000/rank?query=" ++ q ++ "&hoogle_ids=" ++ sepIds
+  let res = map TargetId <$> (decode request :: Maybe [Word32])
+  return $ fromMaybe [] res
 
 searchTargets :: String -> IO [Target]
 searchTargets q = do

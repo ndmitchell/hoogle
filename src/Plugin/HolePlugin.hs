@@ -27,15 +27,17 @@ import GHC.Plugins
     occNameString,
     purePlugin,
     showSDoc,
-    text,
+    text, split,
   )
 import GHC.Tc.Errors.Hole.FitTypes
 import GHC.Tc.Types.Constraint (Hole (hole_occ, hole_ty), HoleSort (TypeHole), ctPred, hole_ty)
 import GHC.Tc.Utils.Monad
-import Hoogle (searchTargets)
+import Hoogle (searchTargets, searchTargetIdsOnly, rankExternally, lookupTargets)
 import Input.Item (Target (targetItem), unHTMLTarget)
 import System.IO
 import Text.Read
+import Data.Maybe (fromMaybe)
+import Data.List.Extra (splitOn)
 
 data HolePluginState = HPS
   { timeAlloted :: Maybe NominalDiffTime,
@@ -99,18 +101,29 @@ modFilterTimeoutP _ ref hole cands = do
     replace _ _ [] = []
     replace a b (x : xs) = (if x == a then b else x) : replace a b xs
 
-searchHoogle :: String -> IO [String]
-searchHoogle ts = do
-  result <- map unHTMLTarget <$> searchTargets ts
-  return $ map targetItem result
+searchHoogle :: String -> String -> IO [String]
+searchHoogle q ts = do
+  result <- searchTargetIdsOnly ts
+  ranked <- if not $ null q then rankExternally q result else return result
+  map (targetItem . unHTMLTarget) <$> lookupTargets ranked
+
+holeNameToQuery :: TypedHole -> String
+holeNameToQuery hole = splitUcWords holeName where
+  holeName = case th_hole hole of
+    Nothing -> ""
+    Just ho -> fromMaybe "" . stripPrefix "_" . occNameString $ hole_occ ho
+  splitUcWords = unwords . splitOn "_"
 
 modSortP :: [CommandLineOption] -> TcRef HolePluginState -> FitPlugin
 modSortP _ ref hole hfs = do
   dflags <- getDynFlags
   let holeT = (showSDoc dflags . ppr) . hole_ty <$> th_hole hole
+  liftIO $ print $ fromMaybe "nothing" holeT
+  let holeQ = holeNameToQuery hole
+  liftIO $ print holeQ 
   res <- case holeT of
     Nothing -> return []
-    Just ty -> liftIO $ searchHoogle ty
+    Just ty -> liftIO $ searchHoogle holeQ ty
   return $ (take 10 $ map (RawHoleFit . text . ("Hoogle: " ++)) res) ++ hfs
 
 plugin :: Plugin
