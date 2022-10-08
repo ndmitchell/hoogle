@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
 
@@ -257,13 +258,21 @@ itemCategories xs =
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
+-- | Display the line under the title of a search result, which contains a list of Modules each target is defined in, ordered by package.
 showFroms :: UrlOpts -> [Target] -> Markup
-showFroms urlOpts xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
-    let ms = filter ((==) p . targetPackage) xs
-    in mconcat $ intersperse " " [H.a ! H.href (H.stringValue $ showURL urlOpts b) $ H.string a | (a,b) <- catMaybes $ p : map remod ms]
+showFroms urlOpts targets = mconcat $ intersperse ", " $ flip map pkgs $ \pkg ->
+    let ms = filter ((==) pkg . targetPackage) targets
+    in mconcat $ intersperse " "
+        [(H.a ! H.href (H.stringValue $ showURL urlOpts targetUrl))
+            (H.string pkgName)
+        | (pkgName, targetUrl)
+            <- catMaybes $ pkg : map pkgAndTargetUrlMay ms
+        ]
     where
-        remod Target{..} = do (a,_) <- targetModule; pure (a,targetURL)
-        pkgs = nubOrd $ map targetPackage xs
+        pkgAndTargetUrlMay Target{targetModule, targetURL} = do
+            (pkgName, _) <- targetModule
+            pure (pkgName, targetURL)
+        pkgs = nubOrd $ map targetPackage targets
 
 showURL :: UrlOpts -> URL -> String
 showURL IsHaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
