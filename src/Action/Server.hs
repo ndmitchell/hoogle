@@ -223,7 +223,7 @@ showResults urlOpts links args query results = do
             H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
     H.ul ! H.id "left" $ do
         H.li $ H.b "Packages"
-        mconcat [H.li $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
+        mconcat [H.li $ leftSidebarSearchLinks cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
 
     where
         useLink :: [Target] -> Maybe String
@@ -231,14 +231,19 @@ showResults urlOpts links args query results = do
             Just $ "https://packdeps.haskellers.com/reverse/" ++ extractName (targetItem t)
         useLink _ = Nothing
 
-        add x = ("?" ++) $ intercalate "&" $ map (joinPair "=") $
+        -- The search URL with an extra filter added to the hoogle query
+        searchURLWithExtraSearchFilter :: String -> String
+        searchURLWithExtraSearchFilter searchFilter = ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
-                (a,[]) -> a ++ [("hoogle", escapeURL x)]
-                (a,(_,x1):b) -> a ++ [("hoogle", escapeURL $ x1 ++ " " ++ x)] ++ b
+                (a,[]) -> a ++ [("hoogle", escapeURL searchFilter)]
+                (a,(_,x1):b) -> a ++ [("hoogle", escapeURL $ x1 ++ " " ++ searchFilter)] ++ b
 
-        f cat val = do
-            H.a ! H.class_" minus" ! H.href (H.stringValue $ add $ "-" ++ cat ++ ":" ++ val) $ ""
-            H.a ! H.class_ "plus"  ! H.href (H.stringValue $ add $        cat ++ ":" ++ val) $
+        -- Construct two links in the left sidebar,
+        -- one which repeats the current search *with* the respective package or category,
+        -- one *without* the package or category.
+        leftSidebarSearchLinks cat val = do
+            H.a ! H.class_" minus" ! H.href (H.stringValue $ searchURLWithExtraSearchFilter $ "-" ++ cat ++ ":" ++ val) $ ""
+            H.a ! H.class_ "plus"  ! H.href (H.stringValue $ searchURLWithExtraSearchFilter $        cat ++ ":" ++ val) $
                 H.string $ (if cat == "package" then "" else cat ++ ":") ++ val
 
 
