@@ -115,7 +115,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
               | local -> IsLocalUrl
               | otherwise -> IsOtherUrl
         let body = showResults urlOpts links (filter ((/= "mode") . fst) inputArgs) q2 $
-                dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
+                takeAndGroup 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" inputArgs of
             Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex
                         [("tags", html $ tagOptions qScope)
@@ -193,16 +193,21 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         templateLogJs = templateFile (htmlDir </> "log.js") `templateApply` params
 
 
-dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
-dedupeTake n key = f [] Map.empty
+-- | Take from the list until we’ve seen `n` different keys,
+-- and group all values by their respective key.
+--
+-- Will keep the order of elements for each key the same.
+takeAndGroup :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
+takeAndGroup n key = f [] Map.empty
     where
-        -- map is Map k [v]
-        f res mp []
-          = map (reverse . (Map.!) mp) $ reverse res
-        f res mp _ | Map.size mp >= n
-          = map (reverse . (Map.!) mp) $ reverse res
-        f res mp (x:xs) | Just vs <- Map.lookup k mp = f res (Map.insert k (x:vs) mp) xs
-                        | otherwise = f (k:res) (Map.insert k [x] mp) xs
+        -- mp is Map k [v]
+        f keys mp []
+            = map (\k -> reverse $ mp Map.! k) $ reverse keys
+        f keys mp _ | Map.size mp >= n
+            = map (\k -> reverse $ mp Map.! k) $ reverse keys
+        f keys mp (x:xs)
+            | Just vs <- Map.lookup k mp = f keys (Map.insert k (x:vs) mp) xs
+            | otherwise = f (k:keys) (Map.insert k [x] mp) xs
             where k = key x
 
 data UrlOpts = IsHaddockUrl | IsLocalUrl | IsOtherUrl
