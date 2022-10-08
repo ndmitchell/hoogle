@@ -1,5 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
 
@@ -104,7 +105,12 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         let qSource = qSearch ++ filter (/= "set:stackage") qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
-        let body = showResults local links haddock (filter ((/= "mode") . fst) inputArgs) q2 $
+
+        let urlOpts = if
+              | Just _ <- haddock -> IsHaddockUrl
+              | local -> IsLocalUrl
+              | otherwise -> IsOtherUrl
+        let body = showResults urlOpts links (filter ((/= "mode") . fst) inputArgs) q2 $
                 dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" inputArgs of
             Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex
@@ -151,8 +157,8 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         pure $ case stats of
             Nothing -> OutputFail $ lbstrPack "GHC Statistics is not enabled, restart with +RTS -T"
             Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop1 $ dropWhile (/= '{') $ show x
-    "haddock":xs | Just x <- haddock -> do
-        let file = intercalate "/" $ x:xs
+    "haddock":xs | Just haddockFilePath <- haddock -> do
+        let file = intercalate "/" $ haddockFilePath:xs
         pure $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
     "file":xs | local -> do
         let x = ['/' | not isWindows] ++ intercalate "/" (dropWhile null xs)
@@ -192,20 +198,21 @@ dedupeTake n key = f [] Map.empty
                         | otherwise = f (k:res) (Map.insert k [x] mp) xs
             where k = key x
 
+data UrlOpts = IsHaddockUrl | IsLocalUrl | IsOtherUrl
 
-showResults :: Bool -> Bool -> Maybe FilePath -> [(String, String)] -> [Query] -> [[Target]] -> Markup
-showResults local links haddock args query results = do
+showResults :: UrlOpts -> Bool -> [(String, String)] -> [Query] -> [[Target]] -> Markup
+showResults urlOpts links args query results = do
     H.h1 $ renderQuery query
     when (null results) $ H.p "No results found"
     forM_ results $ \is@(Target{..}:_) -> do
         H.div ! H.class_ "result" $ do
             H.div ! H.class_ "ans" $ do
-                H.a ! H.href (H.stringValue $ showURL local haddock targetURL) $
+                H.a ! H.href (H.stringValue $ showURL urlOpts targetURL) $
                     displayItem query targetItem
                 when links $
                     whenJust (useLink is) $ \link ->
                         H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue link) $ "Uses"
-            H.div ! H.class_ "from" $ showFroms local haddock is
+            H.div ! H.class_ "from" $ showFroms urlOpts is
             H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
     H.ul ! H.id "left" $ do
         H.li $ H.b "Packages"
@@ -244,18 +251,18 @@ itemCategories xs =
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
-showFroms :: Bool -> Maybe FilePath -> [Target] -> Markup
-showFroms local haddock xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
+showFroms :: UrlOpts -> [Target] -> Markup
+showFroms urlOpts xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
     let ms = filter ((==) p . targetPackage) xs
-    in mconcat $ intersperse " " [H.a ! H.href (H.stringValue $ showURL local haddock b) $ H.string a | (a,b) <- catMaybes $ p : map remod ms]
+    in mconcat $ intersperse " " [H.a ! H.href (H.stringValue $ showURL urlOpts b) $ H.string a | (a,b) <- catMaybes $ p : map remod ms]
     where
         remod Target{..} = do (a,_) <- targetModule; pure (a,targetURL)
         pkgs = nubOrd $ map targetPackage xs
 
-showURL :: Bool -> Maybe FilePath -> URL -> String
-showURL _ (Just _) x = "haddock/" ++ dropPrefix "file:///" x
-showURL True _ (stripPrefix "file:///" -> Just x) = "file/" ++ x
-showURL _ _ x = x
+showURL :: UrlOpts -> URL -> String
+showURL IsHaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
+showURL IsLocalUrl (stripPrefix "file:///" -> Just x) = "file/" ++ x
+showURL IsOtherUrl x = x
 
 
 -------------------------------------------------------------
