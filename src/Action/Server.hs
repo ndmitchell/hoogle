@@ -88,8 +88,15 @@ replyServer :: Log -> Bool -> Bool -> Maybe FilePath -> StoreRead -> String -> S
 replyServer log local links haddock store cdn home htmlDir scope Input{..} = case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
-        let grabBy name = [x | (a,x) <- inputArgs, name a, x /= ""]
+        let
+            -- take from inputArgs, if namePred and value not empty
+            grabBy :: (String -> Bool) -> [String]
+            grabBy namePred = [x | (a,x) <- inputArgs, namePred a, x /= ""]
+            -- take from input Args if value not empty
+            grab :: String -> [String]
             grab name = grabBy (== name)
+            -- take an int from input Args, iff exists, else use default value
+            grabInt :: String -> Int -> Int
             grabInt name def = fromMaybe def $ readMaybe =<< listToMaybe (grab name) :: Int
 
         let qScope = let xs = grab "scope" in [scope | null xs && scope /= ""] ++ xs
