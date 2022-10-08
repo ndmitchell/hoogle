@@ -1,6 +1,7 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
 
@@ -31,7 +32,7 @@ import System.Time.Extra
 import Data.Time.Clock
 import Data.Time.Calendar
 import System.IO.Unsafe
-import Numeric.Extra
+import Numeric.Extra hiding (log)
 import System.Info.Extra
 
 import Output.Tags
@@ -46,7 +47,7 @@ import Action.Search
 import Action.CmdLine
 import Control.Applicative
 import Data.Monoid
-import Prelude
+import Prelude hiding (log)
 
 import qualified Data.Aeson as JSON
 
@@ -61,11 +62,12 @@ actionServer cmd@Server{..} = do
     log <- logCreate (if logs == "" then Left stdout else Right logs) $
         \x -> BS.pack "hoogle=" `BS.isInfixOf` x && not (BS.pack "is:ping" `BS.isInfixOf` x)
     putStrLn . showDuration =<< time
-    evaluate spawned
+    _ <- evaluate spawned
     dataDir <- maybe getDataDir pure datadir
-    haddock <- maybe (pure Nothing) (fmap Just . canonicalizePath) haddock
+    haddock' <- maybe (pure Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
-        server log cmd $ replyServer log local links haddock store cdn home (dataDir </> "html") scope
+        server log cmd $ replyServer log local links haddock' store cdn home (dataDir </> "html") scope
+actionServer _ = error "should not happen"
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -80,6 +82,7 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
             evaluate $ rnf res
             putChar '.'
     putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / intToDouble (repeat_ * length qs)) ++ ")"
+actionReplay _ = error "should not happen"
 
 {-# NOINLINE spawned #-}
 spawned :: UTCTime
@@ -116,9 +119,9 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
             Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex
                         [("tags", html $ tagOptions qScope)
                         ,("body", html body)
-                        ,("title", text $ unwords qSource ++ " - Hoogle")
-                        ,("search", text $ unwords qSearch)
-                        ,("robots", text $ if any isQueryScope q then "none" else "index")]
+                        ,("title", txt $ unwords qSource ++ " - Hoogle")
+                        ,("search", txt $ unwords qSearch)
+                        ,("robots", txt $ if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
             Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else templateRender (html body) []
             Just "json" ->
@@ -143,15 +146,15 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         summ <- logSummary log
         let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
         let alive = fromRational $ toRational $ (now `diffUTCTime` spawned) / (24 * 60 * 60)
-        pure $ (if errs == 0 && alive < 1.5 then OutputText else OutputFail) $ lbstrPack $
+        pure $ (if errs == 0 && alive < (1.5 :: Double) then OutputText else OutputFail) $ lbstrPack $
             "Errors " ++ (if errs == 0 then "good" else "bad") ++ ": " ++ show errs ++ " in the last 24 hours.\n" ++
             "Updates " ++ (if alive < 1.5 then "good" else "bad") ++ ": Last updated " ++ showDP 2 alive ++ " days ago.\n"
 
     ["log"] -> do
         OutputHTML <$> templateRender templateLog []
     ["log.js"] -> do
-        log <- displayLog <$> logSummary log
-        OutputJavascript <$> templateRender templateLogJs [("data",html $ H.preEscapedString log)]
+        log' <- displayLog <$> logSummary log
+        OutputJavascript <$> templateRender templateLogJs [("data",html $ H.preEscapedString log')]
     ["stats"] -> do
         stats <- getStatsDebug
         pure $ case stats of
@@ -174,17 +177,17 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         pure $ OutputFile $ joinPath $ htmlDir : xs
     where
         html = templateMarkup
-        text = templateMarkup . H.string
+        txt = templateMarkup . H.string
 
         tagOptions sel = mconcat [H.option Text.Blaze.!? (x `elem` sel, H.selected "selected") $ H.string x | x <- completionTags store]
         params =
-            [("cdn", text cdn)
-            ,("home", text home)
-            ,("jquery", text $ if null cdn then "plugin/jquery.js" else "https:" ++ JQuery.url)
-            ,("version", text $ showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
+            [("cdn", txt cdn)
+            ,("home", txt home)
+            ,("jquery", txt $ if null cdn then "plugin/jquery.js" else "https:" ++ JQuery.url)
+            ,("version", txt $ showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
         templateIndex = templateFile (htmlDir </> "index.html") `templateApply` params
         templateEmpty = templateFile (htmlDir </>  "welcome.html")
-        templateHome = templateIndex `templateApply` [("tags",html $ tagOptions []),("body",templateEmpty),("title",text "Hoogle"),("search",text ""),("robots",text "index")]
+        templateHome = templateIndex `templateApply` [("tags",html $ tagOptions []),("body",templateEmpty),("title",txt "Hoogle"),("search",txt ""),("robots",txt "index")]
         templateLog = templateFile (htmlDir </> "log.html") `templateApply` params
         templateLogJs = templateFile (htmlDir </> "log.js") `templateApply` params
 
@@ -193,7 +196,10 @@ dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
 dedupeTake n key = f [] Map.empty
     where
         -- map is Map k [v]
-        f res mp xs | Map.size mp >= n || null xs = map (reverse . (Map.!) mp) $ reverse res
+        f res mp []
+          = map (reverse . (Map.!) mp) $ reverse res
+        f res mp _ | Map.size mp >= n
+          = map (reverse . (Map.!) mp) $ reverse res
         f res mp (x:xs) | Just vs <- Map.lookup k mp = f res (Map.insert k (x:vs) mp) xs
                         | otherwise = f (k:res) (Map.insert k [x] mp) xs
             where k = key x
@@ -238,9 +244,9 @@ showResults urlOpts links args query results = do
 -- find the <span class=name>X</span> bit
 extractName :: String -> String
 extractName x
-    | Just (_, x) <- stripInfix "<span class=name>" x
-    , Just (x, _) <- stripInfix "</span>" x
-    = unHTML x
+    | Just (_, x') <- stripInfix "<span class=name>" x
+    , Just (x'', _) <- stripInfix "</span>" x'
+    = unHTML x''
 extractName x = x
 
 
@@ -262,6 +268,7 @@ showFroms urlOpts xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
 showURL :: UrlOpts -> URL -> String
 showURL IsHaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
 showURL IsLocalUrl (stripPrefix "file:///" -> Just x) = "file/" ++ x
+showURL IsLocalUrl x = x
 showURL IsOtherUrl x = x
 
 
@@ -269,17 +276,17 @@ showURL IsOtherUrl x = x
 -- DISPLAY AN ITEM (bold keywords etc)
 
 highlightItem :: [Query] -> String -> Markup
-highlightItem qs x
-    | Just (pre,x) <- stripInfix "<s0>" x, Just (name,post) <- stripInfix "</s0>" x
+highlightItem qs str
+    | Just (pre,x) <- stripInfix "<s0>" str, Just (name,post) <- stripInfix "</s0>" x
         = H.preEscapedString pre <> highlight (unescapeHTML name) <> H.preEscapedString post
-    | otherwise = H.string x
+    | otherwise = H.string str
     where
         highlight = mconcatMap (\xs@((b,_):_) -> let s = H.string $ map snd xs in if b then H.b s else s) .
                     groupOn fst . (\x -> zip (f x) x)
             where
               f (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (f xs)
                   where m = maximum $ 0 : [length y | QueryName y <- qs, lower y `isPrefixOf` lower (x:xs)]
-              f (x:xs) = False : f xs
+              f (_:xs) = False : f xs
               f [] = []
 
 displayItem :: [Query] -> String -> Markup
