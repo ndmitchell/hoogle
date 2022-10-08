@@ -50,6 +50,9 @@ import Data.Monoid
 import Prelude
 
 import qualified Data.Aeson as JSON
+import Data.Function ((&))
+import Data.Functor ((<&>))
+import Data.Traversable (for)
 
 actionServer :: CmdLine -> IO ()
 actionServer cmd@Server{..} = do
@@ -265,21 +268,39 @@ itemCategories xs =
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
+-- | Return an alist [(PackageName, PackageUrl, [(TargetUrl, TargetModule)])]
+showFromsLogic :: [Target] -> [(String, URL, [(URL, String)])]
+showFromsLogic targets = do
+    targets
+      & sortOn targetPackage
+      & groupOn targetPackage
+      & mapMaybe genAssocList
+  where
+    genAssocList :: [Target] -> Maybe (String, URL, [(URL, String)])
+    genAssocList targetGroup = do
+        -- all Targets in this targetGroup will have the same pkgName
+        -- due to the sort followed by the group
+        (pkgName, pkgUrl) <- targetGroup <&> targetPackage & headDef Nothing
+        targets' <- for targetGroup $ \Target{..} -> do
+            (moduleName, _) <- targetModule
+            pure (targetURL, moduleName)
+        pure (pkgName, pkgUrl, targets')
+
+
 -- | Display the line under the title of a search result, which contains a list of Modules each target is defined in, ordered by package.
 showFroms :: UrlOpts -> [Target] -> Markup
-showFroms urlOpts targets = mconcat $ intersperse ", " $ flip map pkgs $ \pkg ->
-    let ms = filter ((==) pkg . targetPackage) targets
-    in mconcat $ intersperse " "
-        [(H.a ! H.href (H.stringValue $ showURL urlOpts targetUrl))
-            (H.string pkgName)
-        | (pkgName, targetUrl)
-            <- catMaybes $ pkg : map pkgAndTargetUrlMay ms
-        ]
-    where
-        pkgAndTargetUrlMay Target{targetModule, targetURL} = do
-            (pkgName, _) <- targetModule
-            pure (pkgName, targetURL)
-        pkgs = nubOrd $ map targetPackage targets
+showFroms urlOpts allTargets = do
+    let pkgs = showFromsLogic allTargets
+    mconcat $ intersperse ", " $ flip map pkgs $ \(pkgName, pkgUrl, targets) -> do
+        let link txt url = (H.a ! H.href (H.stringValue $ showURL urlOpts url)) (H.string txt)
+        mconcat $ intersperse " "
+            -- display the list as “pkg Module1 Module2",
+            -- each as links to either the package
+            -- or the target inside the respective module.
+            $ link pkgName pkgUrl
+              : [ link moduleName targetUrl
+                | (targetUrl, moduleName) <- targets
+                ]
 
 showURL :: UrlOpts -> URL -> String
 showURL HaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
