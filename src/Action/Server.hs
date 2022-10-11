@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
 
@@ -53,6 +54,7 @@ import qualified Data.Aeson as JSON
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.Traversable (for)
+import Control.Category ((>>>))
 
 actionServer :: CmdLine -> IO ()
 actionServer cmd@Server{..} = do
@@ -288,20 +290,37 @@ showFromsLogic targets = do
     targets
       & sortOn targetPackage
       & groupOn targetPackage
-      & mapMaybe
-        (
-            genAssocList
+      & mapMaybe (
             -- quite peculiarly, the list of modules inside each package
             -- is sorted in reverse-topological order, that is downstream
             -- modules are first in the result. We want the declaration module
             -- to be first, so we reverse the ordering.
             -- *Why* the list is in reverse topological order is not quite
             -- clear to the authors, there is a good chance it’s accidental.
-            . reverse
-        )
+             reverse
+         >>> demoteInternalModule
+         >>> genShowsFromData
+      )
   where
-    genAssocList :: [Target] -> Maybe ShowsFromData
-    genAssocList targetGroup = do
+    -- If the first Target has a module that ends on @".Internal"@, move it to second place.
+    -- This is a heuristic so that the main search result doesn’t open Internal modules by default.
+    --
+    -- Ideally, we’d get the information of what is the “home module” for a target from haddock,
+    -- but for that we’ll need to parse the @<pkg>.haddock@ binary file. So far we use the @<pkg>.txt@ file
+    -- in the haddock output, which does not contain the home module information.
+    demoteInternalModule :: [Target] -> [Target]
+    demoteInternalModule
+      -- we can only think about targets with existing module field here,
+      -- because genAssocList filters out results where one+ modules contain an empty module name anyway.
+      (x@(targetModule -> Just (moduleName, _)) : y : xs)
+      | ".Internal" `isSuffixOf` moduleName
+      = y:x:xs
+    demoteInternalModule other = other
+
+    -- This will throw away a result pretty strictly if any necessary information is missing,
+    -- for example the module name, the package name, etc.
+    genShowsFromData :: [Target] -> Maybe ShowsFromData
+    genShowsFromData targetGroup = do
         -- all Targets in this targetGroup will have the same pkgName
         -- due to the sort followed by the group
         (showsFromPackageName, showsFromPackageUrl) <- targetGroup <&> targetPackage & headDef Nothing
