@@ -268,36 +268,46 @@ itemCategories xs =
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
+
+-- | Data to display one search result
+data ShowsFromData = ShowsFromData {
+    showsFromPackageName :: String,
+    showsFromPackageUrl :: URL,
+    -- | [(TargetUrl, TargetModule)]
+    showsFromModuleInfo :: [(URL, String)]
+
+}
+
 -- | Return an alist [(PackageName, PackageUrl, [(TargetUrl, TargetModule)])]
-showFromsLogic :: [Target] -> [(String, URL, [(URL, String)])]
+showFromsLogic :: [Target] -> [ShowsFromData]
 showFromsLogic targets = do
     targets
       & sortOn targetPackage
       & groupOn targetPackage
       & mapMaybe genAssocList
   where
-    genAssocList :: [Target] -> Maybe (String, URL, [(URL, String)])
+    genAssocList :: [Target] -> Maybe ShowsFromData
     genAssocList targetGroup = do
         -- all Targets in this targetGroup will have the same pkgName
         -- due to the sort followed by the group
-        (pkgName, pkgUrl) <- targetGroup <&> targetPackage & headDef Nothing
-        targets' <- for targetGroup $ \Target{..} -> do
+        (showsFromPackageName, showsFromPackageUrl) <- targetGroup <&> targetPackage & headDef Nothing
+        showsFromModuleInfo <- for targetGroup $ \Target{..} -> do
             (moduleName, _) <- targetModule
             pure (targetURL, moduleName)
-        pure (pkgName, pkgUrl, targets')
+        pure ShowsFromData {..}
 
 
 -- | Display the line under the title of a search result, which contains a list of Modules each target is defined in, ordered by package.
 showFroms :: UrlOpts -> [Target] -> Markup
 showFroms urlOpts allTargets = do
     let pkgs = showFromsLogic allTargets
-    mconcat $ intersperse ", " $ flip map pkgs $ \(pkgName, pkgUrl, targets) -> do
+    mconcat $ intersperse ", " $ flip map pkgs $ \ShowsFromData{..} -> do
         let link txt url = (H.a ! H.href (H.stringValue $ showURL urlOpts url)) (H.string txt)
         mconcat $ intersperse " "
             -- display the list as “pkg Module1 Module2",
             -- each as links to either the package
             -- or the target inside the respective module.
-            $ link pkgName pkgUrl
+            $ link showsFromPackageName showsFromPackageUrl
               :
                 -- quite peculiarly, the list of modules inside each package
                 -- is sorted in reverse-topological order, that is downstream
@@ -307,7 +317,7 @@ showFroms urlOpts allTargets = do
                 -- clear to the authors, there is a good chance it’s accidental.
                 reverse
                     [ link moduleName targetUrl
-                    | (targetUrl, moduleName) <- targets
+                    | (targetUrl, moduleName) <- showsFromModuleInfo
                     ]
 
 showURL :: UrlOpts -> URL -> String
