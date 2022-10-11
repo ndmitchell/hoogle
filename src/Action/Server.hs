@@ -55,6 +55,8 @@ import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.Traversable (for)
 import Control.Category ((>>>))
+import Data.List.NonEmpty (nonEmpty)
+import qualified Data.List.NonEmpty as NonEmpty
 
 actionServer :: CmdLine -> IO ()
 actionServer cmd@Server{..} = do
@@ -220,8 +222,14 @@ showResults urlOpts links args query results = do
     when (null results) $ H.p "No results found"
     forM_ results $ \result -> do
         let dat = showFromsLogic result
-        -- TODO: this crashes if there’s no targets
-        let Target{..} : _ = dat <&> showsFromFirstTarget
+        let Target{..} =
+                ((dat <&> showsFromFirstTarget)
+                -- In case showsFromLogic filters out all targets because they are missing fields,
+                -- fall back to the original first target in the target list.
+                <|> result)
+                    & nonEmpty & \case
+                        Nothing -> error "showResults: The search result had an empty target list, this should not happen."
+                        Just tgt -> NonEmpty.head tgt
         H.div ! H.class_ "result" $ do
             H.div ! H.class_ "ans" $ do
                 H.a ! H.href (H.stringValue $ showURL urlOpts targetURL) $
