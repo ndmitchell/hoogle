@@ -216,15 +216,18 @@ showResults :: UrlOpts -> Bool -> [(String, String)] -> [Query] -> [[Target]] ->
 showResults urlOpts links args query results = do
     H.h1 $ renderQuery query
     when (null results) $ H.p "No results found"
-    forM_ results $ \is@(Target{..}:_) -> do
+    forM_ results $ \result -> do
+        let dat = showFromsLogic result
+        -- TODO: this crashes if there’s no targets
+        let Target{..} : _ = dat <&> showsFromFirstTarget
         H.div ! H.class_ "result" $ do
             H.div ! H.class_ "ans" $ do
                 H.a ! H.href (H.stringValue $ showURL urlOpts targetURL) $
                     displayItem query targetItem
                 when links $
-                    whenJust (useLink is) $ \link ->
+                    whenJust (useLink result) $ \link ->
                         H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue link) $ "Uses"
-            H.div ! H.class_ "from" $ showFroms urlOpts is
+            H.div ! H.class_ "from" $ showFroms urlOpts dat
             H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
     H.ul ! H.id "left" $ do
         H.li $ H.b "Packages"
@@ -274,8 +277,9 @@ data ShowsFromData = ShowsFromData {
     showsFromPackageName :: String,
     showsFromPackageUrl :: URL,
     -- | [(TargetUrl, TargetModule)]
-    showsFromModuleInfo :: [(URL, String)]
-
+    showsFromModuleInfo :: [(URL, String)],
+    -- | The full first target, used to display the actual target documentation.
+    showsFromFirstTarget :: Target
 }
 
 -- | Return an alist [(PackageName, PackageUrl, [(TargetUrl, TargetModule)])]
@@ -284,13 +288,24 @@ showFromsLogic targets = do
     targets
       & sortOn targetPackage
       & groupOn targetPackage
-      & mapMaybe genAssocList
+      & mapMaybe
+        (
+            genAssocList
+            -- quite peculiarly, the list of modules inside each package
+            -- is sorted in reverse-topological order, that is downstream
+            -- modules are first in the result. We want the declaration module
+            -- to be first, so we reverse the ordering.
+            -- *Why* the list is in reverse topological order is not quite
+            -- clear to the authors, there is a good chance it’s accidental.
+            . reverse
+        )
   where
     genAssocList :: [Target] -> Maybe ShowsFromData
     genAssocList targetGroup = do
         -- all Targets in this targetGroup will have the same pkgName
         -- due to the sort followed by the group
         (showsFromPackageName, showsFromPackageUrl) <- targetGroup <&> targetPackage & headDef Nothing
+        showsFromFirstTarget <- listToMaybe targetGroup
         showsFromModuleInfo <- for targetGroup $ \Target{..} -> do
             (moduleName, _) <- targetModule
             pure (targetURL, moduleName)
@@ -298,9 +313,8 @@ showFromsLogic targets = do
 
 
 -- | Display the line under the title of a search result, which contains a list of Modules each target is defined in, ordered by package.
-showFroms :: UrlOpts -> [Target] -> Markup
-showFroms urlOpts allTargets = do
-    let pkgs = showFromsLogic allTargets
+showFroms :: UrlOpts -> [ShowsFromData] -> Markup
+showFroms urlOpts pkgs = do
     mconcat $ intersperse ", " $ flip map pkgs $ \ShowsFromData{..} -> do
         let link txt url = (H.a ! H.href (H.stringValue $ showURL urlOpts url)) (H.string txt)
         mconcat $ intersperse " "
@@ -308,17 +322,9 @@ showFroms urlOpts allTargets = do
             -- each as links to either the package
             -- or the target inside the respective module.
             $ link showsFromPackageName showsFromPackageUrl
-              :
-                -- quite peculiarly, the list of modules inside each package
-                -- is sorted in reverse-topological order, that is downstream
-                -- modules are first in the result. We want the declaration module
-                -- to be first, so we reverse the ordering.
-                -- *Why* the list is in reverse topological order is not quite
-                -- clear to the authors, there is a good chance it’s accidental.
-                reverse
-                    [ link moduleName targetUrl
-                    | (targetUrl, moduleName) <- showsFromModuleInfo
-                    ]
+              : [ link moduleName targetUrl
+                | (targetUrl, moduleName) <- showsFromModuleInfo
+                ]
 
 showURL :: UrlOpts -> URL -> String
 showURL HaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
