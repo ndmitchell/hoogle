@@ -298,9 +298,17 @@ showFroms urlOpts allTargets = do
             -- each as links to either the package
             -- or the target inside the respective module.
             $ link pkgName pkgUrl
-              : [ link moduleName targetUrl
-                | (targetUrl, moduleName) <- targets
-                ]
+              :
+                -- quite peculiarly, the list of modules inside each package
+                -- is sorted in reverse-topological order, that is downstream
+                -- modules are first in the result. We want the declaration module
+                -- to be first, so we reverse the ordering.
+                -- *Why* the list is in reverse topological order is not quite
+                -- clear to the authors, there is a good chance it’s accidental.
+                reverse
+                    [ link moduleName targetUrl
+                    | (targetUrl, moduleName) <- targets
+                    ]
 
 showURL :: UrlOpts -> URL -> String
 showURL HaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
