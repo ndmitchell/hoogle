@@ -1,7 +1,7 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
-{-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wall -Wno-incomplete-patterns -Wno-name-shadowing #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
@@ -33,7 +33,7 @@ import System.Time.Extra
 import Data.Time.Clock
 import Data.Time.Calendar
 import System.IO.Unsafe
-import Numeric.Extra hiding (log)
+import Numeric.Extra
 import System.Info.Extra
 
 import Output.Tags
@@ -48,7 +48,7 @@ import Action.Search
 import Action.CmdLine
 import Control.Applicative
 import Data.Monoid
-import Prelude hiding (log)
+import Prelude
 
 import qualified Data.Aeson as JSON
 
@@ -65,10 +65,9 @@ actionServer cmd@Server{..} = do
     putStrLn . showDuration =<< time
     _ <- evaluate spawned
     dataDir <- maybe getDataDir pure datadir
-    haddock' <- maybe (pure Nothing) (fmap Just . canonicalizePath) haddock
+    haddock <- maybe (pure Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
-        server log cmd $ replyServer log local links haddock' store cdn home (dataDir </> "html") scope
-actionServer _ = error "should not happen"
+        server log cmd $ replyServer log local links haddock store cdn home (dataDir </> "html") scope
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -83,7 +82,6 @@ actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
             evaluate $ rnf res
             putChar '.'
     putStrLn $ "\nTook " ++ showDuration t ++ " (" ++ showDuration (t / intToDouble (repeat_ * length qs)) ++ ")"
-actionReplay _ = error "should not happen"
 
 {-# NOINLINE spawned #-}
 spawned :: UTCTime
@@ -111,9 +109,9 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         let (q2, results) = search store q
 
         let urlOpts = if
-              | Just _ <- haddock -> IsHaddockUrl
-              | local -> IsLocalUrl
-              | otherwise -> IsOtherUrl
+              | Just _ <- haddock -> HaddockUrl
+              | local -> LocalUrl
+              | otherwise -> OtherUrl
         let body = showResults urlOpts links (filter ((/= "mode") . fst) inputArgs) q2 $
                 takeAndGroup 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" inputArgs of
@@ -154,8 +152,8 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
     ["log"] -> do
         OutputHTML <$> templateRender templateLog []
     ["log.js"] -> do
-        log' <- displayLog <$> logSummary log
-        OutputJavascript <$> templateRender templateLogJs [("data",html $ H.preEscapedString log')]
+        log <- displayLog <$> logSummary log
+        OutputJavascript <$> templateRender templateLogJs [("data",html $ H.preEscapedString log)]
     ["stats"] -> do
         stats <- getStatsDebug
         pure $ case stats of
@@ -210,7 +208,7 @@ takeAndGroup n key = f [] Map.empty
             | otherwise = f (k:keys) (Map.insert k [x] mp) xs
             where k = key x
 
-data UrlOpts = IsHaddockUrl | IsLocalUrl | IsOtherUrl
+data UrlOpts = HaddockUrl | LocalUrl | OtherUrl
 
 showResults :: UrlOpts -> Bool -> [(String, String)] -> [Query] -> [[Target]] -> Markup
 showResults urlOpts links args query results = do
@@ -285,10 +283,10 @@ showFroms urlOpts targets = mconcat $ intersperse ", " $ flip map pkgs $ \pkg ->
         pkgs = nubOrd $ map targetPackage targets
 
 showURL :: UrlOpts -> URL -> String
-showURL IsHaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
-showURL IsLocalUrl (stripPrefix "file:///" -> Just x) = "file/" ++ x
-showURL IsLocalUrl x = x
-showURL IsOtherUrl x = x
+showURL HaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
+showURL LocalUrl (stripPrefix "file:///" -> Just x) = "file/" ++ x
+showURL LocalUrl x = x
+showURL OtherUrl x = x
 
 
 -------------------------------------------------------------
