@@ -121,6 +121,10 @@ readHaskellOnline timing settings download = do
     pure (cbl, want, source)
 
 
+-- | readHaskellDirs will look for .txt files anywhere under @dirs@.
+-- It uses these local files as sources for indexing.
+-- Links to the results will default to Hackage, but if @url directives
+-- are in the .txt files they can override the link destination.
 readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellDirs timing settings dirs = do
     files <- concatMapM listFilesRecursive dirs
@@ -161,6 +165,8 @@ readFregeOnline timing download = do
     pure (Map.empty, Set.singleton $ strPack "frege", source)
 
 
+-- | readHaskellGhcpkg will use every installed package (info via ghc-pkg)
+-- as a source. It uses each package's documentation directory as source for indexing.
 readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellGhcpkg timing settings = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
@@ -177,6 +183,26 @@ readHaskellGhcpkg timing settings = do
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
     pure (cbl, Map.keysSet cbl, source)
 
+-- | readHaskellHaddockFile will read a list of text databases, foo.txt, and use
+-- them as sources for indexing.
+readHaskellHaddockFile :: Timing -> Settings -> [FilePath] -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
+readHaskellHaddockFile timing settings txtdbs = do
+    let source =
+            forM_ txtdbs $ \txt -> do
+                let name = strPack $ take (length txt - (length ".txt")) txt
+                whenM (liftIO $ doesFileExist txt) $ do
+                    src <- liftIO $ bstrReadFile txt
+                    let url = "file://./" ++ txt
+                    yield (name, url, lbstrFromChunks [src])
+    let pkgs = Set.fromList $ map (\txt -> strPack $ take (length txt - (length ".txt")) txt) txtdbs
+    pure (Map.empty, pkgs, source)
+
+    where docDir name Package{..} = name ++ "-" ++ strUnpack packageVersion
+
+-- | readHaskellHaddock takes a @baseDocDir@, which is the filepath prefix for
+-- ghc-pkg's documentation directories. This function reads all installed
+-- packages on the system (via ghc-pkg), it tries to read all files matching
+-- @baseDocDir@/@<pkgname>-<version>@/@<pkgname>.txt@
 readHaskellHaddock :: Timing -> Settings -> FilePath -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellHaddock timing settings docBaseDir = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
@@ -204,7 +230,8 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     download <- pure $ downloadInput timing insecure download (takeDirectory database)
     settings <- loadSettings
     (cbl, want, source) <- case language of
-        Haskell | Just dir <- haddock -> readHaskellHaddock timing settings dir
+        Haskell | txtdbs@(_:_) <- convert -> readHaskellHaddockFile timing settings txtdbs
+                | Just dir <- haddock -> readHaskellHaddock timing settings dir
                 | [""] <- local_ -> readHaskellGhcpkg timing settings
                 | [] <- local_ -> readHaskellOnline timing settings download
                 | otherwise -> readHaskellDirs timing settings local_
