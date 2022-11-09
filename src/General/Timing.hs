@@ -10,25 +10,36 @@ import System.IO
 import General.Util
 import Control.Monad.IO.Class
 
-
+-- | A mutable object to keep timing information
 data Timing = Timing
-    {timingOffset :: IO Seconds
-    ,timingStore :: IORef [(String, Seconds)] -- records for writing to a file
-    ,timingOverwrite :: IORef (Maybe (Seconds, Int)) -- if you are below T you may overwrite N characters
-    ,timingTerminal :: Bool -- is this a terminal
+    { -- | Get time since the initialization of this 'Timing'.
+      timingOffset :: IO Seconds
+      -- | Record timings for writing to a file
+    , timingStore :: IORef [(String, Seconds)]
+      -- | If you are below T you may overwrite N characters
+      -- at the end of the current terminal output.
+      -- Only used iff @timingTerminal == True@.
+    , timingOverwrite :: IORef (Maybe (Seconds, Int))
+      -- | whether is this a terminal
+    , timingTerminal :: Bool
     }
 
-
-withTiming :: Maybe FilePath -> (Timing -> IO a) -> IO a
-withTiming file f = do
+-- | Time an action, printing timing information to the terminal
+withTiming ::
+  -- | A file to optionally write all timings to, after the action is finished
+  Maybe FilePath ->
+  -- | An action that can write timings into 'Timing'
+  (Timing -> IO a) ->
+  IO a
+withTiming writeTimingsTo act = do
     timingOffset <- offsetTime
     timingStore <- newIORef []
     timingOverwrite <- newIORef Nothing
     timingTerminal <- hIsTerminalDevice stdout
 
-    res <- f Timing{..}
+    res <- act Timing{..}
     total <- timingOffset
-    whenJust file $ \file -> do
+    whenJust writeTimingsTo $ \file -> do
         xs <- readIORef timingStore
         -- Expecting unrecorded of ~2s
         -- Most of that comes from the pipeline - we get occasional 0.01 between items as one flushes
@@ -41,10 +52,12 @@ withTiming file f = do
 
 -- skip it if have written out in the last 1s and takes < 0.1
 
-
+-- | Time & write the given message to stdout
 timed :: MonadIO m => Timing -> String -> m a -> m a
 timed = timedEx False
 
+-- | Time & write the given message to stdout
+-- overwriting a previous message if it was marked as overwritable
 timedOverwrite :: MonadIO m => Timing -> String -> m a -> m a
 timedOverwrite = timedEx True
 
