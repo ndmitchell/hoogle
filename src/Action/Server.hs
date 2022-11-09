@@ -1,7 +1,6 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
-{-# OPTIONS_GHC -Wall -Wno-incomplete-patterns -Wno-name-shadowing #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
