@@ -201,7 +201,12 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     createDirectoryIfMissing True $ takeDirectory database
     whenLoud $ putStrLn $ "Generating files to " ++ takeDirectory database
 
-    let doDownload name url = downloadInput timing insecure download (takeDirectory database) name url
+    let doDownload name url = do
+          let download' = case download of
+                Just True -> AlwaysDownloadInput
+                Just False -> NeverDownloadInput
+                Nothing -> DownloadInputIfNotThere
+          downloadInput timing insecure download' (takeDirectory database) name url
     settings <- loadSettings
     (cbl, want, source) <- case language of
         Haskell | Just dir <- haddock -> readHaskellHaddock timing settings dir

@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module Input.Download(downloadInput) where
+module Input.Download(downloadInput, DownloadInput(..)) where
 
 import System.FilePath
 import Control.Monad.Extra
@@ -14,9 +14,14 @@ import General.Timing
 import Control.Monad.Trans.Resource
 import Control.Exception.Extra
 
+data DownloadInput =
+    AlwaysDownloadInput
+    | NeverDownloadInput
+    | DownloadInputIfNotThere
+
 
 -- | Download all the input files to input/
-downloadInput :: Timing -> Bool -> Maybe Bool -> FilePath -> String -> URL -> IO FilePath
+downloadInput :: Timing -> Bool -> DownloadInput -> FilePath -> String -> URL -> IO FilePath
 downloadInput timing insecure download dir name url = do
     let file = dir </> "input-" ++ name
     exists <- doesFileExist file
@@ -25,12 +30,12 @@ downloadInput timing insecure download dir name url = do
                 downloadFile insecure (file <.> "part") url
                 renameFile (file <.> "part") file
     case (exists, download) of
-        (False, Just False) ->
+        (False, NeverDownloadInput) ->
             errorIO $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
         (False, _) -> act
-        (True, Just True) -> act
-        (True, Nothing) -> pure ()
-        (True, Just False) -> pure ()
+        (True, AlwaysDownloadInput) -> act
+        (True, DownloadInputIfNotThere) -> pure ()
+        (True, NeverDownloadInput) -> pure ()
     pure file
 
 downloadFile :: Bool -> FilePath -> String -> IO ()
