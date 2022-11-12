@@ -29,13 +29,13 @@ downloadInput timing insecure download dir name url = do
             timed timing ("Downloading " ++ url) $ do
                 downloadFile insecure (file <.> "part") url
                 renameFile (file <.> "part") file
-    case (exists, download) of
-        (False, NeverDownloadInput) ->
-            errorIO $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
-        (False, _) -> act
-        (True, AlwaysDownloadInput) -> act
-        (True, DownloadInputIfNotThere) -> pure ()
-        (True, NeverDownloadInput) -> pure ()
+    case download of
+        NeverDownloadInput ->
+            unless exists $
+              errorIO $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
+        AlwaysDownloadInput -> act
+        DownloadInputIfNotThere ->
+            unless exists act
     pure file
 
 downloadFile :: Bool -> FilePath -> String -> IO ()
