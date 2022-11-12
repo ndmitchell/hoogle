@@ -20,18 +20,28 @@ downloadInput :: Timing -> Bool -> Maybe Bool -> FilePath -> String -> URL -> IO
 downloadInput timing insecure download dir name url = do
     let file = dir </> "input-" ++ name
     exists <- doesFileExist file
-    when (not exists && download == Just False) $
-        errorIO $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
-    when (not exists || download == Just True) $
-        timed timing ("Downloading " ++ url) $ do
-            downloadFile insecure (file <.> "part") url
-            renameFile (file <.> "part") file
+    let act =
+            timed timing ("Downloading " ++ url) $ do
+                downloadFile insecure (file <.> "part") url
+                renameFile (file <.> "part") file
+    case (exists, download) of
+        (False, Just False) ->
+            errorIO $ "File is not already downloaded and --download=no given, downloading " ++ url ++ " to " ++ file
+        (False, _) -> act
+        (True, Just True) -> act
+        (True, Nothing) -> pure ()
+        (True, Just False) -> pure ()
     pure file
 
 downloadFile :: Bool -> FilePath -> String -> IO ()
 downloadFile insecure file url = do
     let request = C.parseRequest_ url
-    manager <- C.newManager $ C.mkManagerSettings (TLSSettingsSimple insecure False False) Nothing
+    manager <- C.newManager $ C.mkManagerSettings
+      (TLSSettingsSimple {
+        settingDisableCertificateValidation = insecure,
+        settingDisableSession = False,
+        settingUseServerName = False
+      }) Nothing
     runResourceT $ do
         response <- C.http request manager
         C.runConduit $ C.responseBody response C..| sinkFile file

@@ -201,14 +201,14 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     createDirectoryIfMissing True $ takeDirectory database
     whenLoud $ putStrLn $ "Generating files to " ++ takeDirectory database
 
-    download <- pure $ downloadInput timing insecure download (takeDirectory database)
+    let doDownload name url = downloadInput timing insecure download (takeDirectory database) name url
     settings <- loadSettings
     (cbl, want, source) <- case language of
         Haskell | Just dir <- haddock -> readHaskellHaddock timing settings dir
                 | [""] <- local_ -> readHaskellGhcpkg timing settings
-                | [] <- local_ -> readHaskellOnline timing settings download
+                | [] <- local_ -> readHaskellOnline timing settings doDownload
                 | otherwise -> readHaskellDirs timing settings local_
-        Frege | [] <- local_ -> readFregeOnline timing download
+        Frege | [] <- local_ -> readFregeOnline timing doDownload
               | otherwise -> errorIO "No support for local Frege databases"
     (cblErrs, popularity) <- evaluate $ packagePopularity cbl
     cbl <- evaluate $ Map.map (\p -> p{packageDepends=[]}) cbl -- clear the memory, since the information is no longer used
