@@ -201,17 +201,26 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     createDirectoryIfMissing True $ takeDirectory database
     whenLoud $ putStrLn $ "Generating files to " ++ takeDirectory database
 
+    let warnFlagIgnored thisFlag reason ignoredFlagPred ignoredFlag =
+          when ignoredFlagPred $ putStrLn $ "Warning: " <> thisFlag <> " is " <> reason <> ", which means " <> ignoredFlag <> " is ignored."
+
     let doDownload name url = do
           let download' = case download of
                 Just True -> AlwaysDownloadInput
                 Just False -> NeverDownloadInput
                 Nothing -> DownloadInputIfNotThere
           downloadInput timing insecure download' (takeDirectory database) name url
+
     settings <- loadSettings
     (cbl, want, source) <- case language of
-        Haskell | Just dir <- haddock -> readHaskellHaddock timing settings dir
-                | [""] <- local_ -> readHaskellGhcpkg timing settings
-                | [] <- local_ -> readHaskellOnline timing settings doDownload
+        Haskell | Just dir <- haddock -> do
+                    warnFlagIgnored "--haddock" "set" (local_ /= []) "--local"
+                    warnFlagIgnored "--haddock" "set" (isJust download) "--download"
+                    readHaskellHaddock timing settings dir
+                | [""] <- local_ -> do
+                    warnFlagIgnored "--local" "used as flag (no paths)" (isJust download) "--download"
+                    readHaskellGhcpkg timing settings
+                | [] <- local_ -> do readHaskellOnline timing settings doDownload
                 | otherwise -> readHaskellDirs timing settings local_
         Frege | [] <- local_ -> readFregeOnline timing doDownload
               | otherwise -> errorIO "No support for local Frege databases"
