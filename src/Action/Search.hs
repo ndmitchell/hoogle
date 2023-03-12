@@ -21,6 +21,8 @@ import qualified Data.Set as Set
 import System.Directory
 import Text.Blaze.Renderer.Utf8
 import Safe
+import System.Console.ANSI (hSupportsANSI, hyperlinkCode)
+import System.IO (stdout)
 
 import Action.CmdLine
 import General.Store
@@ -44,7 +46,10 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             count' <- pure $ fromMaybe 10 count
             (q, res) <- pure $ search store $ parseQuery $ unwords query
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
-            let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link) res
+            hyperlink <- case color of
+              Just b -> pure b
+              Nothing -> hSupportsANSI stdout
+            let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link hyperlink) res
             if null res then
                 putStrLn "No results found"
              else if info then do
@@ -72,11 +77,13 @@ targetInfo Target{..} =
 
 -- | Returns the Target formatted as an item to display in the results
 -- | Bool argument decides whether links are shown
-targetResultDisplay :: Bool -> Target -> String
-targetResultDisplay link Target{..} = unHTML $ unwords $
+targetResultDisplay :: Bool -> Bool -> Target -> String
+targetResultDisplay link hyperlink Target{..} = unHTML $ unwords $
         map fst (maybeToList targetModule) ++
-        [targetItem] ++
+        [if hyperlink then targetItemHyperlink else targetItem] ++
         ["-- " ++ targetURL | link]
+     where
+        targetItemHyperlink = hyperlinkCode targetURL targetItem
 
 unHTMLtargetItem :: Target -> Target
 unHTMLtargetItem target = target {targetItem = unHTML $ targetItem target}
