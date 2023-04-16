@@ -327,10 +327,10 @@ data TestResult
 
 matchQR :: ExpectedQueryResult -> [[Target]] -> TestResult
 matchQR qr res = case qr of
-    TopHit tm        -> success $ any (runTargetMatcher tm) (concat $ take 1 res)
-    InTop n tm       -> success $ any (runTargetMatcher tm) (concat $ take n res)
-    RanksBelow n tm  -> success $ any (runTargetMatcher tm) (concat $ drop n res)
-    DoesNotFind tm   -> success $ not $ any (runTargetMatcher tm) (concat res)
+    TopHit tm        -> success $ any (any (runTargetMatcher tm)) $ take 1 res
+    InTop n tm       -> success $ any (any (runTargetMatcher tm)) $ take n res
+    RanksBelow n tm  -> success $ any (any (runTargetMatcher tm)) $ drop n res
+    DoesNotFind tm   -> success $ not $ any (any (runTargetMatcher tm)) res
     AppearsBefore tm tm' -> success $ ( (<) <$> matchIdx tm <*> matchIdx tm' ) == Just True
     NoHits           -> success $ null res
     KnownFailure _ qr' -> case matchQR qr' res of
