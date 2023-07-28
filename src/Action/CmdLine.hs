@@ -16,6 +16,7 @@ import System.Console.CmdArgs
 import System.Directory
 import System.Environment
 import System.FilePath
+import System.IO
 
 data Language = Haskell | Frege deriving (Data,Typeable,Show,Eq,Enum,Bounded)
 
@@ -80,7 +81,25 @@ data CmdLine
 
 defaultDatabaseLang :: Language -> IO FilePath
 defaultDatabaseLang lang = do
-    dir <- getAppUserDataDirectory "hoogle"
+    xdgLocation <- getXdgDirectory XdgData "hoogle"
+    legacyLocation <- getAppUserDataDirectory "hoogle"
+    doesXdgPathExist <- doesPathExist xdgLocation
+    doesLegacyPathExist <- doesPathExist legacyLocation
+
+    dir <- case (doesXdgPathExist, doesLegacyPathExist) of
+      -- On Windows XDG location and legacy location are identical
+      _ | xdgLocation == legacyLocation -> pure xdgLocation
+      (_, False) -> pure xdgLocation
+      (True, True) -> do
+        hPutStrLn stderr $
+          "Warning: Legacy location ignored (" ++ legacyLocation ++ "),"
+          ++ "since xdg location is available (" ++ xdgLocation ++")."
+        pure xdgLocation
+      (False, True) -> do
+        -- TODO: renable after release
+        --hPutStrLn stderr $ "Warning: " ++ legacyLocation ++ " is deprecated."
+        --  ++ "Consider moving it to $XDG_DATA_HOME/hoogle (" ++ xdgLocation ++ ")"
+        pure legacyLocation
     pure $ dir </> "default-" ++ lower (show lang) ++ "-" ++ showVersion (trimVersion 3 version) ++ ".hoo"
 
 getCmdLine :: [String] -> IO CmdLine
