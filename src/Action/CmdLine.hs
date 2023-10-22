@@ -25,6 +25,7 @@ data CmdLine
         ,json :: Bool
         ,jsonl :: Bool
         ,link :: Bool
+        ,hyperlink :: Bool
         ,numbers :: Bool
         ,info :: Bool
         ,database :: FilePath
@@ -114,6 +115,7 @@ search_ = Search
     ,json = def &= name "json" &= help "Get result as JSON"
     ,jsonl = def &= name "jsonl" &= help "Get result as JSONL (JSON Lines)"
     ,link = def &= help "Give URL's for each result"
+    ,hyperlink = def &= help "Hyperlink results with ANSI escape sequences"
     ,numbers = def &= help "Give counter for each result"
     ,info = def &= help "Give extended information about the first result"
     ,database = def &= typFile &= help "Name of database to use (use .hoo extension)"
