@@ -1,5 +1,8 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Action.Server(actionServer, actionReplay, action_server_test_, action_server_test) where
 
@@ -48,6 +51,12 @@ import Data.Monoid
 import Prelude
 
 import qualified Data.Aeson as JSON
+import Data.Function ((&))
+import Data.Functor ((<&>))
+import Data.Traversable (for)
+import Control.Category ((>>>))
+import Data.List.NonEmpty (nonEmpty)
+import qualified Data.List.NonEmpty as NonEmpty
 
 actionServer :: CmdLine -> IO ()
 actionServer cmd@Server{..} = do
@@ -60,7 +69,7 @@ actionServer cmd@Server{..} = do
     log <- logCreate (if logs == "" then Left stdout else Right logs) $
         \x -> BS.pack "hoogle=" `BS.isInfixOf` x && not (BS.pack "is:ping" `BS.isInfixOf` x)
     putStrLn . showDuration =<< time
-    evaluate spawned
+    _ <- evaluate spawned
     dataDir <- maybe getDataDir pure datadir
     haddock <- maybe (pure Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
@@ -88,8 +97,15 @@ replyServer :: Log -> Bool -> Bool -> Maybe FilePath -> StoreRead -> String -> S
 replyServer log local links haddock store cdn home htmlDir scope Input{..} = case inputURL of
     -- without -fno-state-hack things can get folded under this lambda
     [] -> do
-        let grabBy name = [x | (a,x) <- inputArgs, name a, x /= ""]
+        let
+            -- take from inputArgs, if namePred and value not empty
+            grabBy :: (String -> Bool) -> [String]
+            grabBy namePred = [x | (a,x) <- inputArgs, namePred a, x /= ""]
+            -- take from input Args if value not empty
+            grab :: String -> [String]
             grab name = grabBy (== name)
+            -- take an int from input Args, iff exists, else use default value
+            grabInt :: String -> Int -> Int
             grabInt name def = fromMaybe def $ readMaybe =<< listToMaybe (grab name) :: Int
 
         let qScope = let xs = grab "scope" in [scope | null xs && scope /= ""] ++ xs
@@ -97,15 +113,20 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         let qSource = qSearch ++ filter (/= "set:stackage") qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
-        let body = showResults local links haddock (filter ((/= "mode") . fst) inputArgs) q2 $
-                dedupeTake 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
+
+        let urlOpts = if
+              | Just _ <- haddock -> HaddockUrl
+              | local -> LocalUrl
+              | otherwise -> OtherUrl
+        let body = showResults urlOpts links (filter ((/= "mode") . fst) inputArgs) q2 $
+                takeAndGroup 25 (\t -> t{targetURL="",targetPackage=Nothing, targetModule=Nothing}) results
         case lookup "mode" inputArgs of
             Nothing | qSource /= [] -> fmap OutputHTML $ templateRender templateIndex
                         [("tags", html $ tagOptions qScope)
                         ,("body", html body)
-                        ,("title", text $ unwords qSource ++ " - Hoogle")
-                        ,("search", text $ unwords qSearch)
-                        ,("robots", text $ if any isQueryScope q then "none" else "index")]
+                        ,("title", txt $ unwords qSource ++ " - Hoogle")
+                        ,("search", txt $ unwords qSearch)
+                        ,("robots", txt $ if any isQueryScope q then "none" else "index")]
                     | otherwise -> OutputHTML <$> templateRender templateHome []
             Just "body" -> OutputHTML <$> if null qSource then templateRender templateEmpty [] else templateRender (html body) []
             Just "json" ->
@@ -130,7 +151,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         summ <- logSummary log
         let errs = sum [summaryErrors | Summary{..} <- summ, summaryDate >= pred (utctDay now)]
         let alive = fromRational $ toRational $ (now `diffUTCTime` spawned) / (24 * 60 * 60)
-        pure $ (if errs == 0 && alive < 1.5 then OutputText else OutputFail) $ lbstrPack $
+        pure $ (if errs == 0 && alive < (1.5 :: Double) then OutputText else OutputFail) $ lbstrPack $
             "Errors " ++ (if errs == 0 then "good" else "bad") ++ ": " ++ show errs ++ " in the last 24 hours.\n" ++
             "Updates " ++ (if alive < 1.5 then "good" else "bad") ++ ": Last updated " ++ showDP 2 alive ++ " days ago.\n"
 
@@ -144,8 +165,8 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         pure $ case stats of
             Nothing -> OutputFail $ lbstrPack "GHC Statistics is not enabled, restart with +RTS -T"
             Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop1 $ dropWhile (/= '{') $ show x
-    "haddock":xs | Just x <- haddock -> do
-        let file = intercalate "/" $ x:xs
+    "haddock":xs | Just haddockFilePath <- haddock -> do
+        let file = intercalate "/" $ haddockFilePath:xs
         pure $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
     "file":xs | local -> do
         let x = ['/' | not isWindows] ++ intercalate "/" (dropWhile null xs)
@@ -161,48 +182,66 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         pure $ OutputFile $ joinPath $ htmlDir : xs
     where
         html = templateMarkup
-        text = templateMarkup . H.string
+        txt = templateMarkup . H.string
 
         tagOptions sel = mconcat [H.option Text.Blaze.!? (x `elem` sel, H.selected "selected") $ H.string x | x <- completionTags store]
         params =
-            [("cdn", text cdn)
-            ,("home", text home)
-            ,("jquery", text $ if null cdn then "plugin/jquery.js" else "https:" ++ JQuery.url)
-            ,("version", text $ showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
+            [("cdn", txt cdn)
+            ,("home", txt home)
+            ,("jquery", txt $ if null cdn then "plugin/jquery.js" else "https:" ++ JQuery.url)
+            ,("version", txt $ showVersion version ++ " " ++ showUTCTime "%Y-%m-%d %H:%M" spawned)]
         templateIndex = templateFile (htmlDir </> "index.html") `templateApply` params
         templateEmpty = templateFile (htmlDir </>  "welcome.html")
-        templateHome = templateIndex `templateApply` [("tags",html $ tagOptions []),("body",templateEmpty),("title",text "Hoogle"),("search",text ""),("robots",text "index")]
+        templateHome = templateIndex `templateApply` [("tags",html $ tagOptions []),("body",templateEmpty),("title",txt "Hoogle"),("search",txt ""),("robots",txt "index")]
         templateLog = templateFile (htmlDir </> "log.html") `templateApply` params
         templateLogJs = templateFile (htmlDir </> "log.js") `templateApply` params
 
 
-dedupeTake :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
-dedupeTake n key = f [] Map.empty
+-- | Take from the list until we’ve seen `n` different keys,
+-- and group all values by their respective key.
+--
+-- Will keep the order of elements for each key the same.
+takeAndGroup :: Ord k => Int -> (v -> k) -> [v] -> [[v]]
+takeAndGroup n key = f [] Map.empty
     where
-        -- map is Map k [v]
-        f res mp xs | Map.size mp >= n || null xs = map (reverse . (Map.!) mp) $ reverse res
-        f res mp (x:xs) | Just vs <- Map.lookup k mp = f res (Map.insert k (x:vs) mp) xs
-                        | otherwise = f (k:res) (Map.insert k [x] mp) xs
+        -- mp is Map k [v]
+        f keys mp []
+            = map (\k -> reverse $ mp Map.! k) $ reverse keys
+        f keys mp _ | Map.size mp >= n
+            = map (\k -> reverse $ mp Map.! k) $ reverse keys
+        f keys mp (x:xs)
+            | Just vs <- Map.lookup k mp = f keys (Map.insert k (x:vs) mp) xs
+            | otherwise = f (k:keys) (Map.insert k [x] mp) xs
             where k = key x
 
+data UrlOpts = HaddockUrl | LocalUrl | OtherUrl
 
-showResults :: Bool -> Bool -> Maybe FilePath -> [(String, String)] -> [Query] -> [[Target]] -> Markup
-showResults local links haddock args query results = do
+showResults :: UrlOpts -> Bool -> [(String, String)] -> [Query] -> [[Target]] -> Markup
+showResults urlOpts links args query results = do
     H.h1 $ renderQuery query
     when (null results) $ H.p "No results found"
-    forM_ results $ \is@(Target{..}:_) -> do
+    forM_ results $ \result -> do
+        let dat = showFromsLogic result
+        let Target{..} =
+                ((dat <&> showsFromFirstTarget)
+                -- In case showsFromLogic filters out all targets because they are missing fields,
+                -- fall back to the original first target in the target list.
+                <|> result)
+                    & nonEmpty & \case
+                        Nothing -> error "showResults: The search result had an empty target list, this should not happen."
+                        Just tgt -> NonEmpty.head tgt
         H.div ! H.class_ "result" $ do
             H.div ! H.class_ "ans" $ do
-                H.a ! H.href (H.stringValue $ showURL local haddock targetURL) $
+                H.a ! H.href (H.stringValue $ showURL urlOpts targetURL) $
                     displayItem query targetItem
                 when links $
-                    whenJust (useLink is) $ \link ->
+                    whenJust (useLink result) $ \link ->
                         H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue link) $ "Uses"
-            H.div ! H.class_ "from" $ showFroms local haddock is
+            H.div ! H.class_ "from" $ showFroms urlOpts dat
             H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
     H.ul ! H.id "left" $ do
         H.li $ H.b "Packages"
-        mconcat [H.li $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
+        mconcat [H.li $ leftSidebarSearchLinks cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
 
     where
         useLink :: [Target] -> Maybe String
@@ -210,23 +249,28 @@ showResults local links haddock args query results = do
             Just $ "https://packdeps.haskellers.com/reverse/" ++ extractName (targetItem t)
         useLink _ = Nothing
 
-        add x = ("?" ++) $ intercalate "&" $ map (joinPair "=") $
+        -- The search URL with an extra filter added to the hoogle query
+        searchURLWithExtraSearchFilter :: String -> String
+        searchURLWithExtraSearchFilter searchFilter = ("?" ++) $ intercalate "&" $ map (joinPair "=") $
             case break ((==) "hoogle" . fst) args of
-                (a,[]) -> a ++ [("hoogle", escapeURL x)]
-                (a,(_,x1):b) -> a ++ [("hoogle", escapeURL $ x1 ++ " " ++ x)] ++ b
+                (a,[]) -> a ++ [("hoogle", escapeURL searchFilter)]
+                (a,(_,x1):b) -> a ++ [("hoogle", escapeURL $ x1 ++ " " ++ searchFilter)] ++ b
 
-        f cat val = do
-            H.a ! H.class_" minus" ! H.href (H.stringValue $ add $ "-" ++ cat ++ ":" ++ val) $ ""
-            H.a ! H.class_ "plus"  ! H.href (H.stringValue $ add $        cat ++ ":" ++ val) $
+        -- Construct two links in the left sidebar,
+        -- one which repeats the current search *with* the respective package or category,
+        -- one *without* the package or category.
+        leftSidebarSearchLinks cat val = do
+            H.a ! H.class_" minus" ! H.href (H.stringValue $ searchURLWithExtraSearchFilter $ "-" ++ cat ++ ":" ++ val) $ ""
+            H.a ! H.class_ "plus"  ! H.href (H.stringValue $ searchURLWithExtraSearchFilter $        cat ++ ":" ++ val) $
                 H.string $ (if cat == "package" then "" else cat ++ ":") ++ val
 
 
 -- find the <span class=name>X</span> bit
 extractName :: String -> String
 extractName x
-    | Just (_, x) <- stripInfix "<span class=name>" x
-    , Just (x, _) <- stripInfix "</span>" x
-    = unHTML x
+    | Just (_, x') <- stripInfix "<span class=name>" x
+    , Just (x'', _) <- stripInfix "</span>" x'
+    = unHTML x''
 extractName x = x
 
 
@@ -237,35 +281,100 @@ itemCategories xs =
     [("is","module")  | any ((==) "module"  . targetType) xs] ++
     nubOrd [("package",p) | Just (p,_) <- map targetPackage xs]
 
-showFroms :: Bool -> Maybe FilePath -> [Target] -> Markup
-showFroms local haddock xs = mconcat $ intersperse ", " $ flip map pkgs $ \p ->
-    let ms = filter ((==) p . targetPackage) xs
-    in mconcat $ intersperse " " [H.a ! H.href (H.stringValue $ showURL local haddock b) $ H.string a | (a,b) <- catMaybes $ p : map remod ms]
-    where
-        remod Target{..} = do (a,_) <- targetModule; pure (a,targetURL)
-        pkgs = nubOrd $ map targetPackage xs
 
-showURL :: Bool -> Maybe FilePath -> URL -> String
-showURL _ (Just _) x = "haddock/" ++ dropPrefix "file:///" x
-showURL True _ (stripPrefix "file:///" -> Just x) = "file/" ++ x
-showURL _ _ x = x
+-- | Data to display one search result
+data ShowsFromData = ShowsFromData {
+    showsFromPackageName :: String,
+    showsFromPackageUrl :: URL,
+    -- | [(TargetUrl, TargetModule)]
+    showsFromModuleInfo :: [(URL, String)],
+    -- | The full first target, used to display the actual target documentation.
+    showsFromFirstTarget :: Target
+}
+
+-- | Return an alist [(PackageName, PackageUrl, [(TargetUrl, TargetModule)])]
+showFromsLogic :: [Target] -> [ShowsFromData]
+showFromsLogic targets = do
+    targets
+      & sortOn targetPackage
+      & groupOn targetPackage
+      & mapMaybe (
+            -- quite peculiarly, the list of modules inside each package
+            -- is sorted in reverse-topological order, that is downstream
+            -- modules are first in the result. We want the declaration module
+            -- to be first, so we reverse the ordering.
+            -- *Why* the list is in reverse topological order is not quite
+            -- clear to the authors, there is a good chance it’s accidental.
+             reverse
+         >>> demoteInternalModule
+         >>> genShowsFromData
+      )
+  where
+    -- If the first Target has a module that ends on @".Internal"@, move it to second place.
+    -- This is a heuristic so that the main search result doesn’t open Internal modules by default.
+    --
+    -- Ideally, we’d get the information of what is the “home module” for a target from haddock,
+    -- but for that we’ll need to parse the @<pkg>.haddock@ binary file. So far we use the @<pkg>.txt@ file
+    -- in the haddock output, which does not contain the home module information.
+    demoteInternalModule :: [Target] -> [Target]
+    demoteInternalModule
+      -- we can only think about targets with existing module field here,
+      -- because genAssocList filters out results where one+ modules contain an empty module name anyway.
+      (x@(targetModule -> Just (moduleName, _)) : y : xs)
+      | ".Internal" `isSuffixOf` moduleName
+      = y:x:xs
+    demoteInternalModule other = other
+
+    -- This will throw away a result pretty strictly if any necessary information is missing,
+    -- for example the module name, the package name, etc.
+    genShowsFromData :: [Target] -> Maybe ShowsFromData
+    genShowsFromData targetGroup = do
+        -- all Targets in this targetGroup will have the same pkgName
+        -- due to the sort followed by the group
+        (showsFromPackageName, showsFromPackageUrl) <- targetGroup <&> targetPackage & headDef Nothing
+        showsFromFirstTarget <- listToMaybe targetGroup
+        showsFromModuleInfo <- for targetGroup $ \Target{..} -> do
+            (moduleName, _) <- targetModule
+            pure (targetURL, moduleName)
+        pure ShowsFromData {..}
+
+
+-- | Display the line under the title of a search result, which contains a list of Modules each target is defined in, ordered by package.
+showFroms :: UrlOpts -> [ShowsFromData] -> Markup
+showFroms urlOpts pkgs = do
+    mconcat $ intersperse ", " $ flip map pkgs $ \ShowsFromData{..} -> do
+        let link txt url = (H.a ! H.href (H.stringValue $ showURL urlOpts url)) (H.string txt)
+        mconcat $ intersperse " "
+            -- display the list as “pkg Module1 Module2",
+            -- each as links to either the package
+            -- or the target inside the respective module.
+            $ link showsFromPackageName showsFromPackageUrl
+              : [ link moduleName targetUrl
+                | (targetUrl, moduleName) <- showsFromModuleInfo
+                ]
+
+showURL :: UrlOpts -> URL -> String
+showURL HaddockUrl x = "haddock/" ++ dropPrefix "file:///" x
+showURL LocalUrl (stripPrefix "file:///" -> Just x) = "file/" ++ x
+showURL LocalUrl x = x
+showURL OtherUrl x = x
 
 
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
 
 highlightItem :: [Query] -> String -> Markup
-highlightItem qs x
-    | Just (pre,x) <- stripInfix "<s0>" x, Just (name,post) <- stripInfix "</s0>" x
+highlightItem qs str
+    | Just (pre,x) <- stripInfix "<s0>" str, Just (name,post) <- stripInfix "</s0>" x
         = H.preEscapedString pre <> highlight (unescapeHTML name) <> H.preEscapedString post
-    | otherwise = H.string x
+    | otherwise = H.string str
     where
         highlight = mconcatMap (\xs@((b,_):_) -> let s = H.string $ map snd xs in if b then H.b s else s) .
                     groupOn fst . (\x -> zip (f x) x)
             where
               f (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (f xs)
                   where m = maximum $ 0 : [length y | QueryName y <- qs, lower y `isPrefixOf` lower (x:xs)]
-              f (x:xs) = False : f xs
+              f (_:xs) = False : f xs
               f [] = []
 
 displayItem :: [Query] -> String -> Markup
