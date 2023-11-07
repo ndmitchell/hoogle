@@ -21,7 +21,10 @@ import qualified Data.Set as Set
 import System.Directory
 import Text.Blaze.Renderer.Utf8
 import Safe
-import System.Console.ANSI (hSupportsANSI, hyperlinkCode)
+import System.Console.ANSI
+    (hSupportsANSI, hyperlinkCode, setSGRCode
+    ,SGR (SetColor), ConsoleLayer (Foreground)
+    ,ColorIntensity (Vivid, Dull), Color (Yellow))
 import System.IO (stdout)
 
 import Action.CmdLine
@@ -46,19 +49,18 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             count' <- pure $ fromMaybe 10 count
             (q, res) <- pure $ search store $ parseQuery $ unwords query
             whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
-            hyperlink <- case color of
+            color' <- case color of
               Just b -> pure b
               Nothing -> hSupportsANSI stdout
-            let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link hyperlink) res
+            let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link color' q) res
             if null res then
                 putStrLn "No results found"
              else if info then do
-                 putStr $ targetInfo $ headErr res
+                 putStr $ targetInfo color' q $ headErr res
              else do
-                let toShow = if numbers && not info then addCounter shown else shown
                 if | json -> LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res
                    | jsonl -> mapM_ (LBS.putStrLn . JSON.encode) $ maybe id take count $ map unHTMLtargetItem res
-                   | otherwise -> putStr $ unlines toShow
+                   | otherwise -> putStr $ unlines $ if numbers then addCounter shown else shown
                 when (hidden /= [] && not json) $ do
                     whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count'+10) ++ " to see more"
         else do
@@ -68,22 +70,29 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             putStr $ unlines $ searchFingerprintsDebug store (parseType $ unwords query) (map parseType compare_)
 
 -- | Returns the details printed out when hoogle --info is called
-targetInfo :: Target -> String
-targetInfo Target{..} =
-    unlines $ [ unHTML targetItem ] ++
+targetInfo :: Bool -> [Query] -> Target -> String
+targetInfo color qs Target{..} =
+    unlines $ [ unHTML . (if color then ansiHighlight qs else id) $ targetItem ] ++
               [ unwords packageModule | not $ null packageModule] ++
               [ unHTML targetDocs ]
             where packageModule = map fst $ catMaybes [targetPackage, targetModule]
 
 -- | Returns the Target formatted as an item to display in the results
--- | Bool argument decides whether links are shown
-targetResultDisplay :: Bool -> Bool -> Target -> String
-targetResultDisplay link hyperlink Target{..} = unHTML $ unwords $
+-- | Bool arguments decide whether links and colors are shown
+targetResultDisplay :: Bool -> Bool -> [Query] -> Target -> String
+targetResultDisplay link color qs Target{..} = unHTML $ unwords $
         map fst (maybeToList targetModule) ++
-        [if hyperlink then targetItemHyperlink else targetItem] ++
+        [if color then highlightFull targetItem else targetItem] ++
         ["-- " ++ targetURL | link]
      where
-        targetItemHyperlink = hyperlinkCode targetURL targetItem
+        highlightFull = hyperlinkCode targetURL . ansiHighlight qs
+
+ansiHighlight :: [Query] -> String -> String
+ansiHighlight = highlightItem id id ((dull ++) . (++ rst)) ((bold ++) . (++ rst))
+    where
+        dull = setSGRCode [SetColor Foreground Dull Yellow]
+        bold = setSGRCode [SetColor Foreground Vivid Yellow]
+        rst = setSGRCode []
 
 unHTMLtargetItem :: Target -> Target
 unHTMLtargetItem target = target {targetItem = unHTML $ targetItem target}
