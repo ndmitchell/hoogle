@@ -255,23 +255,9 @@ showURL _ _ x = x
 -------------------------------------------------------------
 -- DISPLAY AN ITEM (bold keywords etc)
 
-highlightItem :: [Query] -> String -> Markup
-highlightItem qs x
-    | Just (pre,x) <- stripInfix "<s0>" x, Just (name,post) <- stripInfix "</s0>" x
-        = H.preEscapedString pre <> highlight (unescapeHTML name) <> H.preEscapedString post
-    | otherwise = H.string x
-    where
-        highlight = mconcatMap (\xs@((b,_):_) -> let s = H.string $ map snd xs in if b then H.b s else s) .
-                    groupOn fst . (\x -> zip (f x) x)
-            where
-              f (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (f xs)
-                  where m = maximum $ 0 : [length y | QueryName y <- qs, lower y `isPrefixOf` lower (x:xs)]
-              f (x:xs) = False : f xs
-              f [] = []
 
 displayItem :: [Query] -> String -> Markup
-displayItem = highlightItem
-
+displayItem = highlightItem H.string H.preEscapedString H.string (H.b . H.string)
 
 action_server_test_ :: IO ()
 action_server_test_ = do
