@@ -44,6 +44,7 @@ library
     build-depends:
         QuickCheck,
         aeson,
+        ansi-terminal,
         base > 4 && < 5,
         blaze-html,
         blaze-markup,

@@ -30,6 +30,7 @@ import Output.Names
 import Output.Tags
 import Output.Types
 import Query
+import System.Console.ANSI 
 
 -- -- generate all
 -- @tagsoup -- generate tagsoup
@@ -40,19 +41,21 @@ actionSearch :: CmdLine -> IO ()
 actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store ->
         if null compare_ then do
-            count' <- pure $ fromMaybe 10 count
-            (q, res) <- pure $ search store $ parseQuery $ unwords query
-            whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
-            let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link) res
+            -- should we check for color support?
+            -- --color implies ANSI support, i.e. --color=always
+            let color' = fromMaybe False color
+            let count' = fromMaybe 10 count
+            let (qs, res) = search store $ parseQuery $ unwords query
+            let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link color' qs) res
+            whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery qs)
             if null res then
                 putStrLn "No results found"
              else if info then do
-                 putStr $ targetInfo $ head res
+                 putStr $ targetInfo color' qs $ head res
              else do
-                let toShow = if numbers && not info then addCounter shown else shown
                 if | json -> LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res
                    | jsonl -> mapM_ (LBS.putStrLn . JSON.encode) $ maybe id take count $ map unHTMLtargetItem res
-                   | otherwise -> putStr $ unlines toShow
+                   | otherwise -> putStr $ unlines $ if numbers then addCounter shown else shown
                 when (hidden /= [] && not json) $ do
                     whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count'+10) ++ " to see more"
         else do
@@ -62,20 +65,27 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             putStr $ unlines $ searchFingerprintsDebug store (parseType $ unwords query) (map parseType compare_)
 
 -- | Returns the details printed out when hoogle --info is called
-targetInfo :: Target -> String
-targetInfo Target{..} =
-    unlines $ [ unHTML targetItem ] ++
+targetInfo :: Bool -> [Query] -> Target -> String
+targetInfo color qs Target{..} =
+    unlines $ [ unHTML . (if color then ansiHighlight qs else id) $ targetItem ] ++
               [ unwords packageModule | not $ null packageModule] ++
               [ unHTML targetDocs ]
             where packageModule = map fst $ catMaybes [targetPackage, targetModule]
 
 -- | Returns the Target formatted as an item to display in the results
 -- | Bool argument decides whether links are shown
-targetResultDisplay :: Bool -> Target -> String
-targetResultDisplay link Target{..} = unHTML $ unwords $
+targetResultDisplay :: Bool -> Bool -> [Query] -> Target -> String
+targetResultDisplay link color qs Target{..} = unHTML $ unwords $
         map fst (maybeToList targetModule) ++
-        [targetItem] ++
+        [if color then ansiHighlight qs targetItem else targetItem] ++
         ["-- " ++ targetURL | link]
+
+ansiHighlight :: [Query] -> String -> String
+ansiHighlight = highlightItem id id ((dull ++) . (++ rst)) ((bold ++) . (++ rst))
+    where
+        dull = setSGRCode [SetColor Foreground Dull Yellow]
+        bold = setSGRCode [SetColor Foreground Vivid Yellow]
+        rst = setSGRCode []
 
 unHTMLtargetItem :: Target -> Target
 unHTMLtargetItem target = target {targetItem = unHTML $ targetItem target}

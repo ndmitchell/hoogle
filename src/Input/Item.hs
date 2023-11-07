@@ -4,7 +4,7 @@
 -- | Types used to generate the input.
 module Input.Item(
     Sig(..), Ctx(..), Ty(..), prettySig,
-    Item(..), itemName,
+    Item(..), itemName, highlightItem,
     Target(..), targetExpandURL, TargetId(..),
     splitIPackage, splitIModule,
     hseToSig, hseToItem, item_test,
@@ -30,6 +30,7 @@ import Prelude
 import qualified Data.Aeson as J
 import Data.Aeson.Types
 import Test.QuickCheck
+import Query 
 ---------------------------------------------------------------------
 -- TYPES
 
@@ -188,6 +189,21 @@ item_test = testing "Input.Item.Target JSON (encode . decode = id) " $ do
   quickCheck $ \(t :: Target) -> case J.eitherDecode $ J.encode t of
     (Left  e ) -> False
     (Right t') -> t == t'
+
+highlightItem:: Monoid m => (String -> m) -> (String -> m) -> (String -> m) -> (String -> m) -> [Query] -> String -> m
+highlightItem plain safe dull bold qs x
+    | Just (pre,x) <- stripInfix "<s0>" x, Just (name,post) <- stripInfix "</s0>" x
+        = safe pre <> highlight (unescapeHTML name) <> safe post
+    | otherwise = plain x
+    where
+        highlight = mconcatMap (\xs@((b,_):_) -> let s = map snd xs in if b then bold s else dull s) .
+                    groupOn fst . (\x -> zip (findQueries x) x)
+            where
+                findQueries :: String -> [Bool]
+                findQueries (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (findQueries xs)
+                    where m = maximum $ 0 : [length y | QueryName y <- qs, lower y `isPrefixOf` lower (x:xs)]
+                findQueries (x:xs) = False : findQueries xs
+                findQueries [] = []
 
 ---------------------------------------------------------------------
 -- HSE CONVERSION
