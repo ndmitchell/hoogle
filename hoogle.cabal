@@ -1,4 +1,4 @@
-cabal-version:      >= 1.18
+cabal-version:      1.18
 build-type:         Simple
 name:               hoogle
 version:            5.0.18.4
