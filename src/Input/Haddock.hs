@@ -16,6 +16,7 @@ import Control.Monad.Extra
 import Control.Exception.Extra
 import Data.Generics.Uniplate.Data
 import General.Str
+import Safe
 
 
 -- | An entry in the Hoogle DB
@@ -109,7 +110,7 @@ renderItem = keyword . focus
         focus (EPackage x) = renderPackage x
         focus (EDecl x) | [now] <- declNames x, (pre,stripPrefix now -> Just post) <- breakOn now $ pretty x =
             if "(" `isSuffixOf` pre && ")" `isPrefixOf` post then
-                init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tail post)
+                init (escapeHTML pre) ++ name ("(" ++ highlight now ++ ")") ++ escapeHTML (tailErr post)
             else
                 escapeHTML pre ++ name (highlight now) ++ escapeHTML post
         focus (EDecl x) = pretty x

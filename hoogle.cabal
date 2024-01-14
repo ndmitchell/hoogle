@@ -69,6 +69,7 @@ library
         mmap,
         process-extras,
         resourcet,
+        safe >= 0.3.20,
         storable-tuple,
         tar,
         template-haskell,
