@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = API change, @ = database format change)
 
+    Fix up the output of /stats to account for API changes
     #380, move results before left anchors in tab focus order
 5.0.18.3, released 2021-12-24
     Compatibility with aeson-2.0

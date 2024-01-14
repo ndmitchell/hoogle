@@ -143,7 +143,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
         stats <- getStatsDebug
         pure $ case stats of
             Nothing -> OutputFail $ lbstrPack "GHC Statistics is not enabled, restart with +RTS -T"
-            Just x -> OutputText $ lbstrPack $ replace ", " "\n" $ takeWhile (/= '}') $ drop1 $ dropWhile (/= '{') $ show x
+            Just x -> OutputText $ lbstrPack x
     "haddock":xs | Just x <- haddock -> do
         let file = intercalate "/" $ x:xs
         pure $ OutputFile $ file ++ (if hasTrailingPathSeparator file then "index.html" else "")
