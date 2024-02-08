@@ -82,7 +82,7 @@ defaultDatabaseLang :: Language -> IO FilePath
 defaultDatabaseLang lang = do
     xdgLocation <- getXdgDirectory XdgData "hoogle"
     legacyLocation <- getAppUserDataDirectory "hoogle"
-    canIgnoreLegacyPath <- doesPathExist xdgLocation
+    canIgnoreLegacyPath <- not <$> doesPathExist legacyLocation
     pure $
         (if canIgnoreLegacyPath then xdgLocation else legacyLocation) </>
             "default-" ++ lower (show lang) ++ "-" ++ showVersion (trimVersion 3 version) ++ ".hoo"
