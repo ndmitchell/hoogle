@@ -23,6 +23,7 @@ import General.Util
 import Data.Maybe
 import Data.List
 import Data.IORef.Extra
+import Safe
 import Prelude
 
 
@@ -97,8 +98,8 @@ instance Semigroup SummaryI where
     SummaryI x1 x2 x3 x4 x5 <> SummaryI y1 y2 y3 y4 y5 =
         SummaryI (f x1 y1) (x2+y2) (max x3 y3) (x4 <> y4) (x5+y5)
         -- more efficient union for the very common case of a single element
-        where f x y | Set.size x == 1 = Set.insert (head $ Set.toList x) y
-                    | Set.size y == 1 = Set.insert (head $ Set.toList y) x
+        where f x y | Set.size x == 1 = Set.insert (headErr $ Set.toList x) y
+                    | Set.size y == 1 = Set.insert (headErr $ Set.toList y) x
                     | otherwise = Set.union x y
 
 instance Monoid SummaryI where

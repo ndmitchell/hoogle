@@ -33,6 +33,7 @@ import Numeric.Extra
 import Prelude
 import System.FilePath
 import System.IO.Extra
+import Safe
 
 import General.IString
 import General.Store
@@ -54,7 +55,7 @@ writeTypes store debug xs = do
 searchTypes :: StoreRead -> Sig String -> [TargetId]
 searchTypes store q =
     take nMatches (concat [ search fps qry' | variantClass <- variants
-                                            , fpSig <- case head variantClass qry of
+                                            , fpSig <- case headErr variantClass qry of
                                                           (f:_) -> [f]
                                                           []    -> []
                                             , let fps = bestByFingerprint db nMatches fpSig

@@ -20,6 +20,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 import System.Directory
 import Text.Blaze.Renderer.Utf8
+import Safe
 
 import Action.CmdLine
 import General.Store
@@ -47,7 +48,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             if null res then
                 putStrLn "No results found"
              else if info then do
-                 putStr $ targetInfo $ head res
+                 putStr $ targetInfo $ headErr res
              else do
                 let toShow = if numbers && not info then addCounter shown else shown
                 if | json -> LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res

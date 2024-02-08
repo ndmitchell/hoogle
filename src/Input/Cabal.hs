@@ -126,8 +126,8 @@ readCabal Settings{..} src = Package{..}
         packageDocs = find (not . null) $ ask "haddock-html"
 
         packageTags = map (both strPack) $ nubOrd $ concat
-            [ map (head xs,) $ concatMap cleanup $ concatMap ask xs
-            | xs <- [["license"],["category"],["author","maintainer"]]]
+            [ map (x,) $ concatMap cleanup $ concatMap ask xs
+            | xs@(x:_) <- [["license"],["category"],["author","maintainer"]]]
 
         -- split on things like "," "&" "and", then throw away email addresses, replace spaces with "-" and rename
         cleanup =

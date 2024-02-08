@@ -1,13 +1,13 @@
-cabal-version:      >= 1.18
+cabal-version:      1.18
 build-type:         Simple
 name:               hoogle
-version:            5.0.18.3
+version:            5.0.18.4
 license:            BSD3
 license-file:       LICENSE
 category:           Development
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
-copyright:          Neil Mitchell 2004-2023
+copyright:          Neil Mitchell 2004-2024
 synopsis:           Haskell API Search
 description:
     Hoogle is a Haskell API search engine, which allows you to
@@ -15,7 +15,7 @@ description:
     or by approximate type signature.
 homepage:           https://hoogle.haskell.org/
 bug-reports:        https://github.com/ndmitchell/hoogle/issues
-tested-with:        GHC==9.6, GHC==9.4, GHC==9.2, GHC==9.0
+tested-with:        GHC==9.8, GHC==9.6, GHC==9.4
 extra-doc-files:
     README.md
     CHANGES.txt
@@ -69,6 +69,7 @@ library
         mmap,
         process-extras,
         resourcet,
+        safe >= 0.3.20,
         storable-tuple,
         tar,
         template-haskell,
