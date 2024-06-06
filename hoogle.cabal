@@ -83,7 +83,8 @@ library
         wai-logger,
         warp,
         warp-tls,
-        zlib
+        zlib,
+        data-default-class
 
     c-sources:        cbits/text_search.c
     include-dirs:     cbits

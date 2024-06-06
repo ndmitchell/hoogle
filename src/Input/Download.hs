@@ -13,6 +13,7 @@ import General.Util
 import General.Timing
 import Control.Monad.Trans.Resource
 import Control.Exception.Extra
+import Data.Default.Class
 
 data DownloadInput =
     AlwaysDownloadInput
@@ -45,7 +46,8 @@ downloadFile insecure file url = do
       (TLSSettingsSimple {
         settingDisableCertificateValidation = insecure,
         settingDisableSession = False,
-        settingUseServerName = False
+        settingUseServerName = False,
+        settingClientSupported = def
       }) Nothing
     runResourceT $ do
         response <- C.http request manager
