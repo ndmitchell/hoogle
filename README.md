@@ -89,7 +89,7 @@ Contributions are most welcome. Hoogle is written in Haskell 98 + Heirarchical M
 
 # Background
 
-Hoogle work is licensed under the [BSD-3-Clause license](https://github.com/ndmitchell/hoogle/blob/master/docs/LICENSE).
+Hoogle work is licensed under the [BSD-3-Clause license](https://github.com/ndmitchell/hoogle/blob/master/LICENSE).
 
 ## Theoretical Foundations
 
