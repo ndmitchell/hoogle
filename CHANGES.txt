@@ -1,5 +1,6 @@
 Changelog for Hoogle (* = API change, @ = database format change)
 
+    Require and support crypton-connection >= 0.4.1
 5.0.18.4, released 2024-01-14
     Don't test on GHC 9.2 or earlier
     Fix up the output of /stats to account for API changes

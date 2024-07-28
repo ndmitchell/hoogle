@@ -6,6 +6,7 @@ import System.FilePath
 import Control.Monad.Extra
 import System.Directory
 import Data.Conduit.Binary (sinkFile)
+import Data.Default.Class
 import qualified Network.HTTP.Conduit as C
 import Network.Connection
 import qualified Data.Conduit as C
@@ -45,7 +46,8 @@ downloadFile insecure file url = do
       (TLSSettingsSimple {
         settingDisableCertificateValidation = insecure,
         settingDisableSession = False,
-        settingUseServerName = False
+        settingUseServerName = False,
+        settingClientSupported = def
       }) Nothing
     runResourceT $ do
         response <- C.http request manager
