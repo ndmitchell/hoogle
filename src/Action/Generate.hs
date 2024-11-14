@@ -238,11 +238,20 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                     warnFlagIgnored "--haddock" "set" (local_ /= []) "--local"
                     warnFlagIgnored "--haddock" "set" (isJust download) "--download"
                     readHaskellHaddock timing settings dir
-                | [""] <- local_ -> do
-                    warnFlagIgnored "--local" "used as flag (no paths)" (isJust download) "--download"
-                    readHaskellGhcpkg timing settings
                 | [] <- local_ -> do readHaskellOnline timing settings doDownload
-                | otherwise -> readHaskellDirs timing settings local_
+                | otherwise -> do
+                    let (localFlag, dirs) = partition (=="") local_
+                    (ghcPkgCbl, ghcPkgWant, ghcPkgSource) <-
+                        if null localFlag
+                            then pure (Map.empty, Set.empty, pure ())
+                            else do
+                                warnFlagIgnored "--local" "used as flag (no paths)" (isJust download) "--download"
+                                readHaskellGhcpkg timing settings
+                    (dirsCbl, dirsWant, dirsSource) <-
+                        if null dirs
+                            then pure (Map.empty, Set.empty, pure ())
+                            else readHaskellDirs timing settings dirs
+                    pure (Map.union dirsCbl ghcPkgCbl, Set.union dirsWant ghcPkgWant, ghcPkgSource >> dirsSource)
         Frege | [] <- local_ -> readFregeOnline timing doDownload
               | otherwise -> errorIO "No support for local Frege databases"
     (cblErrs, popularity) <- evaluate $ packagePopularity cbl
