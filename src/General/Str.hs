@@ -8,12 +8,11 @@ module General.Str(
     BStr0, bstr0Join, bstr0Split
     ) where
 
-import qualified Foundation as Fdn
-import qualified Foundation.Collection as Fdn
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.UTF8 as US
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.ByteString.Lazy.UTF8 as LUS
+import qualified Data.Text as T
 import Control.DeepSeq
 import Data.Char
 import Data.Data
@@ -23,8 +22,8 @@ import Data.String
 import Prelude
 
 
-newtype Str = Str {fromStr :: Fdn.String}
-    deriving (Data,Typeable,Eq,Ord,Semigroup,Monoid)
+newtype Str = Str { fromStr :: T.Text }
+    deriving (Data, Typeable, Eq, Ord, Semigroup, Monoid)
 
 instance Show Str where show = strUnpack
 instance NFData Str where rnf x = x `seq` ()
@@ -36,19 +35,19 @@ type LBStr = LBS.ByteString
 
 
 strPack :: String -> Str
-strPack = Str . fromString
+strPack = Str . T.pack
 
 strUnpack :: Str -> String
-strUnpack = Fdn.toList . fromStr
+strUnpack = T.unpack . fromStr
 
 strCons :: Char -> Str -> Str
-strCons c = Str . Fdn.cons c . fromStr
+strCons c = Str . T.cons c . fromStr
 
 strCopy :: Str -> Str
-strCopy = Str . Fdn.copy . fromStr
+strCopy = Str . T.copy . fromStr
 
 strNull :: Str -> Bool
-strNull = Fdn.null . fromStr
+strNull = T.null . fromStr
 
 bstrPack :: String -> BStr
 bstrPack = US.fromString
