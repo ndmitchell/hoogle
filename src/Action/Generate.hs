@@ -249,9 +249,6 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
     cbl <- evaluate $ Map.map (\p -> p{packageDepends=[]}) cbl -- clear the memory, since the information is no longer used
     evaluate popularity
 
-    -- mtl is more popular than transformers, despite having dodgy docs, which is a shame, so we hack it
-    popularity <- evaluate $ Map.adjust (max $ 1 + Map.findWithDefault 0 (strPack "mtl") popularity) (strPack "transformers") popularity
-
     want <- pure $ if include /= [] then Set.fromList $ map strPack include else want
     want <- pure $ case count of Nothing -> want; Just count -> Set.fromList $ take count $ Set.toList want
 
