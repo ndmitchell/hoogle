@@ -1,4 +1,4 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE CPP, ViewPatterns, PatternGuards, TupleSections, RecordWildCards, ScopedTypeVariables #-}
 
 -- | Module for reading Cabal files.
 module Input.Cabal(
@@ -79,18 +79,37 @@ packagePopularity cbl = mp `seq` (errs, mp)
 -- | Run 'ghc-pkg' and get a list of packages which are installed.
 readGhcPkg :: Settings -> IO (Map.Map PkgName Package)
 readGhcPkg settings = do
+-- On Windows, the `haddock-html` field in `*.conf` files for GHC boot
+-- libraries for GHC >= 9.0 (up to at least GHC 9.6.2) contain errors. For
+-- example, this may be specified:
+--     haddock-html: ${pkgroot}/../../doc/html/libraries/base-4.18.0.0
+-- when the correct specification would be:
+--     haddock-html: ${pkgroot}/../doc/html/libraries/base-4.18.0.0
+-- So, a unique approach is taken to `readGhcPkg` in that case. It assumes that
+-- the `*.conf` files have not been manually corrected.
+#if defined(mingw32_HOST_OS) && __GLASGOW_HASKELL__>=901
+    let ghcPkgArgs = ["dump"]
+        -- ^ Do not expand the ${pkgroot} (by default)
+        unwantedPrefix = "${pkgroot}/.."
+        -- ^ Should result in ${pkgroot}/../bin/../doc/html/libraries/...
+#else
+    -- From GHC 9.0.1, the `haddock-html` field in `*.conf` files for GHC boot
+    -- libraries has used `${pkgroot}`, which can be expanded in the output.
+    let ghcPkgArgs = ["dump", "--expand-pkgroot"]
+        unwantedPrefix = "$topdir"
+        -- ^ Backwards compatibility with GHC < 9.0
+#endif
     topdir <- findExecutable "ghc-pkg"
     -- important to use BS process reading so it's in Binary format, see #194
-    (exit, stdout, stderr) <- BS.readProcessWithExitCode "ghc-pkg" ["dump"] mempty
+    (exit, stdout, stderr) <- BS.readProcessWithExitCode "ghc-pkg" ghcPkgArgs mempty
     when (exit /= ExitSuccess) $
         errorIO $ "Error when reading from ghc-pkg, " ++ show exit ++ "\n" ++ UTF8.toString stderr
-    let g (stripPrefix "$topdir" -> Just x) | Just t <- topdir = takeDirectory t ++ x
+    let g (stripPrefix unwantedPrefix -> Just x) | Just t <- topdir = takeDirectory t ++ x
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
     let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack $ trimStart x, fixer $ readCabal settings $ unlines xs)
         f xs = Nothing
     pure $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
-
 
 -- | Given a tarball of Cabal files, parse the latest version of each package.
 parseCabalTarball :: Settings -> FilePath -> IO (Map.Map PkgName Package)
