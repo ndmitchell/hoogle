@@ -200,9 +200,10 @@ showResults local links haddock args query results = do
                         H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue link) $ "Uses"
             H.div ! H.class_ "from" $ showFroms local haddock is
             H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
-    H.ul ! H.id "left" $ do
-        H.li $ H.b "Packages"
-        mconcat [H.li $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
+    H.ul ! H.id "left" $ -- if there's already a scope query we don't show subquery links because bots will get lost in a maze of links.
+        if (any isQueryScope query) then pure () else do
+            H.li $ H.b "Packages"
+            mconcat [H.li $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
 
     where
         useLink :: [Target] -> Maybe String
