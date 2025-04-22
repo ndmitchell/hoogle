@@ -8,6 +8,7 @@ module Action.CmdLine(
     whenLoud, whenNormal
     ) where
 
+import Control.Monad (unless)
 import Data.List.Extra
 import Data.Version
 import General.Util
@@ -16,6 +17,7 @@ import System.Console.CmdArgs
 import System.Directory
 import System.Environment
 import System.FilePath
+import System.IO
 
 data Language = Haskell | Frege deriving (Data,Typeable,Show,Eq,Enum,Bounded)
 
@@ -80,7 +82,12 @@ data CmdLine
 
 defaultDatabaseLang :: Language -> IO FilePath
 defaultDatabaseLang lang = do
-    dir <- getAppUserDataDirectory "hoogle"
+    xdgLocation <- getXdgDirectory XdgData "hoogle"
+    legacyLocation <- getAppUserDataDirectory "hoogle"
+    canIgnoreLegacyPath <- not <$> doesPathExist legacyLocation
+    unless canIgnoreLegacyPath $
+      hPutStrLn stderr "Warning: ~/.hoogle is deprecated. Consider moving it to $XDG_DATA_HOME/hoogle (commonly ~/.local/share/hoogle)"
+    let dir = if canIgnoreLegacyPath then xdgLocation else legacyLocation
     pure $ dir </> "default-" ++ lower (show lang) ++ "-" ++ showVersion (trimVersion 3 version) ++ ".hoo"
 
 getCmdLine :: [String] -> IO CmdLine
