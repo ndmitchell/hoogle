@@ -113,7 +113,7 @@ getStatsDebug = do
 
 
 
-exitFail :: String -> IO ()
+exitFail :: String -> IO a
 exitFail msg = do
     hPutStrLn stderr msg
     exitFailure

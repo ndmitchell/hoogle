@@ -25,9 +25,14 @@ Run `hoogle generate base filepath` to generate an index for only the `base` and
 
 Run `hoogle generate --local` to query `ghc-pkg` and generate links for all packages which have documentation and Hoogle input files generated. By editing your Cabal config file you can have Cabal automatically generate such files when packages are installed. Links to the results will point at your local file system.
 
-### Index a directory
+### Index one or more directories
 
-Run `hoogle generate --local=mydir` to generate an index for the packages in `mydir`, which must contain `foo.txt` Hoogle input files. Links to the results will default to Hackage, but if `@url` directives are in the `.txt` files they can override the link destination.
+Run `hoogle generate --local=mydir1 --local=mydir2` to generate an index for the packages in `mydir1` and `mydir2`, which must contain `foo.txt` Hoogle input files. Links to the results will default to Hackage, but if `@url` directives are in the `.txt` files they can override the link destination.
+
+### Index a directory, producing a relocatable database
+
+Run `hoogle generate --relocatable --local=mydir` to generate an index that supports moving the Haddock directory to a different path without breaking the Haddock links.
+This mode only supports one `--local` directory.
 
 ## Searching a Hoogle database
 
