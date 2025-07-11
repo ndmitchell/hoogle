@@ -121,8 +121,13 @@ readHaskellOnline timing settings download = do
     pure (cbl, want, source)
 
 
-readHaskellDirs :: Timing -> Settings -> [FilePath] -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
-readHaskellDirs timing settings dirs = do
+readHaskellDirs
+  :: Timing
+  -> Settings
+  -> Maybe FilePath
+  -> [FilePath] -- ^ Prefix to remove from URLs to make the DB relocatable
+  -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
+readHaskellDirs timing settings prefixToRemove dirs = do
     files <- concatMapM listFilesRecursive dirs
     -- We reverse/sort the list because of #206
     -- Two identical package names with different versions might be foo-2.0 and foo-1.0
@@ -134,7 +139,9 @@ readHaskellDirs timing settings dirs = do
     let source = forM_ packages $ \(name, file) -> do
             src <- liftIO $ bstrReadFile file
             dir <- liftIO $ canonicalizePath $ takeDirectory file
-            let url = "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ replace "\\" "/" dir ++ "/"
+            let url = case prefixToRemove of
+                  Just prefix -> makeRelative prefix $ replace "\\" "/" dir ++ "/"
+                  Nothing -> "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ replace "\\" "/" dir ++ "/"
             yield (name, url, lbstrFromChunks [src])
     pure (Map.union
                 (Map.fromList cabals)
@@ -237,12 +244,18 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         Haskell | Just dir <- haddock -> do
                     warnFlagIgnored "--haddock" "set" (local_ /= []) "--local"
                     warnFlagIgnored "--haddock" "set" (isJust download) "--download"
+                    warnFlagIgnored "--haddock" "set" relocatable "--relocatable"
                     readHaskellHaddock timing settings dir
                 | [""] <- local_ -> do
                     warnFlagIgnored "--local" "used as flag (no paths)" (isJust download) "--download"
                     readHaskellGhcpkg timing settings
                 | [] <- local_ -> do readHaskellOnline timing settings doDownload
-                | otherwise -> readHaskellDirs timing settings local_
+                | relocatable, _:_:_ <- local_ ->
+                    exitFail "Error: --relocatable needs exactly one --local, or the paths will be ambiguous"
+                | relocatable -> do
+                    prefix <- traverse canonicalizePath $ listToMaybe local_
+                    readHaskellDirs timing settings prefix local_
+                | otherwise -> readHaskellDirs timing settings Nothing local_
         Frege | [] <- local_ -> readFregeOnline timing doDownload
               | otherwise -> errorIO "No support for local Frege databases"
     (cblErrs, popularity) <- evaluate $ packagePopularity cbl
