@@ -8,6 +8,7 @@ import Data.List.Extra
 import Data.Maybe
 import Data.Data
 import Input.Item
+import Input.ParseDecl
 import General.Util
 import Control.DeepSeq
 import Control.Monad.Trans.Class
@@ -169,8 +170,6 @@ readItem (stripPrefix "data (" -> Just xs)  -- tuple data type
           op s x = x
 readItem _ = Nothing
 
-myParseDecl = fmap (fmap $ const ()) . parseDeclWithMode parseMode -- partial application, to share the initialisation cost
-
 unGADT (GDataDecl a b c d _  [] e) = DataDecl a b c d [] e
 unGADT x = x
 
@@ -192,16 +191,79 @@ input_haddock_test = testing "Input.Haddock.parseLine" $ do
     test "newtype Identity a"
     test "foo :: Int# -> b"
     test "(,,) :: a -> b -> c -> (a, b, c)"
-    test "data (,,) a b"
+    "data (,,) a b" === "data Tuple3 a b" -- when ghc-lib-parser >= 9.8
     test "reverse :: [a] -> [a]"
-    test "reverse :: [:a:] -> [:a:]"
+    -- Parallel Haskell has never been implemented
+    -- test "reverse :: [:a:] -> [:a:]"
     test "module Foo.Bar"
     test "data Char"
     "data Char :: *" === "data Char"
     "newtype ModuleName :: *" === "newtype ModuleName"
     "Progress :: !(Maybe String) -> {-# UNPACK #-} !Int -> !(Int -> Bool) -> Progress" ===
         "Progress :: Maybe String -> Int -> (Int -> Bool) -> Progress"
-    -- Broken in the last HSE release, fixed in HSE HEAD
-    -- test "quotRemInt# :: Int# -> Int# -> (# Int#, Int# #)"
+    test "quotRemInt# :: Int# -> Int# -> (# Int#, Int# #)"
     test "( # ) :: Int"
     test "pattern MyPattern :: ()"
+    test "degrees :: Floating x => Radians x -> Degrees x"
+    test "class Angle a"
+    test "instance Eq x => Eq (Degrees x)"
+    test "instance Angle Degrees"
+    test "type Queue a = Deque Nonthreadsafe Nonthreadsafe SingleEnd SingleEnd Grow Safe a"
+    test "class DequeClass d => PopL d"
+    test "tests_fifo :: DequeClass d => (forall elt . IO (d elt)) -> Test"
+    test "class ParUnsafe iv p | p -> iv"
+    "(##) :: Diagram -> Diagram -> Diagram" === "( ## ) :: Diagram -> Diagram -> Diagram"
+    test "instance LayoutClass Positioned []"
+    test "data Ord a => Range a"
+    test "aPair :: Proxy (,)"
+    test "aTriple :: Proxy (,,)"
+    test "qop :: (Ord a, Show qtyp, Show (QFlipTyp qtyp), QFlipTyp (QFlipTyp qtyp) ~ qtyp) => Set (QueryRep QAtomTyp a) -> Set (QueryRep (QFlipTyp qtyp) a) -> QueryRep qtyp a"
+    test "reorient :: (Unbox a) => Bernsteinp Int a -> Bernsteinp Int a"
+    "type family PrimM a :: * -> *;" === "type family PrimM a :: * -> *"
+    test "HSNil :: HSet '[]"
+    "HSCons :: !elem -> HSet elems -> HSet (elem : elems)" === "HSCons :: elem -> HSet elems -> HSet (elem : elems)"
+    test "instance Data.HSet.Reverse.HReverse '[e] els1 els2 => Data.HSet.Reverse.HReverse '[] (e : els1) els2"
+    test "instance Data.HSet.Remove.HRemove (e : els) els 'TypeFun.Data.Peano.Z"
+    test "Free :: (forall m . Monad m => Effects effects m -> m a) -> Free effects a"
+    test "infixl 3 <||"
+    test "instance Data.String.IsString t => Data.String.IsString (t Yi.MiniBuffer.::: doc)"
+    test "runValueExpression :: (Functor f) => Expression a ((->) b) f r -> f ((a -> b) -> r)"
+    test "HCons :: (x :: *) -> HList xs -> HList (x : xs)"
+    test "instance forall k (key :: k) . Data.Traversable.Traversable (Data.ComposableAssociation.Association key)"
+    test "ReflH :: forall (k :: *) (t :: k) . HetEq t t"
+    test "egcd :: (PID d, (Euclidean d)) => d -> d -> (d, d, d)"
+    test "proc :: FilePath -> [String] -> CreateProcess"
+    test "unitTests :: Proxy '()"
+    test "type OneToFour = '[1, 2, 3, 4]"
+    test "data family Prio pol item :: *"
+    test "set :: (Monad m, ToByteString a) => Key -> a -> Opts \"SET\" -> Redis m Bool"
+    test "by :: ByteString -> Opts \"SORT\""
+    test "infixr 9 :+:"
+    test "instance forall k1 k2 (expectation1 :: k2) (expectation2 :: k1) . (Test.TypeSpec.Core.PrettyTypeSpec expectation1, Test.TypeSpec.Core.PrettyTypeSpec expectation2) => Test.TypeSpec.Core.PrettyTypeSpec '(expectation1, expectation2)"
+    test "SomeFoo :: Foo a => m a -> SomeFoo m"
+    test "(@~?) :: (HasCallStack, Ord a, Num a, Show a, ?epsilon :: a) => a -> a -> Assertion"
+    test "data Data where { Idx :: {idxChildren :: Index key (Node height key val)} -> Node ('S height) key val}"
+    test "UnexpectedResponse :: forall k a b . () => Host -> Response k a b -> ProtocolError"
+    test "(.) :: Category k cat => forall (b :: k) (c :: k) (a :: k) . cat b c -> cat a b -> cat a c"
+    test "infixl 3 `And`"
+    test "infix 1 `shouldBe`"
+    test "pattern The :: The d a => a -> d"
+    test "Html :: Element \"html\" '[] (Elements [\"head\", \"body\"]) (ManifestA & '[])"
+    test "instance forall k1 v1 (pk :: k1 -> GHC.Types.Constraint) (k2 :: k1) (pv :: v1 -> GHC.Types.Constraint) (v2 :: v1) . (pk k2, pv v2) => Type.Membership.KeyTargetAre pk pv (k2 'Type.Membership.Internal.:> v2)"
+    test "crDoubleBuffer :: CompactorReturn s -> {-# UNPACK #-} !DoubleBuffer s"
+    test "expectationFailure :: (?callStack :: CallStack) => String -> Expectation"
+    test "type family MapTyCon t xs = r | r -> xs"
+    test "pattern Id :: CRCategory k => (β ~ α, Object k α) => k α β"
+    test "pattern Stream :: () => () => Repetition"
+    test "In# :: (# #) -> In (a :: Effects) (b :: Effects)"
+    test "anyAsciiDecimalWord# :: Addr# -> Addr# -> (# (# #) | (# Word#, Addr# #) #)"
+    test "class SymbolToField (sym :: Symbol) rec typ | sym rec -> typ"
+    test "closestPairDist_spec :: _ => ([r] -> r) -> (r -> t) -> [b] -> Property"
+    -- Cannot faithfully represent ConstraintKind with ImplicitParams in HSE
+    -- test "type HasCallStack = ?callStack :: CallStack"
+    -- Cannot faithfully represent @r in HSE
+    -- test "Maybe# :: forall (r :: RuntimeRep) (a :: TYPE r). (# (# #) | a #) -> Maybe# @r a"
+    -- Cannot faithfully represent visible binders in HSE
+    -- test "data NDFamily_ :: forall (name :: Name) -> forall (ks :: Params name). ParamsProxy name ks -> Res name ks Any :~: r -> Args name ks -> Exp r"
+    -- Cannot faithfully represent standalone kind signatures in HSE
+    -- test "type MinBound :: a;"
