@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, PatternGuards, TemplateHaskell, CPP #-}
+{-# LANGUAGE PackageImports, RecordWildCards, PatternGuards, TemplateHaskell, CPP #-}
 
 
 -- | Module for reading settings files.
@@ -9,7 +9,7 @@ module Input.Settings(
 import Control.Exception (catch, throwIO)
 import Data.List.Extra
 import Data.Maybe
-import Language.Haskell.TH.Syntax (lift, runIO)
+import "template-haskell" Language.Haskell.TH.Syntax (lift, runIO)
 import System.FilePath
 import System.IO.Error (isDoesNotExistError)
 import System.IO.Extra
