@@ -17,7 +17,6 @@ import Control.Monad.Trans.Class
 import General.Conduit
 import Control.Monad.Extra
 import Control.Exception.Extra
-import Data.Generics.Uniplate.Data
 import General.Str
 import Safe
 import Distribution.Types.PackageName (unPackageName, mkPackageName)
@@ -151,28 +150,18 @@ fixLine x = x
 
 
 readItem :: String -> Maybe (Decl ())
-readItem x | ParseOk y <- myParseDecl x = Just $ unGADT y
 readItem x -- newtype
     | Just x <- stripPrefix "newtype " x
     , ParseOk (DataDecl an _ b c d e) <- fmap unGADT $ myParseDecl $ "data " ++ x
     = Just $ DataDecl an (NewType ()) b c d e
-readItem x -- constructors
-    | ParseOk (GDataDecl _ _ _ _ _ [GadtDecl s name _ _ _ ty] _) <- myParseDecl $ "data Data where " ++ x
+readItem x@(x0 : _) -- constructors
+    | isUpper x0 || x0 == '('
+    , ParseOk (GDataDecl _ _ _ _ _ [GadtDecl s name _ _ _ ty] _) <- myParseDecl $ "data Data where " ++ x
     , let f (TyBang _ _ _ (TyParen _ x@TyApp{})) = x
           f (TyBang _ _ _ x) = x
           f x = x
     = Just $ TypeSig s [name] $ applyFun1 $ map f $ unapplyFun ty
-readItem ('(':xs) -- tuple constructors
-    | (com,')':rest) <- span (== ',') xs
-    , ParseOk (TypeSig s [Ident{}] ty) <- myParseDecl $ replicate (length com + 2) 'a' ++ rest
-    = Just $ TypeSig s [Ident s $ '(':com++")"] ty
-readItem (stripPrefix "data (" -> Just xs)  -- tuple data type
-    | (com,')':rest) <- span (== ',') xs
-    , ParseOk (DataDecl a b c d e f) <- fmap unGADT $ myParseDecl $
-        "data " ++ replicate (length com + 2) 'A' ++ rest
-    = Just $ DataDecl a b c (transform (op $ '(':com++")") d) e f
-    where op s DHead{} = DHead () $ Ident () s
-          op _ x = x
+readItem x | ParseOk y <- myParseDecl x = Just $ unGADT y
 readItem _ = Nothing
 
 unGADT :: Decl l -> Decl l
@@ -218,7 +207,7 @@ input_haddock_test = testing "Input.Haddock.parseLine" $ do
     test "class DequeClass d => PopL d"
     test "tests_fifo :: DequeClass d => (forall elt . IO (d elt)) -> Test"
     test "class ParUnsafe iv p | p -> iv"
-    "(##) :: Diagram -> Diagram -> Diagram" === "( ## ) :: Diagram -> Diagram -> Diagram"
+    test "(##) :: Diagram -> Diagram -> Diagram"
     test "instance LayoutClass Positioned []"
     test "data Ord a => Range a"
     test "aPair :: Proxy (,)"
