@@ -135,7 +135,8 @@ readHaskellDirs timing settings dirs = do
             src <- liftIO $ bstrReadFile file
             dir <- liftIO $ canonicalizePath $ takeDirectory file
             let url = "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ replace "\\" "/" dir ++ "/"
-            yield (name, url, lbstrFromChunks [src])
+            when (isJust $ bstrSplitInfix (bstrPack "@package " <> bstrPack (strUnpack name)) src) $
+                yield (name, url, lbstrFromChunks [src])
     pure (Map.union
                 (Map.fromList cabals)
                 (Map.fromListWith (<>) $ map generateBarePackage packages)
