@@ -23,6 +23,9 @@ extra-source-files:
     cbits/*.h
     cbits/*.c
 data-files:
+    misc/sample-data/henry.txt
+    misc/sample-data/emily-1.11/emily.txt
+    misc/sample-data/emily-1.2/emily.txt
     misc/settings.txt
     html/*.js
     html/*.png
