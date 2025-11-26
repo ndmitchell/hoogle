@@ -267,7 +267,7 @@ fpRaresFold :: (b -> b -> b) -> (Name -> b) -> Fingerprint -> b
 fpRaresFold g f Fingerprint{..} = f fpRare1 `g` f fpRare2 `g` f fpRare3
 
 instance Storable Fingerprint where
-    sizeOf _ = 3*sizeOf name0 + 2
+    sizeOf _ = 4 * sizeOf name0
     alignment _ = 4
     peekByteOff ptr i = Fingerprint
         <$> peekByteOff ptr (i+0) <*> peekByteOff ptr (i+1*w) <*> peekByteOff ptr (i+2*w)
