@@ -62,9 +62,10 @@ actionServer cmd@Server{..} = do
     putStrLn . showDuration =<< time
     evaluate spawned
     dataDir <- maybe getDataDir pure datadir
+    let htmlDir = dataDir </> "html"
     haddock <- maybe (pure Nothing) (fmap Just . canonicalizePath) haddock
     withSearch database $ \store ->
-        server log cmd $ replyServer log local links haddock store cdn home (dataDir </> "html") scope
+        server log cmd htmlDir $ replyServer log local links haddock store cdn home htmlDir scope
 
 actionReplay :: CmdLine -> IO ()
 actionReplay Replay{..} = withBuffering stdout NoBuffering $ do
@@ -157,8 +158,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
             -- Haddock incorrectly generates file:// on Windows, when it should be file:///
             -- so replace on file:// and drop all leading empty paths above
             pure $ OutputHTML $ lbstrPack $ replace "file://" "/file/" src
-    xs ->
-        pure $ OutputFile $ joinPath $ htmlDir : xs
+    xs -> pure OutputStaticFile
     where
         html = templateMarkup
         text = templateMarkup . H.string
