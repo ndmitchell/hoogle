@@ -13,7 +13,6 @@ import Input.Settings
 import Data.List.Extra
 import System.FilePath
 import Control.DeepSeq
-import Control.Exception
 import Control.Exception.Extra
 import Control.Monad
 import System.IO.Extra
@@ -27,10 +26,12 @@ import Data.Maybe
 import Data.Tuple.Extra
 import qualified Data.Map.Strict as Map
 import General.Util
-import General.Conduit
 import Data.Semigroup
 import Control.Applicative
 import Prelude
+
+import Distribution.Types.PackageName (unPackageName)
+import Hackage.RevDeps (lastVersionsOfPackages)
 
 ---------------------------------------------------------------------
 -- DATA TYPE
@@ -113,16 +114,9 @@ readGhcPkg settings = do
 
 -- | Given a tarball of Cabal files, parse the latest version of each package.
 parseCabalTarball :: Settings -> FilePath -> IO (Map.Map PkgName Package)
--- items are stored as:
--- QuickCheck/2.7.5/QuickCheck.cabal
--- QuickCheck/2.7.6/QuickCheck.cabal
--- rely on the fact the highest version is last (using lastValues)
 parseCabalTarball settings tarfile = do
-    res <- runConduit $
-        (sourceList =<< liftIO (tarballReadFiles tarfile)) .|
-        mapC (first takeBaseName) .| groupOnLastC fst .| mapMC (evaluate . force) .|
-        pipelineC 10 (mapC (strPack *** readCabal settings . lbstrUnpack) .| mapMC (evaluate . force) .| sinkList)
-    pure $ Map.fromList res
+    lastVersions <- lastVersionsOfPackages (const True) tarfile Nothing
+    pure $ Map.mapKeys (strPack . unPackageName) $ Map.map (readCabal settings . bstrUnpack) lastVersions
 
 
 ---------------------------------------------------------------------
