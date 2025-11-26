@@ -30,6 +30,8 @@ import Prelude
 import qualified Data.Aeson as J
 import Data.Aeson.Types
 import Test.QuickCheck
+import Distribution.Types.PackageName (unPackageName, mkPackageName)
+
 ---------------------------------------------------------------------
 -- TYPES
 
@@ -90,7 +92,7 @@ instance NFData Item where
     rnf (IInstance a) = rnf a
 
 itemName :: Item -> Maybe Str
-itemName (IPackage x) = Just x
+itemName (IPackage x) = Just $ strPack $ unPackageName x
 itemName (IModule x) = Just x
 itemName (IName x) = Just x
 itemName (ISignature _) = Nothing
@@ -174,14 +176,20 @@ targetExpandURL t@Target{..} = t{targetURL = url, targetModule = second (const m
 unHTMLTarget :: Target -> Target
 unHTMLTarget t@Target {..} = t{targetItem=unHTML targetItem, targetDocs=unHTML targetDocs}
 
-splitIPackage, splitIModule :: [(a, Item)] -> [(Str, [(a, Item)])]
-splitIPackage = splitUsing $ \x -> case snd x of IPackage x -> Just x; _ -> Nothing
-splitIModule = splitUsing $ \x -> case snd x of IModule x -> Just x; _ -> Nothing
+splitIPackage :: [(a, Item)] -> [(PkgName, [(a, Item)])]
+splitIPackage = splitUsing (mkPackageName "") $ \x -> case snd x of
+    IPackage x -> Just x
+    _ -> Nothing
 
-splitUsing :: (a -> Maybe Str) -> [a] -> [(Str, [a])]
-splitUsing f = repeatedly $ \(x:xs) ->
+splitIModule :: [(a, Item)] -> [(Str, [(a, Item)])]
+splitIModule = splitUsing mempty $ \x -> case snd x of
+    IModule x -> Just x
+    _ -> Nothing
+
+splitUsing :: b -> (a -> Maybe b) -> [a] -> [(b, [a])]
+splitUsing def f = repeatedly $ \(x:xs) ->
     let (a,b) = break (isJust . f) xs
-    in ((fromMaybe mempty $ f x, x:a), b)
+    in ((fromMaybe def $ f x, x:a), b)
 
 item_test :: IO ()
 item_test = testing "Input.Item.Target JSON (encode . decode = id) " $ do
