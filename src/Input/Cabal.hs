@@ -30,6 +30,10 @@ import Data.Semigroup
 import Control.Applicative
 import Prelude
 
+import Distribution.Compat.Lens (toListOf)
+import qualified Distribution.PackageDescription as PD
+import qualified Distribution.PackageDescription.Parsec as PD
+import qualified Distribution.Types.BuildInfo.Lens as Lens
 import Distribution.Types.PackageName (unPackageName)
 import Hackage.RevDeps (lastVersionsOfPackages)
 
@@ -107,7 +111,7 @@ readGhcPkg settings = do
         -- ^ Backwards compatibility with GHC < 9.0
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
-    let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack $ trimStart x, fixer $ readCabal settings $ unlines xs)
+    let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack $ trimStart x, fixer $ readCabal settings $ bstrPack $ unlines xs)
         f _ = Nothing
     pure $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
 
@@ -116,23 +120,32 @@ readGhcPkg settings = do
 parseCabalTarball :: Settings -> FilePath -> IO (Map.Map PkgName Package)
 parseCabalTarball settings tarfile = do
     lastVersions <- lastVersionsOfPackages (const True) tarfile Nothing
-    pure $ Map.mapKeys (strPack . unPackageName) $ Map.map (readCabal settings . bstrUnpack) lastVersions
+    pure $ Map.mapKeys (strPack . unPackageName) $ Map.map (readCabal settings) lastVersions
 
 
 ---------------------------------------------------------------------
 -- PARSERS
 
--- | Cabal information, plus who I depend on
-readCabal :: Settings -> String -> Package
-readCabal Settings{..} src = Package{..}
+readCabal :: Settings -> BStr -> Package
+readCabal settings src = case PD.parseGenericPackageDescriptionMaybe src of
+    Nothing -> Package
+        { packageTags = []
+        , packageLibrary = False
+        , packageSynopsis = mempty
+        , packageVersion = strPack "0.0"
+        , packageDepends = []
+        , packageDocs = Nothing
+        }
+    Just gpd -> readCabal' settings gpd (bstrUnpack src)
+
+readCabal' :: Settings -> PD.GenericPackageDescription -> String -> Package
+readCabal' Settings{..} gpd src = Package{..}
     where
+        packageDepends = nubOrd $ foldMap (map (\(PD.Dependency pkg _ _) -> strPack $ unPackageName pkg) . PD.targetBuildDepends) $ toListOf Lens.traverseBuildInfos gpd
+
         mp = Map.fromListWith (++) $ lexCabal src
         ask x = Map.findWithDefault [] x mp
 
-        packageDepends =
-            map strPack $ nubOrd $ filter (/= "") $
-            map (intercalate "-" . takeWhile (all isAlpha . take 1) . splitOn "-" . fst . word1) $
-            concatMap (split (== ',')) (ask "build-depends") ++ concatMap words (ask "depends")
         packageVersion = strPack $ headDef "0.0" $ dropWhile null (ask "version")
         packageSynopsis = strPack $ unwords $ words $ unwords $ ask "synopsis"
         packageLibrary = "library" `elem` map (lower . trim) (lines src)
