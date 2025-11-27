@@ -143,7 +143,7 @@ readHaskellDirs timing settings dirs = do
            ,Set.fromList $ map fst packages, source)
   where
     parseCabal fp = do
-        src <- readFileUTF8' fp
+        src <- bstrReadFile fp
         let pkg = readCabal settings src
         pure (strPack $ takeBaseName fp, pkg)
 
