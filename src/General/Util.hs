@@ -56,9 +56,10 @@ import General.Str
 import Prelude
 import qualified Network.HTTP.Types.URI as URI
 import qualified Data.ByteString.UTF8 as UTF8
+import Distribution.Types.PackageName (PackageName, unPackageName)
 
 
-type PkgName = Str
+type PkgName = PackageName
 type ModName = Str
 
 -- | A URL, complete with a @https:@ prefix.
@@ -320,7 +321,7 @@ minimum' = minimumBy' compare
 
 
 hackagePackageURL :: PkgName -> URL
-hackagePackageURL x = "https://hackage.haskell.org/package/" ++ strUnpack x
+hackagePackageURL x = "https://hackage.haskell.org/package/" ++ unPackageName x
 
 hackageModuleURL :: ModName -> URL
 hackageModuleURL x = "/docs/" ++ ghcModuleURL x

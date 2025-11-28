@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# OPTIONS_GHC -Wall -Wno-name-shadowing #-}
 
 -- | Module for reading Cabal files.
 module Input.Cabal(
@@ -12,7 +13,6 @@ import Input.Settings
 import Data.List.Extra
 import System.FilePath
 import Control.DeepSeq
-import Control.Exception
 import Control.Exception.Extra
 import Control.Monad
 import System.IO.Extra
@@ -21,15 +21,25 @@ import System.Exit
 import qualified System.Process.ByteString as BS
 import qualified Data.ByteString.UTF8 as UTF8
 import System.Directory
-import Data.Char
 import Data.Maybe
 import Data.Tuple.Extra
 import qualified Data.Map.Strict as Map
 import General.Util
-import General.Conduit
 import Data.Semigroup
 import Control.Applicative
 import Prelude
+
+import Distribution.Compat.Lens (toListOf)
+import qualified Distribution.PackageDescription as PD
+import qualified Distribution.PackageDescription.Configuration as PD
+import qualified Distribution.PackageDescription.Parsec as PD
+import qualified Distribution.Pretty
+import qualified Distribution.Types.BuildInfo.Lens as Lens
+import Distribution.Types.PackageName (mkPackageName, unPackageName)
+import Distribution.Types.Version (versionNumbers)
+import Distribution.Utils.ShortText (fromShortText)
+import Hackage.RevDeps (lastVersionsOfPackages)
+import qualified Distribution.SPDX as SPDX
 
 ---------------------------------------------------------------------
 -- DATA TYPE
@@ -66,7 +76,7 @@ packagePopularity :: Map.Map PkgName Package -> ([String], Map.Map PkgName Int)
 packagePopularity cbl = mp `seq` (errs, mp)
     where
         mp = Map.map length good
-        errs =  [ strUnpack user ++ ".cabal: Import of non-existant package " ++ strUnpack name ++
+        errs =  [ unPackageName user ++ ".cabal: Import of non-existant package " ++ unPackageName name ++
                           (if null rest then "" else ", also imported by " ++ show (length rest) ++ " others")
                 | (name, user:rest) <- Map.toList bad]
         (good, bad)  = Map.partitionWithKey (\k _ -> k `Map.member` cbl) $
@@ -105,63 +115,66 @@ readGhcPkg settings = do
         -- ^ Backwards compatibility with GHC < 9.0
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
-    let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack $ trimStart x, fixer $ readCabal settings $ unlines xs)
-        f xs = Nothing
+    let f ((stripPrefix "name: " -> Just x):xs) = Just (mkPackageName $ trimStart x, fixer $ readCabal settings $ bstrPack $ unlines xs)
+        f _ = Nothing
     pure $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
 
 
 -- | Given a tarball of Cabal files, parse the latest version of each package.
 parseCabalTarball :: Settings -> FilePath -> IO (Map.Map PkgName Package)
--- items are stored as:
--- QuickCheck/2.7.5/QuickCheck.cabal
--- QuickCheck/2.7.6/QuickCheck.cabal
--- rely on the fact the highest version is last (using lastValues)
 parseCabalTarball settings tarfile = do
-    res <- runConduit $
-        (sourceList =<< liftIO (tarballReadFiles tarfile)) .|
-        mapC (first takeBaseName) .| groupOnLastC fst .| mapMC (evaluate . force) .|
-        pipelineC 10 (mapC (strPack *** readCabal settings . lbstrUnpack) .| mapMC (evaluate . force) .| sinkList)
-    pure $ Map.fromList res
+    lastVersions <- lastVersionsOfPackages (const True) tarfile Nothing
+    pure $ Map.map (readCabal settings) lastVersions
 
 
 ---------------------------------------------------------------------
 -- PARSERS
 
--- | Cabal information, plus who I depend on
-readCabal :: Settings -> String -> Package
-readCabal Settings{..} src = Package{..}
-    where
-        mp = Map.fromListWith (++) $ lexCabal src
-        ask x = Map.findWithDefault [] x mp
+readCabal :: Settings -> BStr -> Package
+readCabal settings src = case PD.parseGenericPackageDescriptionMaybe src of
+    Nothing -> Package
+        { packageTags = []
+        , packageLibrary = False
+        , packageSynopsis = mempty
+        , packageVersion = strPack "0.0"
+        , packageDepends = []
+        , packageDocs = Nothing
+        }
+    Just gpd -> readCabal' settings gpd
 
-        packageDepends =
-            map strPack $ nubOrd $ filter (/= "") $
-            map (intercalate "-" . takeWhile (all isAlpha . take 1) . splitOn "-" . fst . word1) $
-            concatMap (split (== ',')) (ask "build-depends") ++ concatMap words (ask "depends")
-        packageVersion = strPack $ headDef "0.0" $ dropWhile null (ask "version")
-        packageSynopsis = strPack $ unwords $ words $ unwords $ ask "synopsis"
-        packageLibrary = "library" `elem` map (lower . trim) (lines src)
-        packageDocs = find (not . null) $ ask "haddock-html"
+readCabal' :: Settings -> PD.GenericPackageDescription -> Package
+readCabal' Settings{..} gpd = Package{..}
+    where
+        pd = PD.flattenPackageDescription gpd
+        pkgId = PD.package pd
+
+        packageDepends = nubOrd $ foldMap (map (\(PD.Dependency pkg _ _) -> pkg) . PD.targetBuildDepends) $ toListOf Lens.traverseBuildInfos gpd
+        packageVersion = strPack $ intercalate "." $ map show $ versionNumbers $ PD.pkgVersion pkgId
+        packageSynopsis = strPack $ fromShortText $ PD.synopsis pd
+        packageLibrary = PD.hasPublicLib pd
+        packageDocs = Nothing
+
+        unpackLicenseExpression (SPDX.EOr x y) = unpackLicenseExpression x ++ unpackLicenseExpression y
+        unpackLicenseExpression x = [x]
+
+        packageLicenses = case PD.license pd of
+            SPDX.NONE -> []
+            SPDX.License licExpr -> map (show . Distribution.Pretty.pretty) $
+                unpackLicenseExpression licExpr
+        packageCategories =
+            filter (not . null) $ split (`elem` " ,") $
+                fromShortText $ PD.category pd
+        packageAuthor = fromShortText $ PD.author pd
+        packageMaintainer = fromShortText $ PD.maintainer pd
 
         packageTags = map (both strPack) $ nubOrd $ concat
-            [ map (x,) $ concatMap cleanup $ concatMap ask xs
-            | xs@(x:_) <- [["license"],["category"],["author","maintainer"]]]
+            [ map ("license",) packageLicenses
+            , map ("category",) packageCategories
+            , map ("author",) (concatMap cleanup [packageAuthor, packageMaintainer])
+            ]
 
         -- split on things like "," "&" "and", then throw away email addresses, replace spaces with "-" and rename
         cleanup =
             filter (/= "") .
             map (renameTag . intercalate "-" . filter ('@' `notElem`) . words . takeWhile (`notElem` "<(")) .
             concatMap (map unwords . split (== "and") . words) . split (`elem` ",&")
-
-
--- Ignores nesting beacuse it's not interesting for any of the fields I care about
-lexCabal :: String -> [(String, [String])]
-lexCabal = f . lines
-    where
-        f (x:xs) | (white,x) <- span isSpace x
-                 , (name@(_:_),x) <- span (\c -> isAlpha c || c == '-') x
-                 , ':':x <- trim x
-                 , (xs1,xs2) <- span (\s -> length (takeWhile isSpace s) > length white) xs
-                 = (lower name, trim x : replace ["."] [""] (map (trim . fst . breakOn "--") xs1)) : f xs2
-        f (x:xs) = f xs
-        f [] = []
