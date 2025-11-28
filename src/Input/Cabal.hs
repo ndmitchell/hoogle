@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# OPTIONS_GHC -Wall -Wno-name-shadowing #-}
 
 -- | Module for reading Cabal files.
 module Input.Cabal(
@@ -106,7 +107,7 @@ readGhcPkg settings = do
         g x = x
     let fixer p = p{packageLibrary = True, packageDocs = g <$> packageDocs p}
     let f ((stripPrefix "name: " -> Just x):xs) = Just (strPack $ trimStart x, fixer $ readCabal settings $ unlines xs)
-        f xs = Nothing
+        f _ = Nothing
     pure $ Map.fromList $ mapMaybe f $ splitOn ["---"] $ lines $ filter (/= '\r') $ UTF8.toString stdout
 
 
@@ -163,5 +164,5 @@ lexCabal = f . lines
                  , ':':x <- trim x
                  , (xs1,xs2) <- span (\s -> length (takeWhile isSpace s) > length white) xs
                  = (lower name, trim x : replace ["."] [""] (map (trim . fst . breakOn "--") xs1)) : f xs2
-        f (x:xs) = f xs
+        f (_:xs) = f xs
         f [] = []
