@@ -125,7 +125,7 @@ server log Server{..} act = do
               <> " form-action 'self';"
               -- Any request originating from this page and specifying http as
               -- its protocol will be automatically upgraded to https.
-              <> " upgrade-insecure-requests;"
+              <> (if https then " upgrade-insecure-requests;" else mempty)
               -- Do not display http content if the page was loaded under
               -- https.
               <> " block-all-mixed-content"),
