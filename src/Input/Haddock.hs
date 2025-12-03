@@ -42,8 +42,10 @@ parserC warning = f [] ""
         f com url = do
             x <- await
             whenJust x $ \(i,s) -> case () of
-                _ | Just s <- bstrStripPrefix "-- | " s -> f [ignoreMath s] url
+                _ | s == "}" -> f [] ""
+                  | Just s <- bstrStripPrefix "-- | " s -> f [ignoreMath s] url
                   | Just s <- bstrStripPrefix "--" s -> f (if null com then [] else bstrTrimStart s : com) url
+                  | Just s <- bstrStripPrefix "    --" s -> f (if null com then [] else bstrTrimStart s : com) url
                   | Just s <- bstrStripPrefix "@url " s -> f com (bstrUnpack s)
                   | bstrNull $ bstrTrimStart s -> f [] ""
                   | otherwise -> do
