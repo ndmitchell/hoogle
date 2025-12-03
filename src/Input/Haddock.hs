@@ -147,6 +147,8 @@ fixLine (stripPrefix "instance [safe] " -> Just x) = fixLine $ "instance " ++ x
 fixLine (stripPrefix "(#) " -> Just x) = "( # ) " ++ x
 fixLine ('[':x:xs) | isAlpha x || x `elem` ("_(" :: String), (a,']':b) <- break (== ']') xs = x : a ++ b
 fixLine ('[':':':xs) | (a,']':b) <- break (== ']') xs = "(:" ++ a ++ ")" ++ b
+-- Record field accessor can start from '$', such as ($*) in algebra-4.3.1
+fixLine ('[':'$':xs) | (a,']':b) <- break (== ']') xs = "($" ++ a ++ ")" ++ b
 fixLine x | "class " `isPrefixOf` x = fst $ breakOn " where " x
 fixLine x = x
 
