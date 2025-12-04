@@ -43,6 +43,8 @@ parserC warning = f [] ""
             x <- await
             whenJust x $ \(i,s) -> case () of
                 _ | s == "}" -> f [] ""
+                  -- Skip default methods like ($dmliftEq) and ($dmdisplayExceptionAnnotation)
+                  | Just{} <- bstrStripPrefix "($dm" s -> f [] ""
                   | Just s <- bstrStripPrefix "-- | " s -> f [ignoreMath s] url
                   | Just s <- bstrStripPrefix "--" s -> f (if null com then [] else bstrTrimStart s : com) url
                   | Just s <- bstrStripPrefix "    --" s -> f (if null com then [] else bstrTrimStart s : com) url
