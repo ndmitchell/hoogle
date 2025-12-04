@@ -21,7 +21,6 @@ import System.Exit
 import qualified System.Process.ByteString as BS
 import qualified Data.ByteString.UTF8 as UTF8
 import System.Directory
-import Data.Char
 import Data.Maybe
 import Data.Tuple.Extra
 import qualified Data.Map.Strict as Map
@@ -32,10 +31,15 @@ import Prelude
 
 import Distribution.Compat.Lens (toListOf)
 import qualified Distribution.PackageDescription as PD
+import qualified Distribution.PackageDescription.Configuration as PD
 import qualified Distribution.PackageDescription.Parsec as PD
+import qualified Distribution.Pretty
 import qualified Distribution.Types.BuildInfo.Lens as Lens
 import Distribution.Types.PackageName (mkPackageName, unPackageName)
+import Distribution.Types.Version (versionNumbers)
+import Distribution.Utils.ShortText (fromShortText)
 import Hackage.RevDeps (lastVersionsOfPackages)
+import qualified Distribution.SPDX as SPDX
 
 ---------------------------------------------------------------------
 -- DATA TYPE
@@ -136,40 +140,41 @@ readCabal settings src = case PD.parseGenericPackageDescriptionMaybe src of
         , packageDepends = []
         , packageDocs = Nothing
         }
-    Just gpd -> readCabal' settings gpd (bstrUnpack src)
+    Just gpd -> readCabal' settings gpd
 
-readCabal' :: Settings -> PD.GenericPackageDescription -> String -> Package
-readCabal' Settings{..} gpd src = Package{..}
+readCabal' :: Settings -> PD.GenericPackageDescription -> Package
+readCabal' Settings{..} gpd = Package{..}
     where
+        pd = PD.flattenPackageDescription gpd
+        pkgId = PD.package pd
+
         packageDepends = nubOrd $ foldMap (map (\(PD.Dependency pkg _ _) -> pkg) . PD.targetBuildDepends) $ toListOf Lens.traverseBuildInfos gpd
+        packageVersion = strPack $ intercalate "." $ map show $ versionNumbers $ PD.pkgVersion pkgId
+        packageSynopsis = strPack $ fromShortText $ PD.synopsis pd
+        packageLibrary = PD.hasPublicLib pd
+        packageDocs = Nothing
 
-        mp = Map.fromListWith (++) $ lexCabal src
-        ask x = Map.findWithDefault [] x mp
+        unpackLicenseExpression (SPDX.EOr x y) = unpackLicenseExpression x ++ unpackLicenseExpression y
+        unpackLicenseExpression x = [x]
 
-        packageVersion = strPack $ headDef "0.0" $ dropWhile null (ask "version")
-        packageSynopsis = strPack $ unwords $ words $ unwords $ ask "synopsis"
-        packageLibrary = "library" `elem` map (lower . trim) (lines src)
-        packageDocs = find (not . null) $ ask "haddock-html"
+        packageLicenses = case PD.license pd of
+            SPDX.NONE -> []
+            SPDX.License licExpr -> map (show . Distribution.Pretty.pretty) $
+                unpackLicenseExpression licExpr
+        packageCategories =
+            filter (not . null) $ split (`elem` " ,") $
+                fromShortText $ PD.category pd
+        packageAuthor = fromShortText $ PD.author pd
+        packageMaintainer = fromShortText $ PD.maintainer pd
 
         packageTags = map (both strPack) $ nubOrd $ concat
-            [ map (x,) $ concatMap cleanup $ concatMap ask xs
-            | xs@(x:_) <- [["license"],["category"],["author","maintainer"]]]
+            [ map ("license",) packageLicenses
+            , map ("category",) packageCategories
+            , map ("author",) (concatMap cleanup [packageAuthor, packageMaintainer])
+            ]
 
         -- split on things like "," "&" "and", then throw away email addresses, replace spaces with "-" and rename
         cleanup =
             filter (/= "") .
             map (renameTag . intercalate "-" . filter ('@' `notElem`) . words . takeWhile (`notElem` "<(")) .
             concatMap (map unwords . split (== "and") . words) . split (`elem` ",&")
-
-
--- Ignores nesting beacuse it's not interesting for any of the fields I care about
-lexCabal :: String -> [(String, [String])]
-lexCabal = f . lines
-    where
-        f (x:xs) | (white,x) <- span isSpace x
-                 , (name@(_:_),x) <- span (\c -> isAlpha c || c == '-') x
-                 , ':':x <- trim x
-                 , (xs1,xs2) <- span (\s -> length (takeWhile isSpace s) > length white) xs
-                 = (lower name, trim x : replace ["."] [""] (map (trim . fst . breakOn "--") xs1)) : f xs2
-        f (_:xs) = f xs
-        f [] = []
