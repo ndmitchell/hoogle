@@ -11,7 +11,7 @@ module Input.ParseDecl (myParseDecl) where
 import Prelude hiding (Foldable(..))
 import Data.Char (isAlphaNum, isUpper)
 import Data.Foldable (Foldable(..))
-import Data.List.Extra (dropEnd1, drop1, enumerate, stripPrefix, unsnoc)
+import Data.List.Extra (dropEnd1, drop1, enumerate, stripPrefix, unsnoc, isInfixOf)
 import Data.List.NonEmpty qualified as NE (toList)
 import Data.Maybe (isNothing)
 import GHC.Data.EnumSet qualified as EnumSet
@@ -527,6 +527,7 @@ runGhcLibParser str
 runGhcLibParser str = case runGhcLibParserWithExtensions almostAllExtensions str of
     PFailed{}
         | '#' `elem` str -> runGhcLibParserWithExtensions noUnboxed str
+        | "pattern" `isInfixOf` str -> runGhcLibParserWithExtensions noPatternSynonyms str
     res -> res
 
 allExtensions :: EnumSet.EnumSet Extension
@@ -551,6 +552,9 @@ noUnboxed =
         [ UnboxedSums
         , UnboxedTuples
         ]
+
+noPatternSynonyms :: EnumSet.EnumSet Extension
+noPatternSynonyms = EnumSet.delete PatternSynonyms almostAllExtensions
 
 runGhcLibParserWithExtensions ::
     EnumSet.EnumSet Extension ->
