@@ -149,6 +149,8 @@ fixLine ('[':x:xs) | isAlpha x || x `elem` ("_(" :: String), (a,']':b) <- break 
 fixLine ('[':':':xs) | (a,']':b) <- break (== ']') xs = "(:" ++ a ++ ")" ++ b
 -- Record field accessor can start from '$', such as ($*) in algebra-4.3.1
 fixLine ('[':'$':xs) | (a,']':b) <- break (== ']') xs = "($" ++ a ++ ")" ++ b
+-- Record field accessor can start from '>', such as (>>-) in turtle-1.6.2
+fixLine ('[':'>':xs) | (a,']':b) <- break (== ']') xs = "(>" ++ a ++ ")" ++ b
 fixLine x | "class " `isPrefixOf` x = fst $ breakOn " where " x
 fixLine x = x
 
