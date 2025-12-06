@@ -527,6 +527,7 @@ runGhcLibParser str
 runGhcLibParser str = case runGhcLibParserWithExtensions almostAllExtensions str of
     PFailed{}
         | '#' `elem` str -> runGhcLibParserWithExtensions noUnboxed str
+        | '*' `elem` str -> runGhcLibParserWithExtensions noStarIsType str
         | "pattern" `isInfixOf` str -> runGhcLibParserWithExtensions noPatternSynonyms str
     res -> res
 
@@ -555,6 +556,9 @@ noUnboxed =
 
 noPatternSynonyms :: EnumSet.EnumSet Extension
 noPatternSynonyms = EnumSet.delete PatternSynonyms almostAllExtensions
+
+noStarIsType :: EnumSet.EnumSet Extension
+noStarIsType = EnumSet.delete StarIsType almostAllExtensions
 
 runGhcLibParserWithExtensions ::
     EnumSet.EnumSet Extension ->
