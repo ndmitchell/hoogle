@@ -56,7 +56,10 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
             if null res then
                 putStrLn "No results found"
              else if info then do
-                 putStr $ targetInfo color' q $ headErr res
+                 mapM_ (putStr . targetInfo color' q)
+                  $ (case count of
+                    Just c -> take c
+                    Nothing -> singleton . headErr) res
              else do
                 if | json -> LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res
                    | jsonl -> mapM_ (LBS.putStrLn . JSON.encode) $ maybe id take count $ map unHTMLtargetItem res
