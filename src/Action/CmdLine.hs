@@ -134,7 +134,7 @@ search_ = Search
     ,jsonl = def &= name "jsonl" &= help "Get result as JSONL (JSON Lines)"
     ,link = def &= help "Give URL's for each result"
     ,numbers = def &= help "Give counter for each result"
-    ,info = def &= help "Give extended information about the first result"
+    ,info = def &= help "Give extended information about the first n results (set n with --count, default is 1)"
     ,database = def &= typFile &= help "Name of database to use (use .hoo extension)"
     ,count = Nothing &= name "n" &= help "Maximum number of results to return (defaults to 10)"
     ,query = def &= args &= typ "QUERY"
