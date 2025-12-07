@@ -1,4 +1,6 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types, DeriveDataTypeable #-}
+{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, OverloadedStrings, Rank2Types, DeriveDataTypeable, LambdaCase #-}
+{-# OPTIONS_GHC -Wall #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Input.Haddock(parseHoogle, fakePackage, input_haddock_test) where
 
@@ -25,7 +27,7 @@ import Distribution.Types.PackageName (unPackageName, mkPackageName)
 data Entry = EPackage PkgName
            | EModule ModName
            | EDecl (Decl ())
-             deriving (Data,Typeable,Show)
+             deriving (Data, Show)
 
 
 fakePackage :: PkgName -> String -> (Maybe Target, [Item])
@@ -63,11 +65,11 @@ ignoreMath x | Just x <- "&lt;math&gt;" `bstrStripPrefix` x
              = fromMaybe x $ ". " `bstrStripPrefix` x
 ignoreMath x = x
 
-
-typeItem (EPackage x) = "package"
-typeItem (EModule x) = "module"
-typeItem _ = ""
-
+typeItem :: Entry -> String
+typeItem = \case
+    EPackage{} -> "package"
+    EModule{} -> "module"
+    EDecl{} -> ""
 
 -- FIXME: used to be in two different modules, now does and then undoes lots of stuff
 reformat :: [BStr] -> String
@@ -77,11 +79,11 @@ reformat = unlines . map bstrUnpack
 hierarchyC :: Monad m => URL -> ConduitM (Target, Entry) (Maybe Target, [Item]) m ()
 hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
     where
-        f (pkg, mod) (t, EPackage x) = ((Just (unPackageName x, url), Nothing), (Just t{targetURL=url}, [IPackage x]))
+        f (_pkg, _mod) (t, EPackage x) = ((Just (unPackageName x, url), Nothing), (Just t{targetURL=url}, [IPackage x]))
             where url = targetURL t `orIfNull` packageUrl
-        f (pkg, mod) (t, EModule x) = ((pkg, Just (strUnpack x, url)), (Just t{targetPackage=pkg, targetURL=url}, [IModule x]))
+        f (pkg, _mod) (t, EModule x) = ((pkg, Just (strUnpack x, url)), (Just t{targetPackage=pkg, targetURL=url}, [IModule x]))
             where url = targetURL t `orIfNull` (if isGhc then ghcModuleURL x else hackageModuleURL x)
-        f (pkg, mod) (t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
+        f (pkg, mod) (_t, EDecl i@InstDecl{}) = ((pkg, mod), (Nothing, hseToItem_ i))
         f (pkg, mod) (t, EDecl x) = ((pkg, mod), (Just t{targetPackage=pkg, targetModule=mod, targetURL=url}, hseToItem_ x))
             where url = targetURL t `orIfNull` case x of
                             _ | [n] <- declNames x -> hackageDeclURL (isTypeSig x) n
@@ -95,6 +97,8 @@ hierarchyC packageUrl = void $ mapAccumC f (Nothing, Nothing)
 
 renderPackage :: PkgName -> [Char]
 renderPackage x = "<b>package</b> <span class=name><s0>" ++ escapeHTML (unPackageName x) ++ "</s0></span>"
+
+renderModule :: Str -> [Char]
 renderModule (breakEnd (== '.') . strUnpack -> (pre,post)) = "<b>module</b> " ++ escapeHTML pre ++ "<span class=name><s0>" ++ escapeHTML post ++ "</s0></span>"
 
 
@@ -168,9 +172,10 @@ readItem (stripPrefix "data (" -> Just xs)  -- tuple data type
         "data " ++ replicate (length com + 2) 'A' ++ rest
     = Just $ DataDecl a b c (transform (op $ '(':com++")") d) e f
     where op s DHead{} = DHead () $ Ident () s
-          op s x = x
+          op _ x = x
 readItem _ = Nothing
 
+unGADT :: Decl l -> Decl l
 unGADT (GDataDecl a b c d _  [] e) = DataDecl a b c d [] e
 unGADT x = x
 
