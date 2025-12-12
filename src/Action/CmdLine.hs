@@ -45,6 +45,7 @@ data CmdLine
         ,haddock :: Maybe FilePath
         ,debug :: Bool
         ,language :: Language
+        ,relocatable :: Maybe FilePath
         }
     | Server
         {port :: Int
@@ -151,6 +152,7 @@ generate = Generate
     ,count = Nothing &= name "n" &= help "Maximum number of packages to index (defaults to all)"
     ,haddock = def &= help "Use local haddocks"
     ,debug = def &= help "Generate debug information"
+    ,relocatable = Nothing &= help "Index local packages and link to local haddock docs, producing a relocatable database"
     } &= help "Generate Hoogle databases"
 
 server = Server
