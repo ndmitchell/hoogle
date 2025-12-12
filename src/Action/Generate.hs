@@ -246,17 +246,17 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         Haskell | Just dir <- haddock -> do
                     warnFlagIgnored "--haddock" "set" (local_ /= []) "--local"
                     warnFlagIgnored "--haddock" "set" (isJust download) "--download"
-                    warnFlagIgnored "--haddock" "set" relocatable "--relocatable"
+                    warnFlagIgnored "--haddock" "set" (isJust relocatable) "--relocatable"
                     readHaskellHaddock timing settings dir
                 | [""] <- local_ -> do
                     warnFlagIgnored "--local" "used as flag (no paths)" (isJust download) "--download"
                     readHaskellGhcpkg timing settings
+                | Just _ <- relocatable, _:_ <- local_ ->
+                    exitFail "Error: --relocatable and --local are mutually exclusive"
+                | Just relocatable' <- relocatable -> do
+                    prefix <- traverse canonicalizePath relocatable
+                    readHaskellDirs timing settings prefix [relocatable']
                 | [] <- local_ -> do readHaskellOnline timing settings doDownload
-                | relocatable, _:_:_ <- local_ ->
-                    exitFail "Error: --relocatable needs exactly one --local, or the paths will be ambiguous"
-                | relocatable -> do
-                    prefix <- traverse canonicalizePath $ listToMaybe local_
-                    readHaskellDirs timing settings prefix local_
                 | otherwise -> readHaskellDirs timing settings Nothing local_
         Frege | [] <- local_ -> readFregeOnline timing doDownload
               | otherwise -> errorIO "No support for local Frege databases"
