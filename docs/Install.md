@@ -31,8 +31,8 @@ Run `hoogle generate --local=mydir1 --local=mydir2` to generate an index for the
 
 ### Index a directory, producing a relocatable database
 
-Run `hoogle generate --relocatable --local=mydir` to generate an index that supports moving the Haddock directory to a different path without breaking the Haddock links.
-This mode only supports one `--local` directory.
+Run `hoogle generate --relocatable=mydir` to generate an index that supports moving the Haddock directory to a different path without breaking the Haddock links.
+This mode acts like `--local` but only supports one directory.
 
 ## Searching a Hoogle database
 
