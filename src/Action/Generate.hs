@@ -156,7 +156,7 @@ readHaskellDirs timing settings dirs = do
 
 readFregeOnline :: Timing -> Download -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readFregeOnline timing download = do
-    frege <- download "frege-frege.txt" "http://try.frege-lang.org/hoogle-frege.txt"
+    frege <- download "frege-frege.txt" "https://github.com/Frege/try-frege/raw/refs/heads/master/try-frege-web/src/main/webapp/hoogle-frege.txt"
     let source = do
             src <- liftIO $ bstrReadFile frege
             yield (mkPackageName "frege", "http://google.com/", lbstrFromChunks [src])
