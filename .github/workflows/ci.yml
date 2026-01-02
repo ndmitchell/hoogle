@@ -15,7 +15,9 @@ jobs:
         ghc: ['9.8', '9.6', '9.4']
         include:
         - os: windows-latest
+          ghc: 9.12
         - os: macOS-latest
+          ghc: 9.12
 
     steps:
     - run: git config --global core.autocrlf false
