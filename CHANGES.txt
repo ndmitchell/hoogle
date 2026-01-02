@@ -1,5 +1,12 @@
 Changelog for Hoogle (* = API change, @ = database format change)
 
+5.0.19, released 2026-01-19
+    Migrate (half of) parsing from haskell-src-exts to ghc-lib-parser
+    Support hyperlinks in search output
+    Colorize search output
+    Use --count when --info is passed
+    Change DB format to fix sizeOf in instance Storable Fingerprint
+    Do not force 'upgrade-insecure-requests' if we ourselves are running an HTTP server
     #411, switched to xdg directory and deprecated legacy location
     Require and support crypton-connection >= 0.4.1
 5.0.18.4, released 2024-01-14
