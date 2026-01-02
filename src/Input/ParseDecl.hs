@@ -51,6 +51,10 @@ pattern MyPrefixConGADT x <- PrefixConGADT x
 pattern MyRecConGADT x <- RecConGADT x _
 #endif
 
+#if !MIN_VERSION_ghc_lib_parser(9,14,0)
+#define con_outer_bndrs con_bndrs
+#endif
+
 myParseDecl :: String -> HSE.ParseResult (HSE.Decl ())
 myParseDecl str = case runGhcLibParser str of
     POk _state x -> case hsDeclToDecl (unLoc x) of
@@ -96,7 +100,7 @@ hsDeclToDecl (TyClD _ (GHC.Hs.DataDecl{tcdLName, tcdTyVars = HsQTvs{hsq_explicit
             (Just $ hsTypeToType $ unLoc kind)
             []
             []
-hsDeclToDecl (TyClD _ (GHC.Hs.DataDecl{tcdLName, tcdTyVars = HsQTvs{hsq_explicit}, tcdDataDefn = HsDataDefn{dd_cons = DataTypeCons _ [L _ (ConDeclGADT{con_names, con_bndrs, con_g_args = MyPrefixConGADT args, con_res_ty, con_mb_cxt})]}})) =
+hsDeclToDecl (TyClD _ (GHC.Hs.DataDecl{tcdLName, tcdTyVars = HsQTvs{hsq_explicit}, tcdDataDefn = HsDataDefn{dd_cons = DataTypeCons _ [L _ (ConDeclGADT{con_names, con_outer_bndrs, con_g_args = MyPrefixConGADT args, con_res_ty, con_mb_cxt})]}})) =
     Just $
         HSE.GDataDecl
             ()
@@ -116,10 +120,14 @@ hsDeclToDecl (TyClD _ (GHC.Hs.DataDecl{tcdLName, tcdTyVars = HsQTvs{hsq_explicit
                         Nothing
                         Nothing
                         Nothing
-                        ( maybe id (\bs -> applyTyForall (Just bs) Nothing) (hsOuterTyVarBndrsToFoo $ unLoc con_bndrs) $
+                        ( maybe id (\bs -> applyTyForall (Just bs) Nothing) (hsOuterTyVarBndrsToFoo $ unLoc con_outer_bndrs) $
                             maybe id (applyTyForall Nothing . Just . hsTypesToContext . unLoc) con_mb_cxt $
                                 foldr
+#if MIN_VERSION_ghc_lib_parser(9,14,0)
+                                    (\CDF{cdf_type} -> HSE.TyFun () (hsTypeToType $ unLoc cdf_type))
+#else
                                     (\(HsScaled _ a) -> HSE.TyFun () (hsTypeToType $ unLoc a))
+#endif
                                     (hsTypeToType $ unLoc con_res_ty)
                                     args
                         )
@@ -127,7 +135,7 @@ hsDeclToDecl (TyClD _ (GHC.Hs.DataDecl{tcdLName, tcdTyVars = HsQTvs{hsq_explicit
                 (NE.toList con_names)
             )
             []
-hsDeclToDecl (TyClD _ (GHC.Hs.DataDecl{tcdLName, tcdTyVars = HsQTvs{hsq_explicit}, tcdDataDefn = HsDataDefn{dd_cons = DataTypeCons _ [L _ (ConDeclGADT{con_names, con_bndrs, con_g_args = MyRecConGADT (L _ args), con_res_ty, con_mb_cxt})]}})) =
+hsDeclToDecl (TyClD _ (GHC.Hs.DataDecl{tcdLName, tcdTyVars = HsQTvs{hsq_explicit}, tcdDataDefn = HsDataDefn{dd_cons = DataTypeCons _ [L _ (ConDeclGADT{con_names, con_outer_bndrs, con_g_args = MyRecConGADT (L _ args), con_res_ty, con_mb_cxt})]}})) =
     Just $
         HSE.GDataDecl
             ()
@@ -148,7 +156,7 @@ hsDeclToDecl (TyClD _ (GHC.Hs.DataDecl{tcdLName, tcdTyVars = HsQTvs{hsq_explicit
                         Nothing
                         (Just $ map (conDeclFieldToFieldDecl . unLoc) args)
                         ( maybe id (HSE.TyForall () Nothing . Just . hsTypesToContext . unLoc) con_mb_cxt $
-                            maybe id (\bs -> HSE.TyForall () (Just bs) Nothing) (hsOuterTyVarBndrsToFoo $ unLoc con_bndrs) $
+                            maybe id (\bs -> HSE.TyForall () (Just bs) Nothing) (hsOuterTyVarBndrsToFoo $ unLoc con_outer_bndrs) $
                                 hsTypeToType $
                                     unLoc con_res_ty
                         )
@@ -253,6 +261,15 @@ injectivityAnnToInjectivityInfo = \case
     InjectivityAnn _ lhs rhs ->
         HSE.InjectivityInfo () (rdrNameToName $ unLoc lhs) (map (rdrNameToName . unLoc) rhs)
 
+#if MIN_VERSION_ghc_lib_parser(9,14,0)
+conDeclFieldToFieldDecl :: HsConDeclRecField GhcPs -> HSE.FieldDecl ()
+conDeclFieldToFieldDecl = \case
+    HsConDeclRecField{cdrf_names, cdrf_spec = CDF{cdf_type}} ->
+        HSE.FieldDecl
+            ()
+            (map (fieldOccToName . unLoc) cdrf_names)
+            (hsTypeToType $ unLoc cdf_type)
+#else
 conDeclFieldToFieldDecl :: ConDeclField GhcPs -> HSE.FieldDecl ()
 conDeclFieldToFieldDecl = \case
     ConDeclField{cd_fld_names, cd_fld_type} ->
@@ -260,6 +277,7 @@ conDeclFieldToFieldDecl = \case
             ()
             (map (fieldOccToName . unLoc) cd_fld_names)
             (hsTypeToType $ unLoc cd_fld_type)
+#endif
 
 fieldOccToName :: FieldOcc GhcPs -> HSE.Name ()
 fieldOccToName = \case
@@ -374,11 +392,13 @@ hsTypeToType = \case
         HSE.TyTuple () (hsTupleSortToBoxed boxed) (map (hsTypeToType . unLoc) xs)
     HsStarTy _ _ ->
         HSE.TyStar ()
+#if !MIN_VERSION_ghc_lib_parser(9,14,0)
     HsBangTy _ (HsBang unpackedness strictness) x ->
         applyTyBang
             (srcStrictnessToBangType strictness)
             (srcUnpackednessToUnpackedness unpackedness)
             (hsTypeToType $ unLoc x)
+#endif
     HsParTy _ x -> case hsTypeToType (unLoc x) of
         x'@HSE.TyKind{} -> x'
         x' -> HSE.TyParen () x'
@@ -461,6 +481,7 @@ applyTyForall mArg1 mArg2 = \case
         | isNothing mArg2 -> HSE.TyForall () mArg1 mArg2' ty
     ty -> HSE.TyForall () mArg1 mArg2 ty
 
+#if !MIN_VERSION_ghc_lib_parser(9,14,0)
 applyTyBang ::
     HSE.BangType () -> HSE.Unpackedness () -> HSE.Type () -> HSE.Type ()
 applyTyBang bang unpack = \case
@@ -470,6 +491,19 @@ applyTyBang bang unpack = \case
         | bang == HSE.NoStrictAnnot () -> HSE.TyBang () bang' unpack ty
     HSE.TyApp () x y -> HSE.TyApp () (applyTyBang bang unpack x) y
     ty -> HSE.TyBang () bang unpack ty
+
+srcStrictnessToBangType :: SrcStrictness -> HSE.BangType ()
+srcStrictnessToBangType = \case
+    SrcLazy -> HSE.LazyTy ()
+    SrcStrict -> HSE.BangedTy ()
+    NoSrcStrict -> HSE.NoStrictAnnot ()
+
+srcUnpackednessToUnpackedness :: SrcUnpackedness -> HSE.Unpackedness ()
+srcUnpackednessToUnpackedness = \case
+    SrcUnpack -> HSE.Unpack ()
+    SrcNoUnpack -> HSE.NoUnpack ()
+    NoSrcUnpack -> HSE.NoUnpackPragma ()
+#endif
 
 typeToInstHead :: HSE.Type () -> HSE.InstHead ()
 typeToInstHead = \case
@@ -505,18 +539,6 @@ hsTupleSortToBoxed :: HsTupleSort -> HSE.Boxed
 hsTupleSortToBoxed = \case
     HsUnboxedTuple -> HSE.Unboxed
     HsBoxedOrConstraintTuple -> HSE.Boxed
-
-srcStrictnessToBangType :: SrcStrictness -> HSE.BangType ()
-srcStrictnessToBangType = \case
-    SrcLazy -> HSE.LazyTy ()
-    SrcStrict -> HSE.BangedTy ()
-    NoSrcStrict -> HSE.NoStrictAnnot ()
-
-srcUnpackednessToUnpackedness :: SrcUnpackedness -> HSE.Unpackedness ()
-srcUnpackednessToUnpackedness = \case
-    SrcUnpack -> HSE.Unpack ()
-    SrcNoUnpack -> HSE.NoUnpack ()
-    NoSrcUnpack -> HSE.NoUnpackPragma ()
 
 runGhcLibParser ::
     String ->
@@ -566,7 +588,11 @@ runGhcLibParserWithExtensions ::
     GHC.Parser.Lexer.ParseResult (GenLocated SrcSpanAnnA (HsDecl GhcPs))
 runGhcLibParserWithExtensions extensions str = unP parseDeclaration parseState
   where
+#if MIN_VERSION_ghc_lib_parser(9,14,0)
+    opts = mkParserOpts extensions emptyDiagOpts False False False False
+#else
     opts = mkParserOpts extensions emptyDiagOpts [] False False False False
+#endif
     dummyLocation = mkRealSrcLoc mempty 1 1
     buffer = stringToStringBuffer str
     parseState = initParserState opts buffer dummyLocation

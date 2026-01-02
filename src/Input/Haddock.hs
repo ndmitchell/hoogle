@@ -166,6 +166,7 @@ readItem x@(x0 : _) -- constructors
     | isUpper x0 || x0 == '('
     , ParseOk (GDataDecl _ _ _ _ _ [GadtDecl s name _ _ _ ty] _) <- myParseDecl $ "data Data where " ++ x
     , let f (TyBang _ _ _ (TyParen _ x@TyApp{})) = x
+          f (TyParen _ x@TyApp{}) = x
           f (TyBang _ _ _ x) = x
           f x = x
     = Just $ TypeSig s [name] $ applyFun1 $ map f $ unapplyFun ty
@@ -253,7 +254,8 @@ input_haddock_test = testing "Input.Haddock.parseLine" $ do
     test "pattern The :: The d a => a -> d"
     test "Html :: Element \"html\" '[] (Elements [\"head\", \"body\"]) (ManifestA & '[])"
     test "instance forall k1 v1 (pk :: k1 -> GHC.Types.Constraint) (k2 :: k1) (pv :: v1 -> GHC.Types.Constraint) (v2 :: v1) . (pk k2, pv v2) => Type.Membership.KeyTargetAre pk pv (k2 'Type.Membership.Internal.:> v2)"
-    test "crDoubleBuffer :: CompactorReturn s -> {-# UNPACK #-} !DoubleBuffer s"
+    -- The following no longer parses since GHC 9.14 (which is the correct behaviour)
+    -- test "crDoubleBuffer :: CompactorReturn s -> {-# UNPACK #-} !DoubleBuffer s"
     test "expectationFailure :: (?callStack :: CallStack) => String -> Expectation"
     test "type family MapTyCon t xs = r | r -> xs"
     test "pattern Id :: CRCategory k => (β ~ α, Object k α) => k α β"
