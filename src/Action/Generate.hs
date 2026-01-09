@@ -141,8 +141,8 @@ readHaskellDirs timing settings prefixToRemove dirs = do
             src <- liftIO $ bstrReadFile file
             dir <- liftIO $ canonicalizePath $ takeDirectory file
             let url = case prefixToRemove of
-                  Just prefix -> makeRelative prefix $ replace "\\" "/" dir ++ "/"
-                  Nothing -> "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ replace "\\" "/" dir ++ "/"
+                  Just prefix -> makeRelative prefix $ normalisePathSeparators dir ++ "/"
+                  Nothing -> "file://" ++ ['/' | not $ "/" `isPrefixOf` dir] ++ normalisePathSeparators dir ++ "/"
             when (isJust $ bstrSplitInfix (bstrPack "@package " <> bstrPack (unPackageName name)) src) $
                 yield (name, url, lbstrFromChunks [src])
     pure (Map.union
@@ -180,7 +180,7 @@ readHaskellGhcpkg timing settings = do
                     src <- liftIO $ bstrReadFile file
                     docs <- liftIO $ canonicalizePath docs
                     let url = "file://" ++ ['/' | not $ all isPathSeparator $ take 1 docs] ++
-                              replace "\\" "/" (addTrailingPathSeparator docs)
+                              normalisePathSeparators (addTrailingPathSeparator docs)
                     yield (name, url, lbstrFromChunks [src])
     cbl <- pure $ let ts = map (both strPack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
@@ -217,7 +217,7 @@ readHaskellHaddock timing settings docBaseDir = do
                 whenM (liftIO $ doesFileExist file) $ do
                     src <- liftIO $ bstrReadFile file
                     let url = ['/' | not $ all isPathSeparator $ take 1 docs] ++
-                              replace "\\" "/" (addTrailingPathSeparator docs)
+                              normalisePathSeparators (addTrailingPathSeparator docs)
                     yield (name, url, lbstrFromChunks [src])
     cbl <- pure $ let ts = map (both strPack) [("set","stackage"),("set","installed")]
                     in Map.map (\p -> p{packageTags = ts ++ packageTags p}) cbl
