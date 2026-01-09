@@ -51,6 +51,7 @@ import Data.Version
 import Data.Int
 import System.IO
 import System.Exit
+import System.FilePath (isPathSeparator)
 import System.Mem
 import GHC.Stats
 import General.Str
@@ -373,7 +374,7 @@ inRanges xs = \x -> maybe False (`inRange` x) $ Map.lookupLE x mp
 
 -- | Turn platform-specific path separators into the canonical / used in URLs.
 normalisePathSeparators :: FilePath -> FilePath
-normalisePathSeparators = replace "\\" "/"
+normalisePathSeparators = fmap $ \c -> if isPathSeparator c then '/' else c
 
 
 general_util_test :: IO ()
