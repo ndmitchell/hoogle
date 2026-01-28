@@ -1,5 +1,5 @@
 { hoogle, cores ? 4 }:
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 # The Plan:
 # Hoogle serves on a uniquely-named UNIX domain socket which we
