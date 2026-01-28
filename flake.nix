@@ -1,7 +1,7 @@
 {
   description = "haskell.org hoogle deployment";
 
-  inputs.nixpkgs.url = "github:nixos/nixpkgs";
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
   outputs = { self, nixpkgs, flake-utils }:
@@ -13,7 +13,7 @@
             let
               hsPkgs = pkgs.haskellPackages.override {
                 overrides = self: super: {
-                  crypton-connection = super.crypton-connection_0_4_3;
+                  hackage-revdeps = super.hackage-revdeps_0_3;
                 };
               };
             in hsPkgs.callCabal2nix "hoogle" ./. { };
