@@ -207,7 +207,7 @@ highlightItem plain safe dull bold qs x
         highlight x = mconcatMap (\xs@((b,_):_) -> let s = map snd xs in if b then bold s else dull s) $
                     groupOn fst $ zip (findQueries x) x
             where
-                -- generates a bool mask, which is only true for charachters that compose given queries
+                -- generates a bool mask, which is only true for characters that compose given queries
                 -- e.g. [ "query" "ya" ] -> [ "AqUeRyAA" ] -> 01111110
                 findQueries :: String -> [Bool]
                 findQueries (x:xs) | m > 0 = replicate m True ++ drop (m - 1) (findQueries xs)

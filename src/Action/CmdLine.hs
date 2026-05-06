@@ -96,7 +96,7 @@ defaultDatabaseLang lang = do
           ++ "since xdg location is available (" ++ xdgLocation ++")."
         pure xdgLocation
       (False, True) -> do
-        -- TODO: renable after release
+        -- TODO: re-enable after release
         --hPutStrLn stderr $ "Warning: " ++ legacyLocation ++ " is deprecated."
         --  ++ "Consider moving it to $XDG_DATA_HOME/hoogle (" ++ xdgLocation ++ ")"
         pure legacyLocation
@@ -157,7 +157,7 @@ server = Server
     {port = 8080 &= typ "INT" &= help "Port number"
     ,cdn = "" &= typ "URL" &= help "URL prefix to use"
     ,logs = "" &= opt "log.txt" &= typFile &= help "File to log requests to (defaults to stdout)"
-    ,local = False &= help "Allow following file:// links, restricts to 127.0.0.1  Set --host explicitely (including to '*' for any host) to override the localhost-only behaviour"
+    ,local = False &= help "Allow following file:// links, restricts to 127.0.0.1  Set --host explicitly (including to '*' for any host) to override the localhost-only behaviour"
     ,haddock = def &= help "Serve local haddocks from a specified directory"
     ,scope = def &= help "Default scope to start with"
     ,links = def &= help "Display extra links"

@@ -48,7 +48,7 @@ import qualified Distribution.SPDX as SPDX
 data Package = Package
     {packageTags :: ![(Str, Str)] -- ^ The Tag information, e.g. (category,Development) (author,Neil Mitchell).
     ,packageLibrary :: !Bool -- ^ True if the package provides a library (False if it is only an executable with no API)
-    ,packageSynopsis :: !Str -- ^ The synposis, grabbed from the top section.
+    ,packageSynopsis :: !Str -- ^ The synopsis, grabbed from the top section.
     ,packageVersion :: !Str -- ^ The version, grabbed from the top section.
     ,packageDepends :: ![PkgName] -- ^ The list of packages that this package directly depends on.
     ,packageDocs :: !(Maybe FilePath) -- ^ Directory where the documentation is located
@@ -76,7 +76,7 @@ packagePopularity :: Map.Map PkgName Package -> ([String], Map.Map PkgName Int)
 packagePopularity cbl = mp `seq` (errs, mp)
     where
         mp = Map.map length good
-        errs =  [ unPackageName user ++ ".cabal: Import of non-existant package " ++ unPackageName name ++
+        errs =  [ unPackageName user ++ ".cabal: Import of non-existent package " ++ unPackageName name ++
                           (if null rest then "" else ", also imported by " ++ show (length rest) ++ " others")
                 | (name, user:rest) <- Map.toList bad]
         (good, bad)  = Map.partitionWithKey (\k _ -> k `Map.member` cbl) $
