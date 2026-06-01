@@ -3,6 +3,7 @@
 */
 
 html {
+    color-scheme: light dark;
     height: 100%;
 }
 
@@ -28,11 +29,11 @@ a img {
 }
 
 a:hover {
-    background-color: #ffb;
+    background-color: light-dark(#ffb, #443300);
 }
 
 a {
-    color: #C4451D;
+    color: light-dark(#C4451D, #e06840);
     text-decoration: none;
 }
 
@@ -41,9 +42,9 @@ a {
 */
 
 #links {
-    background: none repeat scroll 0 0 #293845;
-    border-top: 5px solid #4E6272;
-    color: #DDDDDD;
+    background: none repeat scroll 0 0 light-dark(#293845, #1a2530);
+    border-top: 5px solid light-dark(#4E6272, #3a4e5e);
+    color: light-dark(#DDDDDD, #cccccc);
     text-align: right;
     padding: 0.2em;
 }
@@ -72,12 +73,16 @@ a {
 }
 
 #top-menu li a:hover {
-    background-color: #4e6272;
+    background-color: light-dark(#4e6272, #3a4e5e);
     text-decoration: underline;
 }
 
 form {
     margin-bottom: 0px;
+}
+
+#logo:hover {
+    background-color: initial;
 }
 
 #logo img {
@@ -141,7 +146,7 @@ form {
 }
 
 #left a {
-    color: #C4451D;
+    color: light-dark(#C4451D, #e06840);
     text-decoration: none;
     background-repeat: no-repeat;
 }
@@ -150,7 +155,7 @@ form {
     padding-right: 16px;
     background-image: url(more_small.png);
     background-position: center right;
-    color: #0E774A;
+    color: light-dark(#0E774A, #2aaf6e);
 }
 
 #left .pad {
@@ -158,7 +163,7 @@ form {
 }
 
 #left .minus {
-    color: #770E00;
+    color: light-dark(#770E00, #cc4422);
     padding-left: 16px;
     background-image: url(less_small.png);
     background-position: center left;
@@ -170,9 +175,9 @@ form {
 */
 
 #footer {
-    background: none repeat scroll 0 0 #DDDDDD;
-    border-top: 1px solid #AAAAAA;
-    color: #666666;
+    background: none repeat scroll 0 0 light-dark(#DDDDDD, #333333);
+    border-top: 1px solid light-dark(#AAAAAA, #555555);
+    color: light-dark(#666666, #aaaaaa);
     width: 100%;
     padding: 1.3em 0;
     text-align: center;
@@ -205,7 +210,7 @@ p {
 */
 
 .error {
-    border-bottom: 2px solid red;
+    border-bottom: 2px solid light-dark(red, #ff6666);
     text-decoration: none;
     white-space: pre;
 }
@@ -216,10 +221,10 @@ p {
     margin-bottom: 20px;
     padding: 3px;
     width: 400px;
-    border: 2px solid #cc0;
-    color: black;
-    background-color: #F5F5F5;
-    border: 1px solid #E5E5E5;
+    border: 2px solid light-dark(#cc0, #998800);
+    color: light-dark(black, #e8e8e8);
+    background-color: light-dark(#F5F5F5, #232323);
+    border: 1px solid light-dark(#E5E5E5, #2c2c2c);
     text-align: left;
 }
 
@@ -239,7 +244,7 @@ p {
 }
 
 .result.active {
-    background-color: #f7f5c0;
+    background-color: light-dark(#f7f5c0, #3a3820);
 }
 
 .from, .doc {
@@ -258,41 +263,41 @@ a.dull, a.dull:hover {
 }
 
 .ans {
-    background: none repeat scroll 0 0 #F0F0F0;
-    border-top: 1px solid #CCCCCC;
+    background: none repeat scroll 0 0 light-dark(#F0F0F0, #252525);
+    border-top: 1px solid light-dark(#CCCCCC, #444444);
     font-size: 16px;
     padding: 0.2em 0.5em;
 }
 
 .ans a {
-    color: black;
+    color: light-dark(black, #e8e8e8);
 }
 .ans .name {
-    color: #C4451D;
+    color: light-dark(#C4451D, #e06840);
 }
 
 .links {
     float: right;
-    color: #CCCCCC;
+    color: light-dark(#CCCCCC, #444444);
 }
 .links a {
-    color: #888;
+    color: light-dark(#888, #999999);
     font-size: 12px;
 }
 
-.c0{background-color: #fcc;}
-.c1{background-color: #cfc;}
-.c2{background-color: #ccf;}
-.c3{background-color: #ffc;}
-.c4{background-color: #fcf;}
-.c5{background-color: #cff;}
+.c0{background-color: light-dark(#fcc, #4a1a1a);}
+.c1{background-color: light-dark(#cfc, #1a4a1a);}
+.c2{background-color: light-dark(#ccf, #1a1a4a);}
+.c3{background-color: light-dark(#ffc, #4a4a1a);}
+.c4{background-color: light-dark(#fcf, #4a1a4a);}
+.c5{background-color: light-dark(#cff, #1a4a4a);}
 
 .more, .more:visited {
     padding-left: 16px;
     background-image: url(more_blue.png);
     background-repeat: no-repeat;
     background-position: center left;
-    color: blue;
+    color: light-dark(blue, #6699ff);
 }
 
 /** PARENTS **/
@@ -300,7 +305,7 @@ a.dull, a.dull:hover {
 .from a, .p1, .p2 {
     white-space: nowrap;
     text-decoration: none;
-    color: #0E774A;
+    color: light-dark(#0E774A, #2aaf6e);
 }
 
 /** DOCS **/
@@ -318,7 +323,7 @@ docs may be in one of three states:
     margin-bottom: 1.0em;
 }
 .doc, .doc a {
-    color: #888;
+    color: light-dark(#888, #999999);
 }
 .doc h1, .doc h2, .doc h3, .doc h4, .doc h5, .doc h6 {
     font-size: 11px;
