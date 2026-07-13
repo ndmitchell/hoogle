@@ -96,7 +96,7 @@ A generic instaniable proof system, where:
 
 How close are two proofs?
 
-Do they talk about the same things? Are the things easily convertable?
+Do they talk about the same things? Are the things easily convertible?
 
 apply some rules, which rules got used. can i do bulk apply? things that are only one rule apart? can i start small and evolve upwards?
 

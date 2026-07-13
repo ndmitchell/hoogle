@@ -140,7 +140,7 @@ Changelog for Hoogle (* = API change, @ = database format change)
     G521, make sure it works with inverted color preferences
     Rewrite from scratch
 4.2.38, released 2015-01-28
-    #96, allow certicate verification failures
+    #96, allow certificate verification failures
     #95, allow a higher version of Cabal on older GHCs
 4.2.37, released 2015-01-13
     #94, GHC 7.10 support

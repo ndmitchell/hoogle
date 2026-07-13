@@ -85,7 +85,7 @@ There is a terminal/curses based UI available through [`cabal install bhoogle`](
 
     $ git clone https://github.com/ndmitchell/hoogle.git
 
-Contributions are most welcome. Hoogle is written in Haskell 98 + Heirarchical Modules, I do not wish to change this. Other than that, I'm pretty flexible about most aspects of Hoogle. The [issue tracker](https://github.com/ndmitchell/hoogle/issues) has many outstanding tasks, but please contact me if you have thoughts on doing something major to Hoogle, so I can give some advice.
+Contributions are most welcome. Hoogle is written in Haskell 98 + Hierarchical Modules, I do not wish to change this. Other than that, I'm pretty flexible about most aspects of Hoogle. The [issue tracker](https://github.com/ndmitchell/hoogle/issues) has many outstanding tasks, but please contact me if you have thoughts on doing something major to Hoogle, so I can give some advice.
 
 # Background
 
@@ -107,7 +107,7 @@ The folders in the repository, and their meaning are:
 
 cbits             - C implementation of the text search used by hoogle
 
-docs              - documention on hoogle
+docs              - documentation on hoogle
 
 html              - resources for hoogle's web front-end (html, css, javascript, images, etc.)
 
