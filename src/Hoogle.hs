@@ -31,7 +31,7 @@ withDatabase file act = storeReadFile file $ act . Database
 
 -- | The default location of a database
 defaultDatabaseLocation :: IO FilePath
-defaultDatabaseLocation = defaultDatabaseLang Haskell
+defaultDatabaseLocation = defaultDatabaseLang
 
 -- | Search a database, given a query string, produces a list of results.
 searchDatabase :: Database -> String -> [Target]
@@ -41,10 +41,10 @@ searchDatabase (Database db) query = snd $ search db $ parseQuery query
 -- | Run a command line Hoogle operation.
 hoogle :: [String] -> IO ()
 hoogle args = do
-    args <- getCmdLine args
+    (verbosity, args) <- getCmdLine args
     case args of
-        Search{} -> actionSearch args
-        Generate{} -> actionGenerate args
-        Server{} -> actionServer args
-        Test{} -> actionTest args
-        Replay{} -> actionReplay args
+        Search opts -> actionSearch verbosity opts
+        Generate opts -> actionGenerate verbosity opts
+        Server opts -> actionServer verbosity opts
+        Test opts -> actionTest verbosity opts
+        Replay opts -> actionReplay verbosity opts

@@ -8,6 +8,8 @@ import System.Directory
 import Data.Conduit.Binary (sinkFile)
 import Data.Default.Class
 import qualified Network.HTTP.Conduit as C
+import Network.TLS (Supported(..))
+import Network.TLS.Extra.Cipher (ciphersuite_default)
 import Network.Connection
 import qualified Data.Conduit as C
 import General.Util
@@ -47,7 +49,7 @@ downloadFile insecure file url = do
         settingDisableCertificateValidation = insecure,
         settingDisableSession = False,
         settingUseServerName = False,
-        settingClientSupported = def
+        settingClientSupported = def { supportedCiphers = ciphersuite_default }
       }) Nothing
     runResourceT $ do
         response <- C.http request manager

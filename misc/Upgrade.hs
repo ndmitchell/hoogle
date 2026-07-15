@@ -49,9 +49,6 @@ main = do
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=haskell.hoo +RTS -M900M -T -N2"
         echo system_ $ "hoogle_datadir=. " ++ exe ++ " test --database=haskell.hoo"
 
-        when False $ -- Frege database has disappeared
-            echo system_ $ "hoogle_datadir=. " ++ exe ++ " generate --database=frege.hoo --frege +RTS -M900M -T -N2"
-
         when False $ do -- DAML now has its own server
             createDirectoryIfMissing True "daml"
             echo system_ "curl https://docs.daml.com/hoogle_db/base.txt --output daml/base.txt"

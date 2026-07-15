@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, TupleSections, RecordWildCards, ScopedTypeVariables, PatternGuards #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Action.Generate(actionGenerate) where
 
@@ -15,7 +16,6 @@ import qualified Data.Map.Strict as Map
 import Control.Monad.Extra
 import Data.Monoid
 import Data.Ord
-import System.Console.CmdArgs.Verbosity
 import Prelude
 
 import Output.Items
@@ -154,15 +154,6 @@ readHaskellDirs timing settings dirs = do
         sets = map setFromDir $ filter (`isPrefixOf` file) dirs
         setFromDir dir = (strPack "set", strPack $ takeFileName $ dropTrailingPathSeparator dir)
 
-readFregeOnline :: Timing -> Download -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
-readFregeOnline timing download = do
-    frege <- download "frege-frege.txt" "https://github.com/Frege/try-frege/raw/refs/heads/master/try-frege-web/src/main/webapp/hoogle-frege.txt"
-    let source = do
-            src <- liftIO $ bstrReadFile frege
-            yield (mkPackageName "frege", "http://google.com/", lbstrFromChunks [src])
-    pure (Map.empty, Set.singleton $ mkPackageName "frege", source)
-
-
 readHaskellGhcpkg :: Timing -> Settings -> IO (Map.Map PkgName Package, Set.Set PkgName, ConduitT () (PkgName, URL, LBStr) IO ())
 readHaskellGhcpkg timing settings = do
     cbl <- timed timing "Reading ghc-pkg" $ readGhcPkg settings
@@ -218,11 +209,11 @@ readHaskellHaddock timing settings docBaseDir = do
 
     where docDir name Package{..} = name ++ "-" ++ strUnpack packageVersion
 
-actionGenerate :: CmdLine -> IO ()
-actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
+actionGenerate :: Verbosity -> GenerateOpts -> IO ()
+actionGenerate verbosity g@GenerateOpts{..} = withTiming (if debug then Just $ replaceExtension database "timing" else Nothing) $ \timing -> do
     putStrLn "Starting generate"
     createDirectoryIfMissing True $ takeDirectory database
-    whenLoud $ putStrLn $ "Generating files to " ++ takeDirectory database
+    whenLoud verbosity $ putStrLn $ "Generating files to " ++ takeDirectory database
 
     let warnFlagIgnored thisFlag reason ignoredFlagPred ignoredFlag =
           when ignoredFlagPred $ putStrLn $ "Warning: " <> thisFlag <> " is " <> reason <> ", which means " <> ignoredFlag <> " is ignored."
@@ -235,18 +226,16 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
           downloadInput timing insecure download' (takeDirectory database) name url
 
     settings <- loadSettings
-    (cbl, want, source) <- case language of
-        Haskell | Just dir <- haddock -> do
-                    warnFlagIgnored "--haddock" "set" (local_ /= []) "--local"
-                    warnFlagIgnored "--haddock" "set" (isJust download) "--download"
-                    readHaskellHaddock timing settings dir
-                | [""] <- local_ -> do
-                    warnFlagIgnored "--local" "used as flag (no paths)" (isJust download) "--download"
-                    readHaskellGhcpkg timing settings
-                | [] <- local_ -> do readHaskellOnline timing settings doDownload
-                | otherwise -> readHaskellDirs timing settings local_
-        Frege | [] <- local_ -> readFregeOnline timing doDownload
-              | otherwise -> errorIO "No support for local Frege databases"
+    (cbl, want, source) <-
+        if | Just dir <- haddock -> do
+               warnFlagIgnored "--haddock" "set" (local_ /= []) "--local"
+               warnFlagIgnored "--haddock" "set" (isJust download) "--download"
+               readHaskellHaddock timing settings dir
+           | [""] <- local_ -> do
+               warnFlagIgnored "--local" "used as flag (no paths)" (isJust download) "--download"
+               readHaskellGhcpkg timing settings
+           | [] <- local_ -> do readHaskellOnline timing settings doDownload
+           | otherwise -> readHaskellDirs timing settings local_
     (cblErrs, popularity) <- evaluate $ packagePopularity cbl
     cbl <- evaluate $ Map.map (\p -> p{packageDepends=[]}) cbl -- clear the memory, since the information is no longer used
     evaluate popularity
@@ -278,7 +267,7 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
                             let missing = [x | x <- Set.toList $ want `Set.difference` seen
                                              , fmap packageLibrary (Map.lookup x cbl) /= Just False]
                             liftIO $ putStrLn ""
-                            liftIO $ whenNormal $ when (missing /= []) $ do
+                            liftIO $ whenNormal verbosity $ when (missing /= []) $ do
                                 putStrLn $ "Packages missing documentation: " ++ unwords (sortOn lower $ map unPackageName missing)
                             liftIO $ when (Set.null seen) $
                                 exitFail "No packages were found, aborting (use no arguments to index all of Stackage)"
@@ -307,10 +296,9 @@ actionGenerate g@Generate{..} = withTiming (if debug then Just $ replaceExtensio
         timed timing "Writing names" $ writeNames store xs
         timed timing "Writing types" $ writeTypes store (if debug then Just $ dropExtension database else Nothing) xs
 
-        x <- getVerbosity
-        when (x >= Loud) $
+        whenLoud verbosity $
             whenJustM getStatsDebug print
-        when (x >= Normal) $ do
+        whenNormal verbosity $ do
             whenJustM getStatsPeakAllocBytes $ \x ->
                 putStrLn $ "Peak of " ++ x ++ ", " ++ fromMaybe "unknown" itemsMemory ++ " for items"
 

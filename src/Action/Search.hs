@@ -1,5 +1,8 @@
-{-# LANGUAGE LambdaCase, MultiWayIf, RecordWildCards, ScopedTypeVariables,
-             TupleSections #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
 module Action.Search
     (actionSearch, withSearch, search
@@ -42,13 +45,13 @@ import Query
 -- @tagsoup filter -- search the tagsoup package
 -- filter -- search all
 
-actionSearch :: CmdLine -> IO ()
-actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
+actionSearch :: Verbosity -> SearchOpts -> IO ()
+actionSearch verbosity SearchOpts{..} = replicateM_ repeat_ $ -- deliberately reopen the database each time
     withSearch database $ \store ->
         if null compare_ then do
             count' <- pure $ fromMaybe 10 count
             (q, res) <- pure $ search store $ parseQuery $ unwords query
-            whenLoud $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
+            whenLoud verbosity $ putStrLn $ "Query: " ++ unescapeHTML (LBS.unpack $ renderMarkup $ renderQuery q)
             color' <- case color of
               Just b -> pure b
               Nothing -> hSupportsANSI stdout
@@ -65,7 +68,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
                    | jsonl -> mapM_ (LBS.putStrLn . JSON.encode) $ maybe id take count $ map unHTMLtargetItem res
                    | otherwise -> putStr $ unlines $ if numbers then addCounter shown else shown
                 when (hidden /= [] && not json) $ do
-                    whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count'+10) ++ " to see more"
+                    whenNormal verbosity $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count'+10) ++ " to see more"
         else do
             let parseType x = case parseQuery x of
                                   [QueryType t] -> (pretty t, hseToSig t)

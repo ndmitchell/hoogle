@@ -1,10 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings, ViewPatterns, RecordWildCards, DeriveFunctor #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module General.Web(
     Input(..),
     Output(..), readInput, server, general_web_test
     ) where
 
+import Data.Streaming.Network (bindPath, bindPortTCP)
 import Network.Wai.Handler.Warp hiding (Port, Handle)
 import Network.Wai.Handler.WarpTLS
 
@@ -12,6 +14,7 @@ import Action.CmdLine
 import Network.Wai.Logger
 import Network.Wai
 import Control.DeepSeq
+import Network.Socket (Socket, close)
 import Network.HTTP.Types (parseQuery, decodePathSegments)
 import Network.HTTP.Types.Status
 import qualified Data.Text as Text
@@ -81,25 +84,37 @@ forceBS (OutputFile x) = rnf x `seq` LBS.empty
 instance NFData Output where
     rnf x = forceBS x `seq` ()
 
-server :: Log -> CmdLine -> (Input -> IO Output) -> IO ()
-server log Server{..} act = do
-    let
-        host' = fromString $
-                  if host == "" then
-                    if local then
-                      "127.0.0.1"
-                    else
-                      "*"
-                  else
-                    host
-        set = setOnExceptionResponse exceptionResponseForDebug
-            . setHost host'
-            . setPort port $
-            defaultSettings
-        runServer :: Application -> IO ()
-        runServer = if https then runTLS (tlsSettings cert key) set
-                             else runSettings set
-        secH = if no_security_headers then []
+runServer
+    :: ServerOpts
+    -> Application
+    -> IO ()
+runServer opts app =
+    withEndpointSocket (local opts) (endpoint opts) $ \sock ->
+        if https opts
+           then runTLSSocket (tlsSettings (cert opts) (key opts)) settings sock app
+           else runSettingsSocket settings sock app
+  where
+    settings = setOnExceptionResponse exceptionResponseForDebug defaultSettings
+
+withEndpointSocket
+    :: Bool   -- ^ local
+    -> ServerEndpoint
+    -> (Socket -> IO a)
+    -> IO a
+withEndpointSocket _ (UnixSocket sock) =
+    bracket (bindPath sock) close
+withEndpointSocket local (TcpSocket host port) =
+    bracket (bindPortTCP port host') close
+  where
+    host' = fromString $
+      if | "" <- host
+         , local -> "127.0.0.1"
+         | "" <- host -> "*"
+         | otherwise -> host
+
+server :: Log -> ServerOpts -> (Input -> IO Output) -> IO ()
+server log opts@ServerOpts{..} act = do
+    let secH = if no_security_headers then []
                                       else [
              -- The CSP is giving additional instructions to the browser.
              ("Content-Security-Policy",
@@ -163,9 +178,9 @@ server log Server{..} act = do
              -- call happens.
              ("Strict-Transport-Security", "max-age=31536000; includeSubDomains")]
 
-    logAddMessage log $ "Server starting on port " ++ show port ++ " and host/IP " ++ show host'
+    logAddMessage log $ "Server starting on " <> showEndpoint endpoint
 
-    runServer $ \req reply -> do
+    runServer opts $ \req reply -> do
         let pq = BS.unpack $ rawPathInfo req <> rawQueryString req
         putStrLn pq
         (time, res) <- duration $ case readInput pq of

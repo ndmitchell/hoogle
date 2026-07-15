@@ -1,4 +1,7 @@
-{-# LANGUAGE TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Action.Test(actionTest) where
 
@@ -19,8 +22,8 @@ import Control.DeepSeq
 import Control.Exception
 
 
-actionTest :: CmdLine -> IO ()
-actionTest Test{..} = withBuffering stdout NoBuffering $ withTempFile $ \sample -> do
+actionTest :: Verbosity -> TestOpts -> IO ()
+actionTest verbosity TestOpts{..} = withBuffering stdout NoBuffering $ withTempFile $ \sample -> do
     putStrLn "Code tests"
     general_util_test
     general_web_test
@@ -31,7 +34,17 @@ actionTest Test{..} = withBuffering stdout NoBuffering $ withTempFile $ \sample 
     putStrLn ""
 
     putStrLn "Sample database tests"
-    actionGenerate defaultGenerate{database=sample, local_=["misc/sample-data"]}
+    let generateOpts =
+            GenerateOpts { database = sample
+                         , local_ = ["misc/sample-data"]
+                         , download = Nothing
+                         , insecure = False
+                         , include = []
+                         , count = Nothing
+                         , haddock = Nothing
+                         , debug = False
+                         }
+    actionGenerate verbosity generateOpts
     action_search_test True sample
     unless disable_network_tests $ action_server_test True sample
     putStrLn ""
