@@ -26,6 +26,8 @@ import General.Str
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Map as Map
+import qualified Data.Text as T
+import qualified Data.Vector as V
 import System.Time.Extra
 import Data.Time.Clock
 import Data.Time.Calendar
@@ -120,6 +122,10 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
                 Just "text" -> pure $ OutputJSON $ JSON.toEncoding $ map unHTMLTarget filteredResults
                 Just f -> pure $ OutputFail $ lbstrPack $ "Format mode " ++ f ++ " not (currently) supported"
                 Nothing -> pure $ OutputJSON $ JSON.toEncoding filteredResults
+            Just "suggest" -> let
+                filteredResults = take 25 results
+              in pure . OutputJSON $
+                   toOpenSearchJSON (unwords qSearch) filteredResults
             Just m -> pure $ OutputFail $ lbstrPack $ "Mode " ++ m ++ " not (currently) supported"
     ["plugin","jquery.js"] -> OutputFile <$> JQuery.file
     ["plugin","jquery.flot.js"] -> OutputFile <$> Flot.file Flot.Flot
@@ -250,6 +256,37 @@ showURL :: Bool -> Maybe FilePath -> URL -> String
 showURL _ (Just _) x = "haddock/" ++ dropPrefix "file:///" x
 showURL True _ (stripPrefix "file:///" -> Just x) = "file/" ++ x
 showURL _ _ x = x
+
+-- | Turns a list of Targets into OpenSearch JSON.
+--
+--   OpenSearch specifies a somewhat odd JSON format for suggestions: one
+--   top-level heterogeneous array like so:
+--   @
+--   [QueryString, Completions, Descriptions, QueryURLs]
+--   @
+--
+--   See the archived documentation at
+--   <https://github.com/dewitt/opensearch/blob/master/mediawiki/Specifications/OpenSearch/Extensions/Suggestions/1.1/Draft%201.wiki>
+toOpenSearchJSON :: String -> [Target] -> JSON.Encoding
+toOpenSearchJSON query targets =
+    JSON.foldable [
+        JSON.String . T.pack $ query,
+        JSON.Array completions,
+        -- this is optional, but easy to provide
+        JSON.Array descriptions,
+        -- this is optional, and browsers seem to entirely ignore it
+        JSON.Array mempty
+        ]
+    where
+    (completions, descriptions)
+        = V.unzip $ go <$> V.fromList targets
+    jsonString = JSON.String . T.pack
+    go Target{..} = let
+        in (jsonString . nameFor $ targetItem, jsonString . unHTML $ targetDocs)
+    nameFor item
+        | Just (pre,x) <- stripInfix "<s0>" item
+        , Just (name,post) <- stripInfix "</s0>" x = name
+        | otherwise = item
 
 
 -------------------------------------------------------------
