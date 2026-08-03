@@ -9,6 +9,8 @@ import Data.Conduit.Binary (sinkFile)
 import Data.Default.Class
 import qualified Network.HTTP.Conduit as C
 import Network.Connection
+import Network.TLS
+import Network.TLS.Extra.Cipher (ciphersuite_strong)
 import qualified Data.Conduit as C
 import General.Util
 import General.Timing
@@ -42,13 +44,15 @@ downloadInput timing insecure download dir name url = do
 downloadFile :: Bool -> FilePath -> String -> IO ()
 downloadFile insecure file url = do
     let request = C.parseRequest_ url
+
     manager <- C.newManager $ C.mkManagerSettings
       (TLSSettingsSimple {
         settingDisableCertificateValidation = insecure,
         settingDisableSession = False,
         settingUseServerName = False,
-        settingClientSupported = def
+        settingClientSupported = def{supportedCiphers = ciphersuite_strong}
       }) Nothing
+
     runResourceT $ do
         response <- C.http request manager
         C.runConduit $ C.responseBody response C..| sinkFile file

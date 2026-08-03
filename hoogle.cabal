@@ -83,6 +83,7 @@ library
         temporary,
         text >= 2,
         time >= 1.5,
+        tls,
         transformers,
         uniplate,
         utf8-string >= 0.3.1,
