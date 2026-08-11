@@ -94,7 +94,7 @@ replyServer log local links haddock store cdn home htmlDir scope Input{..} = cas
 
         let qScope = let xs = grab "scope" in [scope | null xs && scope /= ""] ++ xs
         let qSearch = grabBy (`elem` ["hoogle","q"])
-        let qSource = qSearch ++ filter (/= "set:stackage") qScope
+        let qSource = qSearch ++ filter (`notElem` ["set:stackage","set:all"]) qScope
         let q = concatMap parseQuery qSource
         let (q2, results) = search store q
         let body = showResults local links haddock (filter ((/= "mode") . fst) inputArgs) q2 $
@@ -200,12 +200,15 @@ showResults local links haddock args query results = do
                         H.div ! H.class_ "links" $ H.a ! H.href (H.stringValue link) $ "Uses"
             H.div ! H.class_ "from" $ showFroms local haddock is
             H.div ! H.class_ "doc newline shut" $ H.preEscapedString targetDocs
-    H.ul ! H.id "left" $ -- if there's already a scope query we don't show subquery links because bots will get lost in a maze of links.
-        if (any isQueryScope query) then pure () else do
+    H.ul ! H.id "left" $ -- if there's already a restrictive scope query we don't show subquery links because bots will get lost in a maze of links.
+        if (any isRestrictiveScope query) then pure () else do
             H.li $ H.b "Packages"
             mconcat [H.li $ f cat val | (cat,val) <- itemCategories $ concat results, QueryScope True cat val `notElem` query]
 
     where
+        isRestrictiveScope (QueryScope _ cat _) = cat /= "is"
+        isRestrictiveScope _ = False
+
         useLink :: [Target] -> Maybe String
         useLink [t] | isNothing $ targetPackage t =
             Just $ "https://packdeps.haskellers.com/reverse/" ++ extractName (targetItem t)

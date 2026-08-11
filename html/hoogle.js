@@ -74,7 +74,7 @@ $(function(){
         if (!instant) return;
         function getScope(){
             var v = $scope ? $scope.val() : "";
-            return v == null || v == "set:stackage" ? "" : v;
+            return v == null || v == "set:stackage" || v == "set:all" ? "" : v;
         }
 
         var nowHoogle = $hoogle.val();
