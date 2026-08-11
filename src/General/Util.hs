@@ -24,6 +24,7 @@ module General.Util(
     getStatsPeakAllocBytes, getStatsCurrentLiveBytes, getStatsDebug,
     hackagePackageURL, hackageModuleURL, hackageDeclURL, ghcModuleURL,
     minimum', maximum',
+    normalisePathSeparators,
     general_util_test
     ) where
 
@@ -50,6 +51,7 @@ import Data.Version
 import Data.Int
 import System.IO
 import System.Exit
+import System.FilePath (isPathSeparator)
 import System.Mem
 import GHC.Stats
 import General.Str
@@ -113,7 +115,7 @@ getStatsDebug = do
 
 
 
-exitFail :: String -> IO ()
+exitFail :: String -> IO a
 exitFail msg = do
     hPutStrLn stderr msg
     exitFailure
@@ -368,6 +370,11 @@ inRanges xs = \x -> maybe False (`inRange` x) $ Map.lookupLE x mp
             | Just x2 <- Map.lookupLE (fst x) mp, overlap x x2 = add (Map.delete (fst x2) mp) (merge x x2)
             | Just x2 <- Map.lookupGE (fst x) mp, overlap x x2 = add (Map.delete (fst x2) mp) (merge x x2)
             | otherwise = uncurry Map.insert x mp
+
+
+-- | Turn platform-specific path separators into the canonical / used in URLs.
+normalisePathSeparators :: FilePath -> FilePath
+normalisePathSeparators = fmap $ \c -> if isPathSeparator c then '/' else c
 
 
 general_util_test :: IO ()
