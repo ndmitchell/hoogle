@@ -1,4 +1,8 @@
-{-# LANGUAGE ViewPatterns, PatternGuards, TupleSections, RecordWildCards, ScopedTypeVariables #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wall -Wno-name-shadowing #-}
 
 -- | Module for reading Cabal files.
@@ -37,9 +41,17 @@ import qualified Distribution.Pretty
 import qualified Distribution.Types.BuildInfo.Lens as Lens
 import Distribution.Types.PackageName (mkPackageName, unPackageName)
 import Distribution.Types.Version (versionNumbers)
-import Distribution.Utils.ShortText (fromShortText)
 import Hackage.RevDeps (lastVersionsOfPackages)
 import qualified Distribution.SPDX as SPDX
+
+#if MIN_VERSION_Cabal_syntax(3,18,0)
+import qualified Data.Text as T
+
+fromShortText :: T.Text -> String
+fromShortText = T.unpack
+#else
+import Distribution.Utils.ShortText (fromShortText)
+#endif
 
 ---------------------------------------------------------------------
 -- DATA TYPE
