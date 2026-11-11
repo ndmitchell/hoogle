@@ -54,7 +54,9 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
               Nothing -> hSupportsANSI stdout
             let (shown, hidden) = splitAt count' $ nubOrd $ map (targetResultDisplay link color' q) res
             if null res then
-                putStrLn "No results found"
+                if | json -> putStrLn "[]"
+                   | jsonl -> putStrLn ""
+                   | otherwise -> putStrLn "No results found"
              else if info then do
                  mapM_ (putStr . targetInfo color' q)
                   $ (case count of
@@ -64,7 +66,7 @@ actionSearch Search{..} = replicateM_ repeat_ $ -- deliberately reopen the datab
                 if | json -> LBS.putStrLn $ JSON.encode $ maybe id take count $ map unHTMLtargetItem res
                    | jsonl -> mapM_ (LBS.putStrLn . JSON.encode) $ maybe id take count $ map unHTMLtargetItem res
                    | otherwise -> putStr $ unlines $ if numbers then addCounter shown else shown
-                when (hidden /= [] && not json) $ do
+                when (hidden /= [] && not json && not jsonl) $ do
                     whenNormal $ putStrLn $ "-- plus more results not shown, pass --count=" ++ show (count'+10) ++ " to see more"
         else do
             let parseType x = case parseQuery x of
